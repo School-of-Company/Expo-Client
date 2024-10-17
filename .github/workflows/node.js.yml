@@ -33,10 +33,10 @@ jobs:
       if: ${{ success() }}
       with:
         webhook: ${{ secrets.WEBHOOK_CI }}
-        title: "🎉 Expo Client CI 🐿"
+        title: "🎉 Expo Client CI"
         description: "CI success"
         status: ${{ job.status }}
-        content: "<@${{ secrets.ID1 }}> <@${{ secrets.ID2 }}> <@${{ secrets.ID3 }}> <@${{ secrets.ID4 }}>\n확인해주세요."
+        content: "<@${{ secrets.ID1 }}> <@${{ secrets.ID2 }}>\n확인해주세요."
         username: Expo Client CI bot
         url: "https://github.com/School-of-Company/Expo-Client"
         color: 4CAF50
@@ -46,7 +46,7 @@ jobs:
       if: failure()
       with:
         webhook: ${{ secrets.WEBHOOK_CI }}
-        title: "❌ Expo Client CI 🐿"
+        title: "❌ Expo Client CI"
         description: "CI failed"
         content: "안돼 안바꿔줘 돌아가"
         status: ${{ job.status }}
