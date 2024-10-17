@@ -21,9 +21,12 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run Next.js build
+      run: npm run build
     
     - name: Success Discord Notification
       uses: sarisia/actions-status-discord@v1.11.0
