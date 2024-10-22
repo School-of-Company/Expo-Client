@@ -1,7 +1,6 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  darkMode: ['class'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -13,65 +12,28 @@ const config: Config = {
     extend: {
       colors: {
         gray: {
-          '100': '#212125',
-          '200': '#333338',
-          '300': '#51515A',
-          '450': '#74747F',
-          '600': '#9F9FA8',
-          '800': '#CFCFD3',
-          '900': '#E7E7E9',
+          '100': 'var(--color-gray-100)',
+          '200': 'var(--color-gray-200)',
+          '300': 'var(--color-gray-300)',
+          '400': 'var(--color-gray-400)',
+          '500': 'var(--color-gray-500)',
+          '600': 'var(--color-gray-600)',
+          '700': 'var(--color-gray-700)',
+          '800': 'var(--color-gray-800)',
+          '900': 'var(--color-gray-900)',
         },
         main: {
-          '300': '#71A617',
-          '400': '#8DCE1C',
-          '500': '#A4E335',
-          '600': '#C8EE86',
-          '800': '#DAF4AE',
+          '100': 'var(--color-main-100)',
+          '200': 'var(--color-main-200)',
+          '300': 'var(--color-main-300)',
+          '400': 'var(--color-main-400)',
+          '500': 'var(--color-main-500)',
+          '600': 'var(--color-main-600)',
         },
         transparent: 'transparent',
-        black: '#1C1C1F',
-        white: '#ffffff',
-        error: '#DF454A',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
-        },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
-        },
+        black: 'var(--color-black)',
+        white: 'var(--color-white)',
+        error: 'var(--color-error)',
       },
       fontFamily: {
         Pretendard: ['Pretendard'],
