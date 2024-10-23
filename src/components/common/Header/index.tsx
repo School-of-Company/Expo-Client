@@ -31,15 +31,22 @@ const Header = () => {
       <Link href="/">
         <Logo />
       </Link>
-      <nav className="flex gap-[50px]">
+      <nav className="flex gap-[50px] mobile:gap-8">
         {navItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className="flex items-center gap-5"
           >
-            <item.icon fill={getColor(item.href)} />
-            <span style={{ color: getColor(item.href) }}>{item.label}</span>
+            <div>
+              <item.icon fill={getColor(item.href)} />
+            </div>
+            <span
+              className="block mobile:hidden"
+              style={{ color: getColor(item.href) }}
+            >
+              {item.label}
+            </span>
           </Link>
         ))}
       </nav>
