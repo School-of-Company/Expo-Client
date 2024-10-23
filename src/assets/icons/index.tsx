@@ -11,3 +11,5 @@ export { default as ArrowRight } from './ArrowRight';
 export { default as ArrowUp } from './ArrowUp';
 export { default as ArrowLeft } from './ArrowLeft';
 export { default as XMark } from './XMark';
+export { default as Home } from './Home';
+export { default as Calendar } from './Calendar';
