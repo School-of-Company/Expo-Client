@@ -13,3 +13,5 @@ export { default as ArrowLeft } from './ArrowLeft';
 export { default as XMark } from './XMark';
 export { default as Home } from './Home';
 export { default as Calendar } from './Calendar';
+export { default as SelectedEye } from './SelectedEye';
+export { default as Eye } from './Eye';
