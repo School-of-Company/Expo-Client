@@ -40,18 +40,18 @@ const config: Config = {
       },
       fontSize: {
         h1: ['1.875rem', { lineHeight: '2.25rem', fontWeight: '500' }],
-        h2: ['1.5rem', { lineHeight: '1.8rem', fontWeight: '600' }],
+        h2: ['1.5rem', { lineHeight: '1.65rem', fontWeight: '600' }],
         h3: ['1.5rem', { lineHeight: '1.8rem', fontWeight: '400' }],
         h4: ['1.25rem', { lineHeight: '1.5rem', fontWeight: '600' }],
         h5: ['1.25rem', { lineHeight: '1.5rem', fontWeight: '400' }],
         body1: ['1.125rem', { lineHeight: '1.35rem', fontWeight: '600' }],
         body2: ['1.125rem', { lineHeight: '1.35rem', fontWeight: '400' }],
-        body3: ['1rem', { lineHeight: '1.2rem', fontWeight: '600' }],
-        body4: ['1rem', { lineHeight: '1.2rem', fontWeight: '400' }],
+        body3: ['1rem', { lineHeight: '1.4rem', fontWeight: '600' }],
+        body4: ['1rem', { lineHeight: '1.4rem', fontWeight: '400' }],
         caption1: ['0.875rem', { lineHeight: '1.225rem', fontWeight: '600' }],
         caption2: ['0.875rem', { lineHeight: '1.225rem', fontWeight: '400' }],
-        caption3: ['0.75rem', { lineHeight: '1.05rem', fontWeight: '600' }],
-        caption4: ['0.75rem', { lineHeight: '1.05rem', fontWeight: '400' }],
+        caption3: ['0.75rem', { lineHeight: '1.125rem', fontWeight: '600' }],
+        caption4: ['0.75rem', { lineHeight: '1.125rem', fontWeight: '400' }],
       },
       spacing: {
         '0': '0',
@@ -59,17 +59,23 @@ const config: Config = {
         '1': '0.25rem', //4px
         '2': '0.5rem', //8px
         '3': '0.75rem', //12px
-        '4': '1rem', // 16px
-        '5': '1.25rem', // 20px
-        '6': '1.5rem', // 24px
-        '7': '1.75rem', // 28px
-        '8': '2rem', // 32px
+        '4': '0.875rem', //14px
+        '5': '1rem', // 16px
+        '6': '1.25rem', // 20px
+        '7': '1.5rem', // 24px
+        '8': '1.75rem', // 28px
+        '9': '2rem', // 32px
         px: '1px',
       },
       borderRadius: {
         none: '0',
-        sm: '0.5rem', //8px
-        md: '0.75rem', // 12px
+        sm: '0.375rem', // 6px
+        md: '0.5rem', // 8px
+        lg: '0.75rem', // 12px
+        xl: '1rem', // 16px
+        '2xl': '1.5rem', // 24px
+        '3xl': '2rem', // 32px
+        full: '9999px', // 완전한 원형
       },
       borderWidth: {
         '1': '0.0625rem',
