@@ -40,7 +40,7 @@ const config: Config = {
       },
       fontSize: {
         h1: ['1.875rem', { lineHeight: '2.25rem', fontWeight: '500' }],
-        h2: ['1.5rem', { lineHeight: '1.65rem', fontWeight: '600' }],
+        h2: ['1.5rem', { lineHeight: '1.8rem', fontWeight: '600' }],
         h3: ['1.5rem', { lineHeight: '1.8rem', fontWeight: '400' }],
         h4: ['1.25rem', { lineHeight: '1.5rem', fontWeight: '600' }],
         h5: ['1.25rem', { lineHeight: '1.5rem', fontWeight: '400' }],
