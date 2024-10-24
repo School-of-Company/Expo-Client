@@ -9,7 +9,7 @@ interface Props {
   endDate: string;
 }
 
-const Club = ({ clubName, description, startDate, endDate }: Props) => {
+const ExpoListItem = ({ clubName, description, startDate, endDate }: Props) => {
   return (
     <div className="flex gap-6 rounded-md bg-white px-6 py-5">
       <div className="relative overflow-hidden">
@@ -55,4 +55,4 @@ const Club = ({ clubName, description, startDate, endDate }: Props) => {
   );
 };
 
-export default Club;
+export default ExpoListItem;
