@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import React from 'react';
-import TestImg from '@/assets/png/TestImg.png';
+import TestImg from '@/shared/assets/png/TestImg.png';
 
 interface Props {
   clubName: string;

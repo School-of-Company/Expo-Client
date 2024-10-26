@@ -1,6 +1,5 @@
 import React from 'react';
-import ModalButton from './atoms/ModalButton';
-import { XMark } from '@/assets/icons';
+import { XMark } from '@/shared/assets/icons';
 
 const Modal = ({ text }: { text: string }) => {
   return (
@@ -11,8 +10,12 @@ const Modal = ({ text }: { text: string }) => {
           <XMark />
         </div>
         <div className="flex gap-[50px]">
-          <ModalButton text="참가자" bgColor="bg-main-500" />
-          <ModalButton text="연수자" bgColor="bg-main-300" />
+          <button className="w-full rounded-sm bg-main-500 py-3 text-white">
+            참가자
+          </button>
+          <button className="w-full rounded-sm bg-main-300 py-3 text-white">
+            연수자
+          </button>
         </div>
       </div>
     </div>

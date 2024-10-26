@@ -1,5 +1,5 @@
 import { Meta, StoryObj } from '@storybook/react';
-import QR from './index';
+import QR from '../QRcode/index';
 
 const config: Meta<typeof QR> = {
   title: 'Components/Common/QR',

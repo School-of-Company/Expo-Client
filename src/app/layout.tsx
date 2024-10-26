@@ -1,8 +1,8 @@
-import TanstackProviders from '@/libs/TanstackProviders';
-import ToastProvider from '@/libs/ToastProvider';
-import { pretendard } from '@/styles/fonts';
-import '../styles/globals.css';
+import '../shared/styles/globals.css';
 import 'react-toastify/dist/ReactToastify.css';
+import TanstackProviders from '@/shared/libs/TanstackProviders';
+import ToastProvider from '@/shared/libs/ToastProvider';
+import { pretendard } from '@/shared/styles/fonts';
 
 export default function RootLayout({
   children,
