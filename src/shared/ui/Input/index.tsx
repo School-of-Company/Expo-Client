@@ -6,7 +6,7 @@ import {
   useState,
 } from 'react';
 
-import { Eye, SelectedEye } from '@/assets/icons';
+import { Eye, SelectedEye } from '@/shared/assets/icons';
 
 interface Props
   extends DetailedHTMLProps<
@@ -34,6 +34,11 @@ const Input = forwardRef<HTMLInputElement, Props>(
 
     const inputId = `input-${Math.random().toString(36).substr(2, 9)}`;
 
+    const inputStyle = {
+      WebkitBoxShadow: '0 0 0 30px white inset !important',
+      WebkitTextFillColor: 'inherit !important',
+    };
+
     return (
       <div className="w-full">
         <label
@@ -47,6 +52,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             type={type === 'password' && showPassword ? 'text' : type}
             className="w-full border-none bg-transparent text-body4 outline-none"
             onChange={onChange}
+            style={inputStyle}
           />
 
           {label && <div className="break-keep">{label}</div>}

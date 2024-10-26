@@ -1,6 +1,6 @@
 import { QRCodeSVG } from 'qrcode.react';
 import React from 'react';
-import { XMark } from '@/assets/icons';
+import { XMark } from '@/shared/assets/icons';
 
 const QR = ({ qrData }: { qrData: string }) => {
   return (
