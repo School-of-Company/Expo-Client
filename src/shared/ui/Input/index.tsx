@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ChangeEvent,
   DetailedHTMLProps,
@@ -16,10 +18,11 @@ interface Props
   error?: string;
   label?: string;
   type: string;
+  placeholder: string;
 }
 
 const Input = forwardRef<HTMLInputElement, Props>(
-  ({ error, label, type, ...props }, ref) => {
+  ({ error, label, type, placeholder, ...props }, ref) => {
     const [value, setValue] = useState<string>('');
     const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -53,6 +56,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             className="w-full border-none bg-transparent text-body4 outline-none"
             onChange={onChange}
             style={inputStyle}
+            placeholder={placeholder}
           />
 
           {label && <div className="break-keep">{label}</div>}
