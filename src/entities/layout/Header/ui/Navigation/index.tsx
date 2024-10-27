@@ -5,7 +5,7 @@ import React from 'react';
 import { NavItem } from '../../model/types';
 import { useNavigation } from '../../model/useNavigation';
 
-const Navigation: React.FC = () => {
+const Navigation = () => {
   const { navItems, getColor } = useNavigation();
 
   return (

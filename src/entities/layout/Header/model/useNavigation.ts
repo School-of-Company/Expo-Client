@@ -8,7 +8,7 @@ export const useNavigation = () => {
   const isActive = (path: string): boolean => pathname === path;
 
   const getColor = (path: string): string =>
-    isActive(path) ? '#448FFF' : '#121212';
+    isActive(path) ? '#448FFF' : '#909090';
 
   return { navItems, getColor };
 };
