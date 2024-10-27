@@ -11,7 +11,7 @@ interface Props {
 
 const ExpoListItem = ({ clubName, description, startDate, endDate }: Props) => {
   return (
-    <div className="flex gap-6 rounded-md bg-white px-6 py-5">
+    <div className="flex gap-6 rounded-md border-1 border-solid border-gray-200 bg-white px-6 py-5">
       <div className="relative overflow-hidden">
         <Image
           src={TestImg}

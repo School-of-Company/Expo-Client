@@ -1,5 +1,5 @@
-import Header from '@/widgets/layout/ui/Header';
+import Main from '@/views/main/ui/main';
 
 export default function Home() {
-  return <Header />;
+  return <Main />;
 }

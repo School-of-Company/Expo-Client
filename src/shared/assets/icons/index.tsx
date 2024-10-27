@@ -1,6 +1,6 @@
 export { default as QuestionMark } from './QuestionMark';
 export { default as Clock } from './Clock';
-export { default as Filter } from './Filter';
+export { default as FilterIcon } from './FilterIcon';
 export { default as Person } from './Person';
 export { default as Setting } from './Setting';
 export { default as Search } from './Search';
