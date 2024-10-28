@@ -1,10 +1,10 @@
 import React from 'react';
 
-interface CalendarProps {
+interface Props {
   fill?: string;
 }
 
-const Person = ({ fill }: CalendarProps) => {
+const Person = ({ fill = '#121212' }: Props) => {
   return (
     <svg
       width="24"
