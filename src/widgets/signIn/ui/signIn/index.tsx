@@ -6,7 +6,7 @@ const SignInContainer = () => {
   return (
     <div>
       <div className="space-y-[50px]">
-        <p className="text-center text-h1 text-black">관리자 로그인</p>
+        <p className="text-center text-h1">관리자 로그인</p>
         <SignInForm />
       </div>
       <SignupPrompt />

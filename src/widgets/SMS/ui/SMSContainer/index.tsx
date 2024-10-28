@@ -12,7 +12,7 @@ export default function Write() {
     <div className="relative mx-auto flex w-full max-w-[792px] flex-1 flex-col pb-5">
       <div className="flex flex-1 flex-col gap-[62px]">
         <SMSHeader />
-        <div className="space-y-[40px] mobile:px-5">
+        <div className="space-y-[40px]">
           <TextArea
             title="제목"
             placeholder="제목 입력"
