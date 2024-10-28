@@ -6,7 +6,7 @@ const SMS = () => {
   return (
     <div className="flex h-screen flex-col gap-[30px] mobile:gap-5">
       <Header />
-      <div>
+      <div className="px-5">
         <SMSContainer />
       </div>
     </div>

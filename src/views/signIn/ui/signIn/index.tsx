@@ -7,7 +7,7 @@ const SignIn = () => {
     <div className="flex min-h-screen flex-col">
       <Header />
       <div className="flex flex-grow items-center justify-center">
-        <div className="w-full max-w-[792px]">
+        <div className="mt-8 w-full max-w-[792px] px-5">
           <SignInContainer />
         </div>
       </div>

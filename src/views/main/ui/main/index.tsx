@@ -6,7 +6,7 @@ const Main = () => {
   return (
     <div className="flex h-screen flex-col gap-[30px] mobile:gap-0">
       <Header />
-      <div className="mx-auto max-w-[1200px] flex-1 overflow-auto mobile:mx-5">
+      <div className="mx-auto max-w-[1200px] flex-1 overflow-auto px-5">
         <ExpoListContainer />
       </div>
     </div>
