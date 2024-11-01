@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ImageInput } from '@/entities/create-exhibition';
+import AddressSearch from '@/entities/create-exhibition/ui/SearchAddress';
 import TrainingModule from '@/entities/create-exhibition/ui/TrainingModule';
 import { Button, Input } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
@@ -10,7 +11,7 @@ const ExhibitionForm = () => {
   const [title, setTitle] = useState<string>('');
   const [textAreaContent, setTextAreaContent] = useState('');
   const [img, setImg] = useState<string | null>(null);
-  const [place, setPlace] = useState<string>('');
+  const [address, setAddress] = useState('');
 
   return (
     <div className="w-full">
@@ -43,12 +44,7 @@ const ExhibitionForm = () => {
         </div>
         <div className="space-y-[10px]">
           <p className="text-h4 text-black">장소</p>
-          <Input
-            value={place}
-            setValue={setPlace}
-            type="text"
-            placeholder="장소를 알려주세요."
-          />
+          <AddressSearch value={address} setValue={setAddress} />
         </div>
         <Button text="확인" />
       </div>
