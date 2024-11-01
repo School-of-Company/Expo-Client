@@ -1,5 +1,6 @@
 'use client';
 
+import axios from 'axios';
 import React, { useState } from 'react';
 import { ImageInput } from '@/entities/create-exhibition';
 import AddressSearch from '@/entities/create-exhibition/ui/SearchAddress';
@@ -12,6 +13,50 @@ const ExhibitionForm = () => {
   const [textAreaContent, setTextAreaContent] = useState('');
   const [img, setImg] = useState<string | null>(null);
   const [address, setAddress] = useState('');
+
+  const KAKAO_REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+
+  const convertAddressToCoordinates = async (
+    address: string,
+  ): Promise<{ lat: number; lng: number } | null> => {
+    try {
+      const url = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(
+        address,
+      )}`;
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `KakaoAK ${KAKAO_REST_API_KEY}`,
+        },
+      });
+
+      if (response.status === 200 && response.data.documents.length > 0) {
+        const { x, y } = response.data.documents[0].address;
+        const coordinates = {
+          lat: parseFloat(y),
+          lng: parseFloat(x),
+        };
+        return coordinates;
+      } else {
+        console.log('주소 결과가 없습니다.');
+      }
+    } catch (error) {
+      console.error('주소 변환 오류:', error);
+    }
+    return null;
+  };
+
+  const handleConvertAddress = async () => {
+    if (address) {
+      const coordinates = await convertAddressToCoordinates(address);
+      if (coordinates) {
+        console.log('좌표:', coordinates);
+      } else {
+        console.log('좌표 변환에 실패했습니다.');
+      }
+    } else {
+      console.log('주소를 입력해주세요.');
+    }
+  };
 
   return (
     <div className="w-full">
@@ -46,7 +91,7 @@ const ExhibitionForm = () => {
           <p className="text-h4 text-black">장소</p>
           <AddressSearch value={address} setValue={setAddress} />
         </div>
-        <Button text="확인" />
+        <Button onClick={handleConvertAddress} text="확인" />
       </div>
     </div>
   );

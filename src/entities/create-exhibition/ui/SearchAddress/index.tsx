@@ -1,4 +1,3 @@
-// components/AddressSearch.tsx
 'use client';
 
 import { useEffect } from 'react';
@@ -13,7 +12,7 @@ interface Props {
   setValue: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const AddressSearch: React.FC<Props> = ({ value, setValue }) => {
+const AddressSearch = ({ value, setValue }: Props) => {
   useEffect(() => {
     const script = document.createElement('script');
     script.src =
