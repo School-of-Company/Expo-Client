@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import React from 'react';
 import { Location } from '@/shared/assets/icons';
-
-interface AddressData {
-  address: string;
-}
+import { useAddressSearch } from '../../model/useAddressSearch';
 
 interface Props {
   value: string;
@@ -13,25 +10,7 @@ interface Props {
 }
 
 const AddressSearch = ({ value, setValue }: Props) => {
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src =
-      'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  const openAddressSearch = () => {
-    new window.daum.Postcode({
-      oncomplete: (data: AddressData) => {
-        setValue(data.address);
-      },
-    }).open();
-  };
+  const { openAddressSearch } = useAddressSearch(setValue);
 
   return (
     <div className="space-y-[10px]">
