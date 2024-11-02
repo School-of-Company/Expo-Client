@@ -1,12 +1,12 @@
 import React from 'react';
-import Header from '@/widgets/layout/ui/Header';
+import CreateExhibition from '@/views/create-exhibition/ui/createExhibition';
 
-const createExhibition = () => {
+const page = () => {
   return (
     <div>
-      <Header />
+      <CreateExhibition />
     </div>
   );
 };
 
-export default createExhibition;
+export default page;

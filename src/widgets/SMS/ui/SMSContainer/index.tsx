@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { SMSHeader, TextArea } from '@/entities/SMS';
+import { SMSHeader } from '@/entities/SMS';
 import { Button } from '@/shared/ui';
+import TextArea from '@/shared/ui/TextArea';
 
 export default function Write() {
   const [title, setTitle] = useState<string>('');

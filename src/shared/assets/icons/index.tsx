@@ -16,3 +16,5 @@ export { default as Calendar } from './Calendar';
 export { default as SelectedEye } from './SelectedEye';
 export { default as Eye } from './Eye';
 export { default as Program } from './Program';
+export { default as Plus } from './Plus';
+export { default as Location } from './Location';

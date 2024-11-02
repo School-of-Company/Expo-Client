@@ -15,6 +15,8 @@ interface Props
     InputHTMLAttributes<HTMLInputElement>,
     HTMLInputElement
   > {
+  value: string;
+  setValue: React.Dispatch<React.SetStateAction<string>>;
   error?: string;
   label?: string;
   type: string;
@@ -22,8 +24,7 @@ interface Props
 }
 
 const Input = forwardRef<HTMLInputElement, Props>(
-  ({ error, label, type, placeholder, ...props }, ref) => {
-    const [value, setValue] = useState<string>('');
+  ({ value, setValue, error, label, type, placeholder, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState<boolean>(false);
 
     const onChange = (e: ChangeEvent<HTMLInputElement>) => {
