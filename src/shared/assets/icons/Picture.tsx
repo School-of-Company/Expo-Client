@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface Props {
-  fill: string;
+  fill?: string;
 }
 
 const Picture = ({ fill = '#121212' }: Props) => {
