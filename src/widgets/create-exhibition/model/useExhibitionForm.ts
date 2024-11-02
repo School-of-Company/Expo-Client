@@ -8,17 +8,13 @@ export const useExhibitionForm = () => {
   const [address, setAddress] = useState('');
 
   const handleConvertAddress = async () => {
-    if (address) {
-      const coordinates = await convertAddressToCoordinates(address);
-      if (coordinates) {
-        console.log('좌표:', coordinates);
-      } else {
-        console.log('좌표 변환에 실패했습니다.');
-      }
-    } else {
+    if (!adress) {
       console.log('주소를 입력해주세요.');
-    }
-  };
+      return;
+  }
+  
+  const coordinates = await convertAddressToCoordinates(adress);
+  console.log(coordinates ? `좌표: ${coordinates}` : 좌표 변환에 실패했습니다.);
 
   return {
     title,
