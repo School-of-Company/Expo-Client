@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { Dispatch, SetStateAction, useEffect } from 'react';
 
 interface AddressData {
   address: string;
 }
 
 export const useAddressSearch = (
-  setValue: React.Dispatch<React.SetStateAction<string>>,
+  setValue: Dispatch<SetStateAction<string>>,
 ) => {
   useEffect(() => {
     const script = document.createElement('script');
