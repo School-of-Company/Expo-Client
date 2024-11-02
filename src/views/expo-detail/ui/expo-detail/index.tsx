@@ -1,4 +1,5 @@
 import React from 'react';
+import ExpoActionPanel from '@/entities/expo-detail/ui/ExpoActionPanel';
 import ExpoDetailLayout from '@/widgets/expo-detail/ui/ExpoDetailLayout';
 import { Header } from '@/widgets/layout';
 
@@ -6,8 +7,11 @@ const ExpoDetail = () => {
   return (
     <div className="flex h-screen flex-col mobile:gap-0">
       <Header />
-      <div className="mx-auto w-full max-w-[842px] flex-1 px-5 py-[30px]">
-        <ExpoDetailLayout />
+      <div className="flex justify-center py-[30px]">
+        <div className="w-full max-w-[842px]">
+          <ExpoDetailLayout />
+        </div>
+        <ExpoActionPanel />
       </div>
     </div>
   );

@@ -27,27 +27,32 @@ const ExpoDetailLayout = () => {
   return (
     <div>
       <DetailHeader HederTitle={expoDetailMockData.headerTitle} />
-      <div className="mt-[48px] space-y-9">
-        <Image
-          src={TestExpo}
-          alt="TestClubImg"
-          objectFit="cover"
-          className="rounded-md"
-        />
-        <ContentText
-          title="소개 글"
-          content={expoDetailMockData.introduction.content}
-        />
-        <ContentText
-          title="연수"
-          content={expoDetailMockData.training.content}
-        />
-        <div className="space-y-4">
-          <ContentText
-            title="장소 지도"
-            content={expoDetailMockData.location.address}
+      <div className="mt-[48px] flex justify-center space-y-9">
+        <div>
+          <Image
+            src={TestExpo}
+            alt="TestClubImg"
+            objectFit="cover"
+            className="rounded-md"
           />
-          <KakaoMap latitude={35.1427689679488} longitude={126.800771954215} />
+          <ContentText
+            title="소개 글"
+            content={expoDetailMockData.introduction.content}
+          />
+          <ContentText
+            title="연수"
+            content={expoDetailMockData.training.content}
+          />
+          <div className="space-y-4">
+            <ContentText
+              title="장소 지도"
+              content={expoDetailMockData.location.address}
+            />
+            <KakaoMap
+              latitude={35.1427689679488}
+              longitude={126.800771954215}
+            />
+          </div>
         </div>
       </div>
     </div>
