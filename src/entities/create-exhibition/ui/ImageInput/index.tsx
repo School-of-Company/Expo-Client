@@ -18,7 +18,7 @@ const ImageInput = ({ img, setImg }: ImageInputProps) => {
 
   return (
     <div>
-      {img ? (
+      {img && (
         <div className="mb-4 w-full max-w-xs">
           <Image
             src={img}
@@ -29,7 +29,7 @@ const ImageInput = ({ img, setImg }: ImageInputProps) => {
             objectFit="cover"
           />
         </div>
-      ) : null}
+      )}
 
       <label
         htmlFor="imageUpload"
