@@ -1,6 +1,5 @@
 import React from 'react';
-import WhiteButton from '@/entities/expo-detail/ui/WhiteButton';
-import { Button } from '@/shared/ui';
+import { Button, WhiteButton } from '@/shared/ui';
 
 const ExpoActionPanel = ({ role = 'manage' }) => {
   const getButtons = () => {
@@ -10,7 +9,7 @@ const ExpoActionPanel = ({ role = 'manage' }) => {
     if (role === 'manage') {
       return (
         <div className="w-full space-y-2 mobile:space-y-2">
-          <div className="space-y-2 mobile:flex mobile:gap-5">
+          <div className="space-y-2 mobile:flex mobile:gap-5 mobile:space-y-0">
             <Button text="QR 조회하기" />
             <Button text="문자 보내기" />
           </div>

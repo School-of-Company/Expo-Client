@@ -1,5 +1,5 @@
 import React from 'react';
-import ExpoActionPanel from '@/widgets/expo-detail/ui/ExpoActionPanel';
+import ExpoActionPanel from '@/entities/expo-detail/ui/ExpoActionPanel';
 import ExpoDetailLayout from '@/widgets/expo-detail/ui/ExpoDetailLayout';
 import { Header } from '@/widgets/layout';
 
