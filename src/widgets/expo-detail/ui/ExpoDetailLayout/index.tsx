@@ -28,7 +28,7 @@ const ExpoDetailLayout = () => {
     <div>
       <DetailHeader HederTitle={expoDetailMockData.headerTitle} />
       <div className="mt-[48px] flex justify-center space-y-9">
-        <div>
+        <div className="space-y-[36px]">
           <Image
             src={TestExpo}
             alt="TestClubImg"
