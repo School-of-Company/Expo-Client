@@ -7,15 +7,15 @@ interface Props {
   onClick?: () => void;
 }
 
-const Button = ({ text, onClick }: Props) => {
+const WhiteButton = ({ text, onClick }: Props) => {
   return (
     <button
       onClick={onClick || (() => {})}
-      className="w-full rounded-sm bg-main-600 py-3 text-h5 text-white"
+      className="w-full rounded-sm border-1 border-solid border-gray-100 py-3 text-h5 text-gray-300"
     >
       {text}
     </button>
   );
 };
 
-export default Button;
+export default WhiteButton;
