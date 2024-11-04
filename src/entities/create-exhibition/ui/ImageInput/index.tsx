@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { useState } from 'react';
 import { Picture } from '@/shared/assets/icons';
 
 interface ImageInputProps {
@@ -7,12 +8,24 @@ interface ImageInputProps {
 }
 
 const ImageInput = ({ img, setImg }: ImageInputProps) => {
+  const [error, setError] = useState<string | null>(null);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
-    if (file) {
-      const fileURL = URL.createObjectURL(file);
 
-      setImg(fileURL);
+    if (file) {
+      const imgElement = new window.Image();
+      imgElement.src = URL.createObjectURL(file);
+
+      imgElement.onload = () => {
+        if (imgElement.width < 750 || imgElement.height < 360) {
+          setError('이미지의 최소 크기는 750x360이어야 합니다.');
+          return;
+        }
+
+        setImg(URL.createObjectURL(file));
+        setError(null);
+      };
     }
   };
 
@@ -23,9 +36,9 @@ const ImageInput = ({ img, setImg }: ImageInputProps) => {
           <Image
             src={img}
             alt="미리보기 이미지"
-            layout="intrinsic"
-            width={200}
-            height={150}
+            layout="responsive"
+            width={300}
+            height={200}
             objectFit="cover"
           />
         </div>
@@ -45,6 +58,8 @@ const ImageInput = ({ img, setImg }: ImageInputProps) => {
         className="hidden"
         onChange={handleImageChange}
       />
+
+      {error && <p className="mt-2 text-red-500">{error}</p>}
     </div>
   );
 };

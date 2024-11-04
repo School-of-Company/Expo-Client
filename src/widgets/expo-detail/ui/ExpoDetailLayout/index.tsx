@@ -10,9 +10,9 @@ const ExpoDetailLayout = () => {
   const { expoDetail } = useMockExpoDetail();
 
   return (
-    <div className="px-5">
+    <div>
       <DetailHeader headerTitle={expoDetail.headerTitle} />
-      <div className="mt-[48px] flex justify-center space-y-9">
+      <div className="mt-[48px] flex justify-end space-y-9">
         <div className="space-y-[36px]">
           <Image
             src={TestExpo}
