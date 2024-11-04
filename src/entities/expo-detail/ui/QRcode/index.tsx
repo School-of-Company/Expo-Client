@@ -2,15 +2,24 @@ import { QRCodeSVG } from 'qrcode.react';
 import React from 'react';
 import { XMark } from '@/shared/assets/icons';
 
-const QR = ({ qrData }: { qrData: string }) => {
+interface Props {
+  qrData: string;
+  onClose: () => void;
+}
+
+const QR = ({ qrData, onClose }: Props) => {
   return (
-    <div className="bg-white p-8">
-      <div className="flex flex-col items-center gap-6">
+    <div className="h-[306px] w-[330px] bg-white p-8">
+      <div className="flex h-full flex-col items-center justify-between">
         <div className="flex w-full justify-between">
           <p className="text-h2">현장 신청 QR코드</p>
-          <XMark />
+          <label onClick={onClose}>
+            <XMark />
+          </label>
         </div>
-        <QRCodeSVG value={qrData} />
+        <div className="p-5">
+          <QRCodeSVG value={qrData} size={170} />
+        </div>
       </div>
     </div>
   );
