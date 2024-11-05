@@ -1,10 +1,10 @@
 import React from 'react';
-import TableForm from '@/widgets/expo-manage/ui/TableForm';
+import { ExpoManage } from '@/views/expo-manage';
 
 const page = () => {
   return (
     <div>
-      <TableForm />
+      <ExpoManage />
     </div>
   );
 };
