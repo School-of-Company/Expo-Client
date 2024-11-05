@@ -1,5 +1,6 @@
 'use client';
 
+import { QRCodeSVG } from 'qrcode.react';
 import React, { useState, useEffect } from 'react';
 
 interface UserInfo {
@@ -61,51 +62,31 @@ const QRCodeScanner: React.FC = () => {
   };
 
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow && userInfo) {
-      printWindow.document.write(`
-        <!DOCTYPE html>
+    const printContents = document.getElementById('printArea')?.innerHTML;
+    if (printContents) {
+      const printWindow = window.open('', '_blank');
+      printWindow?.document.write(`
         <html>
           <head>
-            <title>사용자 정보 출력</title>
+            <title>Print QR Code</title>
             <style>
-              body {
-                font-family: Arial, sans-serif;
-                margin: 0;
-                padding: 20px;
-                box-sizing: border-box;
-              }
-              .print-container {
-                border: 3px solid #ccc;
-                padding: 20px;
-                max-width: 500px;
-                margin: 0 auto;
-              }
               @media print {
-                body { margin: 0; }
-                @page { margin: 0; }
+                @page { margin: 0; } 
+                body { margin: 0; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+                .w-[500px] { width: 500px; margin: 0 auto; }
+                .border-[3px] { border-width: 3px; }
+                .border-solid { border-style: solid; }
+                .border-gray-400 { border-color: gray; }
+                .p-16 { padding: 16px; }
               }
             </style>
           </head>
-          <body>
-            <div class="print-container">
-              <h2>사용자 정보</h2>
-              <p><strong>이름:</strong> ${userInfo.name}</p>
-              <p><strong>번호:</strong> ${userInfo.number}</p>
-              <p><strong>이메일:</strong> ${userInfo.email}</p>
-            </div>
-            <script>
-              window.onload = function() {
-                window.print();
-                window.onafterprint = function() {
-                  window.close();
-                }
-              }
-            </script>
+          <body onload="window.print(); window.close();">
+            ${printContents}
           </body>
         </html>
       `);
-      printWindow.document.close();
+      printWindow?.document.close();
     }
   };
 
@@ -115,18 +96,21 @@ const QRCodeScanner: React.FC = () => {
       <p>{scannedData}</p>
       <div id="printArea">
         {userInfo && (
-          <div className="w-[500px] border-[3px] border-solid border-gray-400 p-16">
+          <div className="w-[500px] border-[3px] border-solid border-gray-400 p-16 text-center">
             <p>사용자이름: {userInfo.name}</p>
             <p>번호: {userInfo.number}</p>
             <p>이메일: {userInfo.email}</p>
+            <div className="flex justify-center">
+              <QRCodeSVG value={scannedData} size={50} />
+            </div>
           </div>
         )}
       </div>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {userInfo && (
         <button
-          onClick={handlePrint}
           className="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+          onClick={handlePrint}
         >
           프린트
         </button>
