@@ -1,10 +1,11 @@
 import React from 'react';
+import { TableHeader } from '@/entities/expo-manage';
 
 const TableForm = () => {
   return (
     <div className="space-y-[34px] rounded-sm border-1 border-solid border-gray-200 px-[30px] py-6">
       <div className="space-y-[30px] border-b-1 border-solid border-gray-100 pb-6">
-        <div className="bg-red-400">테이블 헤더</div>
+        <TableHeader />
         <div className="space-y-6">
           <div className="bg-blue-400">테이블 아이템</div>
           <div className="bg-blue-400">테이블 아이템</div>
