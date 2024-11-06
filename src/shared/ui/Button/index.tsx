@@ -6,9 +6,10 @@ interface Props {
   text: string;
   onClick?: () => void;
   style?: 'default' | 'white' | 'main100';
+  type?: 'submit' | 'reset' | 'button' | undefined;
 }
 
-const Button = ({ text, onClick, style = 'default' }: Props) => {
+const Button = ({ text, onClick, style = 'default', type }: Props) => {
   let buttonClass = '';
 
   if (style === 'white') {
@@ -22,7 +23,7 @@ const Button = ({ text, onClick, style = 'default' }: Props) => {
   }
 
   return (
-    <button onClick={onClick || (() => {})} className={buttonClass}>
+    <button type={type} onClick={onClick || (() => {})} className={buttonClass}>
       {text}
     </button>
   );
