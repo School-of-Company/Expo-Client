@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { Button, Input } from '@/shared/ui';
@@ -14,6 +14,7 @@ type FormData = {
   password: string;
   checkPassword: string;
   phoneNumber: string;
+  code: string;
 };
 
 const SignUpForm = () => {
@@ -24,7 +25,31 @@ const SignUpForm = () => {
     watch,
     formState: { isSubmitting },
   } = useForm<FormData>();
+  const [isSmsSent, setIsSmsSent] = useState(false);
+  const [timer, setTimer] = useState(0);
 
+  // Toast 메시지 공통 함수
+  const showToast = (type: 'success' | 'error', message: string) => {
+    if (type === 'success') {
+      toast.success(message);
+    } else {
+      toast.error(message);
+    }
+  };
+
+  // 타이머 설정 및 초기화
+  useEffect(() => {
+    if (timer > 0) {
+      const intervalId = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(intervalId);
+    } else {
+      setIsSmsSent(false);
+    }
+  }, [timer]);
+
+  // 회원가입 처리 함수
   const onSubmit = async (data: FormData) => {
     try {
       const response = await axios.post('/api/auth/signup', {
@@ -35,16 +60,56 @@ const SignUpForm = () => {
         phoneNumber: data.phoneNumber,
       });
       if (response.status === 200) {
+        showToast('success', '회원가입이 완료되었습니다.');
         router.push('/signin');
       }
     } catch (error) {
       console.error('Signup failed', error);
-      toast.error('회원가입에 실패했습니다.');
+      showToast('error', '회원가입에 실패했습니다.');
     }
   };
 
-  const showErrorToast = (message: string) => {
-    toast.error(message);
+  // 인증번호 발송 처리 함수
+  const handlePostCode = async () => {
+    const phoneNumber = watch('phoneNumber');
+    if (!phoneNumber) {
+      showToast('error', '전화번호를 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await axios.post('/api/auth/sms', { phoneNumber });
+      if (response.status === 200) {
+        setIsSmsSent(true);
+        setTimer(180);
+        showToast('success', '인증번호가 발송되었습니다.');
+      }
+    } catch (error) {
+      console.error('SMS sending failed', error);
+      showToast('error', '인증번호 발송에 실패했습니다.');
+    }
+  };
+
+  // 인증번호 확인 처리 함수
+  const handleCheckCode = async () => {
+    const phoneNumber = watch('phoneNumber');
+    const code = watch('code');
+    if (!phoneNumber || !code) {
+      showToast('error', '전화번호와 인증 번호를 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `/api/auth/sms?phoneNumber=${phoneNumber}&code=${code}`,
+      );
+      if (response.status === 200) {
+        showToast('success', '인증번호가 확인되었습니다.');
+      }
+    } catch (error) {
+      console.error('Code verification failed', error);
+      showToast('error', '인증번호 확인에 실패했습니다.');
+    }
   };
 
   return (
@@ -122,8 +187,42 @@ const SignUpForm = () => {
               },
             })}
             type="tel"
-            placeholder="연락처를 입력해주세요."
+            placeholder="연락처는 - 빼고 입력해주세요"
           />
+          <div className="flex space-x-3">
+            <Input
+              {...register('code', {
+                required: '인증 번호를 입력해주세요.',
+                pattern: {
+                  value: /^\d{4}$/,
+                  message: '6자리 숫자를 입력해주세요.',
+                },
+              })}
+              type="text"
+              placeholder="인증 번호 입력"
+              style={{ width: '80%' }}
+              disabled={!isSmsSent}
+            />
+            <Button
+              onClick={handleCheckCode}
+              text="확인"
+              width="20%"
+              disabled={!isSmsSent}
+              type="button"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handlePostCode}
+            className="text-caption2 text-gray-300"
+            disabled={isSmsSent}
+          >
+            {isSmsSent
+              ? `인증번호 재발송 (${Math.floor(timer / 60)}:${String(
+                  timer % 60,
+                ).padStart(2, '0')})`
+              : '인증번호 발송'}
+          </button>
         </div>
       </div>
       <div className="mt-[160px]">
