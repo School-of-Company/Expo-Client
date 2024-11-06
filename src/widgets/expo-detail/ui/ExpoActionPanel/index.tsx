@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { QRcode } from '@/entities/expo-detail';
-import { Button, Modal, WhiteButton } from '@/shared/ui';
+import { Button, Modal } from '@/shared/ui';
 import { ModalLayout } from '@/widgets/layout';
 import { useExpoActionPanel } from '../../model/useExpoActionPanel';
 
@@ -13,15 +12,8 @@ interface ExpoActionPanelProps {
 const ExpoActionPanel: React.FC<ExpoActionPanelProps> = ({
   role = 'manage',
 }) => {
-  const {
-    isModalOpen,
-    isQRModalOpen,
-    modalContent,
-    openModal,
-    openQRModal,
-    closeModal,
-    closeQRModal,
-  } = useExpoActionPanel();
+  const { isModalOpen, modalContent, openModal, closeModal } =
+    useExpoActionPanel();
 
   const getButtons = () => {
     if (role === 'user') {
@@ -36,13 +28,15 @@ const ExpoActionPanel: React.FC<ExpoActionPanelProps> = ({
       return (
         <div className="w-full space-y-2 mobile:space-y-2">
           <div className="space-y-2 mobile:flex mobile:gap-5 mobile:space-y-0">
-            <Button onClick={openQRModal} text="QR 조회하기" />
+            <Button text="QR 조회하기" />
             <Button
               onClick={() => openModal('누구에게 문자를 전송하시겠습니까?')}
               text="문자 보내기"
             />
           </div>
-          <WhiteButton text="수정하기" />
+          <Button text="프로그램" style="main100" />
+          <Button text="조회하기" style="main100" />
+          <Button text="수정하기" style="white" />
         </div>
       );
     }
@@ -60,11 +54,6 @@ const ExpoActionPanel: React.FC<ExpoActionPanelProps> = ({
       {isModalOpen && (
         <ModalLayout>
           <Modal text={modalContent} onClose={closeModal} />
-        </ModalLayout>
-      )}
-      {isQRModalOpen && (
-        <ModalLayout>
-          <QRcode onClose={closeQRModal} qrData="https://www.instagram.com/" />
         </ModalLayout>
       )}
     </div>
