@@ -1,64 +1,159 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Button, Input } from '@/shared/ui';
+import { checkSmsCode } from '../../model/checkSmsCode';
+import { sendSms } from '../../model/sendSms';
+import { showError } from '../../model/showError';
+import { signUp } from '../../model/signup';
+import { useTimer } from '../../model/useTimer';
+
+type FormData = {
+  name: string;
+  nickname: string;
+  email: string;
+  password: string;
+  checkPassword: string;
+  phoneNumber: string;
+  code: string;
+};
 
 const SignUpForm = () => {
-  const [name, setName] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [checkPassword, setCheckPassword] = useState<string>('');
-  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { isSubmitting },
+  } = useForm<FormData>();
+  const [isSmsSent, setIsSmsSent] = useState(false);
+  const [timer, setTimer] = useState(0);
+
+  useTimer(timer, setTimer);
+
+  const router = useRouter();
+
   return (
-    <div>
+    <form
+      onSubmit={handleSubmit(
+        (data) => signUp(data, router),
+        (errors) => {
+          const firstError = Object.values(errors)[0];
+          if (firstError && firstError.message) {
+            showError(firstError.message as string);
+          }
+        },
+      )}
+    >
       <div className="space-y-6">
         <div className="space-y-3">
           <p className="text-h4 text-black">이름</p>
           <Input
-            value={name}
-            setValue={setName}
+            {...register('name', { required: '이름을 입력해주세요.' })}
             type="text"
             placeholder="이름을 입력해주세요."
           />
         </div>
         <div className="space-y-3">
+          <p className="text-h4 text-black">아이디</p>
+          <Input
+            {...register('nickname', { required: '아이디를 입력해주세요.' })}
+            type="text"
+            placeholder="아이디를 입력해주세요."
+          />
+        </div>
+        <div className="space-y-3">
           <p className="text-h4 text-black">이메일</p>
           <Input
-            value={email}
-            setValue={setEmail}
-            placeholder="이메일을 입력해주세요."
+            {...register('email', {
+              required: '이메일을 입력해주세요.',
+              pattern: {
+                value: /\S+@\S+\.\S+/,
+                message: '유효한 이메일 주소를 입력해주세요.',
+              },
+            })}
             type="email"
+            placeholder="이메일을 입력해주세요."
           />
         </div>
         <div className="space-y-3">
           <p className="text-h4 text-black">비밀번호</p>
           <Input
-            value={password}
-            setValue={setPassword}
-            placeholder="(8~24자 영어(대소문자)/숫자 특수문자 1개이상)"
+            {...register('password', {
+              required: '비밀번호를 입력해주세요.',
+              pattern: {
+                value: /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/,
+                message:
+                  '비밀번호는 8자리 이상, 대문자 1개, 특수문자 1개 이상을 포함해야 합니다.',
+              },
+            })}
             type="password"
+            placeholder="(8자리 이상, 대문자 1개, 특수문자 1개 이상)"
           />
           <Input
-            value={checkPassword}
-            setValue={setCheckPassword}
-            placeholder="비밀번호를 다시 입력해주세요."
+            {...register('checkPassword', {
+              required: '비밀번호를 다시 입력해주세요.',
+              validate: (value) =>
+                value === watch('password') || '비밀번호가 일치하지 않습니다.',
+            })}
             type="password"
+            placeholder="비밀번호를 다시 입력해주세요."
           />
         </div>
         <div className="space-y-3">
           <p className="text-h4 text-black">연락처</p>
           <Input
-            value={phoneNumber}
-            setValue={setPhoneNumber}
-            placeholder="연락처을 입력해주세요."
-            type="text"
+            {...register('phoneNumber', {
+              required: '연락처를 입력해주세요.',
+              pattern: {
+                value: /^\d{10,11}$/,
+                message: '유효한 전화번호를 입력해주세요.',
+              },
+            })}
+            type="tel"
+            placeholder="연락처는 - 빼고 입력해주세요"
           />
+          <div className="flex space-x-3">
+            <Input
+              {...register('code', {
+                required: '인증 번호를 입력해주세요.',
+                pattern: {
+                  value: /^\d{4}$/,
+                  message: '6자리 숫자를 입력해주세요.',
+                },
+              })}
+              type="text"
+              placeholder="인증 번호 입력"
+              style={{ width: '80%' }}
+              disabled={!isSmsSent}
+            />
+            <Button
+              onClick={() => checkSmsCode(watch('phoneNumber'), watch('code'))}
+              text="확인"
+              width="20%"
+              disabled={!isSmsSent}
+              type="button"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              sendSms(watch('phoneNumber'), setIsSmsSent, setTimer)
+            }
+            className="text-caption2 text-gray-300"
+            disabled={isSmsSent}
+          >
+            {isSmsSent
+              ? `인증번호 재발송 (${Math.floor(timer / 60)}:${String(timer % 60).padStart(2, '0')})`
+              : '인증번호 발송'}
+          </button>
         </div>
       </div>
       <div className="mt-[160px]">
-        <Button text="로그인" />
+        <Button disabled={isSubmitting} type="submit" text="회원가입" />
       </div>
-    </div>
+    </form>
   );
 };
 

@@ -6,23 +6,43 @@ interface Props {
   text: string;
   onClick?: () => void;
   style?: 'default' | 'white' | 'main100';
+  type?: 'submit' | 'reset' | 'button' | undefined;
+  disabled?: boolean;
+  width?: string;
 }
 
-const Button = ({ text, onClick, style = 'default' }: Props) => {
+const Button = ({
+  text,
+  onClick,
+  style = 'default',
+  type,
+  disabled,
+  width = '100%',
+}: Props) => {
   let buttonClass = '';
 
   if (style === 'white') {
     buttonClass =
-      'w-full rounded-sm border-1 border-solid border-main-600 py-3 text-h5 text-main-600';
+      'rounded-sm border-1 border-solid border-main-600 py-3 text-h5 text-main-600';
   } else if (style === 'main100') {
     buttonClass =
-      'w-full rounded-sm bg-main-100 border-1 border-solid border-main-600 py-3 text-h5 text-main-600';
+      'rounded-sm bg-main-100 border-1 border-solid border-main-600 py-3 text-h5 text-main-600';
   } else {
-    buttonClass = 'w-full rounded-sm bg-main-600 py-3 text-h5 text-white';
+    buttonClass = 'rounded-sm bg-main-600 py-3 text-h5 text-white';
+  }
+
+  if (disabled) {
+    buttonClass += ' opacity-50 cursor-not-allowed';
   }
 
   return (
-    <button onClick={onClick || (() => {})} className={buttonClass}>
+    <button
+      type={type}
+      onClick={onClick || (() => {})}
+      className={buttonClass}
+      disabled={disabled}
+      style={{ width }}
+    >
       {text}
     </button>
   );
