@@ -10,8 +10,6 @@ import { useExhibitionForm } from '../../model/useExhibitionForm';
 
 const ExhibitionForm = () => {
   const {
-    title,
-    setTitle,
     textAreaContent,
     setTextAreaContent,
     img,
@@ -30,12 +28,7 @@ const ExhibitionForm = () => {
         </div>
         <div className="space-y-[10px]">
           <p className="text-h4 text-black">제목</p>
-          <Input
-            value={title}
-            setValue={setTitle}
-            type="text"
-            placeholder="제목을 입력해주세요."
-          />
+          <Input type="text" placeholder="제목을 입력해주세요." />
         </div>
         <TextArea
           title="소개글"
