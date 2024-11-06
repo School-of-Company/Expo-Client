@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 
 export const useExpoActionPanel = () => {
   const [isModalOpen, setModalOpen] = useState(false);
-  const [isQRModalOpen, setQRModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState('');
 
   useEffect(() => {
@@ -22,20 +21,12 @@ export const useExpoActionPanel = () => {
     setModalOpen(true);
   };
 
-  const openQRModal = () => {
-    setQRModalOpen(true);
-  };
-
   const closeModal = () => setModalOpen(false);
-  const closeQRModal = () => setQRModalOpen(false);
 
   return {
     isModalOpen,
-    isQRModalOpen,
     modalContent,
     openModal,
-    openQRModal,
     closeModal,
-    closeQRModal,
   };
 };

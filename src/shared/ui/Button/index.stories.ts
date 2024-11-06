@@ -15,3 +15,17 @@ export const Default: Story = {
     text: '확인',
   },
 };
+
+export const White: Story = {
+  args: {
+    style: 'white',
+    text: '확인',
+  },
+};
+
+export const Main100: Story = {
+  args: {
+    style: 'main100',
+    text: '확인',
+  },
+};
