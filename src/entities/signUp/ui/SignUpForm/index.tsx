@@ -1,11 +1,14 @@
 'use client';
 
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
 import { Button, Input } from '@/shared/ui';
+import { checkSmsCode } from '../../model/checkSmsCode';
+import { sendSms } from '../../model/sendSms';
+import { showError } from '../../model/showError';
+import { signUp } from '../../model/signup';
+import { useTimer } from '../../model/useTimer';
 
 type FormData = {
   name: string;
@@ -18,7 +21,6 @@ type FormData = {
 };
 
 const SignUpForm = () => {
-  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -28,98 +30,21 @@ const SignUpForm = () => {
   const [isSmsSent, setIsSmsSent] = useState(false);
   const [timer, setTimer] = useState(0);
 
-  // Toast 메시지 공통 함수
-  const showToast = (type: 'success' | 'error', message: string) => {
-    if (type === 'success') {
-      toast.success(message);
-    } else {
-      toast.error(message);
-    }
-  };
+  useTimer(timer, setTimer);
 
-  // 타이머 설정 및 초기화
-  useEffect(() => {
-    if (timer > 0) {
-      const intervalId = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-      return () => clearInterval(intervalId);
-    } else {
-      setIsSmsSent(false);
-    }
-  }, [timer]);
-
-  // 회원가입 처리 함수
-  const onSubmit = async (data: FormData) => {
-    try {
-      const response = await axios.post('/api/auth/signup', {
-        name: data.name,
-        nickname: data.nickname,
-        email: data.email,
-        password: data.password,
-        phoneNumber: data.phoneNumber,
-      });
-      if (response.status === 200) {
-        showToast('success', '회원가입이 완료되었습니다.');
-        router.push('/signin');
-      }
-    } catch (error) {
-      console.error('Signup failed', error);
-      showToast('error', '회원가입에 실패했습니다.');
-    }
-  };
-
-  // 인증번호 발송 처리 함수
-  const handlePostCode = async () => {
-    const phoneNumber = watch('phoneNumber');
-    if (!phoneNumber) {
-      showToast('error', '전화번호를 입력해주세요.');
-      return;
-    }
-
-    try {
-      const response = await axios.post('/api/auth/sms', { phoneNumber });
-      if (response.status === 200) {
-        setIsSmsSent(true);
-        setTimer(180);
-        showToast('success', '인증번호가 발송되었습니다.');
-      }
-    } catch (error) {
-      console.error('SMS sending failed', error);
-      showToast('error', '인증번호 발송에 실패했습니다.');
-    }
-  };
-
-  // 인증번호 확인 처리 함수
-  const handleCheckCode = async () => {
-    const phoneNumber = watch('phoneNumber');
-    const code = watch('code');
-    if (!phoneNumber || !code) {
-      showToast('error', '전화번호와 인증 번호를 입력해주세요.');
-      return;
-    }
-
-    try {
-      const response = await axios.get(
-        `/api/auth/sms?phoneNumber=${phoneNumber}&code=${code}`,
-      );
-      if (response.status === 200) {
-        showToast('success', '인증번호가 확인되었습니다.');
-      }
-    } catch (error) {
-      console.error('Code verification failed', error);
-      showToast('error', '인증번호 확인에 실패했습니다.');
-    }
-  };
+  const router = useRouter();
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit, (errors) => {
-        const firstError = Object.values(errors)[0];
-        if (firstError && firstError.message) {
-          showErrorToast(firstError.message as string);
-        }
-      })}
+      onSubmit={handleSubmit(
+        (data) => signUp(data, router),
+        (errors) => {
+          const firstError = Object.values(errors)[0];
+          if (firstError && firstError.message) {
+            showError(firstError.message as string);
+          }
+        },
+      )}
     >
       <div className="space-y-6">
         <div className="space-y-3">
@@ -204,7 +129,7 @@ const SignUpForm = () => {
               disabled={!isSmsSent}
             />
             <Button
-              onClick={handleCheckCode}
+              onClick={() => checkSmsCode(watch('phoneNumber'), watch('code'))}
               text="확인"
               width="20%"
               disabled={!isSmsSent}
@@ -213,14 +138,14 @@ const SignUpForm = () => {
           </div>
           <button
             type="button"
-            onClick={handlePostCode}
+            onClick={() =>
+              sendSms(watch('phoneNumber'), setIsSmsSent, setTimer)
+            }
             className="text-caption2 text-gray-300"
             disabled={isSmsSent}
           >
             {isSmsSent
-              ? `인증번호 재발송 (${Math.floor(timer / 60)}:${String(
-                  timer % 60,
-                ).padStart(2, '0')})`
+              ? `인증번호 재발송 (${Math.floor(timer / 60)}:${String(timer % 60).padStart(2, '0')})`
               : '인증번호 발송'}
           </button>
         </div>
