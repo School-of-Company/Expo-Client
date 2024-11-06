@@ -1,11 +1,11 @@
 'use client';
 
 import {
-  ChangeEvent,
   DetailedHTMLProps,
   InputHTMLAttributes,
   forwardRef,
   useState,
+  useEffect,
 } from 'react';
 
 import { Eye, SelectedEye } from '@/shared/assets/icons';
@@ -15,25 +15,24 @@ interface Props
     InputHTMLAttributes<HTMLInputElement>,
     HTMLInputElement
   > {
-  value: string;
-  setValue: React.Dispatch<React.SetStateAction<string>>;
   error?: string;
   label?: string;
-  type: string;
-  placeholder: string;
 }
 
 const Input = forwardRef<HTMLInputElement, Props>(
-  ({ value, setValue, error, label, type, placeholder, ...props }, ref) => {
+  ({ error, label, type, placeholder, onChange, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState<boolean>(false);
-
-    const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-      if (props.onChange) props.onChange(e);
-      setValue(e.target.value);
-    };
+    const [inputValue, setInputValue] = useState<string>('');
 
     const togglePasswordVisibility = () => {
       setShowPassword(!showPassword);
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setInputValue(e.target.value);
+      if (onChange) {
+        onChange(e);
+      }
     };
 
     const inputId = `input-${Math.random().toString(36).substr(2, 9)}`;
@@ -42,6 +41,12 @@ const Input = forwardRef<HTMLInputElement, Props>(
       WebkitBoxShadow: '0 0 0 30px white inset !important',
       WebkitTextFillColor: 'inherit !important',
     };
+
+    useEffect(() => {
+      if (props.value !== undefined) {
+        setInputValue(props.value as string);
+      }
+    }, [props.value]);
 
     return (
       <div className="w-full">
@@ -55,9 +60,10 @@ const Input = forwardRef<HTMLInputElement, Props>(
             ref={ref}
             type={type === 'password' && showPassword ? 'text' : type}
             className="w-full border-none bg-transparent text-body4 outline-none"
-            onChange={onChange}
             style={inputStyle}
             placeholder={placeholder}
+            onChange={handleChange}
+            value={inputValue}
           />
 
           {label && <div className="break-keep">{label}</div>}
@@ -68,7 +74,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
                 type="button"
                 onClick={togglePasswordVisibility}
                 className={`h-full w-full cursor-pointer border-none ${
-                  !value.length || props.disabled ? 'hidden' : ''
+                  !inputValue || props.disabled ? 'hidden' : ''
                 }`}
               >
                 {showPassword ? <SelectedEye /> : <Eye />}

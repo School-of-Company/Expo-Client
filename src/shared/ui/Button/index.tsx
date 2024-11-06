@@ -7,9 +7,16 @@ interface Props {
   onClick?: () => void;
   style?: 'default' | 'white' | 'main100';
   type?: 'submit' | 'reset' | 'button' | undefined;
+  disabled?: boolean;
 }
 
-const Button = ({ text, onClick, style = 'default', type }: Props) => {
+const Button = ({
+  text,
+  onClick,
+  style = 'default',
+  type,
+  disabled,
+}: Props) => {
   let buttonClass = '';
 
   if (style === 'white') {
@@ -22,8 +29,18 @@ const Button = ({ text, onClick, style = 'default', type }: Props) => {
     buttonClass = 'w-full rounded-sm bg-main-600 py-3 text-h5 text-white';
   }
 
+  // 비활성화 상태일 때 스타일 추가
+  if (disabled) {
+    buttonClass += ' opacity-50 cursor-not-allowed';
+  }
+
   return (
-    <button type={type} onClick={onClick || (() => {})} className={buttonClass}>
+    <button
+      type={type}
+      onClick={onClick || (() => {})}
+      className={buttonClass}
+      disabled={disabled}
+    >
       {text}
     </button>
   );
