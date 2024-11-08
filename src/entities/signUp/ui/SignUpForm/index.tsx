@@ -4,10 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, Input } from '@/shared/ui';
-import { checkSmsCode } from '../../model/checkSmsCode';
-import { sendSms } from '../../model/sendSms';
+import { checkSmsCode } from '../../api/checkSmsCode';
+import { sendSms } from '../../api/sendSms';
+import { signUp } from '../../api/signup';
 import { showError } from '../../model/showError';
-import { signUp } from '../../model/signup';
 import { useTimer } from '../../model/useTimer';
 
 type FormData = {

@@ -1,4 +1,3 @@
-// src/utils/useTimer.ts
 import { useEffect } from 'react';
 
 export const useTimer = (
