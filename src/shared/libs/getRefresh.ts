@@ -1,5 +1,4 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { useRouter } from 'next/navigation';
 import { apiClient } from './apiClient';
 
 interface TokenResponse {
@@ -15,11 +14,10 @@ export async function getRefresh(
 
   if (err.response && err.response.status === 401 && !originalRequest._retry) {
     originalRequest._retry = true;
-    const Router = useRouter();
     try {
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
-        Router.push('/signin');
+        window.location.href = '/signin';
         return Promise.reject(new Error('No refresh token found'));
       }
 
@@ -41,7 +39,7 @@ export async function getRefresh(
         return apiClient(originalRequest);
       }
     } catch (refreshError) {
-      Router.push('/signin');
+      window.location.href = '/signin';
       return Promise.reject(refreshError);
     }
   }
