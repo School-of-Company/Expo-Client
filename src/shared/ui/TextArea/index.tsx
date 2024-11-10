@@ -1,14 +1,11 @@
-'use client';
-
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
+import { UseFormRegisterReturn } from 'react-hook-form';
 
 interface TextAreaProps {
   title: string;
   placeholder: string;
   maxLength: number;
-  text: string;
-  state: string;
-  setState: React.Dispatch<React.SetStateAction<string>>;
+  registration: UseFormRegisterReturn;
   row: number;
 }
 
@@ -16,45 +13,46 @@ export default function TextArea({
   title,
   placeholder,
   maxLength,
-  text,
-  state,
-  setState,
+  registration,
   row,
 }: TextAreaProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [charCount, setCharCount] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setState(e.target.value);
-  };
+    setCharCount(e.target.value.length);
 
-  useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [state]);
+  };
 
   return (
     <div>
       <p className="mb-[10px] text-h4 text-black">{title}</p>
-      <div className={`relative flex flex-col gap-2 ${text}`}>
+      <div className={`relative flex flex-col gap-2`}>
         <div className="relative">
           <textarea
-            ref={textareaRef}
+            ref={(e) => {
+              registration.ref(e);
+              textareaRef.current = e;
+            }}
             placeholder={placeholder}
             className="w-full resize-none overflow-hidden rounded-sm border-1 border-solid border-gray-200 bg-transparent p-[30px] py-5 text-black caret-main-500"
-            onChange={handleChange}
-            value={state}
+            onBlur={registration.onBlur}
+            name={registration.name}
             rows={row}
+            maxLength={maxLength}
+            onChange={(e) => {
+              registration.onChange(e);
+              handleChange(e);
+            }}
           />
         </div>
-        {state.length > 0 && (
-          <p
-            className={`text-end text-caption2 ${state.length > maxLength ? 'text-error' : 'text-main-500'}`}
-          >
-            {state.length}/{maxLength}
-          </p>
-        )}
+        <div className="text-end text-caption2 text-main-500">
+          {charCount}/{maxLength}
+        </div>
       </div>
     </div>
   );

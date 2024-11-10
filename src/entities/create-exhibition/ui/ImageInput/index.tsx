@@ -1,13 +1,16 @@
 import Image from 'next/image';
 import { useState } from 'react';
+import { UseFormRegisterReturn, UseFormSetValue } from 'react-hook-form';
 import { Picture } from '@/shared/assets/icons';
+import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
 
 interface ImageInputProps {
-  img: string | null;
-  setImg: React.Dispatch<React.SetStateAction<string | null>>;
+  register: UseFormRegisterReturn;
+  setValue: UseFormSetValue<ExhibitionFormData>;
+  id: string;
 }
-
-const ImageInput = ({ img, setImg }: ImageInputProps) => {
+const ImageInput = ({ register, setValue }: ImageInputProps) => {
+  const [img, setImg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -24,11 +27,13 @@ const ImageInput = ({ img, setImg }: ImageInputProps) => {
         }
 
         setImg(URL.createObjectURL(file));
+        setValue('image', file);
         setError(null);
       };
+
+      register.onChange(e);
     }
   };
-
   return (
     <div>
       {img && (
@@ -63,5 +68,4 @@ const ImageInput = ({ img, setImg }: ImageInputProps) => {
     </div>
   );
 };
-
 export default ImageInput;

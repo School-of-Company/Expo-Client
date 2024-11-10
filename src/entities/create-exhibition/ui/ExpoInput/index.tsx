@@ -1,31 +1,33 @@
 import React from 'react';
+import { UseFieldArrayReturn, UseFormRegister } from 'react-hook-form';
 import { Plus, XMark } from '@/shared/assets/icons';
+import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
 
 interface Props {
-  inputs: string[];
-  addInput: () => void;
-  removeInput: (index: number) => void;
-  onChangeInput: (index: number, value: string) => void;
+  fields: UseFieldArrayReturn<ExhibitionFormData, 'trainings', 'id'>['fields'];
+  append: UseFieldArrayReturn<ExhibitionFormData, 'trainings', 'id'>['append'];
+  remove: UseFieldArrayReturn<ExhibitionFormData, 'trainings', 'id'>['remove'];
+  register: UseFormRegister<ExhibitionFormData>;
 }
 
-const ExpoInput = ({ onChangeInput, inputs, addInput, removeInput }: Props) => {
+const ExpoInput = ({ fields, append, remove, register }: Props) => {
   return (
     <div className="flex flex-col gap-[20px]">
-      {inputs.length > 0 && (
+      {fields.length > 0 && (
         <div className="flex flex-col gap-4">
-          {inputs.map((input, index) => (
-            <div key={index} className="flex items-center justify-between">
+          {fields.map((field, index) => (
+            <div key={field.id} className="flex items-center justify-between">
               <div className="flex flex-grow items-center gap-6">
                 <p className="text-body4 text-gray-500">{index + 1}</p>
                 <input
+                  {...register(`trainings.${index}.name`)}
                   placeholder="연수를 입력해주세요"
                   className="w-full bg-transparent text-body4 text-gray-500"
-                  value={input}
-                  onChange={(e) => onChangeInput(index, e.target.value)}
                 />
               </div>
               <button
-                onClick={() => removeInput(index)}
+                type="button"
+                onClick={() => remove(index)}
                 className="hover:cursor-pointer"
               >
                 <XMark />
@@ -34,7 +36,11 @@ const ExpoInput = ({ onChangeInput, inputs, addInput, removeInput }: Props) => {
           ))}
         </div>
       )}
-      <button className="mx-auto flex items-center gap-5" onClick={addInput}>
+      <button
+        type="button"
+        className="mx-auto flex items-center gap-5"
+        onClick={() => append({ name: '' })}
+      >
         <Plus fill="#448FFF" />
         <div className="text-body3 text-main-600">추가하기</div>
       </button>
