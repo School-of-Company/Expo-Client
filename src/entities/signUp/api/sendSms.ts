@@ -1,4 +1,3 @@
-// src/utils/sendSms.ts
 import axios from 'axios';
 import { toast } from 'react-toastify';
 

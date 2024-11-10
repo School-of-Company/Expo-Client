@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import Button from '@/shared/ui/Button';
 import Input from '@/shared/ui/Input';
+import { signIn } from '../../api/signin';
 import { showError } from '../../model/showError';
-import { signIn } from '../../model/signin';
 
 type FormData = {
   nickname: string;

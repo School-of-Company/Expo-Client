@@ -7,7 +7,7 @@ const SignupPrompt = () => {
       <p className="text-caption2 text-gray-300">
         아직 관리자 로그인을 안 하셨나요?
       </p>
-      <Link href="/signUp" className="text-caption2 text-gray-500">
+      <Link href="/signup" className="text-caption2 text-gray-500">
         회원가입
       </Link>
     </div>
