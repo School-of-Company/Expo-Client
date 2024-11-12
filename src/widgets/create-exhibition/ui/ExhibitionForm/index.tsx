@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { ImageInput } from '@/entities/create-exhibition';
@@ -12,6 +12,7 @@ import { handleExhibitionFormSubmit } from '../../model/exhibitionFormHandler';
 import { ExhibitionFormData } from '../../types/type';
 
 const ExhibitionForm = () => {
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const {
     register,
     control,
@@ -25,7 +26,9 @@ const ExhibitionForm = () => {
     name: 'trainings',
   });
 
-  const accessToken = localStorage.getItem('accessToken');
+  useEffect(() => {
+    setAccessToken(localStorage.getItem('accessToken'));
+  }, []);
 
   const onSubmit = (data: ExhibitionFormData) => {
     handleExhibitionFormSubmit(data, accessToken);
