@@ -8,6 +8,7 @@ import AddressSearch from '@/entities/create-exhibition/ui/SearchAddress';
 import TrainingModule from '@/entities/create-exhibition/ui/TrainingModule';
 import { Button, Input } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
+import { handleExhibitionFormSubmit } from '../../model/exhibitionFormHandler';
 import { ExhibitionFormData } from '../../types/type';
 
 const ExhibitionForm = () => {
@@ -24,8 +25,10 @@ const ExhibitionForm = () => {
     name: 'trainings',
   });
 
+  const accessToken = localStorage.getItem('accessToken');
+
   const onSubmit = (data: ExhibitionFormData) => {
-    console.log(data);
+    handleExhibitionFormSubmit(data, accessToken);
   };
 
   const showError = (message: string) => {
@@ -59,6 +62,20 @@ const ExhibitionForm = () => {
             placeholder="제목을 입력해주세요."
           />
         </div>
+        <div className="space-y-[10px]">
+          <p className="text-h4 text-black">모집기간</p>
+          <Input
+            {...register('day', {
+              required: '날짜를 입력해주세요',
+              pattern: {
+                value: /^\d{4}\.\d{2}\.\d{2}-\d{4}\.\d{2}\.\d{2}$/,
+                message: 'yyyy.mm.dd-yyyy.mm.dd 형식으로 입력해주세요',
+              },
+            })}
+            type="text"
+            placeholder="yyyy.mm.dd-yyyy.mm.dd"
+          />
+        </div>
         <TextArea
           title="소개글"
           placeholder="소개글을 작성해주세요."
@@ -82,6 +99,13 @@ const ExhibitionForm = () => {
           <AddressSearch
             setValue={setValue}
             register={register('address', { required: '장소를 입력해주세요.' })}
+          />
+          <Input
+            {...register('location', {
+              required: '상세주소를 입력해주세요',
+            })}
+            type="text"
+            placeholder="상세주소를 입력해주세요."
           />
         </div>
         <Button disabled={isSubmitting} type="submit" text="확인" />

@@ -1,19 +1,14 @@
 import { useEffect } from 'react';
 import { UseFormSetValue } from 'react-hook-form';
-
-export type FormData = {
-  title: string;
-  introduction: string;
-  address: string;
-  trainings: { name: string }[];
-  image: File | null;
-};
+import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
 
 interface AddressData {
   address: string;
 }
 
-export const useAddressSearch = (setValue: UseFormSetValue<FormData>) => {
+export const useAddressSearch = (
+  setValue: UseFormSetValue<ExhibitionFormData>,
+) => {
   useEffect(() => {
     const script = document.createElement('script');
     script.src =

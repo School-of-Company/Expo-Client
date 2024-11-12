@@ -2,11 +2,12 @@ import React from 'react';
 import { UseFormSetValue, UseFormRegisterReturn } from 'react-hook-form';
 import { Location } from '@/shared/assets/icons';
 import { Input } from '@/shared/ui';
-import { FormData, useAddressSearch } from '../../model/useAddressSearch';
+import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
+import { useAddressSearch } from '../../model/useAddressSearch';
 
 interface Props {
   register: UseFormRegisterReturn;
-  setValue: UseFormSetValue<FormData>;
+  setValue: UseFormSetValue<ExhibitionFormData>;
 }
 
 const AddressSearch = ({ setValue, register }: Props) => {

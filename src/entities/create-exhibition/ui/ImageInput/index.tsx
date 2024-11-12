@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { UseFormRegisterReturn, UseFormSetValue } from 'react-hook-form';
 import { Picture } from '@/shared/assets/icons';
 import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
@@ -9,6 +9,7 @@ interface ImageInputProps {
   setValue: UseFormSetValue<ExhibitionFormData>;
   id: string;
 }
+
 const ImageInput = ({ register, setValue }: ImageInputProps) => {
   const [img, setImg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +35,7 @@ const ImageInput = ({ register, setValue }: ImageInputProps) => {
       register.onChange(e);
     }
   };
+
   return (
     <div>
       {img && (
@@ -68,4 +70,5 @@ const ImageInput = ({ register, setValue }: ImageInputProps) => {
     </div>
   );
 };
+
 export default ImageInput;
