@@ -1,16 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { SMSHeader } from '@/entities/SMS';
 import { Button } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
 
+interface FormData {
+  title: string;
+  content: string;
+}
+
 export default function Write() {
-  const [title, setTitle] = useState<string>('');
-  const [content, setContent] = useState<string>('');
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<FormData>();
+
+  const onSubmit = (data: FormData) => {
+    console.log(data);
+  };
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[792px] flex-1 flex-col pb-5">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="relative mx-auto flex w-full max-w-[792px] flex-1 flex-col pb-5"
+    >
       <div className="flex flex-1 flex-col gap-[62px]">
         <SMSHeader />
         <div className="space-y-[40px]">
@@ -18,25 +33,25 @@ export default function Write() {
             title="제목"
             placeholder="제목 입력"
             maxLength={30}
-            text="text-h1"
-            state={title}
-            setState={setTitle}
+            registration={register('title', {
+              required: '제목을 입력해주세요.',
+            })}
             row={1}
           />
           <TextArea
             title="내용"
             placeholder="내용 입력"
             maxLength={1000}
-            text="text-caption2"
-            state={content}
-            setState={setContent}
+            registration={register('content', {
+              required: '내용을 입력해주세요.',
+            })}
             row={12}
           />
         </div>
         <div className="w-full mobile:px-5">
-          <Button text="보내기" />
+          <Button disabled={isSubmitting} text="보내기" />
         </div>
       </div>
-    </div>
+    </form>
   );
 }
