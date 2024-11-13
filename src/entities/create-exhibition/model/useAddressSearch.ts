@@ -1,11 +1,13 @@
-import { Dispatch, SetStateAction, useEffect } from 'react';
+import { useEffect } from 'react';
+import { UseFormSetValue } from 'react-hook-form';
+import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
 
 interface AddressData {
   address: string;
 }
 
 export const useAddressSearch = (
-  setValue: Dispatch<SetStateAction<string>>,
+  setValue: UseFormSetValue<ExhibitionFormData>,
 ) => {
   useEffect(() => {
     const script = document.createElement('script');
@@ -22,7 +24,8 @@ export const useAddressSearch = (
   const openAddressSearch = () => {
     new window.daum.Postcode({
       oncomplete: (data: AddressData) => {
-        setValue(data.address);
+        console.log(data.address);
+        setValue('address', data.address);
       },
     }).open();
   };

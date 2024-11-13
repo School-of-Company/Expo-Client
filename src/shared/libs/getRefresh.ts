@@ -17,7 +17,7 @@ export async function getRefresh(
     try {
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
-        window.location.href = '/signin';
+        // window.location.href = '/signin';
         return Promise.reject(new Error('No refresh token found'));
       }
 
@@ -39,7 +39,7 @@ export async function getRefresh(
         return apiClient(originalRequest);
       }
     } catch (refreshError) {
-      window.location.href = '/signin';
+      // window.location.href = '/signin';
       return Promise.reject(refreshError);
     }
   }

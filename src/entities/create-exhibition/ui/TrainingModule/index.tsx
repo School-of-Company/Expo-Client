@@ -1,20 +1,24 @@
-'use client';
-
 import React from 'react';
-import { useTrainingInputs } from '../../model/useTrainingInputs';
+import { UseFieldArrayReturn, UseFormRegister } from 'react-hook-form';
+import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
 import ExpoInput from '../ExpoInput';
 
-const TrainingModule = () => {
-  const { inputs, addInput, removeInput, onChangeInput } = useTrainingInputs();
+interface Props {
+  fields: UseFieldArrayReturn<ExhibitionFormData, 'trainings', 'id'>['fields'];
+  append: UseFieldArrayReturn<ExhibitionFormData, 'trainings', 'id'>['append'];
+  remove: UseFieldArrayReturn<ExhibitionFormData, 'trainings', 'id'>['remove'];
+  register: UseFormRegister<ExhibitionFormData>;
+}
 
+const TrainingModule = ({ fields, append, remove, register }: Props) => {
   return (
     <div className="w-full rounded-sm border-1 border-solid border-gray-200 px-[30px] py-[26px]">
       <div className="w-full">
         <ExpoInput
-          inputs={inputs}
-          addInput={addInput}
-          removeInput={removeInput}
-          onChangeInput={onChangeInput}
+          fields={fields}
+          append={append}
+          remove={remove}
+          register={register}
         />
       </div>
     </div>

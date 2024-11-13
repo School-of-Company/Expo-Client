@@ -1,11 +1,8 @@
-'use client';
-
 import {
   DetailedHTMLProps,
   InputHTMLAttributes,
   forwardRef,
   useState,
-  useEffect,
 } from 'react';
 
 import { Eye, SelectedEye } from '@/shared/assets/icons';
@@ -20,16 +17,14 @@ interface Props
 }
 
 const Input = forwardRef<HTMLInputElement, Props>(
-  ({ error, label, type, placeholder, onChange, ...props }, ref) => {
+  ({ error, label, type, placeholder, onChange, value, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState<boolean>(false);
-    const [inputValue, setInputValue] = useState<string>('');
 
     const togglePasswordVisibility = () => {
       setShowPassword(!showPassword);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setInputValue(e.target.value);
       if (onChange) {
         onChange(e);
       }
@@ -42,17 +37,11 @@ const Input = forwardRef<HTMLInputElement, Props>(
       WebkitTextFillColor: 'inherit !important',
     };
 
-    useEffect(() => {
-      if (props.value !== undefined) {
-        setInputValue(props.value as string);
-      }
-    }, [props.value]);
-
     return (
       <div className="w-full">
         <label
           htmlFor={inputId}
-          className={`flex rounded-sm border-1 border-solid border-gray-200 px-6 py-5 duration-200`}
+          className="flex rounded-sm border-1 border-solid border-gray-200 px-6 py-5 duration-200"
         >
           <input
             {...props}
@@ -63,7 +52,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             style={inputStyle}
             placeholder={placeholder}
             onChange={handleChange}
-            value={inputValue}
+            value={value}
           />
 
           {label && <div className="break-keep">{label}</div>}
@@ -74,7 +63,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
                 type="button"
                 onClick={togglePasswordVisibility}
                 className={`h-full w-full cursor-pointer border-none ${
-                  !inputValue || props.disabled ? 'hidden' : ''
+                  !value || props.disabled ? 'hidden' : ''
                 }`}
               >
                 {showPassword ? <SelectedEye /> : <Eye />}
