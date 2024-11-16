@@ -5,10 +5,12 @@ const config: Meta<typeof ExpoListItem> = {
   title: 'Components/Common/ExpoListItem',
   component: ExpoListItem,
   args: {
-    clubName: '2024 AI광주미래교육...',
-    description: '안녕하세요!2024 AI광주미래교육박람회 사전 등록 페이지에...',
-    startDate: '09.10',
-    endDate: '09.20',
+    id: 1,
+    coverImage: 'https://via.placeholder.com/140x140',
+    title: '박람회 제목',
+    description: '박람회 설명',
+    startedDay: '2024-01-01',
+    finishedDay: '2024-01-02',
   },
 };
 
