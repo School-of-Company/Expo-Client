@@ -1,10 +1,10 @@
 import React from 'react';
 import ExpoDetail from '@/views/expo-detail/ui/expo-detail';
 
-const page = () => {
+const page = ({ params }: { params: { id: number } }) => {
   return (
     <div>
-      <ExpoDetail />
+      <ExpoDetail params={params.id} />
     </div>
   );
 };

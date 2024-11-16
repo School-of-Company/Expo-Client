@@ -1,39 +1,68 @@
+'use client';
+
 import Image from 'next/image';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ContentText from '@/entities/expo-detail/ui/ContentText';
 import DetailHeader from '@/entities/expo-detail/ui/DetailHeader';
 import KakaoMap from '@/entities/expo-detail/ui/KaKaoMap';
-import TestExpo from '@/shared/assets/png/TestExpo.png';
-import { useMockExpoDetail } from '../../model/useMockExpoDetail';
+import { apiClient } from '@/shared/libs/apiClient';
 
-const ExpoDetailLayout = () => {
-  const { expoDetail } = useMockExpoDetail();
+interface ExpoDetail {
+  title: string;
+  description: string;
+  startedDay: string;
+  finishedDay: string;
+  location: string;
+  coverImage: string;
 
+  x: number;
+  y: number;
+}
+
+const ExpoDetailLayout = ({ params }: { params: number }) => {
+  const [expoDetail, setExpoDetail] = useState<ExpoDetail>({
+    title: '',
+    description: '',
+    startedDay: '',
+    finishedDay: '',
+    location: '',
+    coverImage: '',
+    x: 0,
+    y: 0,
+  });
+
+  useEffect(() => {
+    const accessToken = localStorage.getItem('accessToken');
+    apiClient
+      .get(`/expo/${params}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then((res) => {
+        setExpoDetail(res.data);
+      });
+  }, []);
+  const date = `${expoDetail.startedDay} ~ ${expoDetail.finishedDay}`;
   return (
     <div>
-      <DetailHeader headerTitle={expoDetail.headerTitle} />
-      <div className="mt-[48px] flex justify-end space-y-9">
+      <DetailHeader headerTitle={expoDetail.title} />
+      <div className="ml-[20px] mt-[48px] flex space-y-9">
         <div className="space-y-[36px]">
           <Image
-            src={TestExpo}
+            src={expoDetail.coverImage}
             alt="TestClubImg"
             objectFit="cover"
             className="rounded-md"
+            width={752}
+            height={360}
           />
-          <ContentText
-            title="소개 글"
-            content={expoDetail.introduction.content}
-          />
-          <ContentText title="연수" content={expoDetail.training.content} />
+          <ContentText title="소개 글" content={expoDetail.description} />
+          <ContentText title="모집 기간" content={date} />
+          {/* <ContentText title="연수" content={expoDetail.training.content} /> */}
           <div className="space-y-4">
-            <ContentText
-              title="장소 지도"
-              content={expoDetail.location.address}
-            />
-            <KakaoMap
-              latitude={expoDetail.location.coordinates.latitude}
-              longitude={expoDetail.location.coordinates.longitude}
-            />
+            <ContentText title="장소 지도" content={expoDetail.location} />
+            <KakaoMap latitude={expoDetail.x} longitude={expoDetail.y} />
           </div>
         </div>
       </div>
