@@ -10,7 +10,7 @@ const TableHeader = () => {
     '안내문자 발송용 연락처',
   ];
   return (
-    <div className="flex items-center justify-between border-b-1 border-solid border-gray-100 py-6">
+    <div className="mr-5 flex items-center justify-between border-b-1 border-solid border-gray-100 py-6">
       {categories.map((category, index) => (
         <div key={index} className="flex-1">
           <p className="text-center text-caption1 text-gray-500">{category}</p>
