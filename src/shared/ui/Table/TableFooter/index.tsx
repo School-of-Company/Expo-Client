@@ -19,10 +19,7 @@ type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
   num?: number;
 };
 
-const TableFooter: React.FC<TableFooterProps> = ({
-  type = 'default',
-  num = 100,
-}) => {
+const TableFooter = ({ type = 'default', num = 100 }: TableFooterProps) => {
   return (
     <div className={tableFooterStyles({ type })}>
       <div className="flex gap-6">
