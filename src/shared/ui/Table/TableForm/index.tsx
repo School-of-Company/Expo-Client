@@ -1,6 +1,5 @@
 import React from 'react';
-import { TableHeader, TableItem } from '@/entities/expo-manage';
-import TableFooter from '@/entities/expo-manage/ui/TableFooter';
+import { TableFooter, TableHeader, TableItem } from '@/shared/ui/Table';
 
 const TableForm = () => {
   return (
@@ -21,7 +20,7 @@ const TableForm = () => {
           <TableItem />
         </div>
       </div>
-      <TableFooter />
+      <TableFooter type="file" />
     </div>
   );
 };

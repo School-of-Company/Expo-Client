@@ -1,5 +1,6 @@
 import React from 'react';
-import { FilterTab, TableForm } from '@/widgets/expo-manage';
+import { TableForm } from '@/shared/ui/Table';
+import { FilterTab } from '@/widgets/expo-manage';
 import { Header } from '@/widgets/layout';
 
 const ExpoManage = () => {
