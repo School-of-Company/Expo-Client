@@ -1,8 +1,8 @@
 'use client';
 
+import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { ExpoListItem, Filter } from '@/entities/main';
-import { apiClient } from '@/shared/libs/apiClient';
 
 interface ExpoItem {
   id: number;
@@ -16,16 +16,9 @@ interface ExpoItem {
 const ExpoListContainer = () => {
   const [expoList, setExpoList] = useState<ExpoItem[]>([]);
   useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken');
-    apiClient
-      .get('/expo', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-      .then((res) => {
-        setExpoList(res.data);
-      });
+    axios.get('/api/expo').then((res) => {
+      setExpoList(res.data);
+    });
   }, []);
   return (
     <div>

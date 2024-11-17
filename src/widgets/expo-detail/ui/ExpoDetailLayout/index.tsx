@@ -1,11 +1,11 @@
 'use client';
 
+import axios from 'axios';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import ContentText from '@/entities/expo-detail/ui/ContentText';
 import DetailHeader from '@/entities/expo-detail/ui/DetailHeader';
 import KakaoMap from '@/entities/expo-detail/ui/KaKaoMap';
-import { apiClient } from '@/shared/libs/apiClient';
 
 interface ExpoDetail {
   title: string;
@@ -32,17 +32,11 @@ const ExpoDetailLayout = ({ params }: { params: number }) => {
   });
 
   useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken');
-    apiClient
-      .get(`/expo/${params}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-      .then((res) => {
-        setExpoDetail(res.data);
-      });
-  }, []);
+    axios.get(`/api/expo/${params}`).then((res) => {
+      setExpoDetail(res.data);
+    });
+  }, [params]);
+
   const date = `${expoDetail.startedDay} ~ ${expoDetail.finishedDay}`;
   return (
     <div>
