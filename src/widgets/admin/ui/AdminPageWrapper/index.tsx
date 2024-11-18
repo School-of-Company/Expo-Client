@@ -30,6 +30,21 @@ const AdminPageWrapper = () => {
     fetchRequestSignUp();
   }, []);
 
+  const expoListCategories = [
+    '번호',
+    '박람회이름',
+    '박람회 설명',
+    '모집 시작 날짜',
+    '모집 종료 날짜',
+  ];
+
+  const requestSignUpCategories = [
+    '번호',
+    '성명',
+    '아이디',
+    '이메일',
+    '연락처',
+  ];
   return (
     <div className="space-y-[73px]">
       <AdminProfile />
@@ -37,6 +52,7 @@ const AdminPageWrapper = () => {
         <p className="text-h2 text-black">회원가입 요청</p>
         <div className="h-auto">
           <TableForm
+            categories={requestSignUpCategories}
             data={requestSignUp}
             maxHeight="270px"
             footerType="default"
@@ -46,7 +62,12 @@ const AdminPageWrapper = () => {
       <div className="space-y-[26px]">
         <p className="text-h2 text-black">등록된 박람회</p>
         <div className="h-auto">
-          <TableForm data={expoList} maxHeight="414px" footerType="default" />
+          <TableForm
+            categories={expoListCategories}
+            data={expoList}
+            maxHeight="414px"
+            footerType="default"
+          />
         </div>
       </div>
     </div>
