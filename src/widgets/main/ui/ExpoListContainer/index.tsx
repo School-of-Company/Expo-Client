@@ -3,15 +3,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { ExpoListItem, Filter } from '@/entities/main';
-
-interface ExpoItem {
-  id: number;
-  coverImage: string;
-  title: string;
-  description: string;
-  startedDay: string;
-  finishedDay: string;
-}
+import { ExpoItem } from '@/shared/types/Expo/type';
 
 const ExpoListContainer = () => {
   const [expoList, setExpoList] = useState<ExpoItem[]>([]);

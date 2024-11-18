@@ -1,12 +1,17 @@
 import React from 'react';
 import { TableFooter, TableHeader, TableItem } from '@/shared/ui/Table';
 
-interface Props {
+interface Props<T> {
+  data: T[];
   footerType: 'default' | 'file' | 'print';
   maxHeight?: string;
 }
 
-const TableForm = ({ footerType, maxHeight = '500px' }: Props) => {
+const TableForm = <T extends Record<string, unknown>>({
+  footerType,
+  maxHeight = '500px',
+  data,
+}: Props<T>) => {
   return (
     <div className="space-y-[34px] rounded-sm border-1 border-solid border-gray-200 px-[30px] py-6">
       <div className="space-y-[30px] border-b-1 border-solid border-gray-100 pb-6">
@@ -15,8 +20,8 @@ const TableForm = ({ footerType, maxHeight = '500px' }: Props) => {
           className="space-y-6 overflow-y-auto [&::-webkit-scrollbar-thumb]:rounded-md [&::-webkit-scrollbar-thumb]:bg-main-400 [&::-webkit-scrollbar-track]:rounded-md [&::-webkit-scrollbar-track]:bg-main-100 [&::-webkit-scrollbar]:w-2"
           style={{ maxHeight }}
         >
-          {Array.from({ length: 11 }).map((_, index) => (
-            <TableItem key={index} />
+          {data.map((item, index) => (
+            <TableItem key={index} data={item} />
           ))}
         </div>
       </div>
