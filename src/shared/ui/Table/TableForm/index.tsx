@@ -1,19 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TableFooter, TableHeader, TableItem } from '@/shared/ui/Table';
 
-interface Props<T> {
+interface Props<T extends { id: number }> {
   data: T[];
-  footerType: 'default' | 'file' | 'print';
+  footerType: 'default' | 'file' | 'print' | 'check' | 'delete';
   maxHeight?: string;
   categories: string[];
+  text?: string;
 }
 
-const TableForm = <T extends Record<string, unknown>>({
+const TableForm = <T extends { id: number }>({
   footerType,
   maxHeight = '500px',
   data,
   categories,
+  text,
 }: Props<T>) => {
+  const [selectItem, setSelectItem] = useState<number | null>(null);
+
   return (
     <div className="space-y-[34px] rounded-sm border-1 border-solid border-gray-200 px-[30px] py-6">
       <div className="space-y-[30px] border-b-1 border-solid border-gray-100 pb-6">
@@ -23,11 +27,16 @@ const TableForm = <T extends Record<string, unknown>>({
           style={{ maxHeight }}
         >
           {data.map((item, index) => (
-            <TableItem key={index} data={item} />
+            <TableItem
+              state={selectItem}
+              setState={setSelectItem}
+              key={index}
+              data={item}
+            />
           ))}
         </div>
       </div>
-      <TableFooter type={footerType} />
+      <TableFooter type={footerType} text={text} num={data.length} />
     </div>
   );
 };

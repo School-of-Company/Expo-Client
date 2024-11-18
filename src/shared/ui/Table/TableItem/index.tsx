@@ -1,12 +1,27 @@
-interface TableItemProps<T extends Record<string, unknown>> {
+interface TableItemProps<T extends { id: number } & Record<string, unknown>> {
   data: T;
+  state: number | null;
+  setState: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
-const TableItem = <T extends Record<string, unknown>>({
+const TableItem = <T extends { id: number } & Record<string, unknown>>({
   data,
+  state,
+  setState,
 }: TableItemProps<T>) => {
+  const handleSelectItem = (id: number) => {
+    setState((prev) => (prev === id ? null : id));
+  };
+
+  const isSelected = state === data.id;
+
   return (
-    <div className="mr-5 flex items-center justify-between rounded-sm border-1 border-solid border-gray-200 px-4 py-2">
+    <button
+      onClick={() => handleSelectItem(data.id)}
+      className={`mr-5 flex w-[calc(100%-16px)] items-center justify-between rounded-sm border-1 border-solid border-gray-200 py-2 ${
+        isSelected ? 'bg-main-100' : 'bg-white'
+      }`}
+    >
       {Object.entries(data).map(([key, value]) => (
         <div
           key={key}
@@ -21,7 +36,7 @@ const TableItem = <T extends Record<string, unknown>>({
           {typeof value === 'string' ? value : JSON.stringify(value)}
         </div>
       ))}
-    </div>
+    </button>
   );
 };
 

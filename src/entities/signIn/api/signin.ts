@@ -15,6 +15,7 @@ export const signIn = async (data: SignUpData, router: AppRouterInstance) => {
     });
     if (response.status === 200) {
       toast.success('로그인이 완료되었습니다.');
+      localStorage.setItem('accessToken', response.data.accessToken);
       router.push('/');
     }
   } catch (error) {

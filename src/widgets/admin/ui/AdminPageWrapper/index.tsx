@@ -45,6 +45,7 @@ const AdminPageWrapper = () => {
     '이메일',
     '연락처',
   ];
+
   return (
     <div className="space-y-[73px]">
       <AdminProfile />
@@ -55,7 +56,8 @@ const AdminPageWrapper = () => {
             categories={requestSignUpCategories}
             data={requestSignUp}
             maxHeight="270px"
-            footerType="default"
+            footerType="check"
+            text="회원가입 요청"
           />
         </div>
       </div>
@@ -66,7 +68,8 @@ const AdminPageWrapper = () => {
             categories={expoListCategories}
             data={expoList}
             maxHeight="414px"
-            footerType="default"
+            footerType="delete"
+            text="등록된 박람회"
           />
         </div>
       </div>
