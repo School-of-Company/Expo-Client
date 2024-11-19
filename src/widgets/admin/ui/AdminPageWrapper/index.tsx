@@ -3,6 +3,7 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { AdminProfile } from '@/entities/admin';
+import { checkActions, deleteActions } from '@/shared/model/footerActions';
 import { SignUpItem } from '@/shared/types/\bSignUp/type';
 import { ExpoItem } from '@/shared/types/Expo/type';
 import { TableForm } from '@/shared/ui/Table';
@@ -46,6 +47,8 @@ const AdminPageWrapper = () => {
     '연락처',
   ];
 
+  const deleteExpoActions = deleteActions(fetchExpoList);
+
   return (
     <div className="space-y-[73px]">
       <AdminProfile />
@@ -58,6 +61,7 @@ const AdminPageWrapper = () => {
             maxHeight="270px"
             footerType="check"
             text="회원가입 요청"
+            actions={checkActions}
           />
         </div>
       </div>
@@ -70,6 +74,7 @@ const AdminPageWrapper = () => {
             maxHeight="414px"
             footerType="delete"
             text="등록된 박람회"
+            actions={deleteExpoActions}
           />
         </div>
       </div>

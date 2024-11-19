@@ -23,27 +23,3 @@ export async function GET() {
     return NextResponse.json({ error: message }, { status });
   }
 }
-
-export async function DELETE(request: Request) {
-  const cookieStore = cookies();
-  const accessToken = cookieStore.get('accessToken')?.value;
-
-  const url = new URL(request.url);
-  const expoId = url.pathname.split('/').pop();
-
-  try {
-    const response = await apiClient.delete(`/expo/${expoId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    return NextResponse.json(response.data);
-  } catch (error) {
-    const axiosError = error as AxiosError<{ message: string }>;
-
-    const status = axiosError.response?.status || 500;
-    const message = axiosError.response?.data?.message || 'expo delete failed';
-
-    return NextResponse.json({ error: message }, { status });
-  }
-}

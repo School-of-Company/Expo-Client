@@ -21,13 +21,29 @@ const tableFooterStyles = cva('flex justify-between items-center', {
 type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
   num: number;
   text?: string;
+  actions?: { [key: string]: (selectItem: number) => void };
+  selectItem: number | null;
 };
 
 const TableFooter = ({
   text = '참가자 전체 인원',
   type = 'default',
+  actions,
   num,
+  selectItem,
 }: TableFooterProps) => {
+  const handleCheckClick = () => {
+    if (selectItem !== null && actions?.CheckBadge) {
+      actions.CheckBadge(selectItem);
+    }
+  };
+
+  const handleDeleteClick = () => {
+    if (selectItem !== null && actions?.DeleteBadge) {
+      actions.DeleteBadge(selectItem);
+    }
+  };
+
   return (
     <div className={tableFooterStyles({ type })}>
       <div className="flex gap-6">
@@ -49,21 +65,23 @@ const TableFooter = ({
           <SmallButton text="명찰로 출력하기" />
         </div>
       )}
+
       {type === 'check' && (
         <div className="mr-5 flex items-center gap-6">
-          <button className="flex gap-6">
+          <button className="flex gap-6" onClick={handleCheckClick}>
             <p className="text-body1 text-gray-400">승인</p>
             <Check />
           </button>
-          <button className="flex gap-6">
+          <button className="flex gap-6" onClick={handleDeleteClick}>
             <p className="text-body1 text-gray-400">삭제</p>
             <Trash />
           </button>
         </div>
       )}
+
       {type === 'delete' && (
         <div className="mr-5 flex items-center gap-6">
-          <button className="flex gap-6">
+          <button className="flex gap-6" onClick={handleDeleteClick}>
             <p className="text-body1 text-gray-400">삭제</p>
             <Trash />
           </button>

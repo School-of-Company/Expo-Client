@@ -7,6 +7,7 @@ interface Props<T extends { id: number }> {
   maxHeight?: string;
   categories: string[];
   text?: string;
+  actions?: { [key: string]: (selectItem: number) => void };
 }
 
 const TableForm = <T extends { id: number }>({
@@ -15,6 +16,7 @@ const TableForm = <T extends { id: number }>({
   data,
   categories,
   text,
+  actions,
 }: Props<T>) => {
   const [selectItem, setSelectItem] = useState<number | null>(null);
 
@@ -36,7 +38,13 @@ const TableForm = <T extends { id: number }>({
           ))}
         </div>
       </div>
-      <TableFooter type={footerType} text={text} num={data.length} />
+      <TableFooter
+        type={footerType}
+        text={text}
+        num={data.length}
+        actions={actions}
+        selectItem={selectItem}
+      />
     </div>
   );
 };
