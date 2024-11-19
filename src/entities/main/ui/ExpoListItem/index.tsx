@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
+import TestImg from '@/shared/assets/png/TestImg.png';
 
 interface Props {
   id: number;
@@ -19,6 +20,7 @@ const ExpoListItem = ({
   startedDay,
   finishedDay,
 }: Props) => {
+  console.log(coverImage);
   return (
     <Link
       href={`/expo-detail/${id}`}
@@ -26,7 +28,7 @@ const ExpoListItem = ({
     >
       <div className="w-1/3">
         <Image
-          src={coverImage}
+          src={TestImg}
           alt="이미지 설명"
           width={752}
           height={360}
