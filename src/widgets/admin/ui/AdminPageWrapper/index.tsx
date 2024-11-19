@@ -47,6 +47,7 @@ const AdminPageWrapper = () => {
     '연락처',
   ];
 
+  const checkSignupActions = checkActions(fetchRequestSignUp);
   const deleteExpoActions = deleteActions(fetchExpoList);
 
   return (
@@ -61,7 +62,7 @@ const AdminPageWrapper = () => {
             maxHeight="270px"
             footerType="check"
             text="회원가입 요청"
-            actions={checkActions}
+            actions={checkSignupActions}
           />
         </div>
       </div>

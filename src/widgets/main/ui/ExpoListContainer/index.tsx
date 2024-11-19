@@ -20,7 +20,7 @@ const ExpoListContainer = () => {
       </div>
 
       <div className="grid grid-cols-3 gap-4 mobile:grid-cols-1">
-        {expoList.slice(0, 5).map((item, index) => (
+        {expoList.map((item, index) => (
           <ExpoListItem
             id={item.id}
             coverImage={item.coverImage}
