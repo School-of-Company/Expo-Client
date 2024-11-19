@@ -1,9 +1,10 @@
 import { AxiosError } from 'axios';
-import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 import { apiClient } from '@/shared/libs/apiClient';
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { expo_id: number } },
 ) {
   const { expo_id } = params;
@@ -14,6 +15,33 @@ export async function GET(
     const axiosError = error as AxiosError<{ message: string }>;
     const status = axiosError.response?.status || 500;
     const message = axiosError.response?.data?.message || 'expoDetail failed';
+    return NextResponse.json({ error: message }, { status });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { expo_id: number } },
+) {
+  const { expo_id } = params;
+  const cookieStore = cookies();
+  const accessToken = cookieStore.get('accessToken')?.value;
+  console.log(accessToken);
+
+  try {
+    const response = await apiClient.delete(`/expo/${expo_id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    return NextResponse.json(response.data);
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+
+    const status = axiosError.response?.status || 500;
+    const message = axiosError.response?.data?.message || 'expo delete failed';
+
     return NextResponse.json({ error: message }, { status });
   }
 }

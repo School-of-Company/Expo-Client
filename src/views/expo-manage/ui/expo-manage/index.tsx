@@ -1,5 +1,5 @@
 import React from 'react';
-import { TableForm } from '@/shared/ui/Table';
+// import { TableForm } from '@/shared/ui/Table';
 import { FilterTab } from '@/widgets/expo-manage';
 import { Header } from '@/widgets/layout';
 
@@ -9,7 +9,7 @@ const ExpoManage = () => {
       <Header />
       <div className="mx-auto w-full max-w-[1200px] space-y-[30px] px-5">
         <FilterTab />
-        <TableForm />
+        {/* <TableForm /> */}
       </div>
     </div>
   );
