@@ -1,5 +1,5 @@
+import axios from 'axios';
 import { toast } from 'react-toastify';
-import { uploadImageToApi } from '../api/imageApi';
 
 export const uploadImage = async (file: File | null) => {
   if (!file) return null;
@@ -8,7 +8,7 @@ export const uploadImage = async (file: File | null) => {
     const formData = new FormData();
     formData.append('image', file);
 
-    const imageURL = await uploadImageToApi(formData);
+    const imageURL = await axios.post('/api/image', formData);
     return imageURL;
   } catch (error) {
     toast.error('이미지 업로드 중 오류가 발생했습니다.');
