@@ -1,8 +1,10 @@
 import Image from 'next/image';
 import React, { useState } from 'react';
 import { UseFormRegisterReturn, UseFormSetValue } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { Picture } from '@/shared/assets/icons';
 import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
+import WarningMessage from '../WarningMessage';
 
 interface ImageInputProps {
   register: UseFormRegisterReturn;
@@ -12,7 +14,6 @@ interface ImageInputProps {
 
 const ImageInput = ({ register, setValue }: ImageInputProps) => {
   const [img, setImg] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
@@ -23,13 +24,12 @@ const ImageInput = ({ register, setValue }: ImageInputProps) => {
 
       imgElement.onload = () => {
         if (imgElement.width < 750 || imgElement.height < 360) {
-          setError('이미지의 최소 크기는 750x360이어야 합니다.');
+          toast.error('이미지의 최소 크기는 750x360이어야 합니다.');
           return;
         }
 
         setImg(URL.createObjectURL(file));
         setValue('image', file);
-        setError(null);
       };
 
       register.onChange(e);
@@ -37,7 +37,7 @@ const ImageInput = ({ register, setValue }: ImageInputProps) => {
   };
 
   return (
-    <div>
+    <div className="space-y-3">
       <label
         htmlFor="imageUpload"
         className={`relative flex h-[360px] w-full cursor-pointer items-center justify-center rounded-sm px-[30px] py-6 ${
@@ -66,8 +66,7 @@ const ImageInput = ({ register, setValue }: ImageInputProps) => {
           onChange={handleImageChange}
         />
       </label>
-
-      {error && <p className="mt-2 text-red-500">{error}</p>}
+      <WarningMessage text="이미지 등록시 750 × 360 사이즈로 등록해주세요" />
     </div>
   );
 };
