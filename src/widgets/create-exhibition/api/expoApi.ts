@@ -11,11 +11,7 @@ interface PostExpoData {
   y: number;
 }
 
-export const postExhibition = async (data: PostExpoData, token: string) => {
-  const response = await apiClient.post('/expo', data, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export const postExhibition = async (data: PostExpoData) => {
+  const response = await apiClient.post('/expo', data, {});
   return response.data;
 };
