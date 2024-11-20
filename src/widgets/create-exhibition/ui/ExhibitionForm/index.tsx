@@ -3,8 +3,9 @@
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { ImageInput } from '@/entities/create-exhibition';
-import AddressSearch from '@/entities/create-exhibition/ui/SearchAddress';
+import { useAddressSearch } from '@/entities/create-exhibition/model/useAddressSearch';
 import TrainingModule from '@/entities/create-exhibition/ui/TrainingModule';
+import { Location } from '@/shared/assets/icons';
 import { Button, Input } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
 import { handleExhibitionFormSubmit } from '../../model/exhibitionFormHandler';
@@ -31,6 +32,7 @@ const ExhibitionForm = () => {
   const showError = (message: string) => {
     toast.error(message);
   };
+  const { openAddressSearch } = useAddressSearch(setValue);
 
   return (
     <form
@@ -93,9 +95,15 @@ const ExhibitionForm = () => {
         </div>
         <div className="space-y-[10px]">
           <p className="text-h4 text-black">장소</p>
-          <AddressSearch
-            setValue={setValue}
-            register={register('address', { required: '장소를 입력해주세요.' })}
+          <Input
+            {...register('address', {
+              required: '장소를 입력해주세요.',
+            })}
+            type="text"
+            placeholder="장소를 입력해주세요."
+            icon={<Location fill="#909090" />}
+            onClick={openAddressSearch}
+            readOnly
           />
           <Input
             {...register('location', {

@@ -1,29 +1,24 @@
 import {
   DetailedHTMLProps,
   InputHTMLAttributes,
+  ReactNode,
   forwardRef,
-  useState,
 } from 'react';
-
-import { Eye, SelectedEye } from '@/shared/assets/icons';
 
 interface Props
   extends DetailedHTMLProps<
     InputHTMLAttributes<HTMLInputElement>,
     HTMLInputElement
   > {
-  error?: string;
-  label?: string;
+  icon?: ReactNode;
+  onIconClick?: () => void;
 }
 
 const Input = forwardRef<HTMLInputElement, Props>(
-  ({ error, label, type, placeholder, onChange, value, ...props }, ref) => {
-    const [showPassword, setShowPassword] = useState<boolean>(false);
-
-    const togglePasswordVisibility = () => {
-      setShowPassword(!showPassword);
-    };
-
+  (
+    { type, placeholder, icon, onChange, value, onIconClick, ...props },
+    ref,
+  ) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (onChange) {
         onChange(e);
@@ -47,31 +42,25 @@ const Input = forwardRef<HTMLInputElement, Props>(
             {...props}
             id={inputId}
             ref={ref}
-            type={type === 'password' && showPassword ? 'text' : type}
+            type={type === 'password' ? 'text' : type}
             className="w-full border-none bg-transparent text-body4 outline-none"
             style={inputStyle}
             placeholder={placeholder}
             onChange={handleChange}
             value={value}
           />
-
-          {label && <div className="break-keep">{label}</div>}
-
-          <div className="h-5 w-5">
-            {type === 'password' && (
-              <button
-                type="button"
-                onClick={togglePasswordVisibility}
-                className={`h-full w-full cursor-pointer border-none ${
-                  !value || props.disabled ? 'hidden' : ''
-                }`}
-              >
-                {showPassword ? <SelectedEye /> : <Eye />}
-              </button>
-            )}
-          </div>
+          {icon && (
+            <div
+              className="h-5 w-5 cursor-pointer"
+              onClick={onIconClick}
+              role="button"
+              tabIndex={0}
+              aria-label="icon"
+            >
+              {icon}
+            </div>
+          )}
         </label>
-        {error && <div className="mt-2 text-sm text-error">{error}</div>}
       </div>
     );
   },
