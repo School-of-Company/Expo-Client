@@ -3,12 +3,12 @@
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { ImageInput } from '@/entities/create-exhibition';
-import { useAddressSearch } from '@/entities/create-exhibition/model/useAddressSearch';
 import TrainingModule from '@/entities/create-exhibition/ui/TrainingModule';
 import { Location } from '@/shared/assets/icons';
 import { Button, Input } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
 import { handleExhibitionFormSubmit } from '../../model/exhibitionFormHandler';
+import { useAddressSearch } from '../../model/useAddressSearch';
 import { ExhibitionFormData } from '../../types/type';
 
 const ExhibitionForm = () => {
