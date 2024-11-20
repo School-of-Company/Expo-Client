@@ -4,6 +4,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { ImageInput } from '@/entities/create-exhibition';
 import TrainingModule from '@/entities/create-exhibition/ui/TrainingModule';
+import WarningMessage from '@/entities/create-exhibition/ui/WarningMessage';
 import { Location } from '@/shared/assets/icons';
 import { Button, Input } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
@@ -63,17 +64,33 @@ const ExhibitionForm = () => {
         </div>
         <div className="space-y-[10px]">
           <p className="text-h4 text-black">모집기간</p>
-          <Input
-            {...register('day', {
-              required: '날짜를 입력해주세요',
-              pattern: {
-                value: /^\d{4}\.\d{2}\.\d{2}-\d{4}\.\d{2}\.\d{2}$/,
-                message: 'yyyy.mm.dd-yyyy.mm.dd 형식으로 입력해주세요',
-              },
-            })}
-            type="text"
-            placeholder="yyyy.mm.dd-yyyy.mm.dd"
-          />
+          <div className="space-y-2">
+            <div className="flex items-center gap-7">
+              <Input
+                {...register('startedDay', {
+                  required: '시작일을 입력해주세요',
+                  pattern: {
+                    value: /^\d{4}\.\d{2}\.\d{2}$/,
+                    message: 'yyyy.mm.dd 형식으로 입력해주세요',
+                  },
+                })}
+                type="text"
+                placeholder="시작일"
+              />
+              <Input
+                {...register('finishedDay', {
+                  required: '마감일을 입력해주세요',
+                  pattern: {
+                    value: /^\d{4}\.\d{2}\.\d{2}$/,
+                    message: 'yyyy.mm.dd 형식으로 입력해주세요',
+                  },
+                })}
+                type="text"
+                placeholder="마감일"
+              />
+            </div>
+            <WarningMessage text="시작일과 마감일 입력시 ‘ yyyy.mm.dd  ‘ 형식으로 입력해주세요" />
+          </div>
         </div>
         <TextArea
           title="소개글"

@@ -5,5 +5,6 @@ export type ExhibitionFormData = {
   location: string;
   trainings: { name: string }[];
   image: File | null;
-  day: string;
+  startedDay: string;
+  finishedDay: string;
 };
