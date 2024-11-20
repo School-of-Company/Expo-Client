@@ -4,12 +4,12 @@ import { NextResponse } from 'next/server';
 import { apiClient } from '@/shared/libs/apiClient';
 
 export async function POST(request: Request) {
-  const body = await request.json();
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
 
   try {
-    const response = await apiClient.post('/image', body, {
+    const formData = await request.formData();
+    const response = await apiClient.post('/image', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${accessToken}`,
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     const axiosError = error as AxiosError<{ message: string }>;
 
     const status = axiosError.response?.status || 500;
-    const message = axiosError.response?.data?.message || 'Signun failed';
+    const message = axiosError.response?.data?.message || 'image upload failed';
 
     return NextResponse.json({ error: message }, { status });
   }

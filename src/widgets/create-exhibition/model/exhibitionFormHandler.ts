@@ -1,5 +1,5 @@
+import axios from 'axios';
 import { toast } from 'react-toastify';
-import { postExhibition } from '../api/expoApi';
 import { ExhibitionFormData } from '../types/type';
 import { handleChageDate } from './changeDate';
 import { convertAddressToCoordinates } from './convertAddressToCoordinates';
@@ -22,7 +22,7 @@ export const handleExhibitionFormSubmit = async (data: ExhibitionFormData) => {
   }
 
   try {
-    const response = await postExhibition({
+    const response = await axios.post('/api/expo', {
       title: data.title,
       description: data.introduction,
       startedDay,
@@ -32,8 +32,8 @@ export const handleExhibitionFormSubmit = async (data: ExhibitionFormData) => {
       x: lng,
       y: lat,
     });
+    console.log('서버 응답:', response);
 
-    console.log('Response:', response);
     toast.success('Data successfully posted!');
   } catch (error) {
     console.error('Error:', error);
