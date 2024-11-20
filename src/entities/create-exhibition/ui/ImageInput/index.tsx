@@ -38,33 +38,34 @@ const ImageInput = ({ register, setValue }: ImageInputProps) => {
 
   return (
     <div>
-      {img && (
-        <div className="mb-4 w-full max-w-xs">
+      <label
+        htmlFor="imageUpload"
+        className={`relative flex h-[360px] w-full cursor-pointer items-center justify-center rounded-sm px-[30px] py-6 ${
+          img ? '' : 'border-2 border-dashed border-main-300'
+        }`}
+      >
+        {img ? (
           <Image
             src={img}
             alt="미리보기 이미지"
-            layout="responsive"
-            width={300}
-            height={200}
+            layout="fill"
             objectFit="cover"
+            className="rounded-sm"
           />
-        </div>
-      )}
-
-      <label
-        htmlFor="imageUpload"
-        className="bg-red flex w-fit cursor-pointer items-center gap-2 rounded-sm border-1 border-solid border-gray-200 px-[30px] py-6 text-body1 text-gray-300"
-      >
-        <Picture fill="#BDBDBD" />
-        사진 가져오기
+        ) : (
+          <div className="flex items-center justify-center gap-2 text-h1 text-gray-300">
+            <Picture fill="#BDBDBD" />
+            사진 가져오기
+          </div>
+        )}
+        <input
+          type="file"
+          id="imageUpload"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageChange}
+        />
       </label>
-      <input
-        type="file"
-        id="imageUpload"
-        accept="image/*"
-        className="hidden"
-        onChange={handleImageChange}
-      />
 
       {error && <p className="mt-2 text-red-500">{error}</p>}
     </div>
