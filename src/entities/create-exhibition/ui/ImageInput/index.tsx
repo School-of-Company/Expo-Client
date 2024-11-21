@@ -1,8 +1,10 @@
 import Image from 'next/image';
 import React, { useState } from 'react';
 import { UseFormRegisterReturn, UseFormSetValue } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { Picture } from '@/shared/assets/icons';
 import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
+import WarningMessage from '../WarningMessage';
 
 interface ImageInputProps {
   register: UseFormRegisterReturn;
@@ -12,7 +14,6 @@ interface ImageInputProps {
 
 const ImageInput = ({ register, setValue }: ImageInputProps) => {
   const [img, setImg] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
@@ -23,13 +24,12 @@ const ImageInput = ({ register, setValue }: ImageInputProps) => {
 
       imgElement.onload = () => {
         if (imgElement.width < 750 || imgElement.height < 360) {
-          setError('이미지의 최소 크기는 750x360이어야 합니다.');
+          toast.error('이미지의 최소 크기는 750x360이어야 합니다.');
           return;
         }
 
         setImg(URL.createObjectURL(file));
         setValue('image', file);
-        setError(null);
       };
 
       register.onChange(e);
@@ -37,36 +37,36 @@ const ImageInput = ({ register, setValue }: ImageInputProps) => {
   };
 
   return (
-    <div>
-      {img && (
-        <div className="mb-4 w-full max-w-xs">
+    <div className="space-y-3">
+      <label
+        htmlFor="imageUpload"
+        className={`relative flex h-[360px] w-full cursor-pointer items-center justify-center rounded-sm px-[30px] py-6 ${
+          img ? '' : 'border-2 border-dashed border-main-300'
+        }`}
+      >
+        {img ? (
           <Image
             src={img}
             alt="미리보기 이미지"
-            layout="responsive"
-            width={300}
-            height={200}
+            layout="fill"
             objectFit="cover"
+            className="rounded-sm"
           />
-        </div>
-      )}
-
-      <label
-        htmlFor="imageUpload"
-        className="bg-red flex w-fit cursor-pointer items-center gap-2 rounded-sm border-1 border-solid border-gray-200 px-[30px] py-6 text-body1 text-gray-300"
-      >
-        <Picture fill="#BDBDBD" />
-        사진 가져오기
+        ) : (
+          <div className="flex items-center justify-center gap-2 text-h1 text-gray-300">
+            <Picture fill="#BDBDBD" />
+            사진 가져오기
+          </div>
+        )}
+        <input
+          type="file"
+          id="imageUpload"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageChange}
+        />
       </label>
-      <input
-        type="file"
-        id="imageUpload"
-        accept="image/*"
-        className="hidden"
-        onChange={handleImageChange}
-      />
-
-      {error && <p className="mt-2 text-red-500">{error}</p>}
+      <WarningMessage text="이미지 등록시 750 × 360 사이즈로 등록해주세요" />
     </div>
   );
 };
