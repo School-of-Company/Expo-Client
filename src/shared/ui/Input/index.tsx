@@ -42,7 +42,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             {...props}
             id={inputId}
             ref={ref}
-            type={type === 'password' ? 'text' : type}
+            type={type}
             className="w-full border-none bg-transparent text-body4 outline-none"
             style={inputStyle}
             placeholder={placeholder}
