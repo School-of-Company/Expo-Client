@@ -34,7 +34,7 @@ const ExpoInput = ({ fields, append, remove, register }: Props) => {
                 />
               </div>
               <div className="flex gap-7 mobile:gap-3">
-                <div className="relative flex gap-2">
+                <div className="relative top-0 flex gap-2">
                   {modal && <Modal setModal={setModal} />}
                 </div>
                 <button

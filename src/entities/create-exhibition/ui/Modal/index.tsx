@@ -1,6 +1,6 @@
 import React from 'react';
 import { XMark } from '@/shared/assets/icons';
-import { Button, Input } from '@/shared/ui';
+import { Button, CheckBox, Input } from '@/shared/ui';
 
 interface ModalProps {
   setModal: (value: boolean) => void;
@@ -16,9 +16,12 @@ const Modal = ({ setModal }: ModalProps) => {
         </button>
       </div>
       <div className="space-y-[28px]">
-        <div className="flex w-full gap-2">
-          <Input size="small" />
-          <Input size="small" />
+        <div className="flex w-full justify-between">
+          <div className="flex w-[176px] gap-5">
+            <Input size="small" />
+            <Input size="small" />
+          </div>
+          <CheckBox text="필수" />
         </div>
         <Button type="button" text="확인" />
       </div>
