@@ -1,3 +1,4 @@
+import { cva } from 'class-variance-authority';
 import {
   DetailedHTMLProps,
   InputHTMLAttributes,
@@ -6,17 +7,33 @@ import {
 } from 'react';
 
 interface Props
-  extends DetailedHTMLProps<
-    InputHTMLAttributes<HTMLInputElement>,
-    HTMLInputElement
+  extends Omit<
+    DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>,
+    'size'
   > {
   icon?: ReactNode;
   onIconClick?: () => void;
+  size?: 'default' | 'small';
 }
+
+const inputStyles = cva(
+  'flex rounded-sm border-1 border-solid border-gray-200 duration-200',
+  {
+    variants: {
+      size: {
+        default: 'px-6 py-5',
+        small: 'h-[34px] max-w-[164px] px-2 py-1 text-black text-center',
+      },
+    },
+    defaultVariants: {
+      size: 'default',
+    },
+  },
+);
 
 const Input = forwardRef<HTMLInputElement, Props>(
   (
-    { type, placeholder, icon, onChange, value, onIconClick, ...props },
+    { type, placeholder, icon, onChange, value, onIconClick, size, ...props },
     ref,
   ) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,8 +42,6 @@ const Input = forwardRef<HTMLInputElement, Props>(
       }
     };
 
-    const inputId = `input-${Math.random().toString(36).substr(2, 9)}`;
-
     const inputStyle = {
       WebkitBoxShadow: '0 0 0 30px white inset !important',
       WebkitTextFillColor: 'inherit !important',
@@ -34,13 +49,9 @@ const Input = forwardRef<HTMLInputElement, Props>(
 
     return (
       <div className="w-full">
-        <label
-          htmlFor={inputId}
-          className="flex rounded-sm border-1 border-solid border-gray-200 px-6 py-5 duration-200"
-        >
+        <label className={inputStyles({ size })}>
           <input
             {...props}
-            id={inputId}
             ref={ref}
             type={type}
             className="w-full border-none bg-transparent text-body4 outline-none"

@@ -3,7 +3,7 @@ export type ExhibitionFormData = {
   introduction: string;
   address: string;
   location: string;
-  trainings: { name: string }[];
+  trainings: { title: string; startedAt: string; endedAt: string }[];
   image: File | null;
   startedDay: string;
   finishedDay: string;
