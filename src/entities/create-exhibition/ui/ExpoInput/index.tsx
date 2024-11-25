@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UseFieldArrayReturn, UseFormRegister } from 'react-hook-form';
 import { Plus, XMark } from '@/shared/assets/icons';
-import { Input } from '@/shared/ui';
+// import { Input } from '@/shared/ui';
 import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
+import Modal from '../Modal';
 
 interface Props {
   fields: UseFieldArrayReturn<ExhibitionFormData, 'trainings', 'id'>['fields'];
@@ -12,6 +13,12 @@ interface Props {
 }
 
 const ExpoInput = ({ fields, append, remove, register }: Props) => {
+  const [modal, setModal] = useState<boolean>(false);
+
+  const handleTrainingModal = () => {
+    setModal(!modal);
+  };
+
   return (
     <div className="flex flex-col gap-[20px]">
       {fields.length > 0 && (
@@ -27,22 +34,16 @@ const ExpoInput = ({ fields, append, remove, register }: Props) => {
                 />
               </div>
               <div className="flex gap-7 mobile:gap-3">
-                <div className="flex gap-2">
-                  <Input
-                    {...register(`trainings.${index}.startedAt`, {
-                      required: '연수 시작 일과 시간을 입력해주세요.',
-                    })}
-                    placeholder="연수 시작 일과 시간"
-                    size="small"
-                  />
-                  <Input
-                    {...register(`trainings.${index}.endedAt`, {
-                      required: '연수 종료 일과 시간을 입력해주세요.',
-                    })}
-                    placeholder="연수 종료 일과 시간"
-                    size="small"
-                  />
+                <div className="relative flex gap-2">
+                  {modal && <Modal setModal={setModal} />}
                 </div>
+                <button
+                  onClick={handleTrainingModal}
+                  type="button"
+                  className="rounded-sm border-1 border-solid border-gray-200 px-2 py-1 text-body4 text-gray-300"
+                >
+                  수정 하기
+                </button>
                 <button
                   type="button"
                   onClick={() => remove(index)}

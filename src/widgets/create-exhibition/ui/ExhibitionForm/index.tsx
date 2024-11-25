@@ -7,9 +7,8 @@ import TrainingModule from '@/entities/create-exhibition/ui/TrainingModule';
 import WarningMessage from '@/entities/create-exhibition/ui/WarningMessage';
 import { Location } from '@/shared/assets/icons';
 import { Button, Input } from '@/shared/ui';
-import SelectUserType from '@/shared/ui/SelectUserType';
 import TextArea from '@/shared/ui/TextArea';
-import { handleExhibitionFormSubmit } from '../../model/exhibitionFormHandler';
+// import { handleExhibitionFormSubmit } from '../../model/exhibitionFormHandler';
 import { useAddressSearch } from '../../model/useAddressSearch';
 import { ExhibitionFormData } from '../../types/type';
 
@@ -28,7 +27,8 @@ const ExhibitionForm = () => {
   });
 
   const onSubmit = (data: ExhibitionFormData) => {
-    handleExhibitionFormSubmit(data);
+    // handleExhibitionFormSubmit(data);
+    console.log(data);
   };
 
   const showError = (message: string) => {
@@ -103,7 +103,7 @@ const ExhibitionForm = () => {
           row={1}
         />
         <div className="space-y-[10px]">
-          <SelectUserType />
+          <p className="text-h4 text-black">참가자 연수 종류</p>
           <TrainingModule
             fields={fields}
             append={(value) => append(value)}
