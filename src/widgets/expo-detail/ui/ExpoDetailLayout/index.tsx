@@ -3,6 +3,7 @@
 import axios from 'axios';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
+import ContentListText from '@/entities/expo-detail/ui/ContentListText';
 import ContentText from '@/entities/expo-detail/ui/ContentText';
 import DetailHeader from '@/entities/expo-detail/ui/DetailHeader';
 import KakaoMap from '@/entities/expo-detail/ui/KaKaoMap';
@@ -14,9 +15,14 @@ interface ExpoDetail {
   finishedDay: string;
   location: string;
   coverImage: string;
-
   x: number;
   y: number;
+}
+
+interface ExpoStandard {
+  title: string;
+  startedAt: string;
+  endedAt: string;
 }
 
 const ExpoDetailLayout = ({ params }: { params: number }) => {
@@ -31,9 +37,14 @@ const ExpoDetailLayout = ({ params }: { params: number }) => {
     y: 0,
   });
 
+  const [expoStandard, setExpoStandard] = useState<ExpoStandard[]>([]);
+
   useEffect(() => {
     axios.get(`/api/expo/${params}`).then((res) => {
       setExpoDetail(res.data);
+    });
+    axios.get(`/api/standard/program/${params}`).then((res) => {
+      setExpoStandard(res.data);
     });
   }, [params]);
 
@@ -53,7 +64,7 @@ const ExpoDetailLayout = ({ params }: { params: number }) => {
           />
           <ContentText title="소개 글" content={expoDetail.description} />
           <ContentText title="모집 기간" content={date} />
-          {/* <ContentText title="연수" content={expoDetail.training.content} /> */}
+          <ContentListText data={expoStandard} title="참가자 연수" />
           <div className="space-y-4">
             <ContentText title="장소 지도" content={expoDetail.location} />
             <KakaoMap latitude={expoDetail.x} longitude={expoDetail.y} />
