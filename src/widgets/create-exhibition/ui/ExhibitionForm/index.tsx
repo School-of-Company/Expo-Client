@@ -1,42 +1,45 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { ImageInput } from '@/entities/create-exhibition';
-import AddressSearch from '@/entities/create-exhibition/ui/SearchAddress';
 import TrainingModule from '@/entities/create-exhibition/ui/TrainingModule';
+import WarningMessage from '@/entities/create-exhibition/ui/WarningMessage';
+import { Location } from '@/shared/assets/icons';
 import { Button, Input } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
 import { handleExhibitionFormSubmit } from '../../model/exhibitionFormHandler';
+import { useAddressSearch } from '../../model/useAddressSearch';
 import { ExhibitionFormData } from '../../types/type';
 
 const ExhibitionForm = () => {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const {
     register,
     control,
     handleSubmit,
     formState: { isSubmitting },
     setValue,
+    watch,
   } = useForm<ExhibitionFormData>();
 
-  const { fields, append, remove } = useFieldArray<ExhibitionFormData>({
+  const trainingFields = useFieldArray<ExhibitionFormData>({
     control,
     name: 'trainings',
   });
 
-  useEffect(() => {
-    setAccessToken(localStorage.getItem('accessToken'));
-  }, []);
+  const standardFields = useFieldArray<ExhibitionFormData>({
+    control,
+    name: 'standard',
+  });
 
   const onSubmit = (data: ExhibitionFormData) => {
-    handleExhibitionFormSubmit(data, accessToken);
+    handleExhibitionFormSubmit(data);
   };
 
   const showError = (message: string) => {
     toast.error(message);
   };
+  const { openAddressSearch } = useAddressSearch(setValue);
 
   return (
     <form
@@ -67,17 +70,33 @@ const ExhibitionForm = () => {
         </div>
         <div className="space-y-[10px]">
           <p className="text-h4 text-black">모집기간</p>
-          <Input
-            {...register('day', {
-              required: '날짜를 입력해주세요',
-              pattern: {
-                value: /^\d{4}\.\d{2}\.\d{2}-\d{4}\.\d{2}\.\d{2}$/,
-                message: 'yyyy.mm.dd-yyyy.mm.dd 형식으로 입력해주세요',
-              },
-            })}
-            type="text"
-            placeholder="yyyy.mm.dd-yyyy.mm.dd"
-          />
+          <div className="space-y-2">
+            <div className="flex items-center gap-7">
+              <Input
+                {...register('startedDay', {
+                  required: '시작일을 입력해주세요',
+                  pattern: {
+                    value: /^\d{4}-\d{2}-\d{2}$/,
+                    message: 'yyyy-mm-dd 형식으로 입력해주세요',
+                  },
+                })}
+                type="text"
+                placeholder="시작일"
+              />
+              <Input
+                {...register('finishedDay', {
+                  required: '마감일을 입력해주세요',
+                  pattern: {
+                    value: /^\d{4}-\d{2}-\d{2}$/,
+                    message: 'yyyy-mm-dd 형식으로 입력해주세요',
+                  },
+                })}
+                type="text"
+                placeholder="마감일"
+              />
+            </div>
+            <WarningMessage text="시작일과 마감일 입력시 ‘ yyyy-mm-dd  ‘ 형식으로 입력해주세요" />
+          </div>
         </div>
         <TextArea
           title="소개글"
@@ -89,19 +108,40 @@ const ExhibitionForm = () => {
           row={1}
         />
         <div className="space-y-[10px]">
-          <p className="text-h4 text-black">연수 종류</p>
+          <p className="text-h4 text-black">연수자 연수 종류</p>
           <TrainingModule
-            fields={fields}
-            append={(value) => append(value)}
-            remove={remove}
+            fields={trainingFields.fields}
+            append={trainingFields.append}
+            remove={trainingFields.remove}
             register={register}
+            setValue={setValue}
+            watch={watch}
+            fieldName="trainings"
+          />
+        </div>
+        <div className="space-y-[10px]">
+          <p className="text-h4 text-black">참가자 연수 종류</p>
+          <TrainingModule
+            fields={standardFields.fields}
+            append={standardFields.append}
+            remove={standardFields.remove}
+            register={register}
+            setValue={setValue}
+            watch={watch}
+            fieldName="standard"
           />
         </div>
         <div className="space-y-[10px]">
           <p className="text-h4 text-black">장소</p>
-          <AddressSearch
-            setValue={setValue}
-            register={register('address', { required: '장소를 입력해주세요.' })}
+          <Input
+            {...register('address', {
+              required: '장소를 입력해주세요.',
+            })}
+            type="text"
+            placeholder="장소를 입력해주세요."
+            icon={<Location fill="#909090" />}
+            onClick={openAddressSearch}
+            readOnly
           />
           <Input
             {...register('location', {

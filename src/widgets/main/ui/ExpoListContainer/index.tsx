@@ -3,15 +3,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { ExpoListItem, Filter } from '@/entities/main';
-
-interface ExpoItem {
-  id: number;
-  coverImage: string;
-  title: string;
-  description: string;
-  startedDay: string;
-  finishedDay: string;
-}
+import { ExpoItem } from '@/shared/types/Expo/type';
 
 const ExpoListContainer = () => {
   const [expoList, setExpoList] = useState<ExpoItem[]>([]);
@@ -28,7 +20,7 @@ const ExpoListContainer = () => {
       </div>
 
       <div className="grid grid-cols-3 gap-4 mobile:grid-cols-1">
-        {expoList.slice(0, 5).map((item, index) => (
+        {expoList.map((item, index) => (
           <ExpoListItem
             id={item.id}
             coverImage={item.coverImage}

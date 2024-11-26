@@ -18,3 +18,6 @@ export { default as Eye } from './Eye';
 export { default as Program } from './Program';
 export { default as Plus } from './Plus';
 export { default as Location } from './Location';
+export { default as Trash } from './Trash';
+export { default as Check } from './Check';
+export { default as Warning } from './Warning';

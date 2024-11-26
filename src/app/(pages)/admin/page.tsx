@@ -1,12 +1,12 @@
 import React from 'react';
-import Header from '@/widgets/layout/ui/Header';
+import { Admin } from '@/views/admin';
 
-const admin = () => {
+const page = () => {
   return (
     <div>
-      <Header />
+      <Admin />
     </div>
   );
 };
 
-export default admin;
+export default page;

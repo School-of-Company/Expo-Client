@@ -3,7 +3,18 @@ export type ExhibitionFormData = {
   introduction: string;
   address: string;
   location: string;
-  trainings: { name: string }[];
+  trainings: {
+    title: string;
+    startedAt: string;
+    endedAt: string;
+    category?: 'ESSENTIAL' | 'CHOICE';
+  }[];
+  standard: {
+    title: string;
+    startedAt: string;
+    endedAt: string;
+  }[];
   image: File | null;
-  day: string;
+  startedDay: string;
+  finishedDay: string;
 };

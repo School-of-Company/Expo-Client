@@ -1,5 +1,6 @@
 import { cva, VariantProps } from 'class-variance-authority';
 import React from 'react';
+import { Check, Trash } from '@/shared/assets/icons';
 import SmallButton from '@/shared/ui/SmallButton';
 
 const tableFooterStyles = cva('flex justify-between items-center', {
@@ -8,6 +9,8 @@ const tableFooterStyles = cva('flex justify-between items-center', {
       file: 'flex justify-between',
       default: 'flex gap-6',
       print: 'flex justify-between',
+      check: 'flex justify-between',
+      delete: 'flex justify-between',
     },
   },
   defaultVariants: {
@@ -16,14 +19,35 @@ const tableFooterStyles = cva('flex justify-between items-center', {
 });
 
 type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
-  num?: number;
+  num: number;
+  text?: string;
+  actions?: { [key: string]: (selectItem: number) => void };
+  selectItem: number | null;
 };
 
-const TableFooter = ({ type = 'default', num = 100 }: TableFooterProps) => {
+const TableFooter = ({
+  text = '참가자 전체 인원',
+  type = 'default',
+  actions,
+  num,
+  selectItem,
+}: TableFooterProps) => {
+  const handleCheckClick = () => {
+    if (selectItem !== null && actions?.CheckBadge) {
+      actions.CheckBadge(selectItem);
+    }
+  };
+
+  const handleDeleteClick = () => {
+    if (selectItem !== null && actions?.DeleteBadge) {
+      actions.DeleteBadge(selectItem);
+    }
+  };
+
   return (
     <div className={tableFooterStyles({ type })}>
       <div className="flex gap-6">
-        <p className="text-body2 text-gray-500">참가자 전체 인원</p>
+        <p className="text-body2 text-gray-500">{text}</p>
         <p className="text-body2 text-main-600">{num}명</p>
       </div>
 
@@ -39,6 +63,28 @@ const TableFooter = ({ type = 'default', num = 100 }: TableFooterProps) => {
         <div className="flex items-center gap-6">
           <p className="text-body1 text-gray-400">출력</p>
           <SmallButton text="명찰로 출력하기" />
+        </div>
+      )}
+
+      {type === 'check' && (
+        <div className="mr-5 flex items-center gap-6">
+          <button className="flex gap-6" onClick={handleCheckClick}>
+            <p className="text-body1 text-gray-400">승인</p>
+            <Check />
+          </button>
+          <button className="flex gap-6" onClick={handleDeleteClick}>
+            <p className="text-body1 text-gray-400">삭제</p>
+            <Trash />
+          </button>
+        </div>
+      )}
+
+      {type === 'delete' && (
+        <div className="mr-5 flex items-center gap-6">
+          <button className="flex gap-6" onClick={handleDeleteClick}>
+            <p className="text-body1 text-gray-400">삭제</p>
+            <Trash />
+          </button>
         </div>
       )}
     </div>

@@ -1,37 +1,47 @@
 'use client';
+import { cva } from 'class-variance-authority';
 import {
   DetailedHTMLProps,
   InputHTMLAttributes,
+  ReactNode,
   forwardRef,
-  useState,
 } from 'react';
 
-import { Eye, SelectedEye } from '@/shared/assets/icons';
-
 interface Props
-  extends DetailedHTMLProps<
-    InputHTMLAttributes<HTMLInputElement>,
-    HTMLInputElement
+  extends Omit<
+    DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>,
+    'size'
   > {
-  error?: string;
-  label?: string;
+  icon?: ReactNode;
+  onIconClick?: () => void;
+  size?: 'default' | 'small';
 }
 
+const inputStyles = cva(
+  'flex rounded-sm border-1 border-solid border-gray-200 duration-200',
+  {
+    variants: {
+      size: {
+        default: 'px-6 py-5',
+        small: 'h-[34px] max-w-[164px] px-2 py-1 text-black text-center',
+      },
+    },
+    defaultVariants: {
+      size: 'default',
+    },
+  },
+);
+
 const Input = forwardRef<HTMLInputElement, Props>(
-  ({ error, label, type, placeholder, onChange, value, ...props }, ref) => {
-    const [showPassword, setShowPassword] = useState<boolean>(false);
-
-    const togglePasswordVisibility = () => {
-      setShowPassword(!showPassword);
-    };
-
+  (
+    { type, placeholder, icon, onChange, value, onIconClick, size, ...props },
+    ref,
+  ) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (onChange) {
         onChange(e);
       }
     };
-
-    const inputId = `input-${Math.random().toString(36).substr(2, 9)}`;
 
     const inputStyle = {
       WebkitBoxShadow: '0 0 0 30px white inset !important',
@@ -40,39 +50,29 @@ const Input = forwardRef<HTMLInputElement, Props>(
 
     return (
       <div className="w-full">
-        <label
-          htmlFor={inputId}
-          className="flex rounded-sm border-1 border-solid border-gray-200 px-6 py-5 duration-200"
-        >
+        <label className={inputStyles({ size })}>
           <input
             {...props}
-            id={inputId}
             ref={ref}
-            type={type === 'password' && showPassword ? 'text' : type}
+            type={type}
             className="w-full border-none bg-transparent text-body4 outline-none"
             style={inputStyle}
             placeholder={placeholder}
             onChange={handleChange}
             value={value}
           />
-
-          {label && <div className="break-keep">{label}</div>}
-
-          <div className="h-5 w-5">
-            {type === 'password' && (
-              <button
-                type="button"
-                onClick={togglePasswordVisibility}
-                className={`h-full w-full cursor-pointer border-none ${
-                  !value || props.disabled ? 'hidden' : ''
-                }`}
-              >
-                {showPassword ? <SelectedEye /> : <Eye />}
-              </button>
-            )}
-          </div>
+          {icon && (
+            <div
+              className="h-5 w-5 cursor-pointer"
+              onClick={onIconClick}
+              role="button"
+              tabIndex={0}
+              aria-label="icon"
+            >
+              {icon}
+            </div>
+          )}
         </label>
-        {error && <div className="mt-2 text-sm text-error">{error}</div>}
       </div>
     );
   },

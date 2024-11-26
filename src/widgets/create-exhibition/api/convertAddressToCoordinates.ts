@@ -1,10 +1,14 @@
-import { fetchAddressData } from '../api/kakaoApi';
+import axios from 'axios';
 
 export const convertAddressToCoordinates = async (
   address: string,
 ): Promise<{ lat: number; lng: number } | null> => {
   try {
-    const data = await fetchAddressData(address);
+    const response = await axios.get(
+      `/api/map?address=${encodeURIComponent(address)}`,
+    );
+
+    const data = response.data;
 
     if (data.documents.length > 0) {
       const { x, y } = data.documents[0].address;
