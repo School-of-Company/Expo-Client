@@ -3,8 +3,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Control,
   Controller,
-  FieldValues,
   RegisterOptions,
+  FieldValues,
+  Path,
 } from 'react-hook-form';
 
 interface Option {
@@ -12,23 +13,26 @@ interface Option {
   label: string;
 }
 
-interface RadioGroupProps {
+interface RadioGroupProps<T extends FieldValues> {
   options: Option[];
   label: string;
-  name: string;
-  control: Control<FieldValues>;
+  name: Path<T>;
+  control: Control<T>;
   error?: string;
-  rules?: RegisterOptions;
+  rules?: Omit<
+    RegisterOptions<T, Path<T>>,
+    'setValueAs' | 'disabled' | 'valueAsNumber' | 'valueAsDate'
+  >;
 }
 
-const RadioGroup: React.FC<RadioGroupProps> = ({
+const RadioGroup = <T extends FieldValues>({
   options,
   label,
   name,
   control,
   error,
   rules,
-}) => {
+}: RadioGroupProps<T>) => {
   const [otherInput, setOtherInput] = useState('');
 
   const handleOtherInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
