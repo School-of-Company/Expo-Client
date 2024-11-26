@@ -8,7 +8,7 @@ import WarningMessage from '@/entities/create-exhibition/ui/WarningMessage';
 import { Location } from '@/shared/assets/icons';
 import { Button, Input } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
-// import { handleExhibitionFormSubmit } from '../../model/exhibitionFormHandler';
+import { handleExhibitionFormSubmit } from '../../model/exhibitionFormHandler';
 import { useAddressSearch } from '../../model/useAddressSearch';
 import { ExhibitionFormData } from '../../types/type';
 
@@ -33,8 +33,7 @@ const ExhibitionForm = () => {
   });
 
   const onSubmit = (data: ExhibitionFormData) => {
-    // handleExhibitionFormSubmit(data);
-    console.log(data);
+    handleExhibitionFormSubmit(data);
   };
 
   const showError = (message: string) => {
