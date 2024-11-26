@@ -73,7 +73,7 @@ const Modal = ({
             />
           )}
         </div>
-        <Button type="button" text="확인" />
+        <Button onClick={() => setModal(false)} type="button" text="확인" />
       </div>
     </div>
   );

@@ -25,8 +25,8 @@ export const handleExhibitionFormSubmit = async (data: ExhibitionFormData) => {
     finishedDay: data.finishedDay,
     location: data.location,
     coverImage: img,
-    x: lng,
-    y: lat,
+    x: lat,
+    y: lng,
   });
   await createTraining(response.expoId, data.trainings);
   await createStandard(response.expoId, data.standard);
