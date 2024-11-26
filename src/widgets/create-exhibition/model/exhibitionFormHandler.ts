@@ -1,6 +1,7 @@
 import { toast } from 'react-toastify';
 import { convertAddressToCoordinates } from '../api/convertAddressToCoordinates';
 import { createExhibition } from '../api/createExhibition';
+import { createStandard } from '../api/createStandard';
 import { createTraining } from '../api/createTraining';
 import { uploadImage } from '../api/uploadImage';
 import { ExhibitionFormData } from '../types/type';
@@ -28,4 +29,5 @@ export const handleExhibitionFormSubmit = async (data: ExhibitionFormData) => {
     y: lat,
   });
   await createTraining(response.expoId, data.trainings);
+  await createStandard(response.expoId, data.standard);
 };
