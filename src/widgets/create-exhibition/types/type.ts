@@ -9,6 +9,11 @@ export type ExhibitionFormData = {
     endedAt: string;
     category?: 'ESSENTIAL' | 'CHOICE';
   }[];
+  standard: {
+    title: string;
+    startedAt: string;
+    endedAt: string;
+  }[];
   image: File | null;
   startedDay: string;
   finishedDay: string;

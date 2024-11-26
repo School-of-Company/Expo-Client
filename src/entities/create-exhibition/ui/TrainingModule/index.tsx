@@ -15,6 +15,7 @@ interface Props {
   register: UseFormRegister<ExhibitionFormData>;
   setValue: UseFormSetValue<ExhibitionFormData>;
   watch: UseFormWatch<ExhibitionFormData>;
+  fieldName: 'trainings' | 'standard';
 }
 
 const TrainingModule = ({
@@ -24,6 +25,7 @@ const TrainingModule = ({
   register,
   setValue,
   watch,
+  fieldName,
 }: Props) => {
   return (
     <div className="w-full rounded-sm border-1 border-solid border-gray-200 px-[30px] py-[26px]">
@@ -35,6 +37,7 @@ const TrainingModule = ({
           register={register}
           setValue={setValue}
           watch={watch}
+          fieldName={fieldName}
         />
       </div>
     </div>

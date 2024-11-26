@@ -14,11 +14,19 @@ interface ModalProps {
   setValue: UseFormSetValue<ExhibitionFormData>;
   watch: UseFormWatch<ExhibitionFormData>;
   index: number;
+  fieldName: 'trainings' | 'standard';
 }
 
-const Modal = ({ setModal, register, setValue, watch, index }: ModalProps) => {
-  const startedAt = watch(`trainings.${index}.startedAt`);
-  const endedAt = watch(`trainings.${index}.endedAt`);
+const Modal = ({
+  setModal,
+  register,
+  setValue,
+  watch,
+  index,
+  fieldName,
+}: ModalProps) => {
+  const startedAt = watch(`${fieldName}.${index}.startedAt`);
+  const endedAt = watch(`${fieldName}.${index}.endedAt`);
 
   return (
     <div className="absolute right-0 top-10 h-[192px] w-[312px] space-y-[24px] rounded-lg bg-white p-[18px] shadow-lg">
@@ -32,7 +40,7 @@ const Modal = ({ setModal, register, setValue, watch, index }: ModalProps) => {
         <div className="flex w-full justify-between">
           <div className="flex w-[176px] gap-5">
             <Input
-              {...register(`trainings.${index}.startedAt`, {
+              {...register(`${fieldName}.${index}.startedAt`, {
                 required: '연수 시작 일과 시간을 입력해주세요.',
               })}
               placeholder="연수 시작 일과 시간"
@@ -40,7 +48,7 @@ const Modal = ({ setModal, register, setValue, watch, index }: ModalProps) => {
               value={startedAt || ''}
             />
             <Input
-              {...register(`trainings.${index}.endedAt`, {
+              {...register(`${fieldName}.${index}.endedAt`, {
                 required: '연수 종료 일과 시간을 입력해주세요.',
               })}
               placeholder="연수 종료 일과 시간"
@@ -48,12 +56,14 @@ const Modal = ({ setModal, register, setValue, watch, index }: ModalProps) => {
               value={endedAt || ''}
             />
           </div>
-          <CheckBox
-            text="필수"
-            name={`trainings.${index}.category`}
-            setValue={setValue}
-            watch={watch}
-          />
+          {fieldName === 'trainings' && (
+            <CheckBox
+              text="필수"
+              name={`trainings.${index}.category`}
+              setValue={setValue}
+              watch={watch}
+            />
+          )}
         </div>
         <Button type="button" text="확인" />
       </div>

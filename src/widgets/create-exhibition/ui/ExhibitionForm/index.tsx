@@ -22,9 +22,14 @@ const ExhibitionForm = () => {
     watch,
   } = useForm<ExhibitionFormData>();
 
-  const { fields, append, remove } = useFieldArray<ExhibitionFormData>({
+  const trainingFields = useFieldArray<ExhibitionFormData>({
     control,
     name: 'trainings',
+  });
+
+  const standardFields = useFieldArray<ExhibitionFormData>({
+    control,
+    name: 'standard',
   });
 
   const onSubmit = (data: ExhibitionFormData) => {
@@ -104,14 +109,27 @@ const ExhibitionForm = () => {
           row={1}
         />
         <div className="space-y-[10px]">
-          <p className="text-h4 text-black">참가자 연수 종류</p>
+          <p className="text-h4 text-black">연수자 연수 종류</p>
           <TrainingModule
-            fields={fields}
-            append={(value) => append(value)}
-            remove={remove}
+            fields={trainingFields.fields}
+            append={trainingFields.append}
+            remove={trainingFields.remove}
             register={register}
             setValue={setValue}
             watch={watch}
+            fieldName="trainings"
+          />
+        </div>
+        <div className="space-y-[10px]">
+          <p className="text-h4 text-black">참가자 연수 종류</p>
+          <TrainingModule
+            fields={standardFields.fields}
+            append={standardFields.append}
+            remove={standardFields.remove}
+            register={register}
+            setValue={setValue}
+            watch={watch}
+            fieldName="standard"
           />
         </div>
         <div className="space-y-[10px]">

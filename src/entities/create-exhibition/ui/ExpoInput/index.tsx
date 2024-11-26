@@ -10,12 +10,25 @@ import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
 import Modal from '../Modal';
 
 interface Props {
-  fields: UseFieldArrayReturn<ExhibitionFormData, 'trainings', 'id'>['fields'];
-  append: UseFieldArrayReturn<ExhibitionFormData, 'trainings', 'id'>['append'];
-  remove: UseFieldArrayReturn<ExhibitionFormData, 'trainings', 'id'>['remove'];
+  fields: UseFieldArrayReturn<
+    ExhibitionFormData,
+    'trainings' | 'standard',
+    'id'
+  >['fields'];
+  append: UseFieldArrayReturn<
+    ExhibitionFormData,
+    'trainings' | 'standard',
+    'id'
+  >['append'];
+  remove: UseFieldArrayReturn<
+    ExhibitionFormData,
+    'trainings' | 'standard',
+    'id'
+  >['remove'];
   register: UseFormRegister<ExhibitionFormData>;
   setValue: UseFormSetValue<ExhibitionFormData>;
   watch: UseFormWatch<ExhibitionFormData>;
+  fieldName: 'trainings' | 'standard';
 }
 
 const ExpoInput = ({
@@ -25,6 +38,7 @@ const ExpoInput = ({
   register,
   setValue,
   watch,
+  fieldName,
 }: Props) => {
   const [modal, setModal] = useState<boolean>(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -40,7 +54,7 @@ const ExpoInput = ({
     setModal(false);
   };
 
-  const trainings = watch('trainings');
+  const items = watch(fieldName);
 
   return (
     <div className="relative flex flex-col gap-[20px]">
@@ -51,6 +65,7 @@ const ExpoInput = ({
           setValue={setValue}
           index={selectedIndex}
           watch={watch}
+          fieldName={fieldName}
         />
       )}
       {fields.length > 0 && (
@@ -60,12 +75,15 @@ const ExpoInput = ({
               <div className="flex flex-grow items-center gap-6">
                 <p className="text-body4 text-gray-500">{index + 1}</p>
                 <input
-                  {...register(`trainings.${index}.title`)}
+                  {...register(`${fieldName}.${index}.title` as const)}
                   placeholder="연수를 입력해주세요"
                   className="w-full overflow-hidden overflow-ellipsis whitespace-nowrap bg-transparent text-body4 text-gray-500"
-                  value={trainings[index]?.title || ''}
+                  value={items[index]?.title || ''}
                   onChange={(e) =>
-                    setValue(`trainings.${index}.title`, e.target.value)
+                    setValue(
+                      `${fieldName}.${index}.title` as const,
+                      e.target.value,
+                    )
                   }
                 />
               </div>
@@ -93,7 +111,12 @@ const ExpoInput = ({
         type="button"
         className="mx-auto flex items-center gap-5"
         onClick={() =>
-          append({ title: '', startedAt: '', endedAt: '', category: 'CHOICE' })
+          append({
+            title: '',
+            startedAt: '',
+            endedAt: '',
+            ...(fieldName === 'trainings' ? { category: 'CHOICE' } : {}),
+          })
         }
       >
         <Plus fill="#448FFF" />
