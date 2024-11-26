@@ -1,6 +1,6 @@
 import React from 'react';
-import { Header } from '@/widgets/layout';
 import ApplicationLayout from '@/widgets/application/ui/ApplicationLayout';
+import { Header } from '@/widgets/layout';
 
 const Application = ({ params }: { params: number }) => {
   return (

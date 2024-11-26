@@ -1,8 +1,8 @@
 'use client';
 
 import { PageHeader } from '@/shared/ui';
-import TraineeForm from '../form/ApplicationForm/trainee';
 import StandardForm from '../form/ApplicationForm/standard';
+import TraineeForm from '../form/ApplicationForm/trainee';
 
 const ApplicationLayout = ({ params }: { params: number }) => {
   return (

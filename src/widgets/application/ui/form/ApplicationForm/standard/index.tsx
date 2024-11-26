@@ -1,10 +1,9 @@
 'use client';
-
-import { Button } from '@/shared/ui';
-import { Input, RadioGroup } from '@/entities/application';
 import { useForm } from 'react-hook-form';
-import { StandardForms } from '../../../../types/type';
+import { Input, RadioGroup } from '@/entities/application';
+import { Button } from '@/shared/ui';
 import { handleStandardFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
+import { StandardForms } from '../../../../types/type';
 
 const StandardForm = ({ params }: { params: number }) => {
   const {

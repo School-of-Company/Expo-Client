@@ -1,10 +1,9 @@
 'use client';
-
-import { Button } from '@/shared/ui';
-import { Input, RadioGroup } from '@/entities/application';
 import { useForm } from 'react-hook-form';
-import { TraineeForms } from '../../../../types/type';
+import { Input, RadioGroup } from '@/entities/application';
+import { Button } from '@/shared/ui';
 import { handleTraineeFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
+import { TraineeForms } from '../../../../types/type';
 
 const TraineeForm = ({ params }: { params: number }) => {
   const {
