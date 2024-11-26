@@ -19,6 +19,7 @@ const ExhibitionForm = () => {
     handleSubmit,
     formState: { isSubmitting },
     setValue,
+    watch,
   } = useForm<ExhibitionFormData>();
 
   const { fields, append, remove } = useFieldArray<ExhibitionFormData>({
@@ -109,6 +110,8 @@ const ExhibitionForm = () => {
             append={(value) => append(value)}
             remove={remove}
             register={register}
+            setValue={setValue}
+            watch={watch}
           />
         </div>
         <div className="space-y-[10px]">
