@@ -42,6 +42,10 @@ const Modal = ({
             <Input
               {...register(`${fieldName}.${index}.startedAt`, {
                 required: '연수 시작 일과 시간을 입력해주세요.',
+                pattern: {
+                  value: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,
+                  message: 'yyyy-mm-dd HH:mm 형식으로 입력해주세요',
+                },
               })}
               placeholder="연수 시작 일과 시간"
               size="small"
@@ -50,6 +54,10 @@ const Modal = ({
             <Input
               {...register(`${fieldName}.${index}.endedAt`, {
                 required: '연수 종료 일과 시간을 입력해주세요.',
+                pattern: {
+                  value: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,
+                  message: 'yyyy-mm-dd HH:mm 형식으로 입력해주세요',
+                },
               })}
               placeholder="연수 종료 일과 시간"
               size="small"

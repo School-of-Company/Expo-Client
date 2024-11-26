@@ -77,8 +77,8 @@ const ExhibitionForm = () => {
                 {...register('startedDay', {
                   required: '시작일을 입력해주세요',
                   pattern: {
-                    value: /^\d{4}\.\d{2}\.\d{2}$/,
-                    message: 'yyyy.mm.dd 형식으로 입력해주세요',
+                    value: /^\d{4}-\d{2}-\d{2}$/,
+                    message: 'yyyy-mm-dd 형식으로 입력해주세요',
                   },
                 })}
                 type="text"
@@ -88,15 +88,15 @@ const ExhibitionForm = () => {
                 {...register('finishedDay', {
                   required: '마감일을 입력해주세요',
                   pattern: {
-                    value: /^\d{4}\.\d{2}\.\d{2}$/,
-                    message: 'yyyy.mm.dd 형식으로 입력해주세요',
+                    value: /^\d{4}-\d{2}-\d{2}$/,
+                    message: 'yyyy-mm-dd 형식으로 입력해주세요',
                   },
                 })}
                 type="text"
                 placeholder="마감일"
               />
             </div>
-            <WarningMessage text="시작일과 마감일 입력시 ‘ yyyy.mm.dd  ‘ 형식으로 입력해주세요" />
+            <WarningMessage text="시작일과 마감일 입력시 ‘ yyyy-mm-dd  ‘ 형식으로 입력해주세요" />
           </div>
         </div>
         <TextArea
