@@ -1,24 +1,42 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import React, { useState, useEffect, useCallback } from 'react';
 import { printActions } from '@/shared/model/footerActions';
 import { TableForm } from '@/shared/ui/Table';
 import { FilterTab } from '@/widgets/expo-manage';
 import { Header } from '@/widgets/layout';
 
-const NameTag = () => {
-  const requestSignUpCategories = [
-    '번호',
-    '성명',
-    '아이디',
-    '이메일',
-    '연락처',
-  ];
+interface TraineeData {
+  traineeId: number;
+  phoneNumber: string;
+}
 
-  const [scannQR, setScannQR] = useState<string>('');
+interface UserData {
+  id: number;
+  name: string;
+  affiliation: string;
+  qrCode: string;
+}
+
+const NameTag = () => {
+  const requestSignUpCategories = ['이름', '번호', 'qr번호'];
+  const [scannedQR, setScannedQR] = useState<TraineeData | null>(null);
   const [buffer, setBuffer] = useState<string>('');
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [userData, setUserData] = useState<UserData[]>([]);
 
+  // QR 코드 처리 함수
+  const handleQRScan = useCallback((cleanData: string) => {
+    try {
+      const parsedData: TraineeData = JSON.parse(cleanData);
+      setScannedQR(parsedData);
+    } catch (error) {
+      console.error('QR 코드 데이터 파싱 오류:', error);
+    }
+  }, []);
+
+  // 키보드 이벤트 핸들러
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!isScanning) {
@@ -28,10 +46,7 @@ const NameTag = () => {
 
       if (event.key === 'Enter') {
         const cleanData = buffer.replace(/Shift/g, '');
-        console.log('스캔된 QR 코드 데이터:', cleanData);
-
-        setScannQR(cleanData);
-
+        handleQRScan(cleanData);
         setBuffer('');
         setIsScanning(false);
       } else {
@@ -43,11 +58,32 @@ const NameTag = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [buffer, isScanning]);
+  }, [buffer, isScanning, handleQRScan]);
 
-  console.log(scannQR);
+  const fetchUserData = useCallback(async (scannedQR: TraineeData) => {
+    const authority = scannedQR.traineeId ? 'ROLE_TRAINEE' : 'ROLE_STANDARD';
+    try {
+      const response = await axios.patch('/api/attendance', {
+        authority,
+        phoneNumber: scannedQR.phoneNumber,
+      });
+      const responseData: UserData = {
+        id: response.data.id,
+        name: response.data.name,
+        affiliation: response.data.affiliation,
+        qrCode: response.data.qrCode,
+      };
+      setUserData((prevData) => [...prevData, responseData]);
+    } catch (error) {
+      console.error('QR 코드 통신 에러:', error);
+    }
+  }, []);
 
-  const printQRActions = printActions;
+  useEffect(() => {
+    if (scannedQR) {
+      fetchUserData(scannedQR);
+    }
+  }, [scannedQR, fetchUserData]);
 
   return (
     <div className="flex h-screen flex-col gap-[30px] mobile:gap-5">
@@ -56,11 +92,11 @@ const NameTag = () => {
         <FilterTab />
         <TableForm
           categories={requestSignUpCategories}
-          data={[]}
+          data={userData}
           maxHeight="414px"
           footerType="print"
           text="등록된 박람회"
-          actions={printQRActions}
+          actions={printActions}
         />
       </div>
     </div>

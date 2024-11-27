@@ -3,13 +3,13 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { apiClient } from '@/shared/libs/apiClient';
 
-export async function GET(request: Request) {
+export async function PATCH(request: Request) {
   const body = await request.json();
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
 
   try {
-    const response = await apiClient.post('/attendance', body, {
+    const response = await apiClient.patch('/attendance', body, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
