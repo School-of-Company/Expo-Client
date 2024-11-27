@@ -11,13 +11,19 @@ export async function POST(
   const { expo_id } = params;
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
-
+  const config = accessToken
+    ? {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    : {};
   try {
-    const response = await apiClient.post(`/form/trainee/${expo_id}`, body, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await apiClient.post(
+      `/form/trainee/${expo_id}`,
+      body,
+      config,
+    );
     return NextResponse.json(response.data);
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
