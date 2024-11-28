@@ -13,7 +13,6 @@ interface ExpoActionPanelProps {
 }
 
 const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
-
   const { role } = useStore();
   const router = useRouter();
   const { isModalOpen, modalContent, openModal, closeModal } =

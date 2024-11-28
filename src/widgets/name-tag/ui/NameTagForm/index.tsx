@@ -2,10 +2,9 @@
 
 import axios from 'axios';
 import React, { useState, useEffect, useCallback } from 'react';
+import NameTagHeader from '@/entities/name-tag/ui/NameTagHeader';
 import { printActions } from '@/shared/model/footerActions';
 import { TableForm } from '@/shared/ui/Table';
-import { FilterTab } from '@/widgets/expo-manage';
-import { Header } from '@/widgets/layout';
 
 interface TraineeData {
   traineeId: number;
@@ -19,28 +18,8 @@ interface UserData {
   qrCode: string;
 }
 
-const NameTag = () => {
-  const requestSignUpCategories = ['아이디', '이름', '번호', 'qr번호'];
-  const testData = [
-    {
-      id: 1,
-      name: '홍길동',
-      affiliation: '서울대학교',
-      qrCode: '/9j/4AAQSkZJRgABAgAAAQABAAD/',
-    },
-    {
-      id: 2,
-      name: '김영희',
-      affiliation: '연세대학교',
-      qrCode: '/9j/4AAQSkZJRgABAgAAAQABAAD/',
-    },
-    {
-      id: 3,
-      name: '이철수',
-      affiliation: '고려대학교',
-      qrCode: '/9j/4AAQSkZJRgABAgAAAQABAAD/',
-    },
-  ];
+const NameTagForm = () => {
+  const requestPrintCategories = ['아이디', '이름', '번호', 'qr번호'];
   const [scannedQR, setScannedQR] = useState<TraineeData | null>(null);
   const [buffer, setBuffer] = useState<string>('');
   const [isScanning, setIsScanning] = useState<boolean>(false);
@@ -102,26 +81,21 @@ const NameTag = () => {
     }
   }, [scannedQR, fetchUserData]);
 
-  const deleteNameTagActions = printActions(testData);
-
-  console.log(userData);
+  const printNameTagActions = printActions(userData);
 
   return (
-    <div className="flex h-screen flex-col gap-[30px] mobile:gap-5">
-      <Header />
-      <div className="mx-auto w-full max-w-[1200px] space-y-[30px] px-5">
-        <FilterTab />
-        <TableForm
-          categories={requestSignUpCategories}
-          data={testData}
-          maxHeight="414px"
-          footerType="print"
-          text="등록된 박람회"
-          actions={deleteNameTagActions}
-        />
-      </div>
+    <div className="mx-auto w-full max-w-[1200px] space-y-[30px] px-5">
+      <NameTagHeader />
+      <TableForm
+        categories={requestPrintCategories}
+        data={userData}
+        maxHeight="414px"
+        footerType="print"
+        text="QR 스캔"
+        actions={printNameTagActions}
+      />
     </div>
   );
 };
 
-export default NameTag;
+export default NameTagForm;

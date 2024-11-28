@@ -1,1 +1,1 @@
-export { default as NameTag } from './ui/name-tag';
+export { default as NameTag } from './ui/NameTag';
