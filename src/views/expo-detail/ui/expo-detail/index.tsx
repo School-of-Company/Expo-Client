@@ -11,7 +11,7 @@ const ExpoDetail = ({ params }: { params: number }) => {
         <div className="w-full max-w-[842px]">
           <ExpoDetailLayout params={params} />
         </div>
-        <ExpoActionPanel />
+        <ExpoActionPanel params={params} />
       </div>
     </div>
   );
