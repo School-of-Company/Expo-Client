@@ -9,7 +9,7 @@ export const useKakaoMap = ({ latitude, longitude }: KakaoMapOptions) => {
   const mapRef = useRef<HTMLDivElement>(null);
 
   const loadKakaoMap = () => {
-    if (typeof window.kakao === 'undefined' || !mapRef.current) return;
+    if (!window.kakao || !mapRef.current) return;
 
     const position = new window.kakao.maps.LatLng(latitude, longitude);
 
@@ -28,7 +28,20 @@ export const useKakaoMap = ({ latitude, longitude }: KakaoMapOptions) => {
   };
 
   useEffect(() => {
-    loadKakaoMap();
+    const initializeMap = () => {
+      if (typeof window.kakao !== 'undefined') {
+        loadKakaoMap();
+      } else {
+        console.error('Kakao Maps API가 로드되지 않았습니다.');
+      }
+    };
+
+    if (document.readyState === 'complete') {
+      initializeMap();
+    } else {
+      window.addEventListener('load', initializeMap);
+      return () => window.removeEventListener('load', initializeMap);
+    }
   }, [latitude, longitude]);
 
   return { mapRef, loadKakaoMap };

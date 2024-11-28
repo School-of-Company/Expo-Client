@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import React from 'react';
 import ClientInitializer from '@/shared/components/ClientInitializer';
 import useStore from '@/shared/stores/useStore';
@@ -13,7 +14,7 @@ interface ExpoActionPanelProps {
 
 const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
   const { role } = useStore();
-
+  const router = useRouter();
   const { isModalOpen, modalContent, openModal, closeModal } =
     useExpoActionPanel();
 
@@ -30,7 +31,12 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
       return (
         <div className="w-full space-y-2 mobile:space-y-2">
           <div className="space-y-2 mobile:flex mobile:gap-5 mobile:space-y-0">
-            <Button text="QR 조회하기" />
+            <Button
+              onClick={() => {
+                router.push(`/name-tag/${params}`);
+              }}
+              text="QR 조회하기"
+            />
             <Button
               onClick={() => openModal('누구에게 문자를 전송하시겠습니까?')}
               text="문자 보내기"

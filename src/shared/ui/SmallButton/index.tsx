@@ -1,8 +1,16 @@
 import React from 'react';
 
-const SmallButton = ({ text }: { text: string }) => {
+type SmallButtonProps = {
+  text: string;
+  onClick?: () => void;
+};
+
+const SmallButton = ({ text, onClick }: SmallButtonProps) => {
   return (
-    <button className="rounded-sm bg-main-600 px-[30px] py-[6px] text-body2 text-white">
+    <button
+      className="rounded-sm bg-main-600 px-[30px] py-[6px] text-body2 text-white"
+      onClick={onClick}
+    >
       {text}
     </button>
   );
