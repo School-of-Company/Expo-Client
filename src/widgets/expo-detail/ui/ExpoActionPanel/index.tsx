@@ -8,10 +8,10 @@ import { ModalLayout } from '@/widgets/layout';
 import { useExpoActionPanel } from '../../model/useExpoActionPanel';
 
 interface ExpoActionPanelProps {
-  role?: 'user' | 'manage';
+  params: number;
 }
 
-const ExpoActionPanel: React.FC<ExpoActionPanelProps> = () => {
+const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
   const { role } = useStore();
 
   const { isModalOpen, modalContent, openModal, closeModal } =
@@ -48,7 +48,6 @@ const ExpoActionPanel: React.FC<ExpoActionPanelProps> = () => {
   return (
     <div>
       <ClientInitializer />
-
       <div className="h-fit max-w-[210px] space-y-[26px] rounded-sm border-1 border-solid border-gray-200 p-[18px] mobile:max-w-full mobile:border-none mobile:px-[16px]">
         <p className="text-caption1 text-black mobile:hidden">
           2024 AI광주미래교육박람회
@@ -57,7 +56,7 @@ const ExpoActionPanel: React.FC<ExpoActionPanelProps> = () => {
       </div>
       {isModalOpen && (
         <ModalLayout>
-          <Modal text={modalContent} onClose={closeModal} />
+          <Modal text={modalContent} onClose={closeModal} params={params} />
         </ModalLayout>
       )}
     </div>
