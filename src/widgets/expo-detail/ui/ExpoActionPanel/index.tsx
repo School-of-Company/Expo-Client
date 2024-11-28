@@ -8,13 +8,9 @@ import { Button, Modal } from '@/shared/ui';
 import { ModalLayout } from '@/widgets/layout';
 import { useExpoActionPanel } from '../../model/useExpoActionPanel';
 
-interface ExpoActionPanelProps {
-  role?: 'user' | 'manage';
-  params: number;
-}
-
-const ExpoActionPanel: React.FC<ExpoActionPanelProps> = () => {
+const ExpoActionPanel = ({ params }: { params: number }) => {
   const { role } = useStore();
+  const router = useRouter();
   const { isModalOpen, modalContent, openModal, closeModal } =
     useExpoActionPanel();
 
