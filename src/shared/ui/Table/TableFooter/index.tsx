@@ -44,6 +44,12 @@ const TableFooter = ({
     }
   };
 
+  const handlePrintClick = () => {
+    if (selectItem !== null && actions?.PrintBadge) {
+      actions.PrintBadge(selectItem);
+    }
+  };
+
   return (
     <div className={tableFooterStyles({ type })}>
       <div className="flex gap-6">
@@ -62,7 +68,7 @@ const TableFooter = ({
       {type === 'print' && (
         <div className="flex items-center gap-6">
           <p className="text-body1 text-gray-400">출력</p>
-          <SmallButton text="명찰로 출력하기" />
+          <SmallButton text="명찰로 출력하기" onClick={handlePrintClick} />
         </div>
       )}
 

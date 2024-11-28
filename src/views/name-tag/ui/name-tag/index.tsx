@@ -21,12 +21,30 @@ interface UserData {
 
 const NameTag = () => {
   const requestSignUpCategories = ['이름', '번호', 'qr번호'];
+  const testData = [
+    {
+      id: 1,
+      name: '홍길동',
+      affiliation: '서울대학교',
+      qrCode: '/9j/4AAQSkZJRgABAgAAAQABAAD/',
+    },
+    {
+      id: 2,
+      name: '김영희',
+      affiliation: '연세대학교',
+      qrCode: '/9j/4AAQSkZJRgABAgAAAQABAAD/',
+    },
+    {
+      id: 3,
+      name: '이철수',
+      affiliation: '고려대학교',
+      qrCode: '/9j/4AAQSkZJRgABAgAAAQABAAD/',
+    },
+  ];
   const [scannedQR, setScannedQR] = useState<TraineeData | null>(null);
   const [buffer, setBuffer] = useState<string>('');
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserData[]>([]);
-
-  // QR 코드 처리 함수
   const handleQRScan = useCallback((cleanData: string) => {
     try {
       const parsedData: TraineeData = JSON.parse(cleanData);
@@ -36,7 +54,6 @@ const NameTag = () => {
     }
   }, []);
 
-  // 키보드 이벤트 핸들러
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!isScanning) {
@@ -85,6 +102,10 @@ const NameTag = () => {
     }
   }, [scannedQR, fetchUserData]);
 
+  const deleteNameTagActions = printActions(testData);
+
+  console.log(userData);
+
   return (
     <div className="flex h-screen flex-col gap-[30px] mobile:gap-5">
       <Header />
@@ -92,11 +113,11 @@ const NameTag = () => {
         <FilterTab />
         <TableForm
           categories={requestSignUpCategories}
-          data={userData}
+          data={testData}
           maxHeight="414px"
           footerType="print"
           text="등록된 박람회"
-          actions={printActions}
+          actions={deleteNameTagActions}
         />
       </div>
     </div>

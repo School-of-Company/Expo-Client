@@ -1,13 +1,27 @@
 import axios from 'axios';
+import { printBadge } from './printUtils';
+
+export interface UserData {
+  id: number;
+  name: string;
+  affiliation: string;
+  qrCode: string;
+}
 
 export const fileActions = {
   exportPDF: () => console.log('PDF 내보내기'),
   exportExcel: () => console.log('Excel 내보내기'),
 };
 
-export const printActions = {
-  printBadge: () => console.log('명찰 출력'),
-};
+export const printActions = (data: UserData[]) => ({
+  PrintBadge: async (selectItem: number) => {
+    const selectedData = data.find((item) => item.id === selectItem);
+    console.log(selectedData);
+    if (selectedData) {
+      printBadge(selectedData);
+    }
+  },
+});
 
 export const checkActions = (fetchSignupList: () => Promise<void>) => ({
   CheckBadge: async (selectItem: number) => {
