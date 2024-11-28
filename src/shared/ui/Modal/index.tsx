@@ -1,12 +1,21 @@
+'use client';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 import { XMark } from '@/shared/assets/icons';
 
 interface Props {
   text: string;
   onClose: () => void;
+  params: number;
 }
 
-const Modal = ({ text, onClose }: Props) => {
+const Modal = ({ text, onClose, params }: Props) => {
+  const router = useRouter();
+
+  const handleButtonClick = (type: string) => {
+    router.push(`/application/${params}/${type}`);
+  };
+
   return (
     <div className="w-[470px] rounded-sm bg-white px-7 py-8">
       <div className="flex flex-col gap-[90px]">
@@ -17,10 +26,16 @@ const Modal = ({ text, onClose }: Props) => {
           </label>
         </div>
         <div className="flex gap-[50px]">
-          <button className="w-full rounded-sm bg-main-500 py-3 text-white">
+          <button
+            className="w-full rounded-sm bg-main-500 py-3 text-white"
+            onClick={() => handleButtonClick('standard')}
+          >
             참가자
           </button>
-          <button className="w-full rounded-sm bg-main-300 py-3 text-white">
+          <button
+            className="w-full rounded-sm bg-main-300 py-3 text-white"
+            onClick={() => handleButtonClick('trainee')}
+          >
             연수자
           </button>
         </div>

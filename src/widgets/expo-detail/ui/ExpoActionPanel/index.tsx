@@ -8,7 +8,12 @@ import { Button, Modal } from '@/shared/ui';
 import { ModalLayout } from '@/widgets/layout';
 import { useExpoActionPanel } from '../../model/useExpoActionPanel';
 
-const ExpoActionPanel = ({ params }: { params: number }) => {
+interface ExpoActionPanelProps {
+  params: number;
+}
+
+const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
+
   const { role } = useStore();
   const router = useRouter();
   const { isModalOpen, modalContent, openModal, closeModal } =
@@ -50,7 +55,6 @@ const ExpoActionPanel = ({ params }: { params: number }) => {
   return (
     <div>
       <ClientInitializer />
-
       <div className="h-fit max-w-[210px] space-y-[26px] rounded-sm border-1 border-solid border-gray-200 p-[18px] mobile:max-w-full mobile:border-none mobile:px-[16px]">
         <p className="text-caption1 text-black mobile:hidden">
           2024 AI광주미래교육박람회
@@ -59,7 +63,7 @@ const ExpoActionPanel = ({ params }: { params: number }) => {
       </div>
       {isModalOpen && (
         <ModalLayout>
-          <Modal text={modalContent} onClose={closeModal} />
+          <Modal text={modalContent} onClose={closeModal} params={params} />
         </ModalLayout>
       )}
     </div>
