@@ -11,16 +11,18 @@ export async function POST(
   const { expo_id } = params;
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
-
+  const config = accessToken
+    ? {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    : {};
   try {
     const response = await apiClient.post(
       `/form/pre-standard/${expo_id}`,
       body,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
+      config,
     );
     return NextResponse.json(response.data);
   } catch (error) {

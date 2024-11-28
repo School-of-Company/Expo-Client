@@ -6,13 +6,16 @@ import { apiClient } from '@/shared/libs/apiClient';
 export async function GET() {
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
+  const config = accessToken
+    ? {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    : {};
 
   try {
-    const response = await apiClient.get('/expo', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await apiClient.get('/expo', config);
     return NextResponse.json(response.data);
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;

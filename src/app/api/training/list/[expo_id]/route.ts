@@ -13,13 +13,20 @@ export async function POST(
   const accessToken = cookieStore.get('accessToken')?.value;
   console.log(expo_id);
   console.log(accessToken);
+  const config = accessToken
+    ? {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    : {};
 
   try {
-    const response = await apiClient.post(`/training/list/${expo_id}`, body, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await apiClient.post(
+      `/training/list/${expo_id}`,
+      body,
+      config,
+    );
 
     return NextResponse.json(response.data);
   } catch (error) {
