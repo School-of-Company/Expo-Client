@@ -20,7 +20,7 @@ interface UserData {
 }
 
 const NameTag = () => {
-  const requestSignUpCategories = ['이름', '번호', 'qr번호'];
+  const requestSignUpCategories = ['아이디', '이름', '번호', 'qr번호'];
   const testData = [
     {
       id: 1,
