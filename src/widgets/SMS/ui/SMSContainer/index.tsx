@@ -1,8 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import { SMSHeader } from '@/entities/SMS';
-import { Button } from '@/shared/ui';
+import { Button, PageHeader } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
 
 interface FormData {
@@ -27,7 +26,7 @@ export default function Write() {
       className="relative mx-auto flex w-full max-w-[792px] flex-1 flex-col pb-5"
     >
       <div className="flex flex-1 flex-col gap-[62px]">
-        <SMSHeader />
+        <PageHeader title="문자 보내기" />
         <div className="space-y-[40px]">
           <TextArea
             title="제목"

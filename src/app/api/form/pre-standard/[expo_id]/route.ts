@@ -1,18 +1,16 @@
 import { AxiosError } from 'axios';
 import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { apiClient } from '@/shared/libs/apiClient';
 
 export async function POST(
-  request: NextRequest,
+  request: Request,
   { params }: { params: { expo_id: number } },
 ) {
   const body = await request.json();
   const { expo_id } = params;
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
-  console.log(expo_id);
-  console.log(accessToken);
   const config = accessToken
     ? {
         headers: {
@@ -20,25 +18,19 @@ export async function POST(
         },
       }
     : {};
-
   try {
     const response = await apiClient.post(
-      `/training/list/${expo_id}`,
+      `/form/pre-standard/${expo_id}`,
       body,
       config,
     );
-
     return NextResponse.json(response.data);
   } catch (error) {
-    if (error instanceof AxiosError) {
-      const status = error.response?.status;
-      const message = error.response?.data?.message || 'Unknown error';
-      return NextResponse.json({ error: message }, { status: status || 500 });
-    } else {
-      return NextResponse.json(
-        { error: 'Internal Server Error' },
-        { status: 500 },
-      );
-    }
+    const axiosError = error as AxiosError<{ message: string }>;
+
+    const status = axiosError.response?.status;
+    const message = axiosError.response?.data?.message;
+
+    return NextResponse.json({ error: message }, { status });
   }
 }

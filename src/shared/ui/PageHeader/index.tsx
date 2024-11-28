@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 import { ArrowLeft } from '@/shared/assets/icons';
 
-const SMSHeader = () => {
+const PageHeader = ({ title }: { title: string }) => {
   const router = useRouter();
 
   const handleGoBack = () => {
@@ -16,9 +16,9 @@ const SMSHeader = () => {
       <button onClick={handleGoBack} className="cursor-pointer">
         <ArrowLeft />
       </button>
-      <p className="w-full text-center text-h3 text-black">문자 보내기</p>
+      <p className="w-full text-center text-h3 text-black">{title}</p>
     </div>
   );
 };
 
-export default SMSHeader;
+export default PageHeader;
