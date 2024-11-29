@@ -42,7 +42,13 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
               text="문자 보내기"
             />
           </div>
-          <Button text="프로그램" style="main100" />
+          <Button
+            onClick={() => {
+              router.push(`/program/${params}`);
+            }}
+            text="프로그램"
+            style="main100"
+          />
           <Button text="조회하기" style="main100" />
           <Button text="수정하기" style="white" />
         </div>
