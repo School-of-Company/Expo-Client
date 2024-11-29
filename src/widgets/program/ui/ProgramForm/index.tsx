@@ -2,6 +2,7 @@
 
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { ProgramNavigation } from '@/entities/program';
 import { fileActions } from '@/shared/model/footerActions';
 import { TableForm } from '@/shared/ui/Table';
 
@@ -22,23 +23,28 @@ const ProgramForm = ({ params }: { params: { expo_id: string } }) => {
     '상태',
   ];
   const [expoData, setExpoData] = useState<Program[]>([]);
+  const [navigation, setnavigation] = useState<string>('standard');
 
   useEffect(() => {
     const fetchExpoData = async () => {
       try {
-        const response = await axios.get(
-          `/api/training/program/${params.expo_id}`,
-        );
+        const endpoint =
+          navigation === 'training'
+            ? `/api/training/program/${params.expo_id}`
+            : `/api/standard/program/${params.expo_id}`;
+
+        const response = await axios.get(endpoint);
         setExpoData(response.data);
       } catch (error) {
         console.error('Error fetching expo data:', error);
       }
     };
     fetchExpoData();
-  }, [params.expo_id]);
+  }, [params.expo_id, navigation]);
 
   return (
     <div>
+      <ProgramNavigation state={navigation} setState={setnavigation} />
       <TableForm
         categories={requestPrintCategories}
         data={expoData}
