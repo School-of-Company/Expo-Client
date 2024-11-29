@@ -68,7 +68,22 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
       </div>
       {isModalOpen && (
         <ModalLayout>
-          <Modal text={modalContent} onClose={closeModal} params={params} />
+          {role === 'user' && (
+            <Modal
+              text={modalContent}
+              onClose={closeModal}
+              params={params}
+              name={'application'}
+            />
+          )}
+          {role == 'manage' && (
+            <Modal
+              text={modalContent}
+              onClose={closeModal}
+              params={params}
+              name={'message'}
+            />
+          )}
         </ModalLayout>
       )}
     </div>

@@ -35,6 +35,6 @@ export const handleTraineeFormsSubmit = async (
         (data.informationStatus as unknown as string) === 'yes',
     },
     params,
-    true,
+    false,
   );
 };
