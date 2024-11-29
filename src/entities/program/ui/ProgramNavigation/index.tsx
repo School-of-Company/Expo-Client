@@ -10,7 +10,7 @@ const ProgramNavigation: React.FC<ProgramNavigationProps> = ({
   setState,
 }) => {
   return (
-    <div className="flex gap-[18px]">
+    <div className="flex justify-center gap-[18px]">
       <button
         className={`text-h2 ${state === 'standard' ? 'text-black' : 'text-gray-500'}`}
         onClick={() => {

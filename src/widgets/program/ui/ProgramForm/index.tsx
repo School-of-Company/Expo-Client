@@ -43,7 +43,7 @@ const ProgramForm = ({ params }: { params: { expo_id: string } }) => {
   }, [params.expo_id, navigation]);
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-[1200px] space-y-[46px] px-5">
       <ProgramNavigation state={navigation} setState={setnavigation} />
       <TableForm
         categories={requestPrintCategories}
