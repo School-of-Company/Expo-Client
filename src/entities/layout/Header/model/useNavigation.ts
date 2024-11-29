@@ -1,7 +1,7 @@
 'use client';
 import { usePathname } from 'next/navigation';
-import { userNavItems, manageNavItems } from './navigationItems';
 import useStore from '@/shared/stores/useStore';
+import { userNavItems, manageNavItems } from './navigationItems';
 import { NavItem } from './types';
 
 export const useNavigation = () => {
