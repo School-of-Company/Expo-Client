@@ -1,7 +1,9 @@
+'use client';
+
 import React, { useState } from 'react';
 import { TableFooter, TableHeader, TableItem } from '@/shared/ui/Table';
 
-interface Props<T extends { id: number }> {
+interface Props<T> {
   data: T[];
   footerType: 'default' | 'file' | 'print' | 'check' | 'delete';
   maxHeight?: string;

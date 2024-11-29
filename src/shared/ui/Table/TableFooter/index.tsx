@@ -54,7 +54,7 @@ const TableFooter = ({
     <div className={tableFooterStyles({ type })}>
       <div className="flex gap-6">
         <p className="text-body2 text-gray-500">{text}</p>
-        <p className="text-body2 text-main-600">{num}명</p>
+        <p className="text-body2 text-main-600">{num}</p>
       </div>
 
       {type === 'file' && (
