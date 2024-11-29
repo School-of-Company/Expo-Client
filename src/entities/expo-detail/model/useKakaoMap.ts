@@ -30,7 +30,9 @@ export const useKakaoMap = ({ latitude, longitude }: KakaoMapOptions) => {
   useEffect(() => {
     const initializeMap = () => {
       if (typeof window.kakao !== 'undefined') {
-        loadKakaoMap();
+        window.kakao.maps.load(() => {
+          loadKakaoMap();
+        });
       } else {
         console.error('Kakao Maps API가 로드되지 않았습니다.');
       }
