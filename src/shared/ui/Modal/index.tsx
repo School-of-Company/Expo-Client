@@ -7,13 +7,16 @@ interface Props {
   text: string;
   onClose: () => void;
   params: number;
+  name: string;
 }
 
-const Modal = ({ text, onClose, params }: Props) => {
+const Modal = ({ text, onClose, params, name }: Props) => {
   const router = useRouter();
 
   const handleButtonClick = (type: string) => {
-    router.push(`/application/${params}/${type}`);
+    if (name == 'application') {
+      router.push(`/application/${params}/${type}`);
+    }
   };
 
   return (
