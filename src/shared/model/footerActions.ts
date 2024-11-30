@@ -9,7 +9,7 @@ export interface UserData {
 }
 
 export const fileActions = {
-  exportPDF: () => console.log('PDF 내보내기'),
+  exportPDF: () => window.print(),
   exportExcel: () => console.log('Excel 내보내기'),
 };
 
