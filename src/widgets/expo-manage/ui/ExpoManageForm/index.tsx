@@ -2,8 +2,8 @@
 
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { FilterTab } from '@/entities/expo-manage';
 import { fileActions } from '@/shared/model/footerActions';
+import SelectUserType from '@/shared/ui/SelectUserType';
 import { TableForm } from '@/shared/ui/Table';
 
 interface Program {
@@ -22,28 +22,47 @@ const ExpoManageForm = ({ params }: { params: { expo_id: string } }) => {
     '종료시간',
     '상태',
   ];
+  const selectOptionCategories = [
+    { value: 'trainee', label: '사전 교원연수참가자' },
+    { value: 'FIELD', label: '현장신청자' },
+    { value: 'PRE', label: '사전 행사참가자' },
+  ];
   const [expoData, setExpoData] = useState<Program[]>([]);
-  const [navigation, _setnavigation] = useState<string>('standard');
+  const [selectOption, setSelectOption] = useState<string>('trainee');
 
   useEffect(() => {
     const fetchExpoData = async () => {
       try {
-        const endpoint =
-          navigation === 'training'
-            ? `/api/training/program/${params.expo_id}`
-            : `/api/standard/program/${params.expo_id}`;
+        let endpoint = '';
+        let paramsObj: { type?: string } = {};
+        if (selectOption === 'trainee') {
+          endpoint = `/api/trainee/${params.expo_id}`;
+        } else {
+          endpoint = `/api/participant/${params.expo_id}?${selectOption}`;
+          paramsObj = { type: selectOption };
+        }
 
-        const response = await axios.get(endpoint);
+        const response = await axios.get(endpoint, { params: paramsObj });
         setExpoData(response.data);
       } catch (error) {
         console.error('Error fetching expo data:', error);
       }
     };
+
     fetchExpoData();
-  }, [params.expo_id, navigation]);
+  }, [params.expo_id, selectOption]);
+
+  useEffect(() => {
+    console.log(selectOption);
+  }, [selectOption]);
+
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-[30px] px-5">
-      <FilterTab />
+      <SelectUserType
+        options={selectOptionCategories}
+        defaultValue="trainee"
+        onChange={(value) => setSelectOption(value)}
+      />
       <TableForm
         categories={requestPrintCategories}
         data={expoData}
