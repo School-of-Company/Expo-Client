@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { fileActions } from '@/shared/model/footerActions';
 import { TableForm } from '@/shared/ui/Table';

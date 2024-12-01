@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import { printBadge } from './printUtils';
 
 export interface UserData {
@@ -43,5 +44,10 @@ export const deleteActions = (fetchExpoList: () => Promise<void>) => ({
     } catch (error) {
       console.error('Failed to delete expo:', error);
     }
+  },
+});
+export const routeActions = (router: ReturnType<typeof useRouter>) => ({
+  RouteActions: (id: number) => {
+    router.push(`/program/detail/${id}`);
   },
 });
