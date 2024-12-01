@@ -8,10 +8,10 @@ export interface UserData {
   qrCode: string;
 }
 
-export const fileActions = {
+export const fileActions = (params: { expo_id: string }) => ({
   exportPDF: () => window.print(),
-  exportExcel: () => console.log('Excel 내보내기'),
-};
+  exportExcel: async () => await axios.get(`/api/excel/${params.expo_id}`),
+});
 
 export const printActions = (data: UserData[]) => ({
   PrintBadge: async (selectItem: number) => {

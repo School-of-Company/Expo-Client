@@ -69,7 +69,7 @@ const ExpoManageForm = ({ params }: { params: { expo_id: string } }) => {
         maxHeight="414px"
         footerType="file"
         text="참가자 전체 인원"
-        actions={fileActions}
+        actions={fileActions(params)}
       />
     </div>
   );
