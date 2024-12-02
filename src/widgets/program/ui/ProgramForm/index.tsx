@@ -15,7 +15,7 @@ interface Program {
   category: string;
 }
 
-const ProgramForm = ({ params }: { params: { expo_id: string } }) => {
+const ProgramForm = ({ id }: { id: string }) => {
   const [expoData, setExpoData] = useState<Program[]>([]);
   const [navigation, setnavigation] = useState<string>('standard');
   const router = useRouter();
@@ -32,8 +32,8 @@ const ProgramForm = ({ params }: { params: { expo_id: string } }) => {
       try {
         const endpoint =
           navigation === 'training'
-            ? `/api/training/program/${params.expo_id}`
-            : `/api/standard/program/${params.expo_id}`;
+            ? `/api/training/program/${id}`
+            : `/api/standard/program/${id}`;
 
         const response = await axios.get(endpoint);
         setExpoData(response.data);
@@ -42,7 +42,7 @@ const ProgramForm = ({ params }: { params: { expo_id: string } }) => {
       }
     };
     fetchExpoData();
-  }, [params.expo_id, navigation]);
+  }, [id, navigation]);
 
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-[46px] px-5">

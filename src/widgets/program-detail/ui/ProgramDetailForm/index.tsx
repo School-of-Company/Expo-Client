@@ -4,7 +4,7 @@ import React from 'react';
 import { fileActions } from '@/shared/model/footerActions';
 import { TableForm } from '@/shared/ui/Table';
 
-const ProgramDetailForm = ({ params }: { params: { expo_id: string } }) => {
+const ProgramDetailForm = ({ id }: { id: number }) => {
   const programCategories = [
     '번호',
     '성명',
@@ -24,7 +24,7 @@ const ProgramDetailForm = ({ params }: { params: { expo_id: string } }) => {
         maxHeight="414px"
         footerType="file"
         text="인원 수"
-        actions={fileActions(params)}
+        actions={fileActions(id)}
       />
     </div>
   );
