@@ -44,11 +44,12 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
           </div>
           <Button
             onClick={() => {
-              router.push(`/program/${params}`);
+              router.push(`/program/${params}?navigation=standard`);
             }}
             text="프로그램"
             style="main100"
           />
+
           <Button
             onClick={() => {
               router.push(`/expo-manage/${params}`);

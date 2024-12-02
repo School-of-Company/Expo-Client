@@ -1,11 +1,10 @@
 'use client';
 
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useEffect, useState, useMemo } from 'react';
 import { ProgramNavigation } from '@/entities/program';
 import { routeActions } from '@/shared/model/footerActions';
-import { useNavigationStore } from '@/shared/stores/useNavigationStore';
 import { TableForm } from '@/shared/ui/Table';
 
 interface Program {
@@ -17,15 +16,15 @@ interface Program {
 }
 
 const ProgramForm = ({ id }: { id: string }) => {
+  const searchParams = useSearchParams();
+  const navigation = searchParams.get('navigation') || 'standard';
   const [expoData, setExpoData] = useState<Program[]>([]);
-  const { navigation } = useNavigationStore();
   const router = useRouter();
 
   const requestPrintCategories = useMemo(() => {
-    if (navigation === 'training') {
-      return ['번호', '프로그램', '시작시간', '종료시간', '상태'];
-    }
-    return ['번호', '프로그램', '시작시간', '종료시간'];
+    return navigation === 'training'
+      ? ['번호', '프로그램', '시작시간', '종료시간', '상태']
+      : ['번호', '프로그램', '시작시간', '종료시간'];
   }, [navigation]);
 
   useEffect(() => {
@@ -42,6 +41,7 @@ const ProgramForm = ({ id }: { id: string }) => {
         console.error('Error fetching expo data:', error);
       }
     };
+
     fetchExpoData();
   }, [id, navigation]);
 
@@ -54,7 +54,7 @@ const ProgramForm = ({ id }: { id: string }) => {
         maxHeight="414px"
         footerType="route"
         text="프로그램 수"
-        actions={routeActions(router)}
+        actions={routeActions(router, navigation)}
       />
     </div>
   );

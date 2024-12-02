@@ -1,8 +1,8 @@
 'use client';
 
 import axios from 'axios';
+import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-import { useNavigationStore } from '@/shared/stores/useNavigationStore';
 import { TableForm } from '@/shared/ui/Table';
 
 interface TrainingProgram {
@@ -28,7 +28,8 @@ interface StandardProgram {
 }
 
 const ProgramDetailForm = ({ id }: { id: number }) => {
-  const { navigation } = useNavigationStore();
+  const searchParams = useSearchParams();
+  const navigation = searchParams.get('navigation') || 'standard'; // URL 쿼리 파라미터에서 navigation 값 가져오기
   const [data, setData] = useState<TrainingProgram[] | StandardProgram[]>([]);
 
   useEffect(() => {

@@ -1,8 +1,22 @@
-import React from 'react';
-import { useNavigationStore } from '@/shared/stores/useNavigationStore';
+'use client';
+
+import { useSearchParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
 const ProgramNavigation: React.FC = () => {
-  const { navigation, setNavigation } = useNavigationStore();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [navigation, setNavigation] = useState<string>('standard');
+
+  useEffect(() => {
+    const currentNavigation = searchParams.get('navigation') || 'standard';
+    setNavigation(currentNavigation);
+  }, [searchParams]);
+
+  const handleNavigationChange = (newNavigation: string) => {
+    router.push(`${window.location.pathname}?navigation=${newNavigation}`);
+    setNavigation(newNavigation);
+  };
 
   return (
     <div className="flex justify-center gap-[18px]">
@@ -10,7 +24,7 @@ const ProgramNavigation: React.FC = () => {
         className={`text-h2 ${
           navigation === 'standard' ? 'text-black' : 'text-gray-500'
         }`}
-        onClick={() => setNavigation('standard')}
+        onClick={() => handleNavigationChange('standard')}
       >
         일반 프로그램
       </button>
@@ -18,7 +32,7 @@ const ProgramNavigation: React.FC = () => {
         className={`text-h2 ${
           navigation === 'training' ? 'text-black' : 'text-gray-500'
         }`}
-        onClick={() => setNavigation('training')}
+        onClick={() => handleNavigationChange('training')}
       >
         연수 프로그램
       </button>
