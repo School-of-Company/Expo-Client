@@ -2,7 +2,6 @@
 
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { AdminProfile } from '@/entities/admin';
 import { checkActions, deleteActions } from '@/shared/model/footerActions';
 import { SignUpItem } from '@/shared/types/\bSignUp/type';
 import { ExpoItem } from '@/shared/types/Expo/type';
@@ -52,7 +51,6 @@ const AdminPageWrapper = () => {
 
   return (
     <div className="space-y-[73px]">
-      <AdminProfile />
       <div className="space-y-[26px]">
         <p className="text-h2 text-black">회원가입 요청</p>
         <div className="h-auto">
