@@ -46,8 +46,11 @@ export const deleteActions = (fetchExpoList: () => Promise<void>) => ({
     }
   },
 });
-export const routeActions = (router: ReturnType<typeof useRouter>) => ({
+export const routeActions = (
+  router: ReturnType<typeof useRouter>,
+  navigation: string,
+) => ({
   RouteActions: (id: number) => {
-    router.push(`/program/detail/${id}`);
+    router.push(`/program/detail/${id}?navigation=${navigation}`);
   },
 });
