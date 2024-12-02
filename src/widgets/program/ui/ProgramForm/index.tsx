@@ -51,7 +51,7 @@ const ProgramForm = ({ params }: { params: { expo_id: string } }) => {
         maxHeight="414px"
         footerType="default"
         text="프로그램 수"
-        actions={fileActions}
+        actions={fileActions(params)}
       />
     </div>
   );

@@ -21,7 +21,13 @@ const tableFooterStyles = cva('flex justify-between items-center', {
 type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
   num: number;
   text?: string;
-  actions?: { [key: string]: (selectItem: number) => void };
+  actions?: {
+    CheckBadge?: (selectItem: number) => void;
+    DeleteBadge?: (selectItem: number) => void;
+    PrintBadge?: (selectItem: number) => void;
+    exportPDF?: () => void;
+    exportExcel?: () => void;
+  };
   selectItem: number | null;
 };
 
@@ -50,6 +56,18 @@ const TableFooter = ({
     }
   };
 
+  const handlePDF = () => {
+    if (actions?.exportPDF) {
+      actions.exportPDF();
+    }
+  };
+
+  const handleExcel = () => {
+    if (actions?.exportExcel) {
+      actions.exportExcel();
+    }
+  };
+
   return (
     <div className={tableFooterStyles({ type })}>
       <div className="flex gap-6">
@@ -60,8 +78,8 @@ const TableFooter = ({
       {type === 'file' && (
         <div className="flex items-center gap-6">
           <p className="text-body1 text-gray-400">출력</p>
-          <SmallButton text="PDF" />
-          <SmallButton text="Exel" />
+          <SmallButton text="PDF" onClick={handlePDF} />
+          <SmallButton text="Exel" onClick={handleExcel} />
         </div>
       )}
 
