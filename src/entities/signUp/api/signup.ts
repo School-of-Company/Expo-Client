@@ -24,7 +24,7 @@ export const signUp = async (
     });
     if (response.status === 200) {
       toast.success('회원가입이 완료되었습니다.');
-      router.push('/signin');
+      router.push('/signIn');
     }
   } catch (error) {
     console.error('Signup failed', error);
