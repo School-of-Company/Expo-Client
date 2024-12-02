@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ProgramNavigation } from '@/entities/program';
 import { routeActions } from '@/shared/model/footerActions';
+import { useNavigationStore } from '@/shared/stores/useNavigationStore';
 import { TableForm } from '@/shared/ui/Table';
 
 interface Program {
@@ -17,7 +18,7 @@ interface Program {
 
 const ProgramForm = ({ id }: { id: string }) => {
   const [expoData, setExpoData] = useState<Program[]>([]);
-  const [navigation, setnavigation] = useState<string>('standard');
+  const { navigation } = useNavigationStore();
   const router = useRouter();
 
   const requestPrintCategories = useMemo(() => {
@@ -46,7 +47,7 @@ const ProgramForm = ({ id }: { id: string }) => {
 
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-[46px] px-5">
-      <ProgramNavigation state={navigation} setState={setnavigation} />
+      <ProgramNavigation />
       <TableForm
         categories={requestPrintCategories}
         data={expoData}
