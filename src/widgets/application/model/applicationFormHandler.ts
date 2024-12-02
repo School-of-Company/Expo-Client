@@ -10,12 +10,12 @@ export const handleStandardFormsSubmit = async (
       name: data.name,
       phoneNumber: data.phoneNumber,
       affiliation: data.affiliation,
-      position: data.position,
+      position: '과장',
       informationStatus:
         (data.informationStatus as unknown as string) === 'yes',
     },
     params,
-    true,
+    false,
   );
 };
 export const handleTraineeFormsSubmit = async (
