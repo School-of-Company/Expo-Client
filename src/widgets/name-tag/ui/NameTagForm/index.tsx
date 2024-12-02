@@ -56,24 +56,29 @@ const NameTagForm = () => {
     };
   }, [buffer, isScanning, handleQRScan]);
 
-  const fetchUserData = useCallback(async (scannedQR: TraineeData) => {
-    const authority = scannedQR.traineeId ? 'ROLE_TRAINEE' : 'ROLE_STANDARD';
-    try {
-      const response = await axios.patch('/api/attendance', {
-        authority,
-        phoneNumber: scannedQR.phoneNumber,
-      });
-      const responseData: UserData = {
-        id: response.data.id,
-        name: response.data.name,
-        affiliation: response.data.affiliation,
-        qrCode: response.data.qrCode,
-      };
-      setUserData((prevData) => [...prevData, responseData]);
-    } catch (error) {
-      console.error('QR 코드 통신 에러:', error);
-    }
-  }, []);
+  const fetchUserData = useCallback(
+    async (scannedQR: TraineeData) => {
+      const authority = scannedQR.traineeId ? 'ROLE_TRAINEE' : 'ROLE_STANDARD';
+      try {
+        const response = await axios.patch('/api/attendance', {
+          authority,
+          phoneNumber: scannedQR.phoneNumber,
+        });
+
+        // 서버에서 응답 받은 데이터에 id 추가
+        const responseData: UserData = {
+          id: userData.length + 1, // 배열 길이를 이용해 ID 생성
+          name: response.data.name,
+          affiliation: response.data.affiliation,
+          qrCode: response.data.qrCode,
+        };
+        setUserData((prevData) => [...prevData, responseData]);
+      } catch (error) {
+        console.error('QR 코드 통신 에러:', error);
+      }
+    },
+    [userData.length],
+  );
 
   useEffect(() => {
     if (scannedQR) {
