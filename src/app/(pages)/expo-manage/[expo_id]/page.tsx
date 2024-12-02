@@ -1,10 +1,10 @@
 import React from 'react';
-import { Program } from '@/views/program';
+import { ExpoManage } from '@/views/expo-manage';
 
 const Page = ({ params }: { params: { expo_id: string } }) => {
   return (
     <div>
-      <Program id={params.expo_id} />
+      <ExpoManage id={params.expo_id} />
     </div>
   );
 };

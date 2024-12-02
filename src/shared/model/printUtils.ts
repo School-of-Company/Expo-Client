@@ -1,14 +1,17 @@
 export const printBadge = (selectedData: {
   name: string;
   affiliation: string;
-  qrCode: string;
+  qrCode: string; // Base64 또는 텍스트
 }) => {
   const printWindow = window.open('', '_blank');
   if (printWindow) {
+    const isBase64 =
+      selectedData.qrCode.startsWith('/9j/') ||
+      selectedData.qrCode.includes('base64');
     printWindow.document.write(`
       <html>
         <head>
-          <title></title> 
+          <title>Badge</title>
           <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
           <style>
             body {
@@ -39,18 +42,12 @@ export const printBadge = (selectedData: {
               display: flex;
               justify-content: center;
             }
-
             @media print {
-              body {
-                margin: 0;
-                box-shadow: none;
-              }
-              html, body {
-                width: 100%;
-                height: 100%;
-              }
               @page {
                 margin: 0; 
+              }
+              body {
+                margin: 0;
               }
             }
           </style>
@@ -59,19 +56,34 @@ export const printBadge = (selectedData: {
           <div class="badge">
             <h1>${selectedData.name}</h1>
             <p>소속: ${selectedData.affiliation}</p>
-            <div id="qrcode" class="qr-container"></div>
+            <div class="qr-container">
+              ${
+                isBase64
+                  ? `<img src="data:image/png;base64,${selectedData.qrCode}" alt="QR Code" />`
+                  : `<div id="qrcode"></div>`
+              }
+            </div>
           </div>
-          <script>
-            new QRCode("qrcode", {
-              text: "${selectedData.qrCode}",
-              width: 96,
-              height: 96 
-            });
-            window.onload = function() {
-              window.print();
-              window.close();
-            };
-          </script>
+          ${
+            !isBase64
+              ? `<script>
+                  new QRCode("qrcode", {
+                    text: "${selectedData.qrCode}",
+                    width: 96,
+                    height: 96
+                  });
+                  window.onload = function() {
+                    window.print();
+                    window.close();
+                  };
+                </script>`
+              : `<script>
+                  window.onload = function() {
+                    window.print();
+                    window.close();
+                  };
+                </script>`
+          }
         </body>
       </html>
     `);

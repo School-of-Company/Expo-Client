@@ -11,6 +11,7 @@ const tableFooterStyles = cva('flex justify-between items-center', {
       print: 'flex justify-between',
       check: 'flex justify-between',
       delete: 'flex justify-between',
+      route: 'flex justify-between',
     },
   },
   defaultVariants: {
@@ -21,7 +22,14 @@ const tableFooterStyles = cva('flex justify-between items-center', {
 type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
   num: number;
   text?: string;
-  actions?: { [key: string]: (selectItem: number) => void };
+  actions?: {
+    CheckBadge?: (selectItem: number) => void;
+    DeleteBadge?: (selectItem: number) => void;
+    PrintBadge?: (selectItem: number) => void;
+    exportPDF?: () => void;
+    exportExcel?: () => void;
+    RouteActions?: (selectItem: number) => void;
+  };
   selectItem: number | null;
 };
 
@@ -50,6 +58,24 @@ const TableFooter = ({
     }
   };
 
+  const handlePDF = () => {
+    if (actions?.exportPDF) {
+      actions.exportPDF();
+    }
+  };
+
+  const handleExcel = () => {
+    if (actions?.exportExcel) {
+      actions.exportExcel();
+    }
+  };
+
+  const handleNavigationClick = () => {
+    if (selectItem !== null && actions?.RouteActions) {
+      actions.RouteActions(selectItem);
+    }
+  };
+
   return (
     <div className={tableFooterStyles({ type })}>
       <div className="flex gap-6">
@@ -60,8 +86,8 @@ const TableFooter = ({
       {type === 'file' && (
         <div className="flex items-center gap-6">
           <p className="text-body1 text-gray-400">출력</p>
-          <SmallButton text="PDF" />
-          <SmallButton text="Exel" />
+          <SmallButton text="PDF" onClick={handlePDF} />
+          <SmallButton text="Exel" onClick={handleExcel} />
         </div>
       )}
 
@@ -91,6 +117,12 @@ const TableFooter = ({
             <p className="text-body1 text-gray-400">삭제</p>
             <Trash />
           </button>
+        </div>
+      )}
+      {type === 'route' && (
+        <div className="flex items-center gap-6">
+          <p className="text-body1 text-gray-400">페이지 이동</p>
+          <SmallButton text="이동하기" onClick={handleNavigationClick} />
         </div>
       )}
     </div>

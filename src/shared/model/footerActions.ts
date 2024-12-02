@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 import { printBadge } from './printUtils';
 
 export interface UserData {
@@ -8,10 +10,10 @@ export interface UserData {
   qrCode: string;
 }
 
-export const fileActions = {
-  exportPDF: () => console.log('PDF 내보내기'),
-  exportExcel: () => console.log('Excel 내보내기'),
-};
+export const fileActions = (id: string | number) => ({
+  exportPDF: () => window.print(),
+  exportExcel: async () => await axios.get(`/api/excel/${id}`),
+});
 
 export const printActions = (data: UserData[]) => ({
   PrintBadge: async (selectItem: number) => {
@@ -28,6 +30,7 @@ export const checkActions = (fetchSignupList: () => Promise<void>) => ({
     try {
       await axios.patch(`/api/admin/${selectItem}`);
       await fetchSignupList();
+      toast.success('회원가입 승인 성공');
     } catch (error) {
       console.error('Failed to check signup:', error);
     }
@@ -40,8 +43,17 @@ export const deleteActions = (fetchExpoList: () => Promise<void>) => ({
     try {
       await axios.delete(`/api/expo/${selectItem}`);
       await fetchExpoList();
+      toast.success('박람회 삭제 성공');
     } catch (error) {
-      console.error('Failed to delete expo:', error);
+      toast.error('박람회 삭제 실패');
     }
+  },
+});
+export const routeActions = (
+  router: ReturnType<typeof useRouter>,
+  navigation: string,
+) => ({
+  RouteActions: (id: number) => {
+    router.push(`/program/detail/${id}?navigation=${navigation}`);
   },
 });

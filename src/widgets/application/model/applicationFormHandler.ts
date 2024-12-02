@@ -10,7 +10,7 @@ export const handleStandardFormsSubmit = async (
       name: data.name,
       phoneNumber: data.phoneNumber,
       affiliation: data.affiliation,
-      position: 'test',
+      position: '과장',
       informationStatus:
         (data.informationStatus as unknown as string) === 'yes',
     },

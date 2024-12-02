@@ -1,29 +1,38 @@
-import React from 'react';
+'use client';
 
-interface ProgramNavigationProps {
-  state: string;
-  setState: React.Dispatch<React.SetStateAction<string>>;
-}
+import { useSearchParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
-const ProgramNavigation: React.FC<ProgramNavigationProps> = ({
-  state,
-  setState,
-}) => {
+const ProgramNavigation: React.FC = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [navigation, setNavigation] = useState<string>('standard');
+
+  useEffect(() => {
+    const currentNavigation = searchParams.get('navigation') || 'standard';
+    setNavigation(currentNavigation);
+  }, [searchParams]);
+
+  const handleNavigationChange = (newNavigation: string) => {
+    router.push(`${window.location.pathname}?navigation=${newNavigation}`);
+    setNavigation(newNavigation);
+  };
+
   return (
     <div className="flex justify-center gap-[18px]">
       <button
-        className={`text-h2 ${state === 'standard' ? 'text-black' : 'text-gray-500'}`}
-        onClick={() => {
-          setState('standard');
-        }}
+        className={`text-h2 ${
+          navigation === 'standard' ? 'text-black' : 'text-gray-500'
+        }`}
+        onClick={() => handleNavigationChange('standard')}
       >
         일반 프로그램
       </button>
       <button
-        className={`text-h2 ${state === 'training' ? 'text-black' : 'text-gray-500'}`}
-        onClick={() => {
-          setState('training');
-        }}
+        className={`text-h2 ${
+          navigation === 'training' ? 'text-black' : 'text-gray-500'
+        }`}
+        onClick={() => handleNavigationChange('training')}
       >
         연수 프로그램
       </button>

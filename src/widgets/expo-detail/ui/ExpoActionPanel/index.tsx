@@ -44,12 +44,19 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
           </div>
           <Button
             onClick={() => {
-              router.push(`/program/${params}`);
+              router.push(`/program/${params}?navigation=standard`);
             }}
             text="프로그램"
             style="main100"
           />
-          <Button text="조회하기" style="main100" />
+
+          <Button
+            onClick={() => {
+              router.push(`/expo-manage/${params}`);
+            }}
+            text="조회하기"
+            style="main100"
+          />
           <Button text="수정하기" style="white" />
         </div>
       );
@@ -60,10 +67,7 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
   return (
     <div>
       <ClientInitializer />
-      <div className="h-fit max-w-[210px] space-y-[26px] rounded-sm border-1 border-solid border-gray-200 p-[18px] mobile:max-w-full mobile:border-none mobile:px-[16px]">
-        <p className="text-caption1 text-black mobile:hidden">
-          2024 AI광주미래교육박람회
-        </p>
+      <div className="h-fit w-[210px] space-y-[26px] rounded-sm border-1 border-solid border-gray-200 p-[18px] mobile:w-full mobile:border-none mobile:px-[16px]">
         <div className="space-y-2">{getButtons()}</div>
       </div>
       {isModalOpen && (
