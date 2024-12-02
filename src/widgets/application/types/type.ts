@@ -15,4 +15,5 @@ export type StandardForms = {
   affiliation: string;
   position: string;
   informationStatus: boolean;
+  test?: string;
 };

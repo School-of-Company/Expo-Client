@@ -1,11 +1,16 @@
 'use client';
+import axios from 'axios';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Input, RadioGroup } from '@/entities/application';
+import TrainingRadioGroup from '@/entities/application/ui/TrainingRadioGroup';
 import { Button } from '@/shared/ui';
 import { handleTraineeFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
 import { TraineeForms } from '../../../../types/type';
 
 const TraineeForm = ({ params }: { params: number }) => {
+  const [trainingId, setTrainingId] = useState('');
+
   const {
     control,
     handleSubmit,
@@ -37,9 +42,33 @@ const TraineeForm = ({ params }: { params: number }) => {
     { value: 'no', label: '아니요' },
   ];
 
-  const onSubmit = (data: TraineeForms) => {
-    handleTraineeFormsSubmit(data, params);
+  const onSubmit = async (data: TraineeForms) => {
+    await handleTraineeFormsSubmit(data, params);
+    if (trainingId && selectedValue) {
+      const result = await TrainingRadioGroup.handleTrainingSubmit(
+        selectedValue,
+        trainingId,
+      );
+      console.log('Training Submit Result:', result);
+    }
+
+    const qrBody = {
+      phoneNumber: data.phoneNumber,
+      authority: 'ROLE_TRAINEE',
+    };
+
+    const response = await axios.post('/api/sms/qr', qrBody);
+
+    console.log('QR SMS API Response:', response.data);
+    alert('QR SMS 요청이 성공적으로 처리되었습니다.');
   };
+
+  const handleTrainingIdChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setTrainingId(event.target.value);
+  };
+  const [selectedValue, setSelectedValue] = useState<number | null>(null);
 
   return (
     <form
@@ -52,6 +81,7 @@ const TraineeForm = ({ params }: { params: number }) => {
         label="연수 아이디"
         placeholder="연수 아이디"
         error={errors.trainingId?.message}
+        onChange={handleTrainingIdChange}
       />
       <RadioGroup
         control={control}
@@ -103,7 +133,14 @@ const TraineeForm = ({ params }: { params: number }) => {
         options={yesNoOptions}
         error={errors.informationStatus?.message}
       />
-
+      <TrainingRadioGroup
+        label="연수 선택"
+        name="test"
+        params={params}
+        trainingId={trainingId}
+        selectedValue={selectedValue}
+        setSelectedValue={setSelectedValue}
+      />
       <Button text="신청하기" type="submit" />
     </form>
   );
