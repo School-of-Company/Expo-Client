@@ -100,9 +100,12 @@ TrainingRadioGroup.handleTrainingSubmit = async (
   trainingId: string,
 ) => {
   try {
-    const response = await axios.post(`/api/application/${selectedValue}`, {
-      trainingId,
-    });
+    const response = await axios.post(
+      `/api/training/application/${selectedValue}`,
+      {
+        trainingId,
+      },
+    );
     return response.data;
   } catch (error) {
     console.error('Error submitting training:', error);

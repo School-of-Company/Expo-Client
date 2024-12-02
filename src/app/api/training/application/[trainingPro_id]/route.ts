@@ -5,10 +5,10 @@ import { apiClient } from '@/shared/libs/apiClient';
 
 export async function POST(
   request: Request,
-  { params }: { params: { expo_id: number } },
+  { params }: { params: { trainingPro_id: number } },
 ) {
   const body = await request.json();
-  const { expo_id } = params;
+  const { trainingPro_id } = params;
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
 
@@ -21,7 +21,11 @@ export async function POST(
     : {};
 
   try {
-    const response = await apiClient.post(`/form/${expo_id}`, body, config);
+    const response = await apiClient.post(
+      `/training/application/${trainingPro_id}`,
+      body,
+      config,
+    );
     return NextResponse.json(response.data);
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
