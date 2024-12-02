@@ -1,29 +1,24 @@
 import React from 'react';
+import { useNavigationStore } from '@/shared/stores/useNavigationStore';
 
-interface ProgramNavigationProps {
-  state: string;
-  setState: React.Dispatch<React.SetStateAction<string>>;
-}
+const ProgramNavigation: React.FC = () => {
+  const { navigation, setNavigation } = useNavigationStore();
 
-const ProgramNavigation: React.FC<ProgramNavigationProps> = ({
-  state,
-  setState,
-}) => {
   return (
     <div className="flex justify-center gap-[18px]">
       <button
-        className={`text-h2 ${state === 'standard' ? 'text-black' : 'text-gray-500'}`}
-        onClick={() => {
-          setState('standard');
-        }}
+        className={`text-h2 ${
+          navigation === 'standard' ? 'text-black' : 'text-gray-500'
+        }`}
+        onClick={() => setNavigation('standard')}
       >
         일반 프로그램
       </button>
       <button
-        className={`text-h2 ${state === 'training' ? 'text-black' : 'text-gray-500'}`}
-        onClick={() => {
-          setState('training');
-        }}
+        className={`text-h2 ${
+          navigation === 'training' ? 'text-black' : 'text-gray-500'
+        }`}
+        onClick={() => setNavigation('training')}
       >
         연수 프로그램
       </button>

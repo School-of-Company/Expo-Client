@@ -14,7 +14,7 @@ interface Program {
   category: string;
 }
 
-const ExpoManageForm = ({ params }: { params: { expo_id: string } }) => {
+const ExpoManageForm = ({ id }: { id: string }) => {
   const requestPrintCategories = [
     '번호',
     '프로그램',
@@ -36,9 +36,9 @@ const ExpoManageForm = ({ params }: { params: { expo_id: string } }) => {
         let endpoint = '';
         let paramsObj: { type?: string } = {};
         if (selectOption === 'trainee') {
-          endpoint = `/api/trainee/${params.expo_id}`;
+          endpoint = `/api/trainee/${id}`;
         } else {
-          endpoint = `/api/participant/${params.expo_id}?${selectOption}`;
+          endpoint = `/api/participant/${id}?${selectOption}`;
           paramsObj = { type: selectOption };
         }
 
@@ -50,7 +50,7 @@ const ExpoManageForm = ({ params }: { params: { expo_id: string } }) => {
     };
 
     fetchExpoData();
-  }, [params.expo_id, selectOption]);
+  }, [id, selectOption]);
 
   useEffect(() => {
     console.log(selectOption);
@@ -69,7 +69,7 @@ const ExpoManageForm = ({ params }: { params: { expo_id: string } }) => {
         maxHeight="414px"
         footerType="file"
         text="참가자 전체 인원"
-        actions={fileActions(params)}
+        actions={fileActions(id)}
       />
     </div>
   );

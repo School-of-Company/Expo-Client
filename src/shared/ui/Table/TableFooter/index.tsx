@@ -11,6 +11,7 @@ const tableFooterStyles = cva('flex justify-between items-center', {
       print: 'flex justify-between',
       check: 'flex justify-between',
       delete: 'flex justify-between',
+      route: 'flex justify-between',
     },
   },
   defaultVariants: {
@@ -27,6 +28,7 @@ type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
     PrintBadge?: (selectItem: number) => void;
     exportPDF?: () => void;
     exportExcel?: () => void;
+    RouteActions?: (selectItem: number) => void;
   };
   selectItem: number | null;
 };
@@ -65,6 +67,12 @@ const TableFooter = ({
   const handleExcel = () => {
     if (actions?.exportExcel) {
       actions.exportExcel();
+    }
+  };
+
+  const handleNavigationClick = () => {
+    if (selectItem !== null && actions?.RouteActions) {
+      actions.RouteActions(selectItem);
     }
   };
 
@@ -109,6 +117,12 @@ const TableFooter = ({
             <p className="text-body1 text-gray-400">삭제</p>
             <Trash />
           </button>
+        </div>
+      )}
+      {type === 'route' && (
+        <div className="flex items-center gap-6">
+          <p className="text-body1 text-gray-400">페이지 이동</p>
+          <SmallButton text="이동하기" onClick={handleNavigationClick} />
         </div>
       )}
     </div>

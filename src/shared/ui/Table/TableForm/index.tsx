@@ -5,7 +5,7 @@ import { TableFooter, TableHeader, TableItem } from '@/shared/ui/Table';
 
 interface Props<T> {
   data: T[];
-  footerType: 'default' | 'file' | 'print' | 'check' | 'delete';
+  footerType: 'default' | 'file' | 'print' | 'check' | 'delete' | 'route';
   maxHeight?: string;
   categories: string[];
   text?: string;

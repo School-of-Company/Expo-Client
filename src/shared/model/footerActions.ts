@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import { printBadge } from './printUtils';
 
 export interface UserData {
@@ -8,9 +9,9 @@ export interface UserData {
   qrCode: string;
 }
 
-export const fileActions = (params: { expo_id: string }) => ({
+export const fileActions = (id: string | number) => ({
   exportPDF: () => window.print(),
-  exportExcel: async () => await axios.get(`/api/excel/${params.expo_id}`),
+  exportExcel: async () => await axios.get(`/api/excel/${id}`),
 });
 
 export const printActions = (data: UserData[]) => ({
@@ -43,5 +44,10 @@ export const deleteActions = (fetchExpoList: () => Promise<void>) => ({
     } catch (error) {
       console.error('Failed to delete expo:', error);
     }
+  },
+});
+export const routeActions = (router: ReturnType<typeof useRouter>) => ({
+  RouteActions: (id: number) => {
+    router.push(`/program/detail/${id}`);
   },
 });
