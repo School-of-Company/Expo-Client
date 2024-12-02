@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 import { printBadge } from './printUtils';
 
 export interface UserData {
@@ -29,6 +30,7 @@ export const checkActions = (fetchSignupList: () => Promise<void>) => ({
     try {
       await axios.patch(`/api/admin/${selectItem}`);
       await fetchSignupList();
+      toast.success('회원가입 승인 성공');
     } catch (error) {
       console.error('Failed to check signup:', error);
     }
@@ -41,8 +43,9 @@ export const deleteActions = (fetchExpoList: () => Promise<void>) => ({
     try {
       await axios.delete(`/api/expo/${selectItem}`);
       await fetchExpoList();
+      toast.success('박람회 삭제 성공');
     } catch (error) {
-      console.error('Failed to delete expo:', error);
+      toast.error('박람회 삭제 실패');
     }
   },
 });

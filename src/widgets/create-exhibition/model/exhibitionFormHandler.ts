@@ -7,27 +7,38 @@ import { uploadImage } from '../api/uploadImage';
 import { ExhibitionFormData } from '../types/type';
 
 export const handleExhibitionFormSubmit = async (data: ExhibitionFormData) => {
-  const coordinates = await convertAddressToCoordinates(data.address);
-  if (!coordinates) {
-    toast.error('주소 변환에 실패했습니다.');
-    return;
+  try {
+    const coordinates = await convertAddressToCoordinates(data.address);
+    if (!coordinates) {
+      toast.error('주소 변환에 실패했습니다.');
+      return;
+    }
+    const { lat, lng } = coordinates;
+    const img = await uploadImage(data.image);
+    if (!lat || !lng || !img) {
+      toast.error('필수 정보가 누락되었습니다.');
+      return;
+    }
+    const response = await createExhibition({
+      title: data.title,
+      description: data.introduction,
+      startedDay: data.startedDay,
+      finishedDay: data.finishedDay,
+      location: data.location,
+      coverImage: img,
+      x: lat,
+      y: lng,
+    });
+
+    if (response) {
+      await createTraining(response.expoId, data.trainings);
+      await createStandard(response.expoId, data.standard);
+      toast.success('박람회가 생성되었습니다.');
+    } else {
+      toast.error('박람회 생성에 실패했습니다.');
+    }
+  } catch (error) {
+    toast.error('박람회 생성에 실패했습니다.');
+    console.error(error);
   }
-  const { lat, lng } = coordinates;
-  const img = await uploadImage(data.image);
-  if (!lat || !lng || !img) {
-    toast.error('필수 정보가 누락되었습니다.');
-    return;
-  }
-  const response = await createExhibition({
-    title: data.title,
-    description: data.introduction,
-    startedDay: data.startedDay,
-    finishedDay: data.finishedDay,
-    location: data.location,
-    coverImage: img,
-    x: lat,
-    y: lng,
-  });
-  await createTraining(response.expoId, data.trainings);
-  await createStandard(response.expoId, data.standard);
 };

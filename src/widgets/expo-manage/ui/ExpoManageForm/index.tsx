@@ -15,20 +15,40 @@ interface Program {
 }
 
 const ExpoManageForm = ({ id }: { id: string }) => {
-  const requestPrintCategories = [
+  const baseRequestPrintCategories = [
     '번호',
-    '프로그램',
-    '시작시간',
-    '종료시간',
+    '이름',
+    '연수원 아이디',
+    '노트북 지참 여부',
+    '안내문자 발송용 연락처',
+    '직급',
+    '학교급',
+    '소속',
+    '개인정보동의제공 동의',
     '상태',
   ];
+
+  const traineeRequestPrintCategories = baseRequestPrintCategories;
+  const nonTraineeRequestPrintCategories = [
+    '번호',
+    '이름',
+    '안내문자 발송용 연락처',
+    '소속',
+    '직급',
+    '개인정보동의제공 동의',
+  ];
+
   const selectOptionCategories = [
     { value: 'trainee', label: '사전 교원연수참가자' },
     { value: 'FIELD', label: '현장신청자' },
     { value: 'PRE', label: '사전 행사참가자' },
   ];
+
   const [expoData, setExpoData] = useState<Program[]>([]);
   const [selectOption, setSelectOption] = useState<string>('trainee');
+  const [requestPrintCategories, setRequestPrintCategories] = useState<
+    string[]
+  >(traineeRequestPrintCategories);
 
   useEffect(() => {
     const fetchExpoData = async () => {
@@ -53,7 +73,11 @@ const ExpoManageForm = ({ id }: { id: string }) => {
   }, [id, selectOption]);
 
   useEffect(() => {
-    console.log(selectOption);
+    if (selectOption === 'trainee') {
+      setRequestPrintCategories(traineeRequestPrintCategories);
+    } else {
+      setRequestPrintCategories(nonTraineeRequestPrintCategories);
+    }
   }, [selectOption]);
 
   return (
