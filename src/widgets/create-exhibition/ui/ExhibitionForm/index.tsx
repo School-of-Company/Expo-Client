@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { ImageInput } from '@/entities/create-exhibition';
@@ -21,6 +22,7 @@ const ExhibitionForm = () => {
     setValue,
     watch,
   } = useForm<ExhibitionFormData>();
+  const router = useRouter();
 
   const trainingFields = useFieldArray<ExhibitionFormData>({
     control,
@@ -33,7 +35,7 @@ const ExhibitionForm = () => {
   });
 
   const onSubmit = (data: ExhibitionFormData) => {
-    handleExhibitionFormSubmit(data);
+    handleExhibitionFormSubmit(data, router);
   };
 
   const showError = (message: string) => {

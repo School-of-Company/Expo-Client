@@ -1,3 +1,4 @@
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { convertAddressToCoordinates } from '../api/convertAddressToCoordinates';
 import { createExhibition } from '../api/createExhibition';
@@ -6,7 +7,10 @@ import { createTraining } from '../api/createTraining';
 import { uploadImage } from '../api/uploadImage';
 import { ExhibitionFormData } from '../types/type';
 
-export const handleExhibitionFormSubmit = async (data: ExhibitionFormData) => {
+export const handleExhibitionFormSubmit = async (
+  data: ExhibitionFormData,
+  router: ReturnType<typeof useRouter>,
+) => {
   try {
     const coordinates = await convertAddressToCoordinates(data.address);
     if (!coordinates) {
@@ -34,6 +38,7 @@ export const handleExhibitionFormSubmit = async (data: ExhibitionFormData) => {
       await createTraining(response.expoId, data.trainings);
       await createStandard(response.expoId, data.standard);
       toast.success('박람회가 생성되었습니다.');
+      router.push('/');
     } else {
       toast.error('박람회 생성에 실패했습니다.');
     }
