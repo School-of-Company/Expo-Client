@@ -19,6 +19,7 @@ const ProgramForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const navigation = searchParams.get('navigation') || 'standard';
   const [expoData, setExpoData] = useState<Program[]>([]);
+  const [resetKey, setResetKey] = useState(0);
   const router = useRouter();
 
   const requestPrintCategories = useMemo(() => {
@@ -45,10 +46,15 @@ const ProgramForm = ({ id }: { id: string }) => {
     fetchExpoData();
   }, [id, navigation]);
 
+  useEffect(() => {
+    setResetKey((prevKey) => prevKey + 1);
+  }, [navigation]);
+
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-[46px] px-5">
       <ProgramNavigation />
       <TableForm
+        key={resetKey}
         categories={requestPrintCategories}
         data={expoData}
         maxHeight="414px"
