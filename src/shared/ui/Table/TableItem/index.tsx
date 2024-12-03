@@ -14,6 +14,18 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
   };
 
   const isSelected = state === data.id;
+  type RenderValueType = boolean | string | object | unknown;
+
+  const renderValue = (value: RenderValueType): string => {
+    if (typeof value === 'boolean') {
+      return value ? 'O' : 'X';
+    } else if (value === 'PRE') {
+      return '사전 신청';
+    } else if (value === 'FIELD') {
+      return '현장 신청';
+    }
+    return typeof value === 'string' ? value : JSON.stringify(value);
+  };
 
   return (
     <button
@@ -33,7 +45,7 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
             textOverflow: 'ellipsis',
           }}
         >
-          {typeof value === 'string' ? value : JSON.stringify(value)}
+          {renderValue(value)}
         </div>
       ))}
     </button>

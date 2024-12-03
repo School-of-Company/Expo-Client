@@ -30,11 +30,11 @@ const TraineeForm = ({ params }: { params: number }) => {
   });
 
   const schoolLevelOptions = [
-    { value: 'elementary', label: '초등학교' },
-    { value: 'middle', label: '중학교' },
-    { value: 'high', label: '고등학교' },
-    { value: 'education', label: '교육청' },
-    { value: 'other', label: '기타' },
+    { value: '초등학교', label: '초등학교' },
+    { value: '중학교', label: '중학교' },
+    { value: '고등학교', label: '고등학교' },
+    { value: '교육청', label: '교육청' },
+    { value: '기타', label: '기타' },
   ];
 
   const yesNoOptions = [
