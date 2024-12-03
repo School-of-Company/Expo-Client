@@ -49,6 +49,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
   const [requestPrintCategories, setRequestPrintCategories] = useState<
     string[]
   >(traineeRequestPrintCategories);
+  const [resetKey, setResetKey] = useState(0);
 
   useEffect(() => {
     const fetchExpoData = async () => {
@@ -80,6 +81,10 @@ const ExpoManageForm = ({ id }: { id: string }) => {
     }
   }, [selectOption]);
 
+  useEffect(() => {
+    setResetKey((prevKey) => prevKey + 1);
+  }, [selectOption]);
+
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-[30px] px-5">
       <SelectUserType
@@ -88,6 +93,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
         onChange={(value) => setSelectOption(value)}
       />
       <TableForm
+        key={resetKey}
         categories={requestPrintCategories}
         data={expoData}
         maxHeight="414px"

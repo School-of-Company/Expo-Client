@@ -3,6 +3,7 @@
 import axios from 'axios';
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import { fileActions } from '@/shared/model/footerActions';
 import { TableForm } from '@/shared/ui/Table';
 
 interface TrainingProgram {
@@ -29,7 +30,7 @@ interface StandardProgram {
 
 const ProgramDetailForm = ({ id }: { id: number }) => {
   const searchParams = useSearchParams();
-  const navigation = searchParams.get('navigation') || 'standard'; // URL 쿼리 파라미터에서 navigation 값 가져오기
+  const navigation = searchParams.get('navigation') || 'standard';
   const [data, setData] = useState<TrainingProgram[] | StandardProgram[]>([]);
 
   useEffect(() => {
@@ -56,6 +57,7 @@ const ProgramDetailForm = ({ id }: { id: number }) => {
     '성명',
     '소속',
     '직급',
+    '프로그램 이름',
     '출석 여부',
     '입실 시간',
     '퇴실 시간',
@@ -70,6 +72,7 @@ const ProgramDetailForm = ({ id }: { id: number }) => {
         maxHeight="414px"
         footerType="file"
         text="인원 수"
+        actions={fileActions(id)}
       />
     </div>
   );
