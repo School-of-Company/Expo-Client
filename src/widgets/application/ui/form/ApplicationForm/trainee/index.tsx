@@ -1,14 +1,14 @@
 'use client';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { Input, RadioGroup } from '@/entities/application';
 import TrainingRadioGroup from '@/entities/application/ui/TrainingRadioGroup';
 import { Button } from '@/shared/ui';
 import { handleTraineeFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
 import { TraineeForms } from '../../../../types/type';
-import { toast } from 'react-toastify';
-import { useRouter } from 'next/navigation';
 
 const TraineeForm = ({ params }: { params: number }) => {
   const [trainingId, setTrainingId] = useState('');
@@ -33,11 +33,11 @@ const TraineeForm = ({ params }: { params: number }) => {
   const router = useRouter();
 
   const schoolLevelOptions = [
-    { value: 'elementary', label: '초등학교' },
-    { value: 'middle', label: '중학교' },
-    { value: 'high', label: '고등학교' },
-    { value: 'education', label: '교육청' },
-    { value: 'other', label: '기타' },
+    { value: '초등학교', label: '초등학교' },
+    { value: '중학교', label: '중학교' },
+    { value: '고등학교', label: '고등학교' },
+    { value: '교육청', label: '교육청' },
+    { value: '기타', label: '기타' },
   ];
 
   const yesNoOptions = [

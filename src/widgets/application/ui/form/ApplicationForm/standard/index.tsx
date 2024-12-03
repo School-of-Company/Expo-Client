@@ -1,12 +1,12 @@
 'use client';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { Input, RadioGroup } from '@/entities/application';
 import { Button } from '@/shared/ui';
 import { handleStandardFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
 import { StandardForms } from '../../../../types/type';
-import { toast } from 'react-toastify';
-import { useRouter } from 'next/navigation';
 
 // import TrainingRadioGroup from '@/entities/application/ui/TrainingRadioGroup';
 
