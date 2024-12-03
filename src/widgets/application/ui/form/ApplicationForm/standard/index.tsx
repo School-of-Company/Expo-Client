@@ -1,10 +1,13 @@
 'use client';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { Input, RadioGroup } from '@/entities/application';
 import { Button } from '@/shared/ui';
 import { handleStandardFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
 import { StandardForms } from '../../../../types/type';
+
 // import TrainingRadioGroup from '@/entities/application/ui/TrainingRadioGroup';
 
 const StandardForm = ({ params }: { params: number }) => {
@@ -22,6 +25,7 @@ const StandardForm = ({ params }: { params: number }) => {
       informationStatus: false,
     },
   });
+  const router = useRouter();
 
   const yesNoOptions = [
     { value: 'yes', label: '예' },
@@ -31,6 +35,7 @@ const StandardForm = ({ params }: { params: number }) => {
   const onSubmit = async (data: StandardForms) => {
     try {
       await handleStandardFormsSubmit(data, params);
+      toast.success('신청 되었습니다.');
 
       const qrBody = {
         phoneNumber: data.phoneNumber,
@@ -38,18 +43,18 @@ const StandardForm = ({ params }: { params: number }) => {
       };
 
       const response = await axios.post('/api/sms/qr', qrBody);
-
       console.log('QR SMS API Response:', response.data);
-      alert('QR SMS 요청이 성공적으로 처리되었습니다.');
+      toast.success('QR이 발송 되었습니다. 문자를 확인 해 주세요.');
+      router.back();
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage =
           error.response?.data?.message || '알 수 없는 오류가 발생했습니다.';
         console.error('QR SMS API Error:', errorMessage);
-        alert(`QR SMS API 호출에 실패했습니다: ${errorMessage}`);
+        toast.error(`QR SMS API 호출에 실패했습니다: ${errorMessage}`);
       } else {
         console.error('폼 제출 중 에러 발생:', error);
-        alert('폼 제출에 실패했습니다. 다시 시도해주세요.');
+        toast.error('폼 제출에 실패했습니다. 다시 시도해주세요.');
       }
     }
   };
