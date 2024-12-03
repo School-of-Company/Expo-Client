@@ -14,7 +14,7 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
   };
 
   const isSelected = state === data.id;
-  type RenderValueType = boolean | string | object;
+  type RenderValueType = boolean | string | object | unknown;
 
   const renderValue = (value: RenderValueType): string => {
     if (typeof value === 'boolean') {
