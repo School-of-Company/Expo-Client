@@ -59,7 +59,7 @@ export const printBadge = (selectedData: {
             <div class="qr-container">
               ${
                 isBase64
-                  ? `<img src="data:image/png;base64,${selectedData.qrCode}" alt="QR Code" />`
+                  ? `<img src="data:image/png;base64,${selectedData.qrCode}" alt="QR Code" width="100" height="100" />`
                   : `<div id="qrcode"></div>`
               }
             </div>
@@ -69,8 +69,8 @@ export const printBadge = (selectedData: {
               ? `<script>
                   new QRCode("qrcode", {
                     text: "${selectedData.qrCode}",
-                    width: 96,
-                    height: 96
+                    width: 100,
+                    height: 100
                   });
                   window.onload = function() {
                     window.print();
