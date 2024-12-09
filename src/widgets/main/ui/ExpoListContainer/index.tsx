@@ -1,17 +1,11 @@
 'use client';
 
-import axios from 'axios';
-import { useEffect, useState } from 'react';
 import { ExpoListItem, Filter } from '@/entities/main';
-import { ExpoItem } from '@/shared/types/Expo/type';
+import { useExpoList } from '../../api/useExpoList';
 
 const ExpoListContainer = () => {
-  const [expoList, setExpoList] = useState<ExpoItem[]>([]);
-  useEffect(() => {
-    axios.get('/api/expo').then((res) => {
-      setExpoList(res.data);
-    });
-  }, []);
+  const { data: expoList, isLoading } = useExpoList();
+  if (isLoading) return <div>Loading...</div>;
   return (
     <div>
       <div className="mb-[30px] flex justify-between">
@@ -20,7 +14,7 @@ const ExpoListContainer = () => {
       </div>
 
       <div className="grid grid-cols-3 gap-4 mobile:grid-cols-1">
-        {expoList.map((item, index) => (
+        {expoList?.map((item, index) => (
           <ExpoListItem
             id={item.id}
             coverImage={item.coverImage}
