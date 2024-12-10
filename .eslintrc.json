@@ -11,7 +11,8 @@
     "plugin:prettier/recommended",
     "prettier",
     "plugin:@next/next/recommended",
-    "plugin:storybook/recommended"
+    "plugin:storybook/recommended",
+    "plugin:@tanstack/eslint-plugin-query/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "ignorePatterns": ["node_modules/**", "**/dist/**", ".next/**"],

@@ -19,10 +19,8 @@ export async function GET() {
     return NextResponse.json(response.data);
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
-
     const status = axiosError.response?.status || 500;
     const message = axiosError.response?.data?.message || 'expoList failed';
-
     return NextResponse.json({ error: message }, { status });
   }
 }
