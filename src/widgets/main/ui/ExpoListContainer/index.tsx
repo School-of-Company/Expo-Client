@@ -2,7 +2,7 @@
 
 import { ExpoListItem, Filter } from '@/entities/main';
 import withLoading from '@/shared/hocs/withLoading';
-import { useExpoList } from '../../api/useExpoList';
+import { useExpoList } from '../../model/useExpoList';
 
 const ExpoListContainer = () => {
   const { data: expoList, isLoading } = useExpoList();
