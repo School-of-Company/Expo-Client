@@ -1,26 +1,20 @@
 'use client';
 
-import axios from 'axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useState, useMemo } from 'react';
 import { ProgramNavigation } from '@/entities/program';
+import withLoading from '@/shared/hocs/withLoading';
 import { routeActions } from '@/shared/model/footerActions';
 import { TableForm } from '@/shared/ui/Table';
-
-interface Program {
-  id: number;
-  title: string;
-  startedAt: string;
-  endedAt: string;
-  category: string;
-}
+import { useProgramQueries } from '../../model/useProgramData';
 
 const ProgramForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const navigation = searchParams.get('navigation') || 'standard';
-  const [expoData, setExpoData] = useState<Program[]>([]);
   const [resetKey, setResetKey] = useState(0);
   const router = useRouter();
+
+  const { programQueries, isLoading } = useProgramQueries(id, navigation);
 
   const requestPrintCategories = useMemo(() => {
     return navigation === 'training'
@@ -29,41 +23,28 @@ const ProgramForm = ({ id }: { id: string }) => {
   }, [navigation]);
 
   useEffect(() => {
-    const fetchExpoData = async () => {
-      try {
-        const endpoint =
-          navigation === 'training'
-            ? `/api/training/program/${id}`
-            : `/api/standard/program/${id}`;
-
-        const response = await axios.get(endpoint);
-        setExpoData(response.data);
-      } catch (error) {
-        console.error('Error fetching expo data:', error);
-      }
-    };
-
-    fetchExpoData();
-  }, [id, navigation]);
-
-  useEffect(() => {
     setResetKey((prevKey) => prevKey + 1);
   }, [navigation]);
 
-  return (
-    <div className="mx-auto w-full max-w-[1200px] space-y-[46px] px-5">
-      <ProgramNavigation />
-      <TableForm
-        key={resetKey}
-        categories={requestPrintCategories}
-        data={expoData}
-        maxHeight="414px"
-        footerType="route"
-        text="프로그램 수"
-        actions={routeActions(router, navigation)}
-      />
-    </div>
-  );
+  const programData = programQueries.data || [];
+
+  return withLoading({
+    isLoading,
+    children: (
+      <div className="mx-auto w-full max-w-[1200px] space-y-[46px] px-5">
+        <ProgramNavigation />
+        <TableForm
+          key={resetKey}
+          categories={requestPrintCategories}
+          data={programData}
+          maxHeight="414px"
+          footerType="route"
+          text="프로그램 수"
+          actions={routeActions(router, navigation)}
+        />
+      </div>
+    ),
+  });
 };
 
 export default ProgramForm;
