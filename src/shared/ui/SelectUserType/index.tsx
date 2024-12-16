@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowDown } from '@/shared/assets/icons';
 
 interface Option {
@@ -10,17 +10,25 @@ interface Option {
 
 interface SelectProps {
   options: Option[];
-  defaultValue?: string;
+  value: string;
   onChange?: (value: string) => void;
 }
 
-const SelectUserType = ({ options, defaultValue, onChange }: SelectProps) => {
+const SelectUserType = ({ options, value, onChange }: SelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState<Option | undefined>(
-    options.find((option) => option.value === defaultValue) || options[0],
+    options.find((option) => option.value === value) || options[0],
   );
 
+  useEffect(() => {
+    const newSelectedOption = options.find((option) => option.value === value);
+    if (newSelectedOption) {
+      setSelectedOption(newSelectedOption);
+    }
+  }, [value, options]);
+
   const toggleOpen = () => setIsOpen((prev) => !prev);
+
   const handleOptionClick = (option: Option) => {
     setSelectedOption(option);
     setIsOpen(false);
