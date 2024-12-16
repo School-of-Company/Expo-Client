@@ -1,54 +1,12 @@
 version = 1
 
-# 제외할 파일이나 디렉터리 설정
-exclude_patterns = [
-  "node_modules/**",        # Node.js 라이브러리 폴더 제외
-  ".next/**",               # Next.js 빌드 폴더 제외
-  "storybook-static/**",    # Storybook 빌드 폴더 제외
-  "dist/**",                # 빌드 결과물 제외
-]
-
-# 테스트 파일 패턴 설정
-test_patterns = [
-  "**/__tests__/**",
-  "**/*.test.tsx",
-  "**/*.spec.tsx",
-]
-
 [[analyzers]]
-name = "javascript"  # JavaScript/TypeScript 분석기
+name = "typescript"
 enabled = true
 
-  [analyzers.meta]
-  runtime = "nodejs"
-  extensions = ["jsx", "tsx", "ts", "js"]
+[[analyzers]]
+name = "javascript"
+enabled = true
 
-  # ESLint 설정 파일 경로 추가
-  eslint_config_path = "./.eslintrc.json"
-
-  # 추가 분석 옵션 설정
-  autofix = true           # 가능한 자동 수정 적용
-  check_formatting = true  # 포맷팅 검사 활성화
-  formatting_tools = ["prettier"]
-
-  # DeepSource에서 사용할 JavaScript 및 TypeScript 관련 최적화 옵션
-  javascript.variants = ["react", "typescript"]
-  javascript.enable_performance_optimizations = true
-
-  # 추가된 분석 규칙들
-  javascript.rules = [
-    # 성능 최적화 관련 규칙들
-    "react/no-array-index-key",
-    "react/jsx-no-target-blank",
-    "react/jsx-no-undef",
-    "react/prop-types",  # prop-types 규칙 비활성화
-
-    # 코드 가독성 관련 규칙들
-    "@typescript-eslint/no-unused-vars",
-    "@typescript-eslint/explicit-module-boundary-types",
-
-    # 코드 품질 및 유지보수성 규칙들
-    "import/order",
-    "import/no-extraneous-dependencies",
-    "react-hooks/exhaustive-deps",
-  ]
+[analyzers.meta]
+env = ["nodejs"]
