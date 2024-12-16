@@ -16,8 +16,6 @@ export const convertAddressToCoordinates = async (
         lat: parseFloat(y),
         lng: parseFloat(x),
       };
-    } else {
-      console.log('주소 결과가 없습니다.');
     }
   } catch (error) {
     console.error('주소 변환 오류:', error);

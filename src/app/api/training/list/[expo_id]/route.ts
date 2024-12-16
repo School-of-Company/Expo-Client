@@ -11,8 +11,7 @@ export async function POST(
   const { expo_id } = params;
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
-  console.log(expo_id);
-  console.log(accessToken);
+
   const config = accessToken
     ? {
         headers: {

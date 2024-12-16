@@ -11,9 +11,7 @@ const ClientInitializer: React.FC = () => {
     const fetchAccessToken = async () => {
       try {
         const response = await axios.get('/api/tokenCheck');
-        console.log('API response:', response.data);
         setToken(response.data.accessToken);
-        console.log('AccessToken from API:', response.data.accessToken);
       } catch (error) {
         console.error('Error fetching access token:', error);
       }

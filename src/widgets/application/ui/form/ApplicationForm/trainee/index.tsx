@@ -51,11 +51,10 @@ const TraineeForm = ({ params }: { params: number }) => {
       toast.success('신청 되었습니다.');
 
       if (trainingId && selectedValue) {
-        const result = await TrainingRadioGroup.handleTrainingSubmit(
+        await TrainingRadioGroup.handleTrainingSubmit(
           selectedValue,
           trainingId,
         );
-        console.log('Training Submit Result:', result);
       }
 
       const qrBody = {
@@ -63,8 +62,7 @@ const TraineeForm = ({ params }: { params: number }) => {
         authority: 'ROLE_TRAINEE',
       };
 
-      const response = await axios.post('/api/sms/qr', qrBody);
-      console.log('QR SMS API Response:', response.data);
+      await axios.post('/api/sms/qr', qrBody);
       toast.success('QR이 발송 되었습니다. 문자를 확인 해 주세요.');
       router.back();
     } catch (error) {
