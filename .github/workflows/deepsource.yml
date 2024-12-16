@@ -1,44 +1,40 @@
-name: Deepsource Code Review
+name: DeepSource Code Review
 
 on:
   pull_request:
-    branches:
-      - main
-      - develop
+    types: [opened, synchronize]
 
 jobs:
-  deepsource-review:
+  analyze:
+    name: Analyze
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v2
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '18'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Lint
+      - name: Run linter
         run: npm run lint
 
-      - name: Run Deepsource CLI
-        env:
-          DEEPSOURCE_TOKEN: ${{ secrets.DEEPSOURCE_TOKEN }}
-        run: |
-          # Deepsource CLI 설치
-          curl https://deepsource.io/cli | sh
+      - name: Run tests and generate coverage
+        run: npm test -- --coverage
 
-          # Lint 분석 실행
-          ./bin/deepsource report --analyzer lint \
-            --key typescript \
-            --value "$(cat lint-report.json)"
+      - name: Upload coverage to DeepSource
+        uses: deepsourcelabs/test-coverage-action@master
+        with:
+          key: javascript
+          coverage-file: ./coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
 
-      # 필요한 경우 테스트 커버리지 추가
-      # - name: Run Tests with Coverage
-      #   run: npm run test:coverage
+      - name: DeepSource Analyze
+        uses: deepsourcelabs/analyze-action@v1
+        with:
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
