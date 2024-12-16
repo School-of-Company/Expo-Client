@@ -2,19 +2,33 @@ name: DeepSource Analysis
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches:
+      - main
+  push:
+    branches:
+      - main
 
 jobs:
-  analysis:
+  deepsource:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: |
+          npm install
 
       - name: Install DeepSource CLI
-        run: curl https://deepsource.io/cli | sh
+        run: |
+          curl -sSL https://deepsource.io/cli/install | bash
 
-      - name: Run DeepSource analysis
-        run: ./bin/deepsource analyze
+      - name: Run DeepSource Analysis
         env:
           DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
+        run: deepsource analyze
