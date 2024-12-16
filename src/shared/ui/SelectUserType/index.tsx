@@ -22,12 +22,13 @@ const SelectUserType = ({ options, value, onChange }: SelectProps) => {
 
   useEffect(() => {
     const newSelectedOption = options.find((option) => option.value === value);
-    if (newSelectedOption && newSelectedOption !== selectedOption) {
+    if (newSelectedOption) {
       setSelectedOption(newSelectedOption);
     }
   }, [value, options]);
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
+
   const handleOptionClick = (option: Option) => {
     setSelectedOption(option);
     setIsOpen(false);
