@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, Input } from '@/shared/ui';
-import { checkSmsCode } from '../../api/checkSmsCode';
 import { showError } from '../../model/showError';
+import { useCheckSmsCode } from '../../model/useCheckSmsCode';
 import { useSendSms } from '../../model/useSendSms';
 import { useSignup } from '../../model/useSignup';
 import { useTimer } from '../../model/useTimer';
@@ -30,6 +30,11 @@ const SignUpForm = () => {
   const [timer, setTimer] = useState(0);
   const { mutate: signup } = useSignup();
   const { mutate: sendSms } = useSendSms(setIsSmsSent, setTimer);
+  const { refetch: checkSmsCode } = useCheckSmsCode(
+    watch('phoneNumber'),
+    watch('code'),
+  );
+
   useTimer(timer, setTimer);
 
   return (
@@ -127,7 +132,7 @@ const SignUpForm = () => {
               disabled={!isSmsSent}
             />
             <Button
-              onClick={() => checkSmsCode(watch('phoneNumber'), watch('code'))}
+              onClick={() => checkSmsCode()}
               text="확인"
               width="20%"
               disabled={!isSmsSent}
