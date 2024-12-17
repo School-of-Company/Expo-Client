@@ -129,7 +129,7 @@ const SignUpForm = () => {
               type="text"
               placeholder="인증 번호 입력"
               style={{ width: '80%' }}
-              disabled={!isSmsSent}
+              disabled={!isSmsSent && watch('code') !== null}
             />
             <Button
               onClick={() => checkSmsCode()}
