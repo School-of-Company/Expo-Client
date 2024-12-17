@@ -18,7 +18,6 @@ export const fileActions = (id: string | number) => ({
 export const printActions = (data: UserData[]) => ({
   PrintBadge: async (selectItem: number) => {
     const selectedData = data.find((item) => item.id === selectItem);
-    console.log(selectedData);
     if (selectedData) {
       printBadge(selectedData);
     }

@@ -15,8 +15,6 @@ export async function POST(request: Request) {
       }
     : {};
 
-  console.log('QR Route called with body:', body);
-
   try {
     const response = await apiClient.post('/sms/qr', body, config);
     return NextResponse.json(response.data);

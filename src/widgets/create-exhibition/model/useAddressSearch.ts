@@ -24,7 +24,6 @@ export const useAddressSearch = (
   const openAddressSearch = () => {
     new window.daum.Postcode({
       oncomplete: (data: AddressData) => {
-        console.log(data.address);
         setValue('address', data.address);
       },
     }).open();

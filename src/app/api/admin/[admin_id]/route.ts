@@ -10,8 +10,6 @@ export async function PATCH(
   const { admin_id } = params;
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
-  console.log(admin_id);
-  console.log(accessToken);
 
   try {
     const response = await apiClient.patch(

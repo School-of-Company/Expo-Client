@@ -26,7 +26,6 @@ export async function DELETE(
   const { expo_id } = params;
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
-  console.log(accessToken);
 
   try {
     const response = await apiClient.delete(`/expo/${expo_id}`, {
