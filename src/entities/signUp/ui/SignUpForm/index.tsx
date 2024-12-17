@@ -35,7 +35,7 @@ const SignUpForm = () => {
     watch('code'),
   );
 
-  useTimer(timer, setTimer);
+  useTimer(timer, setTimer, setIsSmsSent);
 
   return (
     <form
