@@ -1,13 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, Input } from '@/shared/ui';
 import { checkSmsCode } from '../../api/checkSmsCode';
 import { sendSms } from '../../api/sendSms';
-import { signUp } from '../../api/signup';
 import { showError } from '../../model/showError';
+import { useSignup } from '../../model/useSignup';
 import { useTimer } from '../../model/useTimer';
 
 type FormData = {
@@ -29,15 +28,14 @@ const SignUpForm = () => {
   } = useForm<FormData>();
   const [isSmsSent, setIsSmsSent] = useState(false);
   const [timer, setTimer] = useState(0);
+  const { mutate: signup } = useSignup();
 
   useTimer(timer, setTimer);
-
-  const router = useRouter();
 
   return (
     <form
       onSubmit={handleSubmit(
-        (data) => signUp(data, router),
+        (data) => signup(data),
         (errors) => {
           const firstError = Object.values(errors)[0];
           if (firstError && firstError.message) {
