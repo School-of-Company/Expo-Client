@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, Input } from '@/shared/ui';
 import { checkSmsCode } from '../../api/checkSmsCode';
-import { sendSms } from '../../api/sendSms';
 import { showError } from '../../model/showError';
+import { useSendSms } from '../../model/useSendSms';
 import { useSignup } from '../../model/useSignup';
 import { useTimer } from '../../model/useTimer';
 
@@ -29,7 +29,7 @@ const SignUpForm = () => {
   const [isSmsSent, setIsSmsSent] = useState(false);
   const [timer, setTimer] = useState(0);
   const { mutate: signup } = useSignup();
-
+  const { mutate: sendSms } = useSendSms(setIsSmsSent, setTimer);
   useTimer(timer, setTimer);
 
   return (
@@ -136,9 +136,7 @@ const SignUpForm = () => {
           </div>
           <button
             type="button"
-            onClick={() =>
-              sendSms(watch('phoneNumber'), setIsSmsSent, setTimer)
-            }
+            onClick={() => sendSms(watch('phoneNumber'))}
             className="text-caption2 text-gray-300"
             disabled={isSmsSent}
           >
