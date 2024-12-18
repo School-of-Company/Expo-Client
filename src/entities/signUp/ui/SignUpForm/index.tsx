@@ -1,13 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, Input } from '@/shared/ui';
-import { checkSmsCode } from '../../api/checkSmsCode';
-import { sendSms } from '../../api/sendSms';
-import { signUp } from '../../api/signup';
 import { showError } from '../../model/showError';
+import { useCheckSmsCode } from '../../model/useCheckSmsCode';
+import { useSendSms } from '../../model/useSendSms';
+import { useSignup } from '../../model/useSignup';
 import { useTimer } from '../../model/useTimer';
 
 type FormData = {
@@ -29,15 +28,19 @@ const SignUpForm = () => {
   } = useForm<FormData>();
   const [isSmsSent, setIsSmsSent] = useState(false);
   const [timer, setTimer] = useState(0);
+  const { mutate: signup } = useSignup();
+  const { mutate: sendSms } = useSendSms(setIsSmsSent, setTimer);
+  const { refetch: checkSmsCode } = useCheckSmsCode(
+    watch('phoneNumber'),
+    watch('code'),
+  );
 
-  useTimer(timer, setTimer);
-
-  const router = useRouter();
+  useTimer(timer, setTimer, setIsSmsSent);
 
   return (
     <form
       onSubmit={handleSubmit(
-        (data) => signUp(data, router),
+        (data) => signup(data),
         (errors) => {
           const firstError = Object.values(errors)[0];
           if (firstError && firstError.message) {
@@ -126,10 +129,10 @@ const SignUpForm = () => {
               type="text"
               placeholder="인증 번호 입력"
               style={{ width: '80%' }}
-              disabled={!isSmsSent}
+              disabled={!isSmsSent && watch('code') !== null}
             />
             <Button
-              onClick={() => checkSmsCode(watch('phoneNumber'), watch('code'))}
+              onClick={() => checkSmsCode()}
               text="확인"
               width="20%"
               disabled={!isSmsSent}
@@ -138,9 +141,7 @@ const SignUpForm = () => {
           </div>
           <button
             type="button"
-            onClick={() =>
-              sendSms(watch('phoneNumber'), setIsSmsSent, setTimer)
-            }
+            onClick={() => sendSms(watch('phoneNumber'))}
             className="text-caption2 text-gray-300"
             disabled={isSmsSent}
           >
