@@ -1,11 +1,10 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import Button from '@/shared/ui/Button';
 import Input from '@/shared/ui/Input';
-import { signIn } from '../../api/signin';
 import { showError } from '../../model/showError';
+import { useSignin } from '../../model/useSignin';
 
 type FormData = {
   nickname: string;
@@ -19,12 +18,12 @@ const SignInForm = () => {
     formState: { isSubmitting },
   } = useForm<FormData>();
 
-  const router = useRouter();
+  const { mutate: signin } = useSignin();
 
   return (
     <form
       onSubmit={handleSubmit(
-        (data) => signIn(data, router),
+        (data) => signin(data),
         (errors) => {
           const firstError = Object.values(errors)[0];
           if (firstError && firstError.message) {
