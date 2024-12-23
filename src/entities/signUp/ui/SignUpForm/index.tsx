@@ -28,14 +28,20 @@ const SignUpForm = () => {
   } = useForm<FormData>();
   const [isSmsSent, setIsSmsSent] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [isSmsVerified, setIsSmsVerified] = useState(false);
   const { mutate: signup } = useSignup();
-  const { mutate: sendSms } = useSendSms(setIsSmsSent, setTimer);
-  const { refetch: checkSmsCode } = useCheckSmsCode(
-    watch('phoneNumber'),
-    watch('code'),
+  const { mutate: sendSms, isPending: isSendingSms } = useSendSms(
+    setTimer,
+    setIsSmsSent,
   );
 
-  useTimer(timer, setTimer, setIsSmsSent);
+  const { refetch: checkSmsCode, isPending: isCheckingCode } = useCheckSmsCode(
+    watch('phoneNumber'),
+    watch('code'),
+    setIsSmsVerified,
+  );
+
+  useTimer(timer, setTimer, setIsSmsSent, isSmsVerified);
 
   return (
     <form
@@ -116,6 +122,7 @@ const SignUpForm = () => {
             })}
             type="tel"
             placeholder="연락처는 - 빼고 입력해주세요"
+            disabled={isSmsVerified}
           />
           <div className="flex space-x-3">
             <Input
@@ -129,13 +136,13 @@ const SignUpForm = () => {
               type="text"
               placeholder="인증 번호 입력"
               style={{ width: '80%' }}
-              disabled={!isSmsSent && watch('code') !== null}
+              disabled={!isSmsSent || isSmsVerified}
             />
             <Button
               onClick={() => checkSmsCode()}
               text="확인"
               width="20%"
-              disabled={!isSmsSent}
+              disabled={!watch('code') || isSmsVerified || !isCheckingCode}
               type="button"
             />
           </div>
@@ -143,11 +150,18 @@ const SignUpForm = () => {
             type="button"
             onClick={() => sendSms(watch('phoneNumber'))}
             className="text-caption2 text-gray-300"
-            disabled={isSmsSent}
+            disabled={
+              !watch('phoneNumber') ||
+              isSendingSms ||
+              isSmsSent ||
+              isSmsVerified
+            }
           >
-            {isSmsSent
-              ? `인증번호 재발송 (${Math.floor(timer / 60)}:${String(timer % 60).padStart(2, '0')})`
-              : '인증번호 발송'}
+            {isSmsVerified
+              ? '인증 완료'
+              : isSmsSent
+                ? `인증번호 재발송 (${Math.floor(timer / 60)}:${String(timer % 60).padStart(2, '0')})`
+                : '인증번호 발송'}
           </button>
         </div>
       </div>

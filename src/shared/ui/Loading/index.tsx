@@ -19,7 +19,7 @@ export default function Loading() {
   }, []);
 
   return (
-    <div className="flex h-screen items-center justify-center">
+    <div className="flex h-screen w-screen items-center justify-center">
       <p className="text-h1 text-main-600">
         로딩중{dots}
         <span className="invisible">...</span>
