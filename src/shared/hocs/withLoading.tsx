@@ -7,7 +7,12 @@ type WithLoadingProps = {
 };
 
 const withLoading = ({ isLoading, children }: WithLoadingProps) => {
-  if (isLoading) return <Loading />;
+  if (isLoading)
+    return (
+      <div className="h-full w-full">
+        <Loading />
+      </div>
+    );
   return <>{children}</>;
 };
 
