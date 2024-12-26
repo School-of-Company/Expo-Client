@@ -4,7 +4,7 @@ import { Header } from '@/widgets/layout';
 
 const CreateExhibition = () => {
   return (
-    <div className="lex h-screen flex-col mobile:gap-0">
+    <div className="flex h-screen flex-col mobile:gap-0">
       <Header />
       <div className="mx-auto w-full max-w-[1200px] flex-1 px-5 py-[30px]">
         <AdminPageWrapper />
