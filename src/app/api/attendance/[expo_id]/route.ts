@@ -3,13 +3,17 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { apiClient } from '@/shared/libs/apiClient';
 
-export async function PATCH(request: Request) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } },
+) {
+  const { id } = params;
   const body = await request.json();
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
 
   try {
-    const response = await apiClient.patch('/attendance', body, {
+    const response = await apiClient.patch(`/attendance/${id}`, body, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -19,7 +23,8 @@ export async function PATCH(request: Request) {
     const axiosError = error as AxiosError<{ message: string }>;
 
     const status = axiosError.response?.status || 500;
-    const message = axiosError.response?.data?.message || 'expoList failed';
+    const message =
+      axiosError.response?.data?.message || 'Attendance update failed';
 
     return NextResponse.json({ error: message }, { status });
   }
