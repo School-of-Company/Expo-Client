@@ -18,7 +18,7 @@ interface UserData {
   qrCode: string;
 }
 
-const NameTagForm = () => {
+const NameTagForm = ({ id }: { id: string }) => {
   const requestPrintCategories = ['아이디', '이름', '번호', 'qr번호'];
   const [scannedQR, setScannedQR] = useState<TraineeData | null>(null);
   const [buffer, setBuffer] = useState<string>('');
@@ -60,7 +60,7 @@ const NameTagForm = () => {
     async (scannedQR: TraineeData) => {
       const authority = scannedQR.traineeId ? 'ROLE_TRAINEE' : 'ROLE_STANDARD';
       try {
-        const response = await axios.patch('/api/attendance', {
+        const response = await axios.patch(`/api/attendance/${id}`, {
           authority,
           phoneNumber: scannedQR.phoneNumber,
         });
