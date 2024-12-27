@@ -5,19 +5,23 @@ import { apiClient } from '@/shared/libs/apiClient';
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: { expo_id: string } },
 ) {
-  const { id } = params;
+  console.log('아이디임' + params.expo_id);
   const body = await request.json();
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
 
   try {
-    const response = await apiClient.patch(`/attendance/${id}`, body, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
+    const response = await apiClient.patch(
+      `/attendance/${params.expo_id}`,
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       },
-    });
+    );
     return NextResponse.json(response.data);
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
