@@ -1,9 +1,12 @@
 import { AxiosError } from 'axios';
 import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { apiClient } from '@/shared/libs/apiClient';
 
-export async function POST(request: Request) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { expo_id: string } },
+) {
   const body = await request.json();
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
@@ -16,7 +19,11 @@ export async function POST(request: Request) {
     : {};
 
   try {
-    const response = await apiClient.post('/sms/qr', body, config);
+    const response = await apiClient.post(
+      `/sms/qr/${params.expo_id}`,
+      body,
+      config,
+    );
     return NextResponse.json(response.data);
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;

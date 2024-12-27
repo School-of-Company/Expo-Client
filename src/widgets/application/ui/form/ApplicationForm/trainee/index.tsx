@@ -62,7 +62,7 @@ const TraineeForm = ({ params }: { params: number }) => {
         authority: 'ROLE_TRAINEE',
       };
 
-      await axios.post('/api/sms/qr', qrBody);
+      await axios.post(`/api/sms/qr/${params}`, qrBody);
       toast.success('QR이 발송 되었습니다. 문자를 확인 해 주세요.');
       router.back();
     } catch (error) {
