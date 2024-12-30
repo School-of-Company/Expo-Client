@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
@@ -23,6 +24,7 @@ const ExhibitionForm = () => {
     watch,
   } = useForm<ExhibitionFormData>();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const trainingFields = useFieldArray<ExhibitionFormData>({
     control,
@@ -35,7 +37,7 @@ const ExhibitionForm = () => {
   });
 
   const onSubmit = (data: ExhibitionFormData) => {
-    handleExhibitionFormSubmit(data, router);
+    handleExhibitionFormSubmit(data, router, queryClient);
   };
 
   const showError = (message: string) => {

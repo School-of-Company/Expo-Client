@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { convertAddressToCoordinates } from '../api/convertAddressToCoordinates';
@@ -10,6 +11,7 @@ import { ExhibitionFormData } from '../types/type';
 export const handleExhibitionFormSubmit = async (
   data: ExhibitionFormData,
   router: ReturnType<typeof useRouter>,
+  queryClient: QueryClient,
 ) => {
   try {
     const coordinates = await convertAddressToCoordinates(data.address);
@@ -38,6 +40,7 @@ export const handleExhibitionFormSubmit = async (
       await createTraining(response.expoId, data.trainings);
       await createStandard(response.expoId, data.standard);
       toast.success('박람회가 생성되었습니다.');
+      await queryClient.invalidateQueries({ queryKey: ['expoList'] });
       router.push('/');
     } else {
       toast.error('박람회 생성에 실패했습니다.');
