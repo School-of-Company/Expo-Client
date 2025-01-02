@@ -12,7 +12,22 @@ export interface UserData {
 
 export const fileActions = (id: string | number) => ({
   exportPDF: () => window.print(),
-  exportExcel: async () => await axios.get(`/api/excel/${id}`),
+  exportExcel: async () => {
+    try {
+      const response = await axios.get(`/api/excel/${id}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'export.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Excel export failed:', error);
+    }
+  },
 });
 
 export const printActions = (data: UserData[]) => ({
