@@ -87,7 +87,7 @@ const TableFooter = ({
         <div className="flex items-center gap-6">
           <p className="text-body1 text-gray-400">출력</p>
           <SmallButton text="PDF" onClick={handlePDF} />
-          <SmallButton text="Exel" onClick={handleExcel} />
+          <SmallButton text="Excel" onClick={handleExcel} />
         </div>
       )}
 
