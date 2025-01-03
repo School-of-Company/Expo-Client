@@ -3,58 +3,16 @@
 import axios from 'axios';
 import React, { useState, useEffect, useCallback } from 'react';
 import NameTagHeader from '@/entities/name-tag/ui/NameTagHeader';
-import { printActions } from '@/shared/model/footerActions';
+import { printActions, UserData } from '@/shared/model/footerActions';
+import { useQRScanner } from '@/shared/model/useQRScanner';
+import { TraineeData } from '@/shared/types/name-tag/type';
 import { TableForm } from '@/shared/ui/Table';
-
-interface TraineeData {
-  traineeId: number;
-  phoneNumber: string;
-}
-
-interface UserData {
-  id: number;
-  name: string;
-  affiliation: string;
-  qrCode: string;
-}
 
 const NameTagForm = ({ id }: { id: string }) => {
   const requestPrintCategories = ['아이디', '이름', '번호', 'qr번호'];
   const [scannedQR, setScannedQR] = useState<TraineeData | null>(null);
-  const [buffer, setBuffer] = useState<string>('');
-  const [isScanning, setIsScanning] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserData[]>([]);
-  const handleQRScan = useCallback((cleanData: string) => {
-    try {
-      const parsedData: TraineeData = JSON.parse(cleanData);
-      setScannedQR(parsedData);
-    } catch (error) {
-      console.error('QR 코드 데이터 파싱 오류:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (!isScanning) {
-        setIsScanning(true);
-        setBuffer('');
-      }
-
-      if (event.key === 'Enter') {
-        const cleanData = buffer.replace(/Shift/g, '');
-        handleQRScan(cleanData);
-        setBuffer('');
-        setIsScanning(false);
-      } else {
-        setBuffer((prev) => prev + event.key);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [buffer, isScanning, handleQRScan]);
+  useQRScanner(setScannedQR);
 
   const fetchUserData = useCallback(
     async (scannedQR: TraineeData) => {
