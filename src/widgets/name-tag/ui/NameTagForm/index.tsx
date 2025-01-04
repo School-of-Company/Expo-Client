@@ -5,17 +5,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import NameTagHeader from '@/entities/name-tag/ui/NameTagHeader';
 import { printActions, UserData } from '@/shared/model/footerActions';
 import { useQRScanner } from '@/shared/model/useQRScanner';
-import { TraineeData } from '@/shared/types/name-tag/type';
+import { QrScanData } from '@/shared/types/common/QrScanData';
 import { TableForm } from '@/shared/ui/Table';
 
 const NameTagForm = ({ id }: { id: string }) => {
   const requestPrintCategories = ['아이디', '이름', '번호', 'qr번호'];
-  const [scannedQR, setScannedQR] = useState<TraineeData | null>(null);
+  const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
   const [userData, setUserData] = useState<UserData[]>([]);
   useQRScanner(setScannedQR);
 
   const fetchUserData = useCallback(
-    async (scannedQR: TraineeData) => {
+    async (scannedQR: QrScanData) => {
       const authority = scannedQR.traineeId ? 'ROLE_TRAINEE' : 'ROLE_STANDARD';
       try {
         const response = await axios.patch(`/api/attendance/${id}`, {

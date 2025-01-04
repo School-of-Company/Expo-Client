@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { TraineeData } from '../types/name-tag/type';
+import { QrScanData } from '../types/common/QrScanData';
 
 export const useQRScanner = (
-  setScannedQR: React.Dispatch<React.SetStateAction<TraineeData | null>>,
+  setScannedQR: React.Dispatch<React.SetStateAction<QrScanData | null>>,
 ) => {
   const [buffer, setBuffer] = useState<string>('');
   const [isScanning, setIsScanning] = useState<boolean>(false);
@@ -10,7 +10,7 @@ export const useQRScanner = (
   const handleQRScan = useCallback(
     (cleanData: string) => {
       try {
-        const parsedData: TraineeData = JSON.parse(cleanData);
+        const parsedData: QrScanData = JSON.parse(cleanData);
         setScannedQR(parsedData);
       } catch (error) {
         console.error('QR 코드 데이터 파싱 오류:', error);
