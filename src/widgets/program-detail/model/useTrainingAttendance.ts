@@ -1,0 +1,17 @@
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
+import { PatchTrainingProgramData } from '@/shared/types/program-detail/type';
+import { patchTrainingAttendance } from '../api/patchTrainingAttendance';
+
+export const useStandardAttendance = () => {
+  return useMutation({
+    mutationFn: (data: PatchTrainingProgramData) =>
+      patchTrainingAttendance(data),
+    onSuccess: () => {
+      toast.success('프로그램 스캔 완료되었습니다.');
+    },
+    onError: () => {
+      toast.error('프로그램 스캔 실패했습니다.');
+    },
+  });
+};

@@ -1,14 +1,10 @@
 import axios from 'axios';
-
-interface TrainingProgramData {
-  id: number;
-  traineeId: number;
-}
+import { PatchTrainingProgramData } from '@/shared/types/program-detail/type';
 
 export const patchTrainingAttendance = async ({
   id,
   traineeId,
-}: TrainingProgramData) => {
+}: PatchTrainingProgramData) => {
   const response = await axios.patch(`/api/attendance/training/${id}`, {
     traineeId,
   });

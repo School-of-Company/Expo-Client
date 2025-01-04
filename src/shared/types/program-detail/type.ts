@@ -25,3 +25,8 @@ export interface PatchStandardProgramData {
   participantId: number;
   phoneNumber: string;
 }
+
+export interface PatchTrainingProgramData {
+  id: number;
+  traineeId: number;
+}
