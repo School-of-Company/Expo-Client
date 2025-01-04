@@ -5,7 +5,7 @@ interface TrainingProgramData {
   traineeId: number;
 }
 
-export const PatchTrainingAttendance = async ({
+export const patchTrainingAttendance = async ({
   id,
   traineeId,
 }: TrainingProgramData) => {

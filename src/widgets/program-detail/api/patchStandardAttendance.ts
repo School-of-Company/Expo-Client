@@ -1,16 +1,11 @@
 import axios from 'axios';
+import { PatchStandardProgramData } from '@/shared/types/program-detail/type';
 
-interface StandardProgramData {
-  id: number;
-  participantId: number;
-  phoneNumber: string;
-}
-
-export const PatchStandardAttendance = async ({
+export const patchStandardAttendance = async ({
   id,
   participantId,
   phoneNumber,
-}: StandardProgramData) => {
+}: PatchStandardProgramData) => {
   const response = await axios.patch(`/api/attendance/standard/${id}`, {
     participantId,
     phoneNumber,
