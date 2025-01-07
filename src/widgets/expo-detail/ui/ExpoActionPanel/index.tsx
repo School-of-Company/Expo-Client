@@ -2,8 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import React from 'react';
-import ClientInitializer from '@/shared/components/ClientInitializer';
-import useStore from '@/shared/stores/useStore';
+import { useRole } from '@/shared/model/useRole';
 import { Button, Modal } from '@/shared/ui';
 import { ModalLayout } from '@/widgets/layout';
 import { useExpoActionPanel } from '../../model/useExpoActionPanel';
@@ -13,7 +12,7 @@ interface ExpoActionPanelProps {
 }
 
 const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
-  const { role } = useStore();
+  const role = useRole();
   const router = useRouter();
   const { isModalOpen, modalContent, openModal, closeModal } =
     useExpoActionPanel();
@@ -66,7 +65,6 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
 
   return (
     <div>
-      <ClientInitializer />
       <div className="h-fit w-[210px] space-y-[26px] rounded-sm border-1 border-solid border-gray-200 p-[18px] mobile:w-full mobile:border-none mobile:px-[16px]">
         <div className="space-y-2">{getButtons()}</div>
       </div>

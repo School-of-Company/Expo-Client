@@ -20,18 +20,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/',
-    '/admin',
-    '/application/:path*',
-    '/create-exhibition',
-    '/expo-detail/:path*',
-    '/expo-manage/:path*',
-    '/name-tag/:path*',
-    '/program/:path*',
-    '/program/detail/:path*',
-    '/signIn',
-    '/signUp',
-    '/sms',
-  ],
+  matcher: ['/api/role'],
 };

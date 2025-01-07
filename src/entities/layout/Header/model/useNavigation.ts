@@ -1,11 +1,11 @@
 'use client';
 import { usePathname } from 'next/navigation';
-import useStore from '@/shared/stores/useStore';
+import { useRole } from '@/shared/model/useRole';
 import { userNavItems, manageNavItems } from './navigationItems';
 import { NavItem } from './types';
 
 export const useNavigation = () => {
-  const { role } = useStore();
+  const role = useRole();
 
   const pathname = usePathname();
 
