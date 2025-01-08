@@ -19,3 +19,14 @@ export interface StandardProgram {
   entryTime: string;
   leaveTime: string;
 }
+
+export interface PatchStandardProgramData {
+  id: number;
+  participantId: number;
+  phoneNumber: string;
+}
+
+export interface PatchTrainingProgramData {
+  id: number;
+  traineeId: number;
+}

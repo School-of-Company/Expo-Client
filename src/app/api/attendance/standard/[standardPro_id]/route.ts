@@ -5,7 +5,7 @@ import { apiClient } from '@/shared/libs/apiClient';
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { expo_id: string } },
+  { params }: { params: { standardPro_id: string } },
 ) {
   const body = await request.json();
   const cookieStore = cookies();
@@ -13,7 +13,7 @@ export async function PATCH(
 
   try {
     const response = await apiClient.patch(
-      `/attendance/${params.expo_id}`,
+      `/attendance/standard/${params.standardPro_id}`,
       body,
       {
         headers: {
