@@ -1,8 +1,12 @@
 'use client';
 
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import { Button, PageHeader } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
+import { sendSMS } from '../../api/sendSMS';
 
 interface FormData {
   title: string;
@@ -10,14 +14,32 @@ interface FormData {
 }
 
 export default function Write() {
+  const queryClient = useQueryClient();
+  const { id, authority } = useParams<{
+    id: string;
+    authority: 'STANDARD' | 'TRAINEE';
+  }>();
+
   const {
     register,
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<FormData>();
 
+  const mutation = useMutation({
+    mutationFn: (data: FormData) => sendSMS({ ...data, id, authority }),
+    onSuccess: () => {
+      toast.success('문자가 성공적으로 전송되었습니다.');
+
+      queryClient.invalidateQueries({ queryKey: ['messages', id] });
+    },
+    onError: (error) => {
+      toast.error(`문자 전송 실패: ${error.message}`);
+    },
+  });
+
   const onSubmit = (data: FormData) => {
-    console.log(data);
+    mutation.mutate(data);
   };
 
   return (
@@ -48,7 +70,7 @@ export default function Write() {
           />
         </div>
         <div className="w-full mobile:px-5">
-          <Button disabled={isSubmitting} text="보내기" />
+          <Button disabled={isSubmitting || mutation.isPending} text="보내기" />
         </div>
       </div>
     </form>

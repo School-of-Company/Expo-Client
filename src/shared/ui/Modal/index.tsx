@@ -17,6 +17,9 @@ const Modal = ({ text, onClose, params, name }: Props) => {
     if (name == 'application') {
       router.push(`/application/${params}/${type}`);
     }
+    if (name == 'message') {
+      router.push(`/sms/${params}/${type}`);
+    }
   };
 
   return (
@@ -31,13 +34,13 @@ const Modal = ({ text, onClose, params, name }: Props) => {
         <div className="flex gap-[50px]">
           <button
             className="w-full rounded-sm bg-main-500 py-3 text-white"
-            onClick={() => handleButtonClick('standard')}
+            onClick={() => handleButtonClick('STANDARD')}
           >
             참가자
           </button>
           <button
             className="w-full rounded-sm bg-main-300 py-3 text-white"
-            onClick={() => handleButtonClick('trainee')}
+            onClick={() => handleButtonClick('TRAINEE')}
           >
             연수자
           </button>

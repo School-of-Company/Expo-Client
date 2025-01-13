@@ -16,8 +16,8 @@ const ApplicationLayout = ({
       <PageHeader title="신청" />
       <div className="ml-[20px] mt-[48px] flex space-y-9">
         <div className="w-full space-y-[36px]">
-          {type === 'trainee' && params && <TraineeForm params={params} />}
-          {type === 'standard' && params && <StandardForm params={params} />}
+          {type === 'TRAINEE' && params && <TraineeForm params={params} />}
+          {type === 'STANDARD' && params && <StandardForm params={params} />}
         </div>
       </div>
     </div>
