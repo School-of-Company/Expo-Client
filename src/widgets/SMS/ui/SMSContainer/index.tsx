@@ -1,8 +1,10 @@
 'use client';
 
+import { useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { Button, PageHeader } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
+import { useSendSMS } from '../../model/useSendSMS';
 
 interface FormData {
   title: string;
@@ -10,14 +12,26 @@ interface FormData {
 }
 
 export default function Write() {
+  const { id, authority } = useParams<{
+    id: string;
+    authority: 'STANDARD' | 'TRAINEE';
+  }>();
+
   const {
     register,
     handleSubmit,
     formState: { isSubmitting },
+    reset,
   } = useForm<FormData>();
 
+  const sendSMSMutation = useSendSMS(id, authority);
+
   const onSubmit = (data: FormData) => {
-    console.log(data);
+    sendSMSMutation.mutate(data, {
+      onSuccess: () => {
+        reset();
+      },
+    });
   };
 
   return (
@@ -48,7 +62,10 @@ export default function Write() {
           />
         </div>
         <div className="w-full mobile:px-5">
-          <Button disabled={isSubmitting} text="보내기" />
+          <Button
+            disabled={isSubmitting || sendSMSMutation.isPending}
+            text="보내기"
+          />
         </div>
       </div>
     </form>
