@@ -12,7 +12,7 @@ export const sendSMS = async (data: SMSData) => {
     const response = await axios.post(`/api/sms/message/${data.id}`, {
       title: data.title,
       content: data.content,
-      authority: data.authority,
+      authority: 'ROLE_' + data.authority,
     });
 
     return response.data;
