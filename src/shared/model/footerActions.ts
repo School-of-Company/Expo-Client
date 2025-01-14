@@ -11,7 +11,6 @@ export interface UserData {
 }
 
 export const fileActions = (id: string | number) => ({
-  exportPDF: () => window.print(),
   exportExcel: async () => {
     try {
       const response = await axios.get(`/api/excel/${id}`, {

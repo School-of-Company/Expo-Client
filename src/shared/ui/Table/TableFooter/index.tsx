@@ -26,7 +26,6 @@ type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
     CheckBadge?: (selectItem: number) => void;
     DeleteBadge?: (selectItem: number) => void;
     PrintBadge?: (selectItem: number) => void;
-    exportPDF?: () => void;
     exportExcel?: () => void;
     RouteActions?: (selectItem: number) => void;
   };
@@ -58,12 +57,6 @@ const TableFooter = ({
     }
   };
 
-  const handlePDF = () => {
-    if (actions?.exportPDF) {
-      actions.exportPDF();
-    }
-  };
-
   const handleExcel = () => {
     if (actions?.exportExcel) {
       actions.exportExcel();
@@ -86,7 +79,6 @@ const TableFooter = ({
       {type === 'file' && (
         <div className="flex items-center gap-6">
           <p className="text-body1 text-gray-400">출력</p>
-          <SmallButton text="PDF" onClick={handlePDF} />
           <SmallButton text="Excel" onClick={handleExcel} />
         </div>
       )}
