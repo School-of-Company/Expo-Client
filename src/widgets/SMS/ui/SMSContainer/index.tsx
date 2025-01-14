@@ -24,6 +24,7 @@ export default function Write() {
     register,
     handleSubmit,
     formState: { isSubmitting },
+    reset,
   } = useForm<FormData>();
 
   const mutation = useMutation({
@@ -39,7 +40,11 @@ export default function Write() {
   });
 
   const onSubmit = (data: FormData) => {
-    mutation.mutate(data);
+    mutation.mutate(data, {
+      onSuccess: () => {
+        reset();
+      },
+    });
   };
 
   return (
