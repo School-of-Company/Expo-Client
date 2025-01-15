@@ -21,3 +21,4 @@ export { default as Location } from './Location';
 export { default as Trash } from './Trash';
 export { default as Check } from './Check';
 export { default as Warning } from './Warning';
+export { default as Logout } from './Logout';

@@ -1,7 +1,6 @@
-import Image from 'next/image';
 import React from 'react';
-import { Setting } from '@/shared/assets/icons';
-import Profile from '@/shared/assets/png/Profile.png';
+import { Logout } from '@/shared/assets/icons';
+import { useLogout } from '../../model/useLogout';
 
 const ProfileInfo = ({ label, value }: { label: string; value: string }) => (
   <div className="flex gap-[30px]">
@@ -11,17 +10,19 @@ const ProfileInfo = ({ label, value }: { label: string; value: string }) => (
 );
 
 const AdminProfile = () => {
+  const { mutate: logout } = useLogout();
   return (
-    <div className="mx-auto my-0 flex w-fit">
+    <div className="flex w-full justify-between">
       <div className="flex items-center gap-[124px] mobile:flex-col mobile:gap-[30px]">
-        <Image src={Profile} alt="관리자 프로필" />
         <div className="space-y-[32px]">
           <ProfileInfo label="이름" value="김진원" />
           <ProfileInfo label="아이디" value="jin1234" />
           <ProfileInfo label="이메일" value="jin12345@gmail.com" />
         </div>
       </div>
-      <Setting />
+      <label onClick={() => logout()}>
+        <Logout />
+      </label>
     </div>
   );
 };
