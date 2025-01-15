@@ -1,5 +1,6 @@
 'use client';
 
+import { AdminProfile } from '@/entities/admin';
 import withLoading from '@/shared/hocs/withLoading';
 import { checkActions, deleteActions } from '@/shared/model/footerActions';
 import { TableForm } from '@/shared/ui/Table';
@@ -26,6 +27,7 @@ const AdminPageWrapper = () => {
     isLoading,
     children: (
       <div className="space-y-[73px]">
+        <AdminProfile />
         <div className="space-y-[26px]">
           <p className="text-h2 text-black">회원가입 요청</p>
           <div className="h-auto">
