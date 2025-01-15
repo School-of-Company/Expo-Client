@@ -15,12 +15,16 @@ export async function DELETE() {
   }
 
   try {
-    const response = await apiClient.delete('/auth', {
+    await apiClient.delete('/auth', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return NextResponse.json(response.data);
+
+    const response = NextResponse.json({ success: true });
+    response.cookies.set('accessToken', '', { maxAge: 0 });
+    response.cookies.set('refreshToken', '', { maxAge: 0 });
+    return response;
   } catch (error) {
     if (error instanceof AxiosError) {
       const status = error.response?.status || 500;

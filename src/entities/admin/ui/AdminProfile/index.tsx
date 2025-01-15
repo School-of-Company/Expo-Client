@@ -1,5 +1,6 @@
 import React from 'react';
 import { Logout } from '@/shared/assets/icons';
+import { useLogout } from '../../model/useLogout';
 
 const ProfileInfo = ({ label, value }: { label: string; value: string }) => (
   <div className="flex gap-[30px]">
@@ -9,6 +10,7 @@ const ProfileInfo = ({ label, value }: { label: string; value: string }) => (
 );
 
 const AdminProfile = () => {
+  const { mutate: logout } = useLogout();
   return (
     <div className="flex w-full justify-between">
       <div className="flex items-center gap-[124px] mobile:flex-col mobile:gap-[30px]">
@@ -18,7 +20,7 @@ const AdminProfile = () => {
           <ProfileInfo label="이메일" value="jin12345@gmail.com" />
         </div>
       </div>
-      <label>
+      <label onClick={() => logout()}>
         <Logout />
       </label>
     </div>
