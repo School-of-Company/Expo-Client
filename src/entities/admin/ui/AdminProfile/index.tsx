@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Logout } from '@/shared/assets/icons';
+import { useDeleteUserAccount } from '../../model/useDeleteUserAccount';
 import { useLogout } from '../../model/useLogout';
 
 const ProfileInfo = ({ label, value }: { label: string; value: string }) => (
@@ -11,6 +12,7 @@ const ProfileInfo = ({ label, value }: { label: string; value: string }) => (
 
 const AdminProfile = () => {
   const { mutate: logout } = useLogout();
+  const { mutate: deleteAccount } = useDeleteUserAccount();
   const [isToggleLogout, setIsToggleLogout] = useState(false);
 
   const handleLogoutClick = () => {
@@ -38,7 +40,10 @@ const AdminProfile = () => {
             >
               로그아웃
             </button>
-            <button className="w-full rounded-[6px] px-5 py-2 text-body2 text-gray-500 hover:bg-error hover:text-white">
+            <button
+              onClick={() => deleteAccount()}
+              className="w-full rounded-[6px] px-5 py-2 text-body2 text-gray-500 hover:bg-error hover:text-white"
+            >
               회원탈퇴
             </button>
           </div>
