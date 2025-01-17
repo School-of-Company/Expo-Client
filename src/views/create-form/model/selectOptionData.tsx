@@ -1,4 +1,3 @@
-import { ReactNode } from 'react';
 import {
   CheckBoxIcon,
   DropDown,
@@ -6,12 +5,7 @@ import {
   MultipleChoic,
   Typing,
 } from '@/shared/assets/icons';
-
-export interface Option {
-  value: string;
-  label: string;
-  icon: ReactNode;
-}
+import { Option } from '@/shared/types/create-form/type';
 
 export const selectOptionData: Option[] = [
   { value: '문장형', label: '문장형', icon: <Typing /> },

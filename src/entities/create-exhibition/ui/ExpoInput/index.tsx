@@ -6,7 +6,8 @@ import {
   UseFormWatch,
 } from 'react-hook-form';
 import { XMark } from '@/shared/assets/icons';
-import AddButton from '@/shared/ui/AddItemButton';
+
+import { AddItemButton } from '@/shared/ui';
 import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
 import Modal from '../Modal';
 
@@ -110,7 +111,7 @@ const ExpoInput = ({
           ))}
         </div>
       )}
-      <AddButton
+      <AddItemButton
         onClick={() =>
           append({
             title: '',

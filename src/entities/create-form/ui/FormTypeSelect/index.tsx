@@ -2,12 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
-
-interface Option {
-  value: string;
-  label: string;
-  icon?: React.ReactNode;
-}
+import { Option } from '@/shared/types/create-form/type';
 
 const FormTypeSelect = ({ options }: { options: Option[] }) => {
   const [isOpen, setIsOpen] = useState(false);

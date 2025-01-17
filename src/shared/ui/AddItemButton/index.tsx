@@ -1,10 +1,10 @@
 import { Plus } from '@/shared/assets/icons';
 
-interface AddButtonProps {
-  onClick: () => void;
+interface AddItemButtonProps {
+  onClick?: () => void;
 }
 
-const AddButton = ({ onClick }: AddButtonProps) => (
+const AddItemButton = ({ onClick }: AddItemButtonProps) => (
   <button
     type="button"
     className="mx-auto flex items-center gap-5"
@@ -15,4 +15,4 @@ const AddButton = ({ onClick }: AddButtonProps) => (
   </button>
 );
 
-export default AddButton;
+export default AddItemButton;
