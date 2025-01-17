@@ -5,7 +5,8 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
-import { Plus, XMark } from '@/shared/assets/icons';
+import { XMark } from '@/shared/assets/icons';
+import AddButton from '@/shared/ui/AddItemButton';
 import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
 import Modal from '../Modal';
 
@@ -109,9 +110,7 @@ const ExpoInput = ({
           ))}
         </div>
       )}
-      <button
-        type="button"
-        className="mx-auto flex items-center gap-5"
+      <AddButton
         onClick={() =>
           append({
             title: '',
@@ -120,10 +119,7 @@ const ExpoInput = ({
             ...(fieldName === 'trainings' ? { category: 'CHOICE' } : {}),
           })
         }
-      >
-        <Plus fill="#448FFF" />
-        <div className="text-body3 text-main-600">추가하기</div>
-      </button>
+      />
     </div>
   );
 };
