@@ -6,7 +6,7 @@ interface Props {
   type?: 'default' | 'etc';
 }
 
-const MultipleChoicOption = ({ type = 'default' }: Props) => {
+const MultipleChoiceOption = ({ type = 'default' }: Props) => {
   return (
     <div className="flex w-full items-center justify-between">
       <div className="flex w-full items-center gap-[10px]">
@@ -30,4 +30,4 @@ const MultipleChoicOption = ({ type = 'default' }: Props) => {
   );
 };
 
-export default MultipleChoicOption;
+export default MultipleChoiceOption;

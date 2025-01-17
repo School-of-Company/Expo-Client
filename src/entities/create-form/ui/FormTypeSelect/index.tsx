@@ -1,14 +1,17 @@
-'use client';
-
 import { useState } from 'react';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
 import { Option } from '@/shared/types/create-form/type';
 
-const FormTypeSelect = ({ options }: { options: Option[] }) => {
+const FormTypeSelect = ({
+  options,
+  selectedOption,
+  setSelectedOption,
+}: {
+  options: Option[];
+  selectedOption: Option | null;
+  setSelectedOption: (option: Option) => void;
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<Option | null>(
-    options[0] || null,
-  );
 
   return (
     <div className="relative w-[196px]">
@@ -25,12 +28,12 @@ const FormTypeSelect = ({ options }: { options: Option[] }) => {
         {isOpen ? <ArrowUp fill="#909090" /> : <ArrowDown fill="#909090" />}
       </button>
       {isOpen && (
-        <ul className="absolute mt-1 flex w-full flex-col items-center gap-[10px] rounded-md border-1 border-solid border-gray-100 bg-white py-[30px] shadow-lg">
+        <ul className="absolute z-30 mt-1 flex w-full flex-col items-center gap-[10px] rounded-md border-1 border-solid border-gray-100 bg-white py-[30px] shadow-lg">
           {options.map((option) => (
             <li
               key={option.value}
               onClick={() => {
-                setSelectedOption(option);
+                setSelectedOption(option); // Update selectedOption in parent
                 setIsOpen(false);
               }}
               className="flex w-full cursor-pointer items-center justify-center p-2 text-h5 text-gray-500 hover:bg-gray-100"

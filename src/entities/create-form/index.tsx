@@ -3,7 +3,7 @@ export { default as DeleteButton } from './ui/DeleteButton';
 export { default as DropDownOption } from './ui/DropDownOption';
 export { default as FormTitle } from './ui/FormTitle';
 export { default as FormTypeSelect } from './ui/FormTypeSelect';
-export { default as MultipleChoicOption } from './ui/MultipleChoicOption';
+export { default as MultipleChoiceOption } from './ui/MultipleChoiceOption';
 export { default as PictureOption } from './ui/PictureOption';
 export { default as RequiredToggle } from './ui/RequiredToggle';
 export { default as TextOption } from './ui/TextOption';
