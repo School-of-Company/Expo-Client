@@ -21,9 +21,11 @@ const CreateForm = () => {
         <RequiredToggle />
         <FormTypeSelect options={options} />
         <TextOption />
-        <CheckBoxOption />
         <DropDownOption />
+        <CheckBoxOption />
+        <CheckBoxOption type="etc" />
         <MultipleChoicOption />
+        <MultipleChoicOption type="etc" />
         <PictureOption />
       </div>
     </div>
