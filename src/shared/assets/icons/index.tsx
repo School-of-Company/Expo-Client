@@ -22,3 +22,8 @@ export { default as Trash } from './Trash';
 export { default as Check } from './Check';
 export { default as Warning } from './Warning';
 export { default as Logout } from './Logout';
+export { default as Typing } from './Typing';
+export { default as CheckBoxIcon } from './CheckBoxIcon';
+export { default as DropDown } from './DropDown';
+export { default as MultipleChoic } from './MultipleChoic';
+export { default as FormPicture } from './FormPicture';
