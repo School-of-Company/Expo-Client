@@ -1,4 +1,5 @@
 import React from 'react';
+import DeleteButton from '@/entities/create-form/ui/DeleteButton';
 import FormTitle from '@/entities/create-form/ui/FormTitle';
 import { Header } from '@/widgets/layout';
 
@@ -8,6 +9,7 @@ const CreateForm = () => {
       <Header />
       <div className="mx-auto w-full max-w-[792px] flex-1 px-5">
         <FormTitle />
+        <DeleteButton />
       </div>
     </div>
   );
