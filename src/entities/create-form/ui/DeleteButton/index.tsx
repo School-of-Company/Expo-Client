@@ -1,9 +1,13 @@
 import React from 'react';
 import { Trash } from '@/shared/assets/icons';
 
-const DeleteButton = () => {
+interface Props {
+  onClick?: () => void;
+}
+
+const DeleteButton = ({ onClick }: Props) => {
   return (
-    <button className="flex items-center gap-2">
+    <button onClick={onClick} className="flex items-center gap-2">
       <Trash color="#BDBDBD" />
       <p className="text-caption2 text-gray-300">버리기</p>
     </button>

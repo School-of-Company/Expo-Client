@@ -7,4 +7,4 @@ export { default as MultipleChoiceOption } from './ui/MultipleChoiceOption';
 export { default as PictureOption } from './ui/PictureOption';
 export { default as RequiredToggle } from './ui/RequiredToggle';
 export { default as TextOption } from './ui/TextOption';
-export { default as CreateForm } from './ui/CreateForm';
+export { default as CreateFormButton } from './ui/CreateFormButton';
