@@ -4,3 +4,5 @@ export { default as Modal } from './Modal';
 export { default as PageHeader } from './PageHeader';
 export { default as CheckBox } from './CheckBox';
 export { default as Loading } from './Loading';
+export { default as ToggleButton } from './ToggleButton';
+export { default as AddItemButton } from './AddItemButton';
