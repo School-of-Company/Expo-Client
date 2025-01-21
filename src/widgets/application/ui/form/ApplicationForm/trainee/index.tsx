@@ -7,8 +7,8 @@ import { toast } from 'react-toastify';
 import { Input, RadioGroup } from '@/entities/application';
 import TrainingRadioGroup from '@/entities/application/ui/TrainingRadioGroup';
 import { Button } from '@/shared/ui';
-import { TraineeForms } from '../../../../types/type';
 import { handleTraineeFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
+import { TraineeForms } from '../../../../types/type';
 
 const TraineeForm = ({ params }: { params: number }) => {
   const [trainingId, setTrainingId] = useState('');

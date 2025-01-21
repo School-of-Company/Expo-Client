@@ -5,8 +5,8 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { Input, RadioGroup } from '@/entities/application';
 import { Button } from '@/shared/ui';
-import { StandardForms } from '../../../../types/type';
 import { handleStandardFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
+import { StandardForms } from '../../../../types/type';
 
 // import TrainingRadioGroup from '@/entities/application/ui/TrainingRadioGroup';
 
