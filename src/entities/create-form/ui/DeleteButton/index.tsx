@@ -2,14 +2,14 @@ import React from 'react';
 import { Trash } from '@/shared/assets/icons';
 
 interface Props {
-  onClick?: () => void;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 const DeleteButton = ({ onClick }: Props) => {
   return (
     <button onClick={onClick} className="flex items-center gap-2">
-      <Trash color="#BDBDBD" />
-      <p className="text-caption2 text-gray-300">버리기</p>
+      <Trash />
+      <p className="text-caption2 text-error">버리기</p>
     </button>
   );
 };

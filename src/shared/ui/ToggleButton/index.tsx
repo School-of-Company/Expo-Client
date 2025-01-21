@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { preventEvent } from '@/shared/model/preventEvent';
 
 function ToggleButton() {
   const [isToggled, setIsToggled] = useState(false);
 
-  const toggle = () => {
+  const toggle = (e: React.MouseEvent) => {
+    preventEvent(e);
     setIsToggled(!isToggled);
   };
 

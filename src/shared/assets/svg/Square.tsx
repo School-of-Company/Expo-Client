@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Squere = () => {
+const Square = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -17,4 +17,4 @@ const Squere = () => {
   );
 };
 
-export default Squere;
+export default Square;
