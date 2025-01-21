@@ -20,7 +20,7 @@ export async function POST(
     : {};
   try {
     const response = await apiClient.post(
-      `/form/trainee/${expo_id}`,
+      `/application/pre-standard/${expo_id}`,
       body,
       config,
     );

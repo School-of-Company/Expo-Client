@@ -11,8 +11,7 @@ export const handleStandardFormsSubmit = async (
       phoneNumber: data.phoneNumber,
       affiliation: data.affiliation,
       position: '과장',
-      informationStatus:
-        (data.informationStatus as unknown as string) === 'yes',
+      informationJson: (data.informationJson as unknown as string) === 'yes',
     },
     params,
     false,
@@ -31,8 +30,7 @@ export const handleTraineeFormsSubmit = async (
       schoolLevel: data.schoolLevel,
       organization: data.organization,
       name: data.name,
-      informationStatus:
-        (data.informationStatus as unknown as string) === 'yes',
+      informationJson: (data.informationJson as unknown as string) === 'yes',
     },
     params,
     false,

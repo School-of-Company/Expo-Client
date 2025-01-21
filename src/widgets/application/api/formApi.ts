@@ -7,7 +7,9 @@ export const postTraineeForms = async (
   site: boolean,
 ) => {
   try {
-    const url = site ? `/api/form/trainee/${params}` : `/api/form/${params}`;
+    const url = site
+      ? `/api/application/field/${params}`
+      : `/api/application/${params}`;
     const response = await axios.post(url, data);
     return response.data;
   } catch (error) {
@@ -23,8 +25,8 @@ export const postStandardForms = async (
 ) => {
   try {
     const url = site
-      ? `/api/form/standard/${params}`
-      : `/api/form/pre-standard/${params}`;
+      ? `/api/application/field/standard/${params}`
+      : `/api/application/pre-standard/${params}`;
     const response = await axios.post(url, data);
     return response.data;
   } catch (error) {

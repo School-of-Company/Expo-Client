@@ -6,7 +6,7 @@ export type TraineeForms = {
   schoolLevel: string;
   organization: string;
   name: string;
-  informationStatus: boolean;
+  informationJson: boolean;
 };
 
 export type StandardForms = {
@@ -14,6 +14,6 @@ export type StandardForms = {
   phoneNumber: string;
   affiliation: string;
   position: string;
-  informationStatus: boolean;
+  informationJson: boolean;
   test?: string;
 };

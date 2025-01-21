@@ -16,5 +16,5 @@ export interface Participant {
   phoneNumber: string;
   affiliation: string;
   position: string;
-  informationStatus: boolean;
+  informationJson: boolean;
 }

@@ -19,7 +19,11 @@ export async function POST(
       }
     : {};
   try {
-    const response = await apiClient.post(`/form/${expo_id}`, body, config);
+    const response = await apiClient.post(
+      `/application/field/standard/${expo_id}`,
+      body,
+      config,
+    );
     return NextResponse.json(response.data);
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;

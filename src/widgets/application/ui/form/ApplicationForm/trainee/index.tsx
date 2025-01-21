@@ -7,8 +7,8 @@ import { toast } from 'react-toastify';
 import { Input, RadioGroup } from '@/entities/application';
 import TrainingRadioGroup from '@/entities/application/ui/TrainingRadioGroup';
 import { Button } from '@/shared/ui';
-import { handleTraineeFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
 import { TraineeForms } from '../../../../types/type';
+import { handleTraineeFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
 
 const TraineeForm = ({ params }: { params: number }) => {
   const [trainingId, setTrainingId] = useState('');
@@ -27,7 +27,7 @@ const TraineeForm = ({ params }: { params: number }) => {
       schoolLevel: '',
       organization: '',
       name: '',
-      informationStatus: false,
+      informationJson: false,
     },
   });
   const router = useRouter();
@@ -143,10 +143,10 @@ const TraineeForm = ({ params }: { params: number }) => {
       />
       <RadioGroup
         control={control}
-        name="informationStatus"
+        name="informationJson"
         label="개인정보 동의 여부"
         options={yesNoOptions}
-        error={errors.informationStatus?.message}
+        error={errors.informationJson?.message}
       />
       <TrainingRadioGroup
         label="연수 선택"

@@ -5,8 +5,8 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { Input, RadioGroup } from '@/entities/application';
 import { Button } from '@/shared/ui';
-import { handleStandardFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
 import { StandardForms } from '../../../../types/type';
+import { handleStandardFormsSubmit } from '@/widgets/application/model/applicationFormHandler';
 
 // import TrainingRadioGroup from '@/entities/application/ui/TrainingRadioGroup';
 
@@ -22,7 +22,7 @@ const StandardForm = ({ params }: { params: number }) => {
       phoneNumber: '',
       affiliation: '',
       position: '',
-      informationStatus: false,
+      informationJson: false,
     },
   });
   const router = useRouter();
@@ -87,10 +87,10 @@ const StandardForm = ({ params }: { params: number }) => {
       />
       <RadioGroup
         control={control}
-        name="informationStatus"
+        name="informationJson"
         label="개인정보 동의"
         options={yesNoOptions}
-        error={errors.informationStatus?.message}
+        error={errors.informationJson?.message}
       />
       {/* <TrainingRadioGroup label="연수 선택" name="test" params={params} trainingId={}/> */}
 
