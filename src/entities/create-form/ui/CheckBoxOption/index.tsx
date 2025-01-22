@@ -1,9 +1,15 @@
 import React from 'react';
 import { XMark } from '@/shared/assets/icons';
-import { Squere } from '@/shared/assets/svg';
+import { Square } from '@/shared/assets/svg';
 import { OptionProps } from '@/shared/types/create-form/type';
 
-const CheckBoxOption = ({ fields, remove, register, index }: OptionProps) => {
+const CheckBoxOption = ({
+  fields,
+  remove,
+  register,
+  index,
+  isCheckBox,
+}: OptionProps) => {
   return (
     <div className="space-y-2">
       {fields.map((option, optionIndex) => (
@@ -12,7 +18,7 @@ const CheckBoxOption = ({ fields, remove, register, index }: OptionProps) => {
           className="flex w-full items-center justify-between"
         >
           <div className="flex w-full items-center gap-[10px]">
-            <Squere />
+            <Square />
             <input
               {...register(`questions.${index}.options.${optionIndex}.value`)}
               placeholder="문장을 입력해주세요."
@@ -24,6 +30,13 @@ const CheckBoxOption = ({ fields, remove, register, index }: OptionProps) => {
           </button>
         </div>
       ))}
+      {isCheckBox ? (
+        <div className="flex w-full items-center gap-[10px]">
+          <Square />
+          <p className="text-body4 text-black">기타</p>
+          <p className="text-caption2 text-gray-300">(직접입력)</p>
+        </div>
+      ) : null}
     </div>
   );
 };

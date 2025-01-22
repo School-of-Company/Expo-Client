@@ -8,6 +8,7 @@ const MultipleChoiceOption = ({
   remove,
   register,
   index,
+  isCheckBox,
 }: OptionProps) => {
   return (
     <div className="space-y-2">
@@ -29,6 +30,13 @@ const MultipleChoiceOption = ({
           </button>
         </div>
       ))}
+      {isCheckBox ? (
+        <div className="flex w-full items-center gap-[10px]">
+          <Circle />
+          <p className="text-body4 text-black">기타</p>
+          <p className="text-caption2 text-gray-300">(직접입력)</p>
+        </div>
+      ) : null}
     </div>
   );
 };

@@ -3,11 +3,13 @@
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { ArrowLeft } from '@/shared/assets/icons';
+import { preventEvent } from '@/shared/model/preventEvent';
 
 const PageHeader = ({ title }: { title: string }) => {
   const router = useRouter();
 
-  const handleGoBack = () => {
+  const handleGoBack = (e: React.MouseEvent) => {
+    preventEvent(e);
     router.back();
   };
 

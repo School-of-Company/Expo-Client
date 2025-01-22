@@ -1,9 +1,14 @@
 import React from 'react';
-
 import { XMark } from '@/shared/assets/icons';
 import { OptionProps } from '@/shared/types/create-form/type';
 
-const TextOption = ({ fields, remove, register, index }: OptionProps) => {
+const TextOption = ({
+  fields,
+  remove,
+  register,
+  index,
+  isCheckBox,
+}: OptionProps) => {
   return (
     <div className="space-y-2">
       {fields.map((option, optionIndex) => (
@@ -21,6 +26,12 @@ const TextOption = ({ fields, remove, register, index }: OptionProps) => {
           </button>
         </div>
       ))}
+      {isCheckBox ? (
+        <div className="flex w-full items-center gap-[10px]">
+          <p className="text-body4 text-black">기타</p>
+          <p className="text-caption2 text-gray-300">(직접입력)</p>
+        </div>
+      ) : null}
     </div>
   );
 };

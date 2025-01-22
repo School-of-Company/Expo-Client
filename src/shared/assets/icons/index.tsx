@@ -25,5 +25,5 @@ export { default as Logout } from './Logout';
 export { default as Typing } from './Typing';
 export { default as CheckBoxIcon } from './CheckBoxIcon';
 export { default as DropDown } from './DropDown';
-export { default as MultipleChoic } from './MultipleChoic';
+export { default as MultipleChoice } from './MultipleChoice';
 export { default as FormPicture } from './FormPicture';

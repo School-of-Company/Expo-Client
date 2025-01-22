@@ -8,6 +8,7 @@ import {
   UseFormSetValue,
 } from 'react-hook-form';
 import {
+  CheckBox,
   CheckBoxOption,
   DeleteButton,
   DropDownOption,
@@ -18,6 +19,7 @@ import {
   RequiredToggle,
   TextOption,
 } from '@/entities/create-form';
+import { preventEvent } from '@/shared/model/preventEvent';
 import { FormValues, Option } from '@/shared/types/create-form/type';
 import { AddItemButton } from '@/shared/ui';
 
@@ -38,6 +40,7 @@ const FormContainer = ({
   setValue,
   control,
 }: Props) => {
+  const [isCheckBox, setIsCheckBox] = useState(false);
   const [selectedOption, setSelectedOption] = useState<Option | null>(
     options[0] || null,
   );
@@ -54,6 +57,7 @@ const FormContainer = ({
         remove={remove}
         register={register}
         index={index}
+        isCheckBox={isCheckBox}
       />
     ),
     CHECKBOX: (
@@ -62,6 +66,7 @@ const FormContainer = ({
         remove={remove}
         register={register}
         index={index}
+        isCheckBox={isCheckBox}
       />
     ),
     DROPDOWN: (
@@ -70,6 +75,7 @@ const FormContainer = ({
         remove={remove}
         register={register}
         index={index}
+        isCheckBox={isCheckBox}
       />
     ),
     MULTIPLE: (
@@ -78,6 +84,7 @@ const FormContainer = ({
         remove={remove}
         register={register}
         index={index}
+        isCheckBox={isCheckBox}
       />
     ),
     IMAGE: (
@@ -94,6 +101,11 @@ const FormContainer = ({
     return selectedOption?.value
       ? componentMap[selectedOption.value] || null
       : null;
+  };
+
+  const handleCheckBox = (e: React.MouseEvent) => {
+    preventEvent(e);
+    setIsCheckBox(!isCheckBox);
   };
 
   return (
@@ -114,7 +126,19 @@ const FormContainer = ({
         <AddItemButton onClick={() => append({ value: '' })} />
       </div>
       <div className="flex w-full items-center justify-end gap-6">
-        <DeleteButton onClick={() => formRemove(index)} />
+        {selectedOption?.value !== 'IMAGE' ? (
+          <CheckBox
+            toggleCheck={handleCheckBox}
+            isCheckBox={isCheckBox}
+            text="기타"
+          />
+        ) : null}
+        <DeleteButton
+          onClick={(e: React.MouseEvent) => {
+            preventEvent(e);
+            formRemove(index);
+          }}
+        />
         <RequiredToggle />
       </div>
     </div>

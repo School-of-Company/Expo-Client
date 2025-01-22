@@ -41,7 +41,7 @@ export const handleExhibitionFormSubmit = async (
       await createStandard(response.expoId, data.standard);
       toast.success('박람회가 생성되었습니다.');
       await queryClient.invalidateQueries({ queryKey: ['expoList'] });
-      router.push('/');
+      router.push(`/expo-created/${response.expoId}`);
     } else {
       toast.error('박람회 생성에 실패했습니다.');
     }

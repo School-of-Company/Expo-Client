@@ -29,7 +29,7 @@ const Modal = ({
   const endedAt = watch(`${fieldName}.${index}.endedAt`);
 
   return (
-    <div className="absolute right-0 top-10 h-[192px] w-[312px] space-y-[24px] rounded-lg bg-white p-[18px] shadow-lg">
+    <div className="absolute right-0 top-10 z-20 h-[192px] w-[312px] space-y-[24px] rounded-lg bg-white p-[18px] shadow-lg">
       <div className="flex justify-between">
         <p className="text-h4 text-black">연수 설정</p>
         <button onClick={() => setModal(false)}>

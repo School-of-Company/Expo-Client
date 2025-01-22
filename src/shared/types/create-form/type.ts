@@ -19,4 +19,5 @@ export interface OptionProps {
   remove: (index: number) => void;
   register: UseFormRegister<FormValues>;
   index: number;
+  isCheckBox?: boolean;
 }
