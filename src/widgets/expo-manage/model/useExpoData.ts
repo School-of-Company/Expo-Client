@@ -5,15 +5,20 @@ import {
   getParticipantExpoManageData,
 } from '../api/getExpoManageData';
 
-export const useExpoManageQueries = (id: string, selectOption: string) => {
+export const useExpoManageQueries = (
+  id: string,
+  selectOption: string,
+  searchText: string,
+) => {
   const traineeQueries = useQuery<Trainee[], Error>({
-    queryKey: ['traineeData', id],
-    queryFn: () => getTraineeExpoManageData(id),
+    queryKey: ['traineeData', id, searchText],
+    queryFn: () => getTraineeExpoManageData(id, searchText),
     enabled: selectOption === 'trainee',
   });
+
   const participantQueries = useQuery<Participant[], Error>({
-    queryKey: ['participantData', id, selectOption],
-    queryFn: () => getParticipantExpoManageData(id, selectOption),
+    queryKey: ['participantData', id, selectOption, searchText],
+    queryFn: () => getParticipantExpoManageData(id, selectOption, searchText),
     enabled: selectOption !== 'trainee',
   });
 

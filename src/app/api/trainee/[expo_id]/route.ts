@@ -11,11 +11,15 @@ export async function GET(
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
 
+  const encodedName = request.nextUrl.searchParams.get('name');
+  const name = encodedName ? decodeURIComponent(encodedName) : null;
+
   const config = accessToken
     ? {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
+        params: { name },
       }
     : {};
 
