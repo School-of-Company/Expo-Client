@@ -1,13 +1,28 @@
 import React from 'react';
-import { Button } from '@/shared/ui';
+import { Button, QrModal } from '@/shared/ui';
+import { ModalLayout } from '@/widgets/layout';
+import { useExpoActionPanel } from '@/widgets/expo-detail/model/useExpoActionPanel';
+interface NameTagHeaderProps {
+  params: string;
+}
+const NameTagHeader = ({ params }: NameTagHeaderProps) => {
+  const { isModalOpen, modalContent, openModal, closeModal } =
+    useExpoActionPanel();
 
-const NameTagHeader = () => {
   return (
     <div className="flex justify-between">
       <p className="text-h3 text-black">참가자 명찰 인원</p>
       <div className="w-[213px]">
-        <Button text="현장 QR 조회하기" />
+        <Button
+          onClick={() => openModal('현장 QR 조회하기')}
+          text="현장 QR 조회하기"
+        />
       </div>
+      {isModalOpen && (
+        <ModalLayout>
+          <QrModal text={modalContent} onClose={closeModal} params={params} />
+        </ModalLayout>
+      )}
     </div>
   );
 };
