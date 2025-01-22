@@ -13,10 +13,7 @@ const NameTagHeader = ({ params }: NameTagHeaderProps) => {
     <div className="flex justify-between">
       <p className="text-h3 text-black">참가자 명찰 인원</p>
       <div className="w-[213px]">
-        <Button
-          onClick={() => openModal('현장 QR 조회하기')}
-          text="현장 QR 조회하기"
-        />
+        <Button onClick={() => openModal('현장 QR')} text="현장 QR 조회하기" />
       </div>
       {isModalOpen && (
         <ModalLayout>
