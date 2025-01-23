@@ -12,20 +12,21 @@ export async function GET(
   const accessToken = cookieStore.get('accessToken')?.value;
 
   const type = request.nextUrl.searchParams.get('type') || 'PRE';
+  const encodedName = request.nextUrl.searchParams.get('name');
+  const name = encodedName ? decodeURIComponent(encodedName) : null;
+  console.log(encodedName);
 
   const config = accessToken
     ? {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
+        params: { type, name },
       }
     : {};
 
   try {
-    const response = await apiClient.get(
-      `/participant/${expo_id}?type=${type}`,
-      config,
-    );
+    const response = await apiClient.get(`/participant/${expo_id}`, config);
     return NextResponse.json(response.data);
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;

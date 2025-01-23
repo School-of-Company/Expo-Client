@@ -12,9 +12,17 @@ interface SelectProps {
   options: Option[];
   value: string;
   onChange?: (value: string) => void;
+  setSearchText: (text: string) => void;
+  setSearchInputText: (text: string) => void;
 }
 
-const SelectUserType = ({ options, value, onChange }: SelectProps) => {
+const SelectUserType = ({
+  options,
+  value,
+  onChange,
+  setSearchText,
+  setSearchInputText,
+}: SelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState<Option | undefined>(
     options.find((option) => option.value === value) || options[0],
@@ -33,6 +41,8 @@ const SelectUserType = ({ options, value, onChange }: SelectProps) => {
     setSelectedOption(option);
     setIsOpen(false);
     if (onChange) onChange(option.value);
+    setSearchText('');
+    setSearchInputText('');
   };
 
   return (

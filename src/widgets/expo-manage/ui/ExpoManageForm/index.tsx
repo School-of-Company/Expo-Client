@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, ChangeEvent } from 'react';
+import { SearchTab } from '@/entities/expo-manage';
 import withLoading from '@/shared/hocs/withLoading';
 import { fileActions } from '@/shared/model/footerActions';
 import { Participant, Trainee } from '@/shared/types/expo-manage/type';
@@ -11,14 +12,28 @@ import { useExpoManageQueries } from '../../model/useExpoData';
 
 const ExpoManageForm = ({ id }: { id: string }) => {
   const [selectOption, setSelectOption] = useState<string>('trainee');
+  const [searchInputText, setSearchInputText] = useState<string>('');
+  const [searchText, setSearchText] = useState<string>('');
 
-  const { expoQueries, isLoading } = useExpoManageQueries(id, selectOption);
+  const { expoQueries, isLoading } = useExpoManageQueries(
+    id,
+    selectOption,
+    searchText,
+  );
 
   const requestPrintCategories = useMemo(() => {
     return category(selectOption);
   }, [selectOption]);
 
   const expoData = expoQueries.data || [];
+
+  const onChangeSearchInput = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchInputText(e.target.value);
+  };
+
+  const handleSearch = () => {
+    setSearchText(searchInputText);
+  };
 
   return withLoading({
     isLoading,
@@ -28,6 +43,13 @@ const ExpoManageForm = ({ id }: { id: string }) => {
           options={selectOptionCategories}
           value={selectOption}
           onChange={(value) => setSelectOption(value)}
+          setSearchText={setSearchText}
+          setSearchInputText={setSearchInputText}
+        />
+        <SearchTab
+          searchInputText={searchInputText}
+          onChangeSearchInput={onChangeSearchInput}
+          handleSearch={handleSearch}
         />
         <TableForm<Trainee | Participant>
           categories={requestPrintCategories}
