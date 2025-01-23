@@ -1,27 +1,21 @@
 import React from 'react';
-import { FormPicture, XMark } from '@/shared/assets/icons';
+import { FormPicture } from '@/shared/assets/icons';
 import { OptionProps } from '@/shared/types/create-form/type';
+import OptionItem from '../OptionItem';
 
 const PictureOption = ({ fields, remove, register, index }: OptionProps) => {
   return (
     <div className="space-y-2">
       {fields.map((option, optionIndex) => (
-        <div
+        <OptionItem
           key={option.id}
-          className="flex w-full items-center justify-between"
-        >
-          <div className="flex w-full items-center gap-[10px]">
-            <FormPicture width="16" height="16" />
-            <input
-              {...register(`questions.${index}.options.${optionIndex}.value`)}
-              placeholder="문장을 입력해주세요."
-              className="w-[60%] text-body4 text-black"
-            />
-          </div>
-          <button type="button" onClick={() => remove(optionIndex)}>
-            <XMark />
-          </button>
-        </div>
+          icon={<FormPicture width="16" height="16" />}
+          optionId={option.id}
+          optionIndex={optionIndex}
+          register={register}
+          remove={remove}
+          inputName={`questions.${index}.options.${optionIndex}.value`}
+        />
       ))}
     </div>
   );
