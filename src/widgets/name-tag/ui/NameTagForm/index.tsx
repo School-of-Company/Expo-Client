@@ -6,7 +6,7 @@ import NameTagHeader from '@/entities/name-tag/ui/NameTagHeader';
 import { printActions, UserData } from '@/shared/model/footerActions';
 import { useQRScanner } from '@/shared/model/useQRScanner';
 import { QrScanData } from '@/shared/types/common/QrScanData';
-//import { TableForm } from '@/shared/ui/Table';
+import { TableForm } from '@/shared/ui/Table';
 
 const NameTagForm = ({ id }: { id: string }) => {
   const requestPrintCategories = ['아이디', '이름', '번호', 'qr번호'];
