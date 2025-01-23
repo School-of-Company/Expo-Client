@@ -1,8 +1,7 @@
 import React from 'react';
 import { Button, QrModal } from '@/shared/ui';
-import { ModalLayout } from '@/widgets/layout';
 import { useExpoActionPanel } from '@/widgets/expo-detail/model/useExpoActionPanel';
-
+//import { ModalLayout } from '@/widgets/layout';
 interface NameTagHeaderProps {
   params: string;
 }
