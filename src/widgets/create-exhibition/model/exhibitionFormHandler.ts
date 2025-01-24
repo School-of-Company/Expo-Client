@@ -12,19 +12,17 @@ export const handleExhibitionFormSubmit = async (
   queryClient: QueryClient,
 ) => {
   try {
-    console.log(data.trainings);
-
     const coordinates = await convertAddressToCoordinates(data.address);
     if (!coordinates) {
       toast.error('주소 변환에 실패했습니다.');
-      return;
+      throw new Error('Failed to convert address to coordinates.');
     }
     const { lat, lng } = coordinates;
 
     const img = await uploadImage(data.image);
     if (!lat || !lng || !img) {
       toast.error('필수 정보가 누락되었습니다.');
-      return;
+      throw new Error('Missing required information.');
     }
 
     const formattedData = {
@@ -50,16 +48,14 @@ export const handleExhibitionFormSubmit = async (
     };
 
     const response = await createExhibition(formattedData);
-
     if (response) {
-      toast.success('박람회가 생성되었습니다.');
       await queryClient.invalidateQueries({ queryKey: ['expoList'] });
-      router.push(`/expo-created/${response.expoId}`);
+      return response.expoId;
     } else {
-      toast.error('박람회 생성에 실패했습니다.');
+      throw new Error('Failed to create exhibition.');
     }
   } catch (error) {
-    toast.error('박람회 생성에 실패했습니다.');
     console.error(error);
+    throw error;
   }
 };
