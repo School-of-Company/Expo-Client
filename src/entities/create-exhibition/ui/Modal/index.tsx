@@ -1,21 +1,7 @@
 import React from 'react';
-import {
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from 'react-hook-form';
 import { XMark } from '@/shared/assets/icons';
+import { ModalProps } from '@/shared/types/create-exhibition/type';
 import { Button, CheckBox, Input } from '@/shared/ui';
-import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
-
-interface ModalProps {
-  setModal: (value: boolean) => void;
-  register: UseFormRegister<ExhibitionFormData>;
-  setValue: UseFormSetValue<ExhibitionFormData>;
-  watch: UseFormWatch<ExhibitionFormData>;
-  index: number;
-  fieldName: 'trainings' | 'standard';
-}
 
 const Modal = ({
   setModal,

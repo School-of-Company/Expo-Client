@@ -1,3 +1,11 @@
+import {
+  UseFieldArrayReturn,
+  UseFormRegister,
+  UseFormSetValue,
+  UseFormWatch,
+} from 'react-hook-form';
+import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
+
 export interface CreateExhibitionData {
   title: string;
   description: string;
@@ -18,4 +26,35 @@ export interface CreateExhibitionData {
     endedAt: string;
     category: 'ESSENTIAL' | 'CHOICE';
   }[];
+}
+
+export interface FieldArrayProps {
+  fields: UseFieldArrayReturn<
+    ExhibitionFormData,
+    'trainings' | 'standard',
+    'id'
+  >['fields'];
+  append: UseFieldArrayReturn<
+    ExhibitionFormData,
+    'trainings' | 'standard',
+    'id'
+  >['append'];
+  remove: UseFieldArrayReturn<
+    ExhibitionFormData,
+    'trainings' | 'standard',
+    'id'
+  >['remove'];
+  register: UseFormRegister<ExhibitionFormData>;
+  setValue: UseFormSetValue<ExhibitionFormData>;
+  watch: UseFormWatch<ExhibitionFormData>;
+  fieldName: 'trainings' | 'standard';
+}
+
+export interface ModalProps {
+  setModal: (value: boolean) => void;
+  register: UseFormRegister<ExhibitionFormData>;
+  setValue: UseFormSetValue<ExhibitionFormData>;
+  watch: UseFormWatch<ExhibitionFormData>;
+  index: number;
+  fieldName: 'trainings' | 'standard';
 }

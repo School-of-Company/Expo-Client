@@ -13,8 +13,8 @@ export const convertAddressToCoordinates = async (
     if (data.documents.length > 0) {
       const { x, y } = data.documents[0].address;
       return {
-        lat: parseFloat(y),
-        lng: parseFloat(x),
+        lat: parseFloat(parseFloat(y).toFixed(7)),
+        lng: parseFloat(parseFloat(x).toFixed(7)),
       };
     }
   } catch (error) {

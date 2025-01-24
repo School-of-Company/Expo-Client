@@ -1,37 +1,8 @@
 import React, { useState } from 'react';
-import {
-  UseFieldArrayReturn,
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from 'react-hook-form';
 import { XMark } from '@/shared/assets/icons';
-
+import { FieldArrayProps } from '@/shared/types/create-exhibition/type';
 import { AddItemButton } from '@/shared/ui';
-import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
 import Modal from '../Modal';
-
-interface Props {
-  fields: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['fields'];
-  append: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['append'];
-  remove: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['remove'];
-  register: UseFormRegister<ExhibitionFormData>;
-  setValue: UseFormSetValue<ExhibitionFormData>;
-  watch: UseFormWatch<ExhibitionFormData>;
-  fieldName: 'trainings' | 'standard';
-}
 
 const ExpoInput = ({
   fields,
@@ -41,7 +12,7 @@ const ExpoInput = ({
   setValue,
   watch,
   fieldName,
-}: Props) => {
+}: FieldArrayProps) => {
   const [modal, setModal] = useState<boolean>(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
