@@ -1,6 +1,6 @@
 'use client';
 
-import { useFieldArray, useForm } from 'react-hook-form';
+import { FieldErrors, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { ImageInput } from '@/entities/create-exhibition';
 import TrainingModule from '@/entities/create-exhibition/ui/TrainingModule';
@@ -37,12 +37,31 @@ const ExhibitionForm = () => {
     name: 'standard',
   });
 
+  const extractErrorMessages = (errors: FieldErrors): string[] => {
+    const messages: string[] = [];
+
+    const traverseErrors = (errorObj: FieldErrors) => {
+      Object.values(errorObj).forEach((error) => {
+        if (error && typeof error === 'object' && 'message' in error) {
+          messages.push(error.message as string);
+        } else if (error && typeof error === 'object') {
+          traverseErrors(error as FieldErrors);
+        }
+      });
+    };
+
+    traverseErrors(errors);
+    return messages;
+  };
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit, (errors) => {
-        const firstError = Object.values(errors)[0];
-        if (firstError && firstError.message) {
-          showError(firstError.message as string);
+        console.log(errors);
+        const errorMessages = extractErrorMessages(errors);
+
+        if (errorMessages.length > 0) {
+          showError(errorMessages[0]);
         }
       })}
       className="w-full"
