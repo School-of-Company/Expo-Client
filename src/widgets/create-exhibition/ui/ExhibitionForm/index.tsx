@@ -1,30 +1,32 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { ImageInput } from '@/entities/create-exhibition';
 import TrainingModule from '@/entities/create-exhibition/ui/TrainingModule';
 import WarningMessage from '@/entities/create-exhibition/ui/WarningMessage';
 import { Location } from '@/shared/assets/icons';
+import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { Button, Input } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
-import { handleExhibitionFormSubmit } from '../../model/exhibitionFormHandler';
 import { useAddressSearch } from '../../model/useAddressSearch';
+import { useExhibitionMutation } from '../../model/useExhibitionMutation';
 import { ExhibitionFormData } from '../../types/type';
 
 const ExhibitionForm = () => {
-  const {
-    register,
-    control,
-    handleSubmit,
-    formState: { isSubmitting },
-    setValue,
-    watch,
-  } = useForm<ExhibitionFormData>();
-  const router = useRouter();
-  const queryClient = useQueryClient();
+  const { register, control, handleSubmit, setValue, watch } =
+    useForm<ExhibitionFormData>();
+  const mutation = useExhibitionMutation();
+
+  const onSubmit = (data: ExhibitionFormData) => {
+    mutation.mutate(data);
+  };
+
+  const { openAddressSearch } = useAddressSearch(setValue);
+
+  const showError = (message: string) => {
+    toast.error(message);
+  };
 
   const trainingFields = useFieldArray<ExhibitionFormData>({
     control,
@@ -36,22 +38,10 @@ const ExhibitionForm = () => {
     name: 'standard',
   });
 
-  const onSubmit = (data: ExhibitionFormData) => {
-    handleExhibitionFormSubmit(data, router, queryClient);
-  };
-
-  const showError = (message: string) => {
-    toast.error(message);
-  };
-  const { openAddressSearch } = useAddressSearch(setValue);
-
   return (
     <form
       onSubmit={handleSubmit(onSubmit, (errors) => {
-        const firstError = Object.values(errors)[0];
-        if (firstError && firstError.message) {
-          showError(firstError.message as string);
-        }
+        handleFormErrors(errors, showError);
       })}
       className="w-full"
     >
@@ -80,7 +70,8 @@ const ExhibitionForm = () => {
                 {...register('startedDay', {
                   required: '시작일을 입력해주세요',
                   pattern: {
-                    value: /^\d{4}-\d{2}-\d{2}$/,
+                    value:
+                      /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
                     message: 'yyyy-mm-dd 형식으로 입력해주세요',
                   },
                 })}
@@ -91,7 +82,8 @@ const ExhibitionForm = () => {
                 {...register('finishedDay', {
                   required: '마감일을 입력해주세요',
                   pattern: {
-                    value: /^\d{4}-\d{2}-\d{2}$/,
+                    value:
+                      /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
                     message: 'yyyy-mm-dd 형식으로 입력해주세요',
                   },
                 })}
@@ -99,7 +91,7 @@ const ExhibitionForm = () => {
                 placeholder="마감일"
               />
             </div>
-            <WarningMessage text="시작일과 마감일 입력시 ‘ yyyy-mm-dd  ‘ 형식으로 입력해주세요" />
+            <WarningMessage text="시작일과 마감일 입력시 ' yyyy-mm-dd  ' 형식으로 입력해주세요" />
           </div>
         </div>
         <TextArea
@@ -155,7 +147,13 @@ const ExhibitionForm = () => {
             placeholder="상세주소를 입력해주세요."
           />
         </div>
-        <Button disabled={isSubmitting} type="submit" text="확인" />
+        <Button
+          disabled={mutation.isPending || mutation.isSuccess}
+          type="submit"
+          text={
+            mutation.isPending || mutation.isSuccess ? '제출 중...' : '확인'
+          }
+        />
       </div>
     </form>
   );

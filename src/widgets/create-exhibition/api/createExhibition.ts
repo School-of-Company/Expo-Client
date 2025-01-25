@@ -1,15 +1,5 @@
 import axios from 'axios';
-
-interface CreateExhibitionData {
-  title: string;
-  description: string;
-  startedDay: string;
-  finishedDay: string;
-  location: string;
-  coverImage: string;
-  x: number;
-  y: number;
-}
+import { CreateExhibitionData } from '@/shared/types/create-exhibition/type';
 
 export const createExhibition = async (data: CreateExhibitionData) => {
   try {

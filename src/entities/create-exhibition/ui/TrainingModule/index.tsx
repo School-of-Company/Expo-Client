@@ -1,34 +1,6 @@
 import React from 'react';
-import {
-  UseFieldArrayReturn,
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from 'react-hook-form';
-import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
+import { FieldArrayProps } from '@/shared/types/create-exhibition/type';
 import ExpoInput from '../ExpoInput';
-
-interface Props {
-  fields: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['fields'];
-  append: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['append'];
-  remove: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['remove'];
-  register: UseFormRegister<ExhibitionFormData>;
-  setValue: UseFormSetValue<ExhibitionFormData>;
-  watch: UseFormWatch<ExhibitionFormData>;
-  fieldName: 'trainings' | 'standard';
-}
 
 const TrainingModule = ({
   fields,
@@ -38,7 +10,7 @@ const TrainingModule = ({
   setValue,
   watch,
   fieldName,
-}: Props) => {
+}: FieldArrayProps) => {
   const createEmptyField = () => {
     if (fieldName === 'trainings') {
       return { title: '', startedAt: '', endedAt: '', category: 'CHOICE' };
