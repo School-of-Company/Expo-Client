@@ -34,7 +34,6 @@ const ExpoInput = ({
       {modal && selectedIndex !== null && (
         <Modal
           setModal={setModal}
-          register={register}
           setValue={setValue}
           index={selectedIndex}
           watch={watch}
@@ -60,6 +59,28 @@ const ExpoInput = ({
                       e.target.value,
                     )
                   }
+                />
+                <input
+                  type="hidden"
+                  {...register(`${fieldName}.${index}.startedAt`, {
+                    required: '연수 시작 일과 시간을 입력해주세요.',
+                    pattern: {
+                      value:
+                        /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) ([01]\d|2[0-3]):([0-5]\d)$/,
+                      message: 'yyyy-mm-dd HH:mm 형식으로 입력해주세요',
+                    },
+                  })}
+                />
+                <input
+                  type="hidden"
+                  {...register(`${fieldName}.${index}.endedAt`, {
+                    required: '연수 종료 일과 시간을 입력해주세요.',
+                    pattern: {
+                      value:
+                        /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) ([01]\d|2[0-3]):([0-5]\d)$/,
+                      message: 'yyyy-mm-dd HH:mm 형식으로 입력해주세요',
+                    },
+                  })}
                 />
               </div>
               <div className="flex gap-7 mobile:gap-3">

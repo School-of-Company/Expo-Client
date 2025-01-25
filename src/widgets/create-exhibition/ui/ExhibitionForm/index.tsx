@@ -1,11 +1,12 @@
 'use client';
 
-import { FieldErrors, useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { ImageInput } from '@/entities/create-exhibition';
 import TrainingModule from '@/entities/create-exhibition/ui/TrainingModule';
 import WarningMessage from '@/entities/create-exhibition/ui/WarningMessage';
 import { Location } from '@/shared/assets/icons';
+import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { Button, Input } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
 import { useAddressSearch } from '../../model/useAddressSearch';
@@ -37,32 +38,10 @@ const ExhibitionForm = () => {
     name: 'standard',
   });
 
-  const extractErrorMessages = (errors: FieldErrors): string[] => {
-    const messages: string[] = [];
-
-    const traverseErrors = (errorObj: FieldErrors) => {
-      Object.values(errorObj).forEach((error) => {
-        if (error && typeof error === 'object' && 'message' in error) {
-          messages.push(error.message as string);
-        } else if (error && typeof error === 'object') {
-          traverseErrors(error as FieldErrors);
-        }
-      });
-    };
-
-    traverseErrors(errors);
-    return messages;
-  };
-
   return (
     <form
       onSubmit={handleSubmit(onSubmit, (errors) => {
-        console.log(errors);
-        const errorMessages = extractErrorMessages(errors);
-
-        if (errorMessages.length > 0) {
-          showError(errorMessages[0]);
-        }
+        handleFormErrors(errors, showError);
       })}
       className="w-full"
     >
@@ -91,7 +70,8 @@ const ExhibitionForm = () => {
                 {...register('startedDay', {
                   required: '시작일을 입력해주세요',
                   pattern: {
-                    value: /^\d{4}-\d{2}-\d{2}$/,
+                    value:
+                      /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
                     message: 'yyyy-mm-dd 형식으로 입력해주세요',
                   },
                 })}
@@ -102,7 +82,8 @@ const ExhibitionForm = () => {
                 {...register('finishedDay', {
                   required: '마감일을 입력해주세요',
                   pattern: {
-                    value: /^\d{4}-\d{2}-\d{2}$/,
+                    value:
+                      /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
                     message: 'yyyy-mm-dd 형식으로 입력해주세요',
                   },
                 })}

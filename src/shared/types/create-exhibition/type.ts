@@ -52,7 +52,6 @@ export interface FieldArrayProps {
 
 export interface ModalProps {
   setModal: (value: boolean) => void;
-  register: UseFormRegister<ExhibitionFormData>;
   setValue: UseFormSetValue<ExhibitionFormData>;
   watch: UseFormWatch<ExhibitionFormData>;
   index: number;

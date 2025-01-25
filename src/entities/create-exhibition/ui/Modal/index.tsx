@@ -3,14 +3,7 @@ import { XMark } from '@/shared/assets/icons';
 import { ModalProps } from '@/shared/types/create-exhibition/type';
 import { Button, CheckBox, Input } from '@/shared/ui';
 
-const Modal = ({
-  setModal,
-  register,
-  setValue,
-  watch,
-  index,
-  fieldName,
-}: ModalProps) => {
+const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
   const startedAt = watch(`${fieldName}.${index}.startedAt`);
   const endedAt = watch(`${fieldName}.${index}.endedAt`);
 
@@ -26,28 +19,20 @@ const Modal = ({
         <div className="flex w-full justify-between">
           <div className="flex w-[176px] gap-5">
             <Input
-              {...register(`${fieldName}.${index}.startedAt`, {
-                required: '연수 시작 일과 시간을 입력해주세요.',
-                pattern: {
-                  value: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,
-                  message: 'yyyy-mm-dd HH:mm 형식으로 입력해주세요',
-                },
-              })}
+              value={startedAt || ''}
+              onChange={(e) =>
+                setValue(`${fieldName}.${index}.startedAt`, e.target.value)
+              }
               placeholder="연수 시작 일과 시간"
               size="small"
-              value={startedAt || ''}
             />
             <Input
-              {...register(`${fieldName}.${index}.endedAt`, {
-                required: '연수 종료 일과 시간을 입력해주세요.',
-                pattern: {
-                  value: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,
-                  message: 'yyyy-mm-dd HH:mm 형식으로 입력해주세요',
-                },
-              })}
+              value={endedAt || ''}
+              onChange={(e) =>
+                setValue(`${fieldName}.${index}.endedAt`, e.target.value)
+              }
               placeholder="연수 종료 일과 시간"
               size="small"
-              value={endedAt || ''}
             />
           </div>
           {fieldName === 'trainings' && (
