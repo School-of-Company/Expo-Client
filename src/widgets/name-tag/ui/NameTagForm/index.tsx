@@ -47,7 +47,7 @@ const NameTagForm = ({ id }: { id: string }) => {
 
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-[30px] px-5">
-      <NameTagHeader />
+      <NameTagHeader params={id} />
       <TableForm
         categories={requestPrintCategories}
         data={userData}
