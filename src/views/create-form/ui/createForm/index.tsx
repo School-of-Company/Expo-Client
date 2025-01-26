@@ -29,17 +29,23 @@ const CreateForm = ({ id }: { id: string }) => {
   });
 
   const onSubmit = (data: FormValues) => {
-    const formattedData = data.questions.map((question) => ({
-      title: question.title,
-      formType: question.formType,
-      jsonData: question.options.reduce(
-        (acc, option, index) => {
-          acc[(index + 1).toString()] = option.value;
-          return acc;
-        },
-        {} as Record<string, string>,
-      ),
-    }));
+    const formattedData = {
+      informationImage: '',
+      participantType: navigation?.toUpperCase() || 'STANDARD',
+      dynamicForm: data.questions.map((question) => ({
+        title: question.title,
+        formType: question.formType,
+        jsonData: JSON.stringify(
+          question.options.reduce(
+            (acc, option, index) => {
+              acc[(index + 1).toString()] = option.value;
+              return acc;
+            },
+            {} as Record<string, string>,
+          ),
+        ),
+      })),
+    };
 
     console.log(formattedData);
     formCreateRouter({ id, navigation, router });
