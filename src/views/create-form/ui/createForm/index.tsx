@@ -9,8 +9,8 @@ import { FormValues, Option } from '@/shared/types/create-form/type';
 import { Button, PageHeader } from '@/shared/ui';
 import FormContainer from '@/widgets/create-form/ui/FormContainer';
 import { Header } from '@/widgets/layout';
-import { formCreateRouter } from '../../model/formCreateRouter';
 import { selectOptionData } from '../../model/selectOptionData';
+import { useCreateForm } from '../../model/useCreateForm';
 
 const CreateForm = ({ id }: { id: string }) => {
   const router = useRouter();
@@ -28,6 +28,12 @@ const CreateForm = ({ id }: { id: string }) => {
     name: 'questions',
   });
 
+  const {
+    mutate: createForm,
+    isPending,
+    isSuccess,
+  } = useCreateForm(id, navigation, router);
+
   const onSubmit = (data: FormValues) => {
     const formattedData = {
       informationImage: '',
@@ -35,20 +41,17 @@ const CreateForm = ({ id }: { id: string }) => {
       dynamicForm: data.questions.map((question) => ({
         title: question.title,
         formType: question.formType,
-        jsonData: JSON.stringify(
-          question.options.reduce(
-            (acc, option, index) => {
-              acc[(index + 1).toString()] = option.value;
-              return acc;
-            },
-            {} as Record<string, string>,
-          ),
+        jsonData: question.options.reduce(
+          (acc, option, index) => {
+            acc[(index + 1).toString()] = option.value;
+            return acc;
+          },
+          {} as Record<string, string>,
         ),
       })),
     };
-
     console.log(formattedData);
-    formCreateRouter({ id, navigation, router });
+    createForm(formattedData);
   };
 
   const navigationTitles: Record<string, string> = {
@@ -91,7 +94,11 @@ const CreateForm = ({ id }: { id: string }) => {
             append({ title: '', formType: 'SENTENCE', options: [] });
           }}
         />
-        <Button type="submit" text="다음" />
+        <Button
+          type="submit"
+          text={isPending ? '제출 중...' : '다음'}
+          disabled={isPending || isSuccess}
+        />
       </form>
     </div>
   );
