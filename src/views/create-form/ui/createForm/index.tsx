@@ -37,16 +37,18 @@ const CreateForm = ({ id }: { id: string }) => {
   const onSubmit = (data: FormValues) => {
     const formattedData = {
       informationImage: '',
-      participantType: navigation?.toUpperCase() || 'STANDARD',
+      participantType: navigation || 'STANDARD',
       dynamicForm: data.questions.map((question) => ({
         title: question.title,
         formType: question.formType,
-        jsonData: question.options.reduce(
-          (acc, option, index) => {
-            acc[(index + 1).toString()] = option.value;
-            return acc;
-          },
-          {} as Record<string, string>,
+        jsonData: JSON.stringify(
+          question.options.reduce(
+            (acc, option, index) => {
+              acc[(index + 1).toString()] = option.value;
+              return acc;
+            },
+            {} as Record<string, string>,
+          ),
         ),
       })),
     };
@@ -55,9 +57,8 @@ const CreateForm = ({ id }: { id: string }) => {
   };
 
   const navigationTitles: Record<string, string> = {
-    standard: '참가자 폼',
-    training: '연수자 폼',
-    survey: '만족도 조사 폼',
+    STANDARD: '참가자 폼',
+    TRAINEE: '연수자 폼',
   };
 
   useEffect(() => {
@@ -72,7 +73,7 @@ const CreateForm = ({ id }: { id: string }) => {
         className="mx-auto w-full max-w-[792px] flex-1 space-y-4 px-5"
       >
         <PageHeader
-          title={navigationTitles[navigation || 'standard'] || '신청자 폼'}
+          title={navigationTitles[navigation || 'STANDARD'] || '신청자 폼'}
         />
         <div className="w-full space-y-8">
           {fields.map((field, index) => (

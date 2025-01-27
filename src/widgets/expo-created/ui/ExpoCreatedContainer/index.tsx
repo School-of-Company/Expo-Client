@@ -8,7 +8,7 @@ import { Button } from '@/shared/ui';
 const ExpoCreatedContainer = ({ id }: { id: string }) => {
   const router = useRouter();
   const handleButton = () => {
-    router.push(`/create-form/${id}?navigation=standard`);
+    router.push(`/create-form/${id}?navigation=STANDARD`);
   };
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-[40px]">

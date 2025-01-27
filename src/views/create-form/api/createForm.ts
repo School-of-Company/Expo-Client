@@ -1,18 +1,11 @@
 import axios from 'axios';
+import { CreateFormRequest } from '@/shared/types/create-form/type';
 
 export const createForm = async ({
   data,
   id,
 }: {
-  data: {
-    informationImage: string;
-    participantType: string;
-    dynamicForm: {
-      title: string;
-      formType: string;
-      jsonData: Record<string, string>;
-    }[];
-  };
+  data: CreateFormRequest;
   id: string;
 }) => {
   const response = await axios.post(`/api/form/${id}`, data);
