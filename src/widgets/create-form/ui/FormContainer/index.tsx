@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Control,
   useFieldArray,
@@ -17,7 +17,6 @@ import {
   MultipleChoiceOption,
   PictureOption,
   RequiredToggle,
-  TextOption,
 } from '@/entities/create-form';
 import { preventEvent } from '@/shared/model/preventEvent';
 import { FormValues, Option } from '@/shared/types/create-form/type';
@@ -51,15 +50,6 @@ const FormContainer = ({
   });
 
   const componentMap: Record<string, JSX.Element | null> = {
-    SENTENCE: (
-      <TextOption
-        fields={fields}
-        remove={remove}
-        register={register}
-        index={index}
-        isCheckBox={isCheckBox}
-      />
-    ),
     CHECKBOX: (
       <CheckBoxOption
         fields={fields}
@@ -108,6 +98,19 @@ const FormContainer = ({
     setIsCheckBox(!isCheckBox);
   };
 
+  useEffect(() => {
+    if (selectedOption?.value === 'SENTENCE') {
+      setValue(`questions.${index}.options`, []);
+    }
+
+    if (
+      selectedOption?.value === 'SENTENCE' ||
+      selectedOption?.value === 'IMAGE'
+    ) {
+      setIsCheckBox(false);
+    }
+  }, [selectedOption, index, setValue]);
+
   return (
     <div className="flex w-full flex-col gap-6 rounded-sm border-1 border-solid border-gray-200 px-[32px] py-[18px]">
       <div className="flex w-full items-center justify-between">
@@ -123,10 +126,13 @@ const FormContainer = ({
       </div>
       {renderOptionComponent()}
       <div className="border-b-1 border-solid border-gray-100 py-6">
-        <AddItemButton onClick={() => append({ value: '' })} />
+        {selectedOption?.value !== 'SENTENCE' ? (
+          <AddItemButton onClick={() => append({ value: '' })} />
+        ) : null}
       </div>
       <div className="flex w-full items-center justify-end gap-6">
-        {selectedOption?.value !== 'IMAGE' ? (
+        {selectedOption?.value !== 'IMAGE' &&
+        selectedOption?.value !== 'SENTENCE' ? (
           <CheckBox
             toggleCheck={handleCheckBox}
             isCheckBox={isCheckBox}

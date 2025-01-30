@@ -21,3 +21,13 @@ export interface OptionProps {
   index: number;
   isCheckBox?: boolean;
 }
+
+export interface CreateFormRequest {
+  informationImage: string;
+  participantType: string;
+  dynamicForm: {
+    title: string;
+    formType: string;
+    jsonData: string;
+  }[];
+}
