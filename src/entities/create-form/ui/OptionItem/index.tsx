@@ -25,7 +25,7 @@ const OptionItem = ({
       <div className="flex w-full items-center gap-[10px]">
         {icon}
         <input
-          {...register(inputName)}
+          {...register(inputName, { required: '폼의 옵션을 입력해주세요' })}
           placeholder="문장을 입력해주세요."
           className="w-[60%] text-body4 text-black"
         />
