@@ -36,7 +36,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { expo_id: string } },
 ) {
-  console.log('🍒성공이긴해');
   const { expo_id } = params;
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type');
