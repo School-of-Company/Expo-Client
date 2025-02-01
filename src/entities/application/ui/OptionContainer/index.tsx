@@ -1,4 +1,7 @@
+import { UseFormRegister } from 'react-hook-form';
+import { ApplicationFormValues } from '@/shared/types/application/type';
 import CheckBoxOption from '../CheckBoxOption';
+import DropDownOption from '../DropDownOption';
 import MultipleOption from '../MultipleOption';
 import SentenceOption from '../SentenceOption';
 
@@ -6,13 +9,13 @@ const OptionContainer = ({
   title,
   formType,
   jsonData,
+  register,
 }: {
   title: string;
   formType: string;
-  jsonData: string;
+  jsonData?: string;
+  register: UseFormRegister<ApplicationFormValues>;
 }) => {
-  let inputComponent;
-
   const options = jsonData
     ? Object.entries(JSON.parse(jsonData)).map(([key, value]) => ({
         value: key,
@@ -20,11 +23,13 @@ const OptionContainer = ({
       }))
     : [];
 
+  let inputComponent;
   switch (formType) {
     case 'SENTENCE':
       inputComponent = (
         <SentenceOption
-          placeholder={title}
+          register={register}
+          name={title}
           maxLength={1000}
           row={1}
           required={false}
@@ -32,20 +37,18 @@ const OptionContainer = ({
       );
       break;
     case 'CHECKBOX':
-      inputComponent = <CheckBoxOption options={options} name={title} />;
+      inputComponent = (
+        <CheckBoxOption options={options} register={register} name={title} />
+      );
       break;
     case 'MULTIPLE':
-      inputComponent = <MultipleOption options={options} name={title} />;
+      inputComponent = (
+        <MultipleOption options={options} register={register} name={title} />
+      );
       break;
     case 'DROPDOWN':
       inputComponent = (
-        <select className="rounded border px-2 py-1">
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <DropDownOption options={options} register={register} name={title} />
       );
       break;
   }

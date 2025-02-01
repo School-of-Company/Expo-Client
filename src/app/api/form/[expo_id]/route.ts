@@ -21,7 +21,7 @@ export async function POST(
   try {
     const response = await apiClient.post(`/form/${expo_id}`, body, config);
 
-    return NextResponse.json(response.data);
+    return NextResponse.json(response.data, { status: response.status });
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
 

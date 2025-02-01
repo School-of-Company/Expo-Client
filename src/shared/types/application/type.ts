@@ -9,3 +9,15 @@ export interface ApplicationForm {
   participantType: 'STANDARD' | 'TRAINEE';
   dynamicForm: DynamicFormItem[];
 }
+
+export type ApplicationFormValues = {
+  [key: string]: string | string[];
+};
+
+export type FormattedApplicationData = {
+  trainingId?: string;
+  name: string;
+  phoneNumber: string;
+  personalInformationStatus: boolean;
+  informationJson: string;
+};
