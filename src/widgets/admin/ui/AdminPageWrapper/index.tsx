@@ -11,7 +11,8 @@ import {
 import { useAdminData } from '../../model/useAdminData';
 
 const AdminPageWrapper = () => {
-  const { expoListData, requestSignUpData, isLoading } = useAdminData();
+  const { expoListData, requestSignUpData, requestAdminData, isLoading } =
+    useAdminData();
 
   const checkSignupActions = checkActions(async () => {
     await requestSignUpData.refetch();
@@ -22,12 +23,13 @@ const AdminPageWrapper = () => {
 
   const expoList = expoListData.data || [];
   const requestSignUp = requestSignUpData.data || [];
+  const requestAdmin = requestAdminData.data;
 
   return withLoading({
     isLoading,
     children: (
       <div className="space-y-[73px]">
-        <AdminProfile />
+        {requestAdmin && <AdminProfile data={requestAdmin} />}
         <div className="space-y-[26px]">
           <p className="text-h2 text-black">회원가입 요청</p>
           <div className="h-auto">
