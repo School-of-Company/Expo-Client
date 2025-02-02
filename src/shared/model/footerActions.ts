@@ -48,7 +48,15 @@ export const checkActions = (fetchSignupList: () => Promise<void>) => ({
       console.error('Failed to check signup:', error);
     }
   },
-  DeleteBadge: (selectItem: number) => console.log('삭제', selectItem),
+  DeleteBadge: async (selectItem: number) => {
+    try {
+      await axios.delete(`/api/admin/${selectItem}`);
+      await fetchSignupList();
+      toast.success('회원가입 거절 성공');
+    } catch (error) {
+      console.error('Failed to check signup:', error);
+    }
+  },
 });
 
 export const deleteActions = (fetchExpoList: () => Promise<void>) => ({
