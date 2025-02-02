@@ -14,3 +14,8 @@ export interface SignUpItem extends Record<string, unknown> {
   email: string;
   phoneNumber: string;
 }
+export interface AdminData {
+  name: string;
+  nickname: string;
+  email: string;
+}

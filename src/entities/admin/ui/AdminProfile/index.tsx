@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Logout } from '@/shared/assets/icons';
+import { AdminData } from '@/shared/types/admin/type';
 import { useDeleteUserAccount } from '../../model/useDeleteUserAccount';
 import { useLogout } from '../../model/useLogout';
 
@@ -10,7 +11,7 @@ const ProfileInfo = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-const AdminProfile = () => {
+const AdminProfile = ({ data }: { data: AdminData }) => {
   const { mutate: logout } = useLogout();
   const { mutate: deleteAccount } = useDeleteUserAccount();
   const [isToggleLogout, setIsToggleLogout] = useState(false);
@@ -23,9 +24,9 @@ const AdminProfile = () => {
     <div className="relative flex w-full justify-between">
       <div className="flex items-center gap-[124px] mobile:flex-col mobile:gap-[30px]">
         <div className="space-y-[32px]">
-          <ProfileInfo label="이름" value="김진원" />
-          <ProfileInfo label="아이디" value="jin1234" />
-          <ProfileInfo label="이메일" value="jin12345@gmail.com" />
+          <ProfileInfo label="이름" value={data.name} />
+          <ProfileInfo label="아이디" value={data.nickname} />
+          <ProfileInfo label="이메일" value={data.email} />
         </div>
       </div>
       <div>

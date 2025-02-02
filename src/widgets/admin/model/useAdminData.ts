@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { ExpoItem, SignUpItem } from '@/shared/types/admin/type';
-import { getExpoList, getRequestSignUp } from '../api/getAdminData';
+import { AdminData, ExpoItem, SignUpItem } from '@/shared/types/admin/type';
+import {
+  getAdminData,
+  getExpoList,
+  getRequestSignUp,
+} from '../api/getAdminData';
 
 export const useAdminData = () => {
   const expoListData = useQuery<ExpoItem[], Error>({
@@ -13,7 +17,15 @@ export const useAdminData = () => {
     queryFn: getRequestSignUp,
   });
 
-  const isLoading = expoListData.isLoading || requestSignUpData.isLoading;
+  const requestAdminData = useQuery<AdminData, Error>({
+    queryKey: ['requestAdnubData'],
+    queryFn: getAdminData,
+  });
 
-  return { expoListData, requestSignUpData, isLoading };
+  const isLoading =
+    expoListData.isLoading ||
+    requestSignUpData.isLoading ||
+    requestAdminData.isLoading;
+
+  return { expoListData, requestSignUpData, requestAdminData, isLoading };
 };
