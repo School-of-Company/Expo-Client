@@ -1,7 +1,7 @@
 import { Plus } from '@/shared/assets/icons';
 
 interface AddItemButtonProps {
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 const AddItemButton = ({ onClick }: AddItemButtonProps) => (

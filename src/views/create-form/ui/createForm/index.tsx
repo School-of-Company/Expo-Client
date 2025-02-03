@@ -60,6 +60,8 @@ const CreateForm = ({ id }: { id: string }) => {
             {} as Record<string, string>,
           ),
         ),
+        requiredStatus: question.requiredStatus,
+        otherJson: question.otherJson,
       })),
     };
     createForm(formattedData);
@@ -78,10 +80,13 @@ const CreateForm = ({ id }: { id: string }) => {
     <div className="flex h-screen flex-col gap-[30px] mobile:gap-0">
       <Header />
       <form
-        onSubmit={handleSubmit(onSubmit, (errors) => {
-          console.log(errors);
-          handleFormErrors(errors, showError);
-        })}
+        onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+          preventEvent(e);
+          handleSubmit(onSubmit, (errors) => {
+            console.log(errors);
+            handleFormErrors(errors, showError);
+          })(e);
+        }}
         className="mx-auto w-full max-w-[792px] flex-1 space-y-4 px-5 pb-5"
       >
         <PageHeader
@@ -104,9 +109,16 @@ const CreateForm = ({ id }: { id: string }) => {
         <CreateFormButton
           onClick={(e: React.MouseEvent) => {
             preventEvent(e);
-            append({ title: '', formType: 'SENTENCE', options: [] });
+            append({
+              title: '',
+              formType: 'SENTENCE',
+              options: [],
+              requiredStatus: false,
+              otherJson: null,
+            });
           }}
         />
+
         <Button
           type="submit"
           text={isPending ? '제출 중...' : '다음'}

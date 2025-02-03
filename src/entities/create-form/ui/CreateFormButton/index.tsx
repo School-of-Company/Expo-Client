@@ -8,6 +8,7 @@ interface Props {
 const CreateFormButton = ({ onClick }: Props) => {
   return (
     <button
+      type="button"
       onClick={onClick}
       className="flex w-fit items-center gap-[10px] rounded-sm bg-main-300 px-6 py-3"
     >

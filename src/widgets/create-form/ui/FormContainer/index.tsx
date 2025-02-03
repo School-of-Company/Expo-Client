@@ -93,11 +93,6 @@ const FormContainer = ({
       : null;
   };
 
-  const handleCheckBox = (e: React.MouseEvent) => {
-    preventEvent(e);
-    setIsCheckBox(!isCheckBox);
-  };
-
   useEffect(() => {
     if (selectedOption?.value === 'SENTENCE') {
       setValue(`questions.${index}.options`, []);
@@ -127,17 +122,18 @@ const FormContainer = ({
       {renderOptionComponent()}
       <div className="border-b-1 border-solid border-gray-100 py-6">
         {selectedOption?.value !== 'SENTENCE' ? (
-          <AddItemButton onClick={() => append({ value: '' })} />
+          <AddItemButton
+            onClick={(e: React.MouseEvent) => {
+              preventEvent(e);
+              append({ value: '' });
+            }}
+          />
         ) : null}
       </div>
       <div className="flex w-full items-center justify-end gap-6">
         {selectedOption?.value !== 'IMAGE' &&
         selectedOption?.value !== 'SENTENCE' ? (
-          <CheckBox
-            toggleCheck={handleCheckBox}
-            isCheckBox={isCheckBox}
-            text="기타"
-          />
+          <CheckBox control={control} index={index} text="기타" />
         ) : null}
         <DeleteButton
           onClick={(e: React.MouseEvent) => {
@@ -145,7 +141,7 @@ const FormContainer = ({
             formRemove(index);
           }}
         />
-        <RequiredToggle />
+        <RequiredToggle control={control} index={index} />
       </div>
     </div>
   );
