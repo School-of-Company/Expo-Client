@@ -15,7 +15,7 @@ const PageHeader = ({ title }: { title: string }) => {
 
   return (
     <div className="relative flex w-full items-center justify-between py-3 mobile:px-5">
-      <button onClick={handleGoBack} className="cursor-pointer">
+      <button type="button" onClick={handleGoBack} className="cursor-pointer">
         <ArrowLeft />
       </button>
       <p className="w-full text-center text-h3 text-black">{title}</p>

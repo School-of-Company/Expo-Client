@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
+import { preventEvent } from '@/shared/model/preventEvent';
 import { FormValues, Option } from '@/shared/types/create-form/type';
 
 interface Props {
@@ -39,7 +40,10 @@ const FormTypeSelect = ({
       />
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e: React.MouseEvent) => {
+          preventEvent(e);
+          setIsOpen(!isOpen);
+        }}
         className="flex w-full items-center justify-between rounded-md border-1 border-solid border-gray-100 bg-white px-3 py-[10px]"
       >
         <div className="flex items-center">
@@ -55,7 +59,8 @@ const FormTypeSelect = ({
           {options.map((option) => (
             <li
               key={option.value}
-              onClick={() => {
+              onClick={(e: React.MouseEvent) => {
+                preventEvent(e);
                 setSelectedOption(option);
                 setValue(`questions.${index}.formType`, option.value);
                 setIsOpen(false);
