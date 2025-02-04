@@ -58,7 +58,7 @@ const ApplicationLayout = ({
         data['연수원 아이디를 입력하세요'] || '',
       );
     }
-
+    // console.log(formattedData);
     PostApplication(formattedData);
   };
 
@@ -78,17 +78,23 @@ const ApplicationLayout = ({
               <OptionContainer
                 title="연수원 아이디를 입력하세요"
                 formType="SENTENCE"
+                requiredStatus={true}
+                otherJson={null}
                 register={register}
               />
             ) : null}
             <OptionContainer
               title="휴대폰 번호를 입력하세요"
               formType="SENTENCE"
+              requiredStatus={true}
+              otherJson={null}
               register={register}
             />
             <OptionContainer
               title="이름을 입력하세요"
               formType="SENTENCE"
+              requiredStatus={true}
+              otherJson={null}
               register={register}
             />
             {formList?.dynamicForm?.map((form, index) => (
@@ -97,6 +103,8 @@ const ApplicationLayout = ({
                 title={form.title}
                 formType={form.formType}
                 jsonData={form.jsonData}
+                requiredStatus={form.requiredStatus}
+                otherJson={form.otherJson}
                 register={register}
               />
             ))}

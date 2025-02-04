@@ -11,11 +11,17 @@ interface Props {
   options: Option[];
   register: UseFormRegister<ApplicationFormValues>;
   name: string;
+  required: boolean;
 }
 
-const DropDownOption = ({ options, register, name }: Props) => {
+const DropDownOption = ({ options, register, name, required }: Props) => {
   return (
-    <select className="rounded border px-2 py-1" {...register(name)}>
+    <select
+      className="rounded border px-2 py-1"
+      {...register(name, {
+        required: required ? '필수 옵션을 선택해주세요' : false,
+      })}
+    >
       <option value="">선택하세요</option>
       {options.map((option) => (
         <option key={option.value} value={option.label}>
