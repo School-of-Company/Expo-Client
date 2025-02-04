@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { UseFormRegister } from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 
@@ -17,16 +17,16 @@ export default function SentenceOption({
   register,
   name,
 }: Props) {
-  const { ref, onChange, ...rest } = register(name);
+  const { ref, onChange, ...rest } = register(name, {
+    required: required ? '필수 옵션을 작성해주세요' : false,
+  });
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const [hasInput, setHasInput] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-    setHasInput(e.target.value.length > 0);
 
     if (onChange) {
       onChange(e);
@@ -41,18 +41,13 @@ export default function SentenceOption({
             textareaRef.current = el;
             ref(el);
           }}
-          className="w-full resize-none overflow-hidden bg-transparent text-body4 text-black placeholder-transparent"
+          className="w-full resize-none overflow-hidden bg-transparent text-body3 text-black"
           rows={row}
           maxLength={maxLength}
           onChange={handleChange}
+          placeholder={name}
           {...rest}
         />
-        {!hasInput && (
-          <label className="pointer-events-none absolute left-0 top-0 text-gray-500">
-            {name}
-            {required && <span className="text-sky-500"> *</span>}
-          </label>
-        )}
       </div>
       <hr className="border-gray-200" />
     </div>

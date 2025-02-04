@@ -132,7 +132,8 @@ const FormContainer = ({
       </div>
       <div className="flex w-full items-center justify-end gap-6">
         {selectedOption?.value !== 'IMAGE' &&
-        selectedOption?.value !== 'SENTENCE' ? (
+        selectedOption?.value !== 'SENTENCE' &&
+        selectedOption?.value !== 'DROPDOWN' ? (
           <CheckBox control={control} index={index} text="기타" />
         ) : null}
         <DeleteButton
