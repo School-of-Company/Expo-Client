@@ -1,4 +1,4 @@
-import { UseFormRegister } from 'react-hook-form';
+import { UseFormRegister, UseFormWatch } from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import CheckBoxOption from '../CheckBoxOption';
 import DropDownOption from '../DropDownOption';
@@ -12,6 +12,7 @@ const OptionContainer = ({
   requiredStatus,
   otherJson,
   register,
+  watch,
 }: {
   title: string;
   formType: string;
@@ -19,6 +20,7 @@ const OptionContainer = ({
   requiredStatus: boolean;
   otherJson: string | null;
   register: UseFormRegister<ApplicationFormValues>;
+  watch: UseFormWatch<ApplicationFormValues>;
 }) => {
   const options = jsonData
     ? Object.entries(JSON.parse(jsonData)).map(([key, value]) => ({
@@ -48,6 +50,7 @@ const OptionContainer = ({
           name={title}
           required={requiredStatus}
           otherJson={otherJson}
+          watch={watch}
         />
       );
       break;
@@ -59,6 +62,7 @@ const OptionContainer = ({
           name={title}
           required={requiredStatus}
           otherJson={otherJson}
+          watch={watch}
         />
       );
       break;

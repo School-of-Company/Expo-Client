@@ -1,4 +1,5 @@
-import { UseFormRegister } from 'react-hook-form';
+import React from 'react';
+import { UseFormRegister, UseFormWatch } from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import EtcOption from '../EtcOption';
 
@@ -10,6 +11,7 @@ interface Option {
 interface Props {
   options: Option[];
   register: UseFormRegister<ApplicationFormValues>;
+  watch: UseFormWatch<ApplicationFormValues>;
   name: string;
   required: boolean;
   otherJson: string | null;
@@ -18,6 +20,7 @@ interface Props {
 const CheckBoxOption = ({
   options,
   register,
+  watch,
   name,
   required,
   otherJson,
@@ -37,9 +40,14 @@ const CheckBoxOption = ({
           <label className="text-body3 text-black">{option.label}</label>
         </div>
       ))}
-      {otherJson !== null ? (
-        <EtcOption register={register} name={name} type="checkbox" />
-      ) : null}
+      {otherJson !== null && (
+        <EtcOption
+          register={register}
+          watch={watch}
+          name={name}
+          type="checkbox"
+        />
+      )}
     </div>
   );
 };

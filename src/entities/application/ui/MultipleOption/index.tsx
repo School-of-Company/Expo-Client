@@ -1,5 +1,5 @@
 import React from 'react';
-import { UseFormRegister } from 'react-hook-form';
+import { UseFormRegister, UseFormWatch } from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import EtcOption from '../EtcOption';
 
@@ -11,13 +11,16 @@ interface Option {
 interface Props {
   options: Option[];
   register: UseFormRegister<ApplicationFormValues>;
+  watch: UseFormWatch<ApplicationFormValues>;
   name: string;
   required: boolean;
   otherJson: string | null;
 }
+
 const MultipleOption = ({
   options,
   register,
+  watch,
   name,
   required,
   otherJson,
@@ -37,10 +40,11 @@ const MultipleOption = ({
           <label className="text-body3 text-black">{option.label}</label>
         </div>
       ))}
-      {otherJson !== null ? (
-        <EtcOption register={register} name={name} type="radio" />
-      ) : null}
+      {otherJson !== null && (
+        <EtcOption register={register} watch={watch} name={name} type="radio" />
+      )}
     </div>
   );
 };
+
 export default MultipleOption;

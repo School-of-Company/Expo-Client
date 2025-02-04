@@ -17,7 +17,7 @@ const ApplicationLayout = ({
   params: string;
   type: string;
 }) => {
-  const { register, handleSubmit } = useForm<ApplicationFormValues>();
+  const { register, handleSubmit, watch } = useForm<ApplicationFormValues>();
 
   const { data: formList, isLoading } = useGetForm(params, type);
 
@@ -42,9 +42,18 @@ const ApplicationLayout = ({
         formList?.dynamicForm?.reduce<Record<string, string>>((acc, form) => {
           const value = data[form.title as keyof ApplicationFormValues];
           if (form.formType === 'CHECKBOX') {
-            acc[form.title] = Array.isArray(value)
-              ? value.join(', ')
-              : String(value || '');
+            const selectedOptions = Array.isArray(value) ? value : [value];
+            if (selectedOptions.includes('etc')) {
+              const etcValue =
+                data[`${form.title}_etc` as keyof ApplicationFormValues];
+              selectedOptions[selectedOptions.indexOf('etc')] =
+                `기타: ${etcValue}`;
+            }
+            acc[form.title] = selectedOptions.join(', ');
+          } else if (form.formType === 'MULTIPLE' && value === 'etc') {
+            const etcValue =
+              data[`${form.title}_etc` as keyof ApplicationFormValues];
+            acc[form.title] = `기타: ${etcValue}`;
           } else {
             acc[form.title] = String(value || '');
           }
@@ -58,7 +67,6 @@ const ApplicationLayout = ({
         data['연수원 아이디를 입력하세요'] || '',
       );
     }
-    // console.log(formattedData);
     PostApplication(formattedData);
   };
 
@@ -81,6 +89,7 @@ const ApplicationLayout = ({
                 requiredStatus={true}
                 otherJson={null}
                 register={register}
+                watch={watch}
               />
             ) : null}
             <OptionContainer
@@ -89,6 +98,7 @@ const ApplicationLayout = ({
               requiredStatus={true}
               otherJson={null}
               register={register}
+              watch={watch}
             />
             <OptionContainer
               title="이름을 입력하세요"
@@ -96,6 +106,7 @@ const ApplicationLayout = ({
               requiredStatus={true}
               otherJson={null}
               register={register}
+              watch={watch}
             />
             {formList?.dynamicForm?.map((form, index) => (
               <OptionContainer
@@ -106,6 +117,7 @@ const ApplicationLayout = ({
                 requiredStatus={form.requiredStatus}
                 otherJson={form.otherJson}
                 register={register}
+                watch={watch}
               />
             ))}
           </div>
