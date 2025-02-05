@@ -6,8 +6,8 @@ import { printBadge } from './printUtils';
 export interface UserData {
   id: number;
   name: string;
-  affiliation: string;
-  qrCode: string;
+  phoneNumber: string;
+  personalInformationStatus: string;
 }
 
 export const fileActions = (id: string | number) => ({
@@ -33,7 +33,12 @@ export const printActions = (data: UserData[]) => ({
   PrintBadge: async (selectItem: number) => {
     const selectedData = data.find((item) => item.id === selectItem);
     if (selectedData) {
-      printBadge(selectedData);
+      const badgeData = {
+        name: selectedData.name,
+
+        qrCode: selectedData.phoneNumber,
+      };
+      printBadge(badgeData);
     }
   },
 });

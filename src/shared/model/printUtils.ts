@@ -1,13 +1,12 @@
-export const printBadge = (selectedData: {
-  name: string;
-  affiliation: string;
-  qrCode: string; // Base64 또는 텍스트
-}) => {
+export const printBadge = (selectedData: { name: string; qrCode: string }) => {
   const printWindow = window.open('', '_blank');
+
   if (printWindow) {
     const isBase64 =
-      selectedData.qrCode.startsWith('/9j/') ||
-      selectedData.qrCode.includes('base64');
+      selectedData.qrCode &&
+      (selectedData.qrCode.startsWith('/9j/') ||
+        selectedData.qrCode.includes('base64'));
+
     printWindow.document.write(`
       <html>
         <head>
@@ -55,7 +54,6 @@ export const printBadge = (selectedData: {
         <body>
           <div class="badge">
             <h1>${selectedData.name}</h1>
-            <p>소속: ${selectedData.affiliation}</p>
             <div class="qr-container">
               ${
                 isBase64
@@ -64,26 +62,23 @@ export const printBadge = (selectedData: {
               }
             </div>
           </div>
-          ${
-            !isBase64
-              ? `<script>
+          <script>
+            ${
+              !isBase64
+                ? `
                   new QRCode("qrcode", {
                     text: "${selectedData.qrCode}",
                     width: 100,
                     height: 100
                   });
-                  window.onload = function() {
-                    window.print();
-                    window.close();
-                  };
-                </script>`
-              : `<script>
-                  window.onload = function() {
-                    window.print();
-                    window.close();
-                  };
-                </script>`
-          }
+                `
+                : ''
+            }
+            window.onload = function() {
+              window.print();
+              window.close();
+            };
+          </script>
         </body>
       </html>
     `);

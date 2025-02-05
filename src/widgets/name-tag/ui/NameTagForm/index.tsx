@@ -9,14 +9,26 @@ import { QrScanData } from '@/shared/types/common/QrScanData';
 import { TableForm } from '@/shared/ui/Table';
 
 const NameTagForm = ({ id }: { id: string }) => {
-  const requestPrintCategories = ['아이디', '이름', '번호', 'qr번호'];
+  const requestPrintCategories = ['아이디', '이름', '번호', '개인정보 상태'];
+
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
   const [userData, setUserData] = useState<UserData[]>([]);
+
   useQRScanner(setScannedQR);
 
   const fetchUserData = useCallback(
     async (scannedQR: QrScanData) => {
       const authority = scannedQR.traineeId ? 'ROLE_TRAINEE' : 'ROLE_STANDARD';
+
+      const isAlreadyScanned = userData.some(
+        (user) => user.phoneNumber === scannedQR.phoneNumber,
+      );
+
+      if (isAlreadyScanned) {
+        console.warn('이미 스캔된 QR 코드입니다.');
+        return;
+      }
+
       try {
         const response = await axios.patch(`/api/attendance/${id}`, {
           authority,
@@ -26,15 +38,18 @@ const NameTagForm = ({ id }: { id: string }) => {
         const responseData: UserData = {
           id: userData.length + 1,
           name: response.data.name,
-          affiliation: response.data.affiliation,
-          qrCode: response.data.qrCode,
+          phoneNumber: response.data.phoneNumber,
+          personalInformationStatus: response.data.personalInformationStatus
+            ? '동의'
+            : '미동의',
         };
+
         setUserData((prevData) => [...prevData, responseData]);
       } catch (error) {
         console.error('QR 코드 통신 에러:', error);
       }
     },
-    [userData.length],
+    [userData, id],
   );
 
   useEffect(() => {
