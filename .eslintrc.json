@@ -11,7 +11,8 @@
     "plugin:prettier/recommended",
     "prettier",
     "plugin:@next/next/recommended",
-    "plugin:storybook/recommended"
+    "plugin:storybook/recommended",
+    "plugin:@tanstack/eslint-plugin-query/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "ignorePatterns": ["node_modules/**", "**/dist/**", ".next/**"],
@@ -27,10 +28,13 @@
     "import/resolver": {
       "alias": {
         "map": [
-          ["@apis", "./src/apis"],
-          ["@page", "./src/page"],
-          ["@types", "./src/types"],
-          ["@util", "./src/util"]
+          ["@", "./src"],
+          ["@pages", "./src/pages"],
+          ["@entities", "./src/entities"],
+          ["@views", "./src/views"],
+          ["@widgets", "./src/widgets"],
+          ["@app", "./src/app"],
+          ["@shared", "./src/shared"]
         ],
         "extensions": [".ts", ".tsx", ".js", ".jsx", ".json"]
       }
