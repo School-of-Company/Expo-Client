@@ -2,16 +2,16 @@
 
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { ImageInput } from '@/entities/create-exhibition';
-import TrainingModule from '@/entities/create-exhibition/ui/TrainingModule';
-import WarningMessage from '@/entities/create-exhibition/ui/WarningMessage';
+import { ImageInput } from '@/entities/exhibition';
+import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
+import WarningMessage from '@/entities/exhibition/ui/WarningMessage';
 import { Location } from '@/shared/assets/icons';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
+import { ExhibitionFormData } from '@/shared/types/exhibition/create/type';
 import { Button, Input } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
 import { useAddressSearch } from '../../model/useAddressSearch';
 import { useExhibitionMutation } from '../../model/useExhibitionMutation';
-import { ExhibitionFormData } from '../../types/type';
 
 const ExhibitionForm = () => {
   const { register, control, handleSubmit, setValue, watch } =

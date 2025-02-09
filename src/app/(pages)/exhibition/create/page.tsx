@@ -1,5 +1,5 @@
 import React from 'react';
-import CreateExhibition from '@/views/create-exhibition/ui/createExhibition';
+import CreateExhibition from '@/views/exhibition/create/ui/createExhibition';
 
 const page = () => {
   return (

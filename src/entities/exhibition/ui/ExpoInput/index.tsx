@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { XMark } from '@/shared/assets/icons';
-import { FieldArrayProps } from '@/shared/types/create-exhibition/type';
+import { FieldArrayProps } from '@/shared/types/exhibition/type';
 import { AddItemButton } from '@/shared/ui';
 import Modal from '../Modal';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExhibitionForm } from '@/widgets/create-exhibition';
+import { ExhibitionForm } from '@/widgets/exhibition/create';
 import { Header } from '@/widgets/layout';
 
 const CreateExhibition = () => {

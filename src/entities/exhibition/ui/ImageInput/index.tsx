@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { UseFormRegisterReturn, UseFormSetValue } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { Picture } from '@/shared/assets/icons';
-import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
+import { ExhibitionFormData } from '@/shared/types/exhibition/create/type';
 import WarningMessage from '../WarningMessage';
 
 interface ImageInputProps {

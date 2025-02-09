@@ -1,6 +1,6 @@
 import React from 'react';
 import { XMark } from '@/shared/assets/icons';
-import { ModalProps } from '@/shared/types/create-exhibition/type';
+import { ModalProps } from '@/shared/types/exhibition/type';
 import { Button, CheckBox, Input } from '@/shared/ui';
 
 const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {

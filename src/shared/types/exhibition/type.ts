@@ -4,7 +4,7 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
-import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
+import { ExhibitionFormData } from './create/type';
 
 export interface CreateExhibitionData {
   title: string;

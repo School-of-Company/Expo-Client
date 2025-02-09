@@ -56,7 +56,13 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
             text="조회하기"
             style="main100"
           />
-          <Button text="수정하기" style="white" />
+          <Button
+            onClick={() => {
+              router.push(`/exhibition/edit/${params}`);
+            }}
+            text="수정하기"
+            style="white"
+          />
         </div>
       );
     }
