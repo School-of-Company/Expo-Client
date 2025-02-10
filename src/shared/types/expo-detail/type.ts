@@ -10,6 +10,7 @@ export interface ExpoDetail {
 }
 
 export interface ExpoTrainingDetail {
+  id: number;
   title: string;
   startedAt: string;
   endedAt: string;
@@ -22,6 +23,7 @@ export interface ExpoTraining {
 }
 
 export interface ExpoStandard {
+  id: number;
   title: string;
   startedAt: string;
   endedAt: string;

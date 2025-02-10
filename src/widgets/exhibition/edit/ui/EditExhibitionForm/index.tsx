@@ -8,18 +8,67 @@ import WarningMessage from '@/entities/exhibition/ui/WarningMessage';
 import { Location } from '@/shared/assets/icons';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { ExhibitionFormData } from '@/shared/types/exhibition/create/type';
+import { AddressResponse } from '@/shared/types/exhibition/edit/type';
+import {
+  ExpoDetail,
+  ExpoStandard,
+  ExpoTrainingDetail,
+} from '@/shared/types/expo-detail/type';
 import { Button, Input } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
-import { useAddressSearch } from '../../model/useAddressSearch';
-import { useExhibitionMutation } from '../../model/useExhibitionMutation';
+import { useAddressSearch } from '@/widgets/exhibition/model/useAddressSearch';
+import { formatDateTime } from '../../model/formatDateTime';
+import { useEditExhibitionMutation } from '../../model/useEditExhibitionMutation';
 
-const ExhibitionForm = () => {
+const EditExhibitionForm = ({
+  expoDetail,
+  geoQueryData,
+  expoStandard,
+  expoTraining,
+  id,
+}: {
+  expoDetail: ExpoDetail;
+  geoQueryData: AddressResponse;
+  expoStandard: ExpoStandard[];
+  expoTraining: {
+    essential: ExpoTrainingDetail[];
+    choice: ExpoTrainingDetail[];
+  };
+  id: number;
+}) => {
   const { register, control, handleSubmit, setValue, watch } =
-    useForm<ExhibitionFormData>();
-  const mutation = useExhibitionMutation();
+    useForm<ExhibitionFormData>({
+      defaultValues: {
+        title: expoDetail.title,
+        introduction: expoDetail.description,
+        startedDay: expoDetail.startedDay,
+        finishedDay: expoDetail.finishedDay,
+        image: expoDetail.coverImage,
+        address: geoQueryData.documents[0]?.road_address?.address_name,
+        location: expoDetail.location,
+        trainings: [...expoTraining.essential, ...expoTraining.choice].map(
+          (training) => ({
+            id: training.id,
+            title: training.title,
+            startedAt: formatDateTime(training.startedAt),
+            endedAt: formatDateTime(training.endedAt),
+            category: training.category,
+          }),
+        ),
+        standard: expoStandard.map((std) => ({
+          id: std.id,
+          title: std.title,
+          startedAt: formatDateTime(std.startedAt),
+          endedAt: formatDateTime(std.endedAt),
+        })),
+      },
+    });
+
+  const mutation = useEditExhibitionMutation(id);
 
   const onSubmit = (data: ExhibitionFormData) => {
     mutation.mutate(data);
+    console.log(data);
   };
 
   const { openAddressSearch } = useAddressSearch(setValue);
@@ -52,6 +101,7 @@ const ExhibitionForm = () => {
             register={register('image', { required: '사진을 등록해주세요.' })}
             setValue={setValue}
             id="imageUpload"
+            defaultImage={expoDetail.coverImage}
           />
         </div>
         <div className="space-y-[10px]">
@@ -147,16 +197,10 @@ const ExhibitionForm = () => {
             placeholder="상세주소를 입력해주세요."
           />
         </div>
-        <Button
-          disabled={mutation.isPending || mutation.isSuccess}
-          type="submit"
-          text={
-            mutation.isPending || mutation.isSuccess ? '제출 중...' : '확인'
-          }
-        />
+        <Button type="submit" text="확인" />
       </div>
     </form>
   );
 };
 
-export default ExhibitionForm;
+export default EditExhibitionForm;

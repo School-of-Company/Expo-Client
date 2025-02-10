@@ -2,15 +2,15 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { ExhibitionFormData } from '@/shared/types/exhibition/create/type';
-import { handleExhibitionFormSubmit } from './exhibitionFormHandler';
+import { handleCreateExhibitionFormSubmit } from './handleCreateExhibitionFormSubmit';
 
-export const useExhibitionMutation = () => {
+export const useCreateExhibitionMutation = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: ExhibitionFormData) =>
-      handleExhibitionFormSubmit(data, router, queryClient),
+      handleCreateExhibitionFormSubmit(data, router, queryClient),
     onSuccess: (expoId) => {
       if (expoId) {
         router.push(`/expo-created/${expoId}`);

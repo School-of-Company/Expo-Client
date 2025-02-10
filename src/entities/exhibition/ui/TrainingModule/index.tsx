@@ -13,7 +13,12 @@ const TrainingModule = ({
 }: FieldArrayProps) => {
   const createEmptyField = () => {
     if (fieldName === 'trainings') {
-      return { title: '', startedAt: '', endedAt: '', category: 'CHOICE' };
+      return {
+        title: '',
+        startedAt: '',
+        endedAt: '',
+        category: 'CHOICE',
+      };
     }
     return { title: '', startedAt: '', endedAt: '' };
   };

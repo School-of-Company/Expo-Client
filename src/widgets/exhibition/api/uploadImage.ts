@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-export const uploadImage = async (file: File | null) => {
+export const uploadImage = async (file: File | null | string) => {
   if (!file) return null;
 
   try {

@@ -1,1 +1,1 @@
-export { default as ExhibitionForm } from './ui/ExhibitionForm';
+export { default as CreateExhibitionForm } from './ui/CreateExhibitionForm';

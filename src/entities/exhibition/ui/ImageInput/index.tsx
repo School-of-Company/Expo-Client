@@ -10,10 +10,11 @@ interface ImageInputProps {
   register: UseFormRegisterReturn;
   setValue: UseFormSetValue<ExhibitionFormData>;
   id: string;
+  defaultImage?: string;
 }
 
-const ImageInput = ({ register, setValue }: ImageInputProps) => {
-  const [img, setImg] = useState<string | null>(null);
+const ImageInput = ({ register, setValue, defaultImage }: ImageInputProps) => {
+  const [img, setImg] = useState<string | null>(defaultImage || null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];

@@ -1,34 +1,42 @@
-export type ExhibitionFormData = {
-  title: string;
-  introduction: string;
-  address: string;
-  location: string;
-  trainings: {
-    id?: number;
-    title: string;
-    startedAt: string;
-    endedAt: string;
-    category?: 'ESSENTIAL' | 'CHOICE';
-  }[];
-  standard: {
-    id?: number;
-    title: string;
-    startedAt: string;
-    endedAt: string;
-  }[];
-  image: File | null | string;
-  startedDay: string;
-  finishedDay: string;
-};
-
 import {
   UseFieldArrayReturn,
   UseFormRegister,
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
+import { ExhibitionFormData } from '../create/type';
 
-export interface CreateExhibitionData {
+export interface AddressResponse {
+  meta: {
+    total_count: number;
+  };
+  documents: Array<{
+    road_address: {
+      address_name: string;
+      region_1depth_name: string;
+      region_2depth_name: string;
+      region_3depth_name: string;
+      road_name: string;
+      underground_yn: string;
+      main_building_no: string;
+      sub_building_no: string;
+      building_name: string;
+      zone_no: string;
+    };
+    address: {
+      address_name: string;
+      region_1depth_name: string;
+      region_2depth_name: string;
+      region_3depth_name: string;
+      mountain_yn: string;
+      main_address_no: string;
+      sub_address_no: string;
+      zip_code: string;
+    };
+  }>;
+}
+
+export interface EditExhibitionData {
   title: string;
   description: string;
   startedDay: string;
@@ -37,12 +45,12 @@ export interface CreateExhibitionData {
   coverImage: string;
   x: number;
   y: number;
-  addStandardProRequestDto: {
+  updateStandardProRequestDto: {
     title: string;
     startedAt: string;
     endedAt: string;
   }[];
-  addTrainingProRequestDto: {
+  updateTrainingProRequestDto: {
     title: string;
     startedAt: string;
     endedAt: string;
@@ -80,7 +88,7 @@ export interface ModalProps {
   fieldName: 'trainings' | 'standard';
 }
 
-export interface CreateExhibitionData {
+export interface EditExhibitionData {
   title: string;
   description: string;
   startedDay: string;
@@ -89,12 +97,12 @@ export interface CreateExhibitionData {
   coverImage: string;
   x: number;
   y: number;
-  addStandardProRequestDto: {
+  updateStandardProRequestDto: {
     title: string;
     startedAt: string;
     endedAt: string;
   }[];
-  addTrainingProRequestDto: {
+  updateTrainingProRequestDto: {
     title: string;
     startedAt: string;
     endedAt: string;

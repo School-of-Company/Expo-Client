@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { CreateExhibitionData } from '@/shared/types/exhibition/type';
+import { CreateExhibitionData } from '@/shared/types/exhibition/create/type';
 
 export const createExhibition = async (data: CreateExhibitionData) => {
   try {

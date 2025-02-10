@@ -5,7 +5,7 @@ export const convertAddressToCoordinates = async (
 ): Promise<{ lat: number; lng: number } | null> => {
   try {
     const response = await axios.get(
-      `/api/map?address=${encodeURIComponent(address)}`,
+      `/api/map/change-local?address=${encodeURIComponent(address)}`,
     );
 
     const data = response.data;

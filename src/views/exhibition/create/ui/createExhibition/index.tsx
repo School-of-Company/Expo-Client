@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExhibitionForm } from '@/widgets/exhibition/create';
+import { CreateExhibitionForm } from '@/widgets/exhibition/create';
 import { Header } from '@/widgets/layout';
 
 const CreateExhibition = () => {
@@ -7,7 +7,7 @@ const CreateExhibition = () => {
     <div className="flex h-screen flex-col gap-[30px] mobile:gap-0">
       <Header />
       <div className="mx-auto w-full max-w-[792px] flex-1 px-5 pb-5">
-        <ExhibitionForm />
+        <CreateExhibitionForm />
       </div>
     </div>
   );
