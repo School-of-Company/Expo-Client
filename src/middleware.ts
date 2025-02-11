@@ -9,7 +9,8 @@ const MANAGE_RESTRICTED_PATHS = [
 
 const USER_RESTRICTED_PATHS = [
   /^\/admin$/,
-  /^\/create-exhibition$/,
+  /^\/exhibition\/create$/,
+  /^\/exhibition\/edit(\/.*)?$/,
   /^\/expo-manage\/.+$/,
   /^\/name-tag\/.+$/,
   /^\/sms\/.+\/(STANDARD|TRAINEE)$/,
@@ -58,7 +59,8 @@ export const config = {
     '/signIn',
     '/signUp',
     '/admin',
-    '/create-exhibition',
+    '/exhibition/create',
+    '/exhibition/edit/:path*',
     '/expo-manage/:path*',
     '/name-tag/:path*',
     '/sms/:path*/STANDARD',
