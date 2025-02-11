@@ -10,10 +10,16 @@ export const formCreateRouter = ({
   router: AppRouterInstance;
 }) => {
   switch (navigation) {
-    case 'STANDARD':
-      router.push(`/form/create/${id}?navigation=TRAINEE`);
+    case 'standard_application':
+      router.push(`/form/create/${id}?navigation=trainee_application`);
       break;
-    case 'TRAINEE':
+    case 'trainee_application':
+      router.push(`/form/create/${id}?navigation=standard_survey`);
+      break;
+    case 'standard_survey':
+      router.push(`/form/create/${id}?navigation=trainee_survey`);
+      break;
+    case 'trainee_survey':
       router.push('/');
       break;
     default:
