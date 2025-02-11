@@ -24,12 +24,25 @@ export interface OptionProps {
   isCheckBox?: boolean;
 }
 
-export interface CreateFormRequest {
-  informationImage?: string;
-  participantType: string;
+export interface ApplicationFormRequest {
+  participantType: 'STANDARD' | 'TRAINEE';
   dynamicForm: {
     title: string;
     formType: string;
     jsonData: string;
   }[];
+  informationImage: string;
 }
+
+export interface SurveyFormRequest {
+  participationType: 'STANDARD' | 'TRAINEE';
+  dynamicSurveyRequestDto: {
+    title: string;
+    formType: string;
+    jsonData: string;
+    requiredStatus: boolean;
+    otherJson: string | null;
+  }[];
+}
+
+export type CreateFormRequest = ApplicationFormRequest | SurveyFormRequest;
