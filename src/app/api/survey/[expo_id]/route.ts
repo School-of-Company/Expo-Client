@@ -18,8 +18,11 @@ export async function POST(
         },
       }
     : {};
+
   try {
     const response = await apiClient.post(`/survey/${expo_id}`, body, config);
+
+    console.log(response.status + '🍒 401에러 발생');
 
     return NextResponse.json(response.data, { status: response.status });
   } catch (error) {

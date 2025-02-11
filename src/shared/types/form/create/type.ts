@@ -25,7 +25,7 @@ export interface OptionProps {
 }
 
 export interface CreateFormRequest {
-  informationImage: string;
+  informationImage?: string;
   participantType: string;
   dynamicForm: {
     title: string;

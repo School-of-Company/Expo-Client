@@ -2,10 +2,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { toast } from 'react-toastify';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
-import { createForm } from '../api/createForm';
+import { createApplicationForm } from '../api/createApplicationForm';
 import { formCreateRouter } from './formCreateRouter';
 
-export const useCreateForm = (
+export const useCreateApplicationForm = (
   id: string,
   navigation: string | null,
   router: AppRouterInstance,
@@ -13,16 +13,16 @@ export const useCreateForm = (
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: ['createForm', id, navigation],
+    mutationKey: ['createApplicationForm', id, navigation],
     mutationFn: (formattedData: CreateFormRequest) =>
-      createForm({ data: formattedData, id }),
+      createApplicationForm({ data: formattedData, id }),
     onSuccess: () => {
-      toast.success('폼이 생성되었습니다.');
+      toast.success('신청 폼이 생성되었습니다.');
       formCreateRouter({ id, navigation, router });
       queryClient.resetQueries({ queryKey: ['createForm', id, navigation] });
     },
     onError: () => {
-      toast.error('폼 생성에 실패했습니다.');
+      toast.error('신청 폼 생성에 실패했습니다.');
     },
   });
 };

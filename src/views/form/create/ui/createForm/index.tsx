@@ -7,12 +7,17 @@ import { toast } from 'react-toastify';
 import { CreateFormButton } from '@/entities/form/create';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { preventEvent } from '@/shared/model/preventEvent';
-import { FormValues, Option } from '@/shared/types/form/create/type';
+import {
+  CreateFormRequest,
+  FormValues,
+  Option,
+} from '@/shared/types/form/create/type';
 import { Button, PageHeader } from '@/shared/ui';
 import FormContainer from '@/widgets/form/create/ui/FormContainer';
 import { Header } from '@/widgets/layout';
 import { selectOptionData } from '../../model/selectOptionData';
-import { useCreateForm } from '../../model/useCreateForm';
+import { useCreateApplicationForm } from '../../model/useCreateApplicationForm';
+import { useCreateSurveyForm } from '../../model/useCreateSurveyForm';
 
 const CreateForm = ({ id }: { id: string }) => {
   const router = useRouter();
@@ -35,36 +40,75 @@ const CreateForm = ({ id }: { id: string }) => {
   };
 
   const {
-    mutate: createForm,
-    isPending,
-    isSuccess,
-  } = useCreateForm(id, navigation, router);
+    mutate: createApplicationForm,
+    isPending: isApplicationPending,
+    isSuccess: isApplicationSuccess,
+  } = useCreateApplicationForm(id, navigation, router);
+
+  const {
+    mutate: createSurveyForm,
+    isPending: isSurveyPending,
+    isSuccess: isSurveySuccess,
+  } = useCreateSurveyForm(id, navigation, router);
 
   const onSubmit = (data: FormValues) => {
-    if (fields.length === 0) {
-      toast.error('최소 한 개의 폼을 추가해주세요');
-      return;
-    }
+    const isSurvey =
+      navigation === 'standard_survey' || navigation === 'trainee_survey';
+
+    const participantOrType = [
+      'standard_application',
+      'standard_survey',
+    ].includes(navigation || '')
+      ? 'STANDARD'
+      : 'TRAINEE';
+
     const formattedData = {
-      informationImage: '',
-      participantType: navigation || 'STANDARD',
-      dynamicForm: data.questions.map((question) => ({
-        title: question.title,
-        formType: question.formType,
-        jsonData: JSON.stringify(
-          question.options.reduce(
-            (acc, option, index) => {
-              acc[(index + 1).toString()] = option.value;
-              return acc;
-            },
-            {} as Record<string, string>,
-          ),
-        ),
-        requiredStatus: question.requiredStatus,
-        otherJson: question.otherJson,
-      })),
+      ...(isSurvey
+        ? { participationType: participantOrType }
+        : { participantType: participantOrType }),
+      ...(isSurvey
+        ? {
+            dynamicSurveyRequestDto: data.questions.map((question) => ({
+              title: question.title,
+              formType: question.formType,
+              jsonData: JSON.stringify(
+                question.options.reduce(
+                  (acc, option, index) => {
+                    acc[(index + 1).toString()] = option.value;
+                    return acc;
+                  },
+                  {} as Record<string, string>,
+                ),
+              ),
+              requiredStatus: question.requiredStatus,
+              otherJson: question.otherJson,
+            })),
+          }
+        : {
+            dynamicForm: data.questions.map((question) => ({
+              title: question.title,
+              formType: question.formType,
+              jsonData: JSON.stringify(
+                question.options.reduce(
+                  (acc, option, index) => {
+                    acc[(index + 1).toString()] = option.value;
+                    return acc;
+                  },
+                  {} as Record<string, string>,
+                ),
+              ),
+              requiredStatus: question.requiredStatus,
+              otherJson: question.otherJson,
+            })),
+            informationImage: '',
+          }),
     };
-    createForm(formattedData);
+
+    if (isSurvey) {
+      createSurveyForm(formattedData as CreateFormRequest);
+    } else {
+      createApplicationForm(formattedData as CreateFormRequest);
+    }
   };
 
   const navigationTitles: Record<string, string> = {
@@ -92,8 +136,9 @@ const CreateForm = ({ id }: { id: string }) => {
         className="mx-auto w-full max-w-[792px] flex-1 space-y-4 px-5 pb-5"
       >
         <PageHeader
-          title={navigationTitles[navigation || 'STANDARD'] || '신청자 폼'}
+          title={navigationTitles[navigation || 'standard_application']}
         />
+
         <div className="w-full space-y-8">
           {fields.map((field, index) => (
             <FormContainer
@@ -123,8 +168,19 @@ const CreateForm = ({ id }: { id: string }) => {
 
         <Button
           type="submit"
-          text={isPending ? '제출 중...' : '다음'}
-          disabled={isPending || isSuccess}
+          text={
+            isApplicationPending || isSurveyPending
+              ? '제출 중...'
+              : isApplicationSuccess || isSurveySuccess
+                ? '완료됨'
+                : '다음'
+          }
+          disabled={
+            isApplicationPending ||
+            isSurveyPending ||
+            isApplicationSuccess ||
+            isSurveySuccess
+          }
         />
       </form>
     </div>
