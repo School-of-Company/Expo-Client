@@ -19,7 +19,9 @@ export const useCreateSurveyForm = (
     onSuccess: () => {
       toast.success('만족도 조사 폼이 생성되었습니다.');
       formCreateRouter({ id, navigation, router });
-      queryClient.resetQueries({ queryKey: ['createForm', id, navigation] });
+      queryClient.resetQueries({
+        queryKey: ['createSurveyForm', id, navigation],
+      });
     },
     onError: () => {
       toast.error('만족도 조사 폼 생성에 실패했습니다.');
