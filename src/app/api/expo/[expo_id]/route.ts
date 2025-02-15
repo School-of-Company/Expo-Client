@@ -60,8 +60,6 @@ export async function PATCH(
       },
     });
 
-    console.log('🍒' + response.status);
-
     if (response.status === 204) {
       return new NextResponse(null, { status: 204 });
     }
