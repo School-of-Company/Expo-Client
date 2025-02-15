@@ -1,13 +1,5 @@
 import { FormValues, CreateFormRequest } from '@/shared/types/form/create/type';
 
-export const getParticipantOrType = (
-  navigation?: string | null,
-): 'STANDARD' | 'TRAINEE' => {
-  return ['standard_application', 'standard_survey'].includes(navigation || '')
-    ? 'STANDARD'
-    : 'TRAINEE';
-};
-
 const convertOptionsToJson = (options: { value: string }[]): string => {
   return JSON.stringify(
     options.reduce(
@@ -22,10 +14,10 @@ const convertOptionsToJson = (options: { value: string }[]): string => {
 
 const getSurveyRequestData = (
   data: FormValues,
-  participantOrType: 'STANDARD' | 'TRAINEE',
+  type: 'STANDARD' | 'TRAINEE',
 ) => {
   return {
-    participationType: participantOrType,
+    participationType: type,
     dynamicSurveyRequestDto: data.questions.map((question) => ({
       title: question.title,
       formType: question.formType,
@@ -38,10 +30,10 @@ const getSurveyRequestData = (
 
 const getApplicationRequestData = (
   data: FormValues,
-  participantOrType: 'STANDARD' | 'TRAINEE',
+  type: 'STANDARD' | 'TRAINEE',
 ) => {
   return {
-    participantType: participantOrType,
+    participantType: type,
     dynamicForm: data.questions.map((question) => ({
       title: question.title,
       formType: question.formType,
@@ -55,13 +47,10 @@ const getApplicationRequestData = (
 
 export const transformFormData = (
   data: FormValues,
-  navigation?: string | null,
+  type: 'STANDARD' | 'TRAINEE',
+  mode: 'application' | 'survey',
 ): CreateFormRequest => {
-  const isSurvey =
-    navigation === 'standard_survey' || navigation === 'trainee_survey';
-  const participantOrType = getParticipantOrType(navigation);
-
-  return isSurvey
-    ? getSurveyRequestData(data, participantOrType)
-    : getApplicationRequestData(data, participantOrType);
+  return mode === 'survey'
+    ? getSurveyRequestData(data, type)
+    : getApplicationRequestData(data, type);
 };

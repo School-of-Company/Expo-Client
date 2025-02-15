@@ -7,20 +7,21 @@ import { formCreateRouter } from './formCreateRouter';
 
 export const useCreateSurveyForm = (
   id: string,
-  navigation: string | null,
+  type: 'STANDARD' | 'TRAINEE',
   router: AppRouterInstance,
+  mode: 'application' | 'survey',
 ) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: ['createSurveyForm', id, navigation],
+    mutationKey: ['createSurveyForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
       createSurveyForm({ data: formattedData, id }),
     onSuccess: () => {
       toast.success('만족도 조사 폼이 생성되었습니다.');
-      formCreateRouter({ id, navigation, router });
+      formCreateRouter({ id, type, mode, router });
       queryClient.resetQueries({
-        queryKey: ['createSurveyForm', id, navigation],
+        queryKey: ['createSurveyForm', id, type],
       });
     },
     onError: () => {

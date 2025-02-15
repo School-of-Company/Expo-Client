@@ -7,20 +7,21 @@ import { formCreateRouter } from './formCreateRouter';
 
 export const useCreateApplicationForm = (
   id: string,
-  navigation: string | null,
+  type: 'STANDARD' | 'TRAINEE',
   router: AppRouterInstance,
+  mode: 'application' | 'survey',
 ) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: ['createApplicationForm', id, navigation],
+    mutationKey: ['createApplicationForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
       createApplicationForm({ data: formattedData, id }),
     onSuccess: () => {
       toast.success('신청 폼이 생성되었습니다.');
-      formCreateRouter({ id, navigation, router });
+      formCreateRouter({ id, type, mode, router });
       queryClient.resetQueries({
-        queryKey: ['createApplicationForm', id, navigation],
+        queryKey: ['createApplicationForm', id, type],
       });
     },
     onError: () => {
