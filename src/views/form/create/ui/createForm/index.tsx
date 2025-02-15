@@ -1,7 +1,6 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { CreateFormButton } from '@/entities/form/create';
@@ -10,18 +9,23 @@ import { FormValues } from '@/shared/types/form/create/type';
 import { Button, PageHeader } from '@/shared/ui';
 import FormContainer from '@/widgets/form/create/ui/FormContainer';
 import { Header } from '@/widgets/layout';
-import { navigationTitles } from '../../model/navigationTitles';
+import { getFormTitle } from '../../model/getFormTitle';
 import { selectOptionData } from '../../model/selectOptionData';
 import { useSubmitForm } from '../../model/useSubmitForm';
 
 const CreateForm = ({ id }: { id: string }) => {
-  const { control, handleSubmit, register, setValue } = useForm<FormValues>({
-    defaultValues: { questions: [] },
-  });
+  const { control, handleSubmit, register, setValue, reset } =
+    useForm<FormValues>({
+      defaultValues: { questions: [] },
+    });
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'questions',
   });
+
+  const searchParams = useSearchParams();
+  const type = searchParams.get('type') as 'STANDARD' | 'TRAINEE';
+  const mode = searchParams.get('mode') as 'application' | 'survey';
 
   const {
     handleSubmitForm,
@@ -29,14 +33,7 @@ const CreateForm = ({ id }: { id: string }) => {
     isSurveyPending,
     isApplicationSuccess,
     isSurveySuccess,
-  } = useSubmitForm(id);
-
-  const searchParams = useSearchParams();
-  const navigation = searchParams.get('navigation');
-
-  useEffect(() => {
-    setValue('questions', []);
-  }, [navigation, setValue]);
+  } = useSubmitForm(id, type, mode, reset);
 
   return (
     <div className="flex h-screen flex-col gap-[30px] mobile:gap-0">
@@ -48,9 +45,7 @@ const CreateForm = ({ id }: { id: string }) => {
         )}
         className="mx-auto w-full max-w-[792px] flex-1 space-y-4 px-5 pb-5"
       >
-        <PageHeader
-          title={navigationTitles[navigation || 'standard_application']}
-        />
+        <PageHeader title={getFormTitle(type, mode)} />
         <div className="w-full space-y-8">
           {fields.map((field, index) => (
             <FormContainer

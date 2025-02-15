@@ -2,27 +2,33 @@ import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.share
 
 export const formCreateRouter = ({
   id,
-  navigation,
+  type,
+  mode,
   router,
 }: {
   id: string;
-  navigation: string | null;
+  type: 'STANDARD' | 'TRAINEE';
+  mode: 'application' | 'survey';
   router: AppRouterInstance;
 }) => {
-  switch (navigation) {
-    case 'standard_application':
-      router.push(`/form/create/${id}?navigation=trainee_application`);
-      break;
-    case 'trainee_application':
-      router.push(`/form/create/${id}?navigation=standard_survey`);
-      break;
-    case 'standard_survey':
-      router.push(`/form/create/${id}?navigation=trainee_survey`);
-      break;
-    case 'trainee_survey':
-      router.push('/');
-      break;
-    default:
-      break;
+  let nextType: 'STANDARD' | 'TRAINEE' | null = null;
+  let nextMode: 'application' | 'survey' | null = null;
+
+  if (type === 'STANDARD' && mode === 'application') {
+    nextType = 'TRAINEE';
+    nextMode = 'application';
+  } else if (type === 'TRAINEE' && mode === 'application') {
+    nextType = 'STANDARD';
+    nextMode = 'survey';
+  } else if (type === 'STANDARD' && mode === 'survey') {
+    nextType = 'TRAINEE';
+    nextMode = 'survey';
+  } else if (type === 'TRAINEE' && mode === 'survey') {
+    router.push('/');
+    return;
+  }
+
+  if (nextType && nextMode) {
+    router.push(`/form/create/${id}?type=${nextType}&mode=${nextMode}`);
   }
 };

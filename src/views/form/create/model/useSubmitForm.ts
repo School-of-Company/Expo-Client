@@ -1,33 +1,39 @@
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { FormValues } from '@/shared/types/form/create/type';
 import { transformFormData } from '../model/formUtils';
 import { useCreateApplicationForm } from './useCreateApplicationForm';
 import { useCreateSurveyForm } from './useCreateSurveyForm';
 
-export const useSubmitForm = (id: string) => {
+export const useSubmitForm = (
+  id: string,
+  type: 'STANDARD' | 'TRAINEE',
+  mode: 'application' | 'survey',
+  reset: () => void,
+) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const navigation = searchParams.get('navigation');
 
   const {
     mutate: createApplicationForm,
     isPending: isApplicationPending,
     isSuccess: isApplicationSuccess,
-  } = useCreateApplicationForm(id, navigation, router);
+  } = useCreateApplicationForm(id, type, router, mode);
   const {
     mutate: createSurveyForm,
     isPending: isSurveyPending,
     isSuccess: isSurveySuccess,
-  } = useCreateSurveyForm(id, navigation, router);
+  } = useCreateSurveyForm(id, type, router, mode);
 
   const handleSubmitForm = (data: FormValues) => {
-    const formattedData = transformFormData(data, navigation);
+    const formattedData = transformFormData(data, type, mode);
 
-    if (navigation === 'standard_survey' || navigation === 'trainee_survey') {
-      createSurveyForm(formattedData);
-    } else {
-      createApplicationForm(formattedData);
-    }
+    const submitFunction =
+      mode === 'survey' ? createSurveyForm : createApplicationForm;
+
+    submitFunction(formattedData, {
+      onSuccess: () => {
+        reset();
+      },
+    });
   };
 
   return {
