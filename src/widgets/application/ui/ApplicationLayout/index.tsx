@@ -7,7 +7,7 @@ import withLoading from '@/shared/hocs/withLoading';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import { Button, PageHeader } from '@/shared/ui';
-import { useGetForm } from '../../model/useGetForm';
+import { useGetApplicaionForm } from '../../model/useGetApplicaionForm';
 import { usePostApplication } from '../../model/usePostApplication';
 
 const ApplicationLayout = ({
@@ -19,7 +19,7 @@ const ApplicationLayout = ({
 }) => {
   const { register, handleSubmit, watch } = useForm<ApplicationFormValues>();
 
-  const { data: formList, isLoading } = useGetForm(params, type);
+  const { data: formList, isLoading } = useGetApplicaionForm(params, type);
 
   const { mutate: PostApplication } = usePostApplication(params, type);
 
