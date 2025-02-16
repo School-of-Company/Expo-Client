@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { CreateFormButton } from '@/entities/form';
@@ -9,18 +10,21 @@ import { Button, PageHeader } from '@/shared/ui';
 import FormContainer from '@/widgets/form/ui/FormContainer';
 import { getFormTitle } from '../../model/getFormTitle';
 import { selectOptionData } from '../../model/selectOptionData';
-import { useSubmitForm } from '../../model/useSubmitForm';
 
 const FormEditor = ({
-  id,
   type,
   mode,
   defaultValues,
+  onSubmit,
+  isLoading,
+  isSuccess,
 }: {
-  id: string;
   type: 'STANDARD' | 'TRAINEE';
   mode: 'application' | 'survey';
   defaultValues?: FormValues;
+  onSubmit: (data: FormValues) => void;
+  isLoading: boolean;
+  isSuccess: boolean;
 }) => {
   const { control, handleSubmit, register, setValue, reset } =
     useForm<FormValues>({
@@ -32,20 +36,21 @@ const FormEditor = ({
     name: 'questions',
   });
 
-  const {
-    handleSubmitForm,
-    isApplicationPending,
-    isSurveyPending,
-    isApplicationSuccess,
-    isSurveySuccess,
-  } = useSubmitForm(id, type, mode, reset);
+  useEffect(() => {
+    if (isSuccess) {
+      reset();
+    }
+  }, [isSuccess, reset]);
+
+  const handleFormSubmit = (data: FormValues) => {
+    onSubmit(data);
+  };
 
   return (
     <div className="flex h-screen flex-col gap-[30px] mobile:gap-0">
       <form
-        onSubmit={handleSubmit(
-          (data) => handleSubmitForm(data),
-          (errors) => handleFormErrors(errors, toast.error),
+        onSubmit={handleSubmit(handleFormSubmit, (errors) =>
+          handleFormErrors(errors, toast.error),
         )}
         className="mx-auto w-full max-w-[792px] flex-1 space-y-4 px-5 pb-5"
       >
@@ -78,19 +83,8 @@ const FormEditor = ({
         />
         <Button
           type="submit"
-          text={
-            isApplicationPending || isSurveyPending
-              ? '제출 중...'
-              : isApplicationSuccess || isSurveySuccess
-                ? '완료됨'
-                : '다음'
-          }
-          disabled={
-            isApplicationPending ||
-            isSurveyPending ||
-            isApplicationSuccess ||
-            isSurveySuccess
-          }
+          text={isLoading ? '제출 중...' : isSuccess ? '완료됨' : '다음'}
+          disabled={isLoading || isSuccess}
         />
       </form>
     </div>

@@ -2,10 +2,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { toast } from 'react-toastify';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
-import { createApplicationForm } from '../api/createApplicationForm';
-import { formCreateRouter } from './formCreateRouter';
+import { formCreateRouter } from '../../model/formCreateRouter';
+import { createSurveyForm } from '../api/createSurveyForm';
 
-export const useCreateApplicationForm = (
+export const useCreateSurveyForm = (
   id: string,
   type: 'STANDARD' | 'TRAINEE',
   router: AppRouterInstance,
@@ -14,18 +14,18 @@ export const useCreateApplicationForm = (
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: ['createApplicationForm', id, type],
+    mutationKey: ['createSurveyForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
-      createApplicationForm({ data: formattedData, id }),
+      createSurveyForm({ data: formattedData, id }),
     onSuccess: () => {
-      toast.success('신청 폼이 생성되었습니다.');
+      toast.success('만족도 조사 폼이 생성되었습니다.');
       formCreateRouter({ id, type, mode, router });
       queryClient.resetQueries({
-        queryKey: ['createApplicationForm', id, type],
+        queryKey: ['createSurveyForm', id, type],
       });
     },
     onError: () => {
-      toast.error('신청 폼 생성에 실패했습니다.');
+      toast.error('만족도 조사 폼 생성에 실패했습니다.');
     },
   });
 };
