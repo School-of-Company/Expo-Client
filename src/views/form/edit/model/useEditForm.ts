@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { toast } from 'react-toastify';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
@@ -10,12 +10,20 @@ export const useEditApplicationForm = (
   type: 'STANDARD' | 'TRAINEE',
   router: AppRouterInstance,
 ) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ['editApplicationForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
       editApplicationForm({ data: formattedData, id }),
     onSuccess: () => {
       toast.success('신청 폼이 수정되었습니다.');
+      queryClient.invalidateQueries({
+        queryKey: ['getApplicationForm', id, type],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['getEditApplicationForm', id, type],
+      });
       router.push(`/expo-detail/${id}`);
     },
     onError: () => {
