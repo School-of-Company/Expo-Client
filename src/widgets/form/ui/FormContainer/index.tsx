@@ -17,7 +17,7 @@ import {
   MultipleChoiceOption,
   PictureOption,
   RequiredToggle,
-} from '@/entities/form/create';
+} from '@/entities/form';
 import { preventEvent } from '@/shared/model/preventEvent';
 import { FormValues, Option } from '@/shared/types/form/create/type';
 import { AddItemButton } from '@/shared/ui';
@@ -40,9 +40,10 @@ const FormContainer = ({
   control,
 }: Props) => {
   const [isCheckBox, setIsCheckBox] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<Option | null>(
-    options[0] || null,
-  );
+  const [selectedOption, setSelectedOption] = useState<Option | null>(() => {
+    const formType = control._formValues.questions[index].formType;
+    return options.find((option) => option.value === formType) || null;
+  });
 
   const { fields, append, remove } = useFieldArray({
     control,
