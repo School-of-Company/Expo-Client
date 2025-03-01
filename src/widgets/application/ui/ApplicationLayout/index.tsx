@@ -1,5 +1,6 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import OptionContainer from '@/entities/application/ui/OptionContainer';
@@ -21,18 +22,23 @@ interface FormattedData {
   informationJson?: string;
 }
 
-const ApplicationLayout = ({
-  params,
-  type,
-}: {
-  params: string;
-  type: string;
-}) => {
+const ApplicationLayout = ({ params }: { params: string }) => {
+  const searchParams = useSearchParams();
+  const formType = searchParams.get('formType') as 'application' | 'survey';
+  const userType = searchParams.get('userType') as 'STANDARD' | 'TRAINEE';
+  const applicationType = searchParams.get('applicationType') as
+    | 'register'
+    | 'onsite';
   const { register, handleSubmit, watch } = useForm<ApplicationFormValues>();
 
-  const { data: formList, isLoading } = useGetApplicaionForm(params, type);
+  const { data: formList, isLoading } = useGetApplicaionForm(params, userType);
 
-  const { mutate: PostApplication } = usePostApplication(params, type);
+  const { mutate: PostApplication } = usePostApplication(
+    params,
+    formType,
+    userType,
+    applicationType,
+  );
 
   const showError = (message: string) => {
     toast.error(message);
@@ -74,12 +80,12 @@ const ApplicationLayout = ({
     };
 
     const formattedData: FormattedData =
-      type === 'TRAINEE'
+      userType === 'TRAINEE'
         ? {
             ...baseFormattedData,
             trainingId: String(data['연수원 아이디를 입력하세요'] || ''),
           }
-        : type === 'STANDARD'
+        : userType === 'STANDARD'
           ? {
               ...baseFormattedData,
               affiliation: String(data['소속을 입력하세요'] || ''),
@@ -148,7 +154,7 @@ const ApplicationLayout = ({
         <PageHeader title="신청" />
         <div className="ml-[20px] mt-[48px] flex flex-col gap-[48px]">
           <div className="w-full space-y-[36px]">
-            {type === 'TRAINEE' ? (
+            {userType === 'TRAINEE' ? (
               <OptionContainer
                 title="연수원 아이디를 입력하세요"
                 formType="SENTENCE"
@@ -174,7 +180,7 @@ const ApplicationLayout = ({
               register={register}
               watch={watch}
             />
-            {type === 'STANDARD' && (
+            {userType === 'STANDARD' && (
               <>
                 <OptionContainer
                   title="소속을 입력하세요"
