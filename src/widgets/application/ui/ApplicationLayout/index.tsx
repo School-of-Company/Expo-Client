@@ -8,7 +8,7 @@ import withLoading from '@/shared/hocs/withLoading';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import { Button, PageHeader } from '@/shared/ui';
-import { useGetApplicaionForm } from '../../model/useGetApplicaionForm';
+import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
 
 interface FormattedData {
@@ -18,8 +18,27 @@ interface FormattedData {
   trainingId?: string;
   affiliation?: string;
   schoolLevel?: string;
-  schoolDatail?: string;
+  schoolDetail?: string;
   informationJson?: string;
+}
+
+interface DynamicFormItem {
+  title: string;
+  formType: string;
+  jsonData?: Record<string, string>;
+  requiredStatus: boolean;
+  otherJson: string | null;
+}
+
+type DynamicFormValues = {
+  [key: string]: string | string[] | undefined;
+};
+
+type ExtendedApplicationFormValues = ApplicationFormValues & DynamicFormValues;
+
+interface ApplicationForm {
+  dynamicForm?: DynamicFormItem[];
+  dynamicSurveyResponseDto?: DynamicFormItem[];
 }
 
 const ApplicationLayout = ({ params }: { params: string }) => {
@@ -29,9 +48,17 @@ const ApplicationLayout = ({ params }: { params: string }) => {
   const applicationType = searchParams.get('applicationType') as
     | 'register'
     | 'onsite';
-  const { register, handleSubmit, watch } = useForm<ApplicationFormValues>();
+  const { register, handleSubmit, watch } =
+    useForm<ExtendedApplicationFormValues>();
 
-  const { data: formList, isLoading } = useGetApplicaionForm(params, userType);
+  const { data: formList, isLoading } = useGetForm(
+    params,
+    userType,
+    formType,
+  ) as {
+    data: ApplicationForm | undefined;
+    isLoading: boolean;
+  };
 
   const { mutate: PostApplication } = usePostApplication(
     params,
@@ -44,7 +71,11 @@ const ApplicationLayout = ({ params }: { params: string }) => {
     toast.error(message);
   };
 
-  const onSubmit = (data: ApplicationFormValues): void => {
+  const getDynamicFormData = (): DynamicFormItem[] => {
+    return formList?.dynamicForm || formList?.dynamicSurveyResponseDto || [];
+  };
+
+  const onSubmit = (data: ExtendedApplicationFormValues): void => {
     const baseFormattedData: FormattedData = {
       name: String(data['이름을 입력하세요'] || ''),
       phoneNumber: String(data['휴대폰 번호를 입력하세요'] || ''),
@@ -93,7 +124,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 data['학교급을 선택해주세요'],
                 data['학교급을 선택해주세요_etc'],
               ),
-              schoolDatail: String(data['학교이름을 입력해주세요'] || ''),
+              schoolDetail: String(data['학교이름을 입력해주세요'] || ''),
             }
           : baseFormattedData;
 
@@ -108,15 +139,9 @@ const ApplicationLayout = ({ params }: { params: string }) => {
           .map((option) =>
             option === 'etc'
               ? `기타: ${
-                  Array.isArray(
-                    data[`${title}_etc` as keyof ApplicationFormValues],
-                  )
-                    ? (
-                        data[
-                          `${title}_etc` as keyof ApplicationFormValues
-                        ] as string[]
-                      ).join(', ')
-                    : data[`${title}_etc` as keyof ApplicationFormValues] || ''
+                  Array.isArray(data[`${title}_etc`])
+                    ? (data[`${title}_etc`] as string[]).join(', ')
+                    : data[`${title}_etc`] || ''
                 }`
               : String(option),
           )
@@ -126,13 +151,14 @@ const ApplicationLayout = ({ params }: { params: string }) => {
       }
     };
 
-    const dynamicFormData = formList?.dynamicForm?.reduce<
-      Record<string, string>
-    >((acc, form) => {
-      const value = data[form.title as keyof ApplicationFormValues];
-      acc[form.title] = processFormField(form.title, value, form.formType);
-      return acc;
-    }, {});
+    const dynamicFormData = getDynamicFormData().reduce<Record<string, string>>(
+      (acc, form) => {
+        const value = data[form.title];
+        acc[form.title] = processFormField(form.title, value, form.formType);
+        return acc;
+      },
+      {},
+    );
 
     const finalFormattedData = {
       ...formattedData,
@@ -154,7 +180,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
         <PageHeader title="신청" />
         <div className="ml-[20px] mt-[48px] flex flex-col gap-[48px]">
           <div className="w-full space-y-[36px]">
-            {userType === 'TRAINEE' ? (
+            {userType === 'TRAINEE' && formType === 'application' ? (
               <OptionContainer
                 title="연수원 아이디를 입력하세요"
                 formType="SENTENCE"
@@ -172,15 +198,17 @@ const ApplicationLayout = ({ params }: { params: string }) => {
               register={register}
               watch={watch}
             />
-            <OptionContainer
-              title="이름을 입력하세요"
-              formType="SENTENCE"
-              requiredStatus={true}
-              otherJson={null}
-              register={register}
-              watch={watch}
-            />
-            {userType === 'STANDARD' && (
+            {formType === 'application' ? (
+              <OptionContainer
+                title="이름을 입력하세요"
+                formType="SENTENCE"
+                requiredStatus={true}
+                otherJson={null}
+                register={register}
+                watch={watch}
+              />
+            ) : null}
+            {userType === 'STANDARD' && formType === 'application' ? (
               <>
                 <OptionContainer
                   title="소속을 입력하세요"
@@ -213,9 +241,9 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                   watch={watch}
                 />
               </>
-            )}
+            ) : null}
 
-            {formList?.dynamicForm?.map((form, index) => (
+            {getDynamicFormData().map((form, index) => (
               <OptionContainer
                 key={index}
                 title={form.title}

@@ -18,6 +18,7 @@ export async function POST(
         },
       }
     : {};
+
   try {
     const response = await apiClient.post(
       `survey/answer/trainee/${expo_id}`,

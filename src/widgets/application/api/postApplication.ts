@@ -9,8 +9,8 @@ const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
     TRAINEE_onsite: '/api/application/field/',
   },
   survey: {
-    STANDARD: '/api/answer/standard/',
-    TRAINEE: '/api/answer/trainee/',
+    STANDARD: '/api/survey/answer/standard/',
+    TRAINEE: '/api/survey/answer/trainee/',
   },
 };
 
