@@ -1,6 +1,11 @@
 import axios from 'axios';
 import { FormattedApplicationData } from '@/shared/types/application/type';
 
+export type SurveyData = {
+  phoneNumber: string;
+  answerJson: string;
+};
+
 const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
   application: {
     STANDARD_register: '/api/application/pre-standard/',
@@ -19,7 +24,7 @@ export const postApplication = async (
   formType: 'application' | 'survey',
   userType: 'STANDARD' | 'TRAINEE',
   applicationType: 'register' | 'onsite',
-  data: FormattedApplicationData,
+  data: FormattedApplicationData | SurveyData,
 ) => {
   const baseUrl = URL_MAP[formType] || {};
   const key =

@@ -76,58 +76,6 @@ const ApplicationLayout = ({ params }: { params: string }) => {
   };
 
   const onSubmit = (data: ExtendedApplicationFormValues): void => {
-    const baseFormattedData: FormattedData = {
-      name: String(data['이름을 입력하세요'] || ''),
-      phoneNumber: String(data['휴대폰 번호를 입력하세요'] || ''),
-      personalInformationStatus: true,
-    };
-
-    const processSchoolLevel = (
-      schoolLevel: unknown,
-      _etcValue: unknown,
-    ): string => {
-      const schoolLevelMap: { [key: string]: string } = {
-        유치원: 'KINDERGARTEN',
-        초등학교: 'ELEMENTARY',
-        중학교: 'MIDDLE',
-        고등학교: 'HIGH',
-      };
-
-      if (Array.isArray(schoolLevel)) {
-        return schoolLevel
-          .map((level) => {
-            if (level === 'etc') {
-              return 'OTHER';
-            }
-            return schoolLevelMap[level] || level;
-          })
-          .join(', ');
-      } else {
-        if (schoolLevel === 'etc') {
-          return 'OTHER';
-        }
-        return schoolLevelMap[schoolLevel as string] || String(schoolLevel);
-      }
-    };
-
-    const formattedData: FormattedData =
-      userType === 'TRAINEE'
-        ? {
-            ...baseFormattedData,
-            trainingId: String(data['연수원 아이디를 입력하세요'] || ''),
-          }
-        : userType === 'STANDARD'
-          ? {
-              ...baseFormattedData,
-              affiliation: String(data['소속을 입력하세요'] || ''),
-              schoolLevel: processSchoolLevel(
-                data['학교급을 선택해주세요'],
-                data['학교급을 선택해주세요_etc'],
-              ),
-              schoolDetail: String(data['학교이름을 입력해주세요'] || ''),
-            }
-          : baseFormattedData;
-
     const processFormField = (
       title: string,
       value: unknown,
@@ -160,12 +108,72 @@ const ApplicationLayout = ({ params }: { params: string }) => {
       {},
     );
 
-    const finalFormattedData = {
-      ...formattedData,
-      informationJson: JSON.stringify(dynamicFormData),
-    };
+    if (formType === 'survey') {
+      const surveyData = {
+        phoneNumber: String(data['휴대폰 번호를 입력하세요'] || ''),
+        answerJson: JSON.stringify(dynamicFormData),
+      };
+      PostApplication(surveyData);
+    } else {
+      const baseFormattedData: FormattedData = {
+        name: String(data['이름을 입력하세요'] || ''),
+        phoneNumber: String(data['휴대폰 번호를 입력하세요'] || ''),
+        personalInformationStatus: true,
+      };
 
-    PostApplication(finalFormattedData);
+      const processSchoolLevel = (
+        schoolLevel: unknown,
+        _etcValue: unknown,
+      ): string => {
+        const schoolLevelMap: { [key: string]: string } = {
+          유치원: 'KINDERGARTEN',
+          초등학교: 'ELEMENTARY',
+          중학교: 'MIDDLE',
+          고등학교: 'HIGH',
+        };
+
+        if (Array.isArray(schoolLevel)) {
+          return schoolLevel
+            .map((level) => {
+              if (level === 'etc') {
+                return 'OTHER';
+              }
+              return schoolLevelMap[level] || level;
+            })
+            .join(', ');
+        } else {
+          if (schoolLevel === 'etc') {
+            return 'OTHER';
+          }
+          return schoolLevelMap[schoolLevel as string] || String(schoolLevel);
+        }
+      };
+
+      const formattedData: FormattedData =
+        userType === 'TRAINEE'
+          ? {
+              ...baseFormattedData,
+              trainingId: String(data['연수원 아이디를 입력하세요'] || ''),
+            }
+          : userType === 'STANDARD'
+            ? {
+                ...baseFormattedData,
+                affiliation: String(data['소속을 입력하세요'] || ''),
+                schoolLevel: processSchoolLevel(
+                  data['학교급을 선택해주세요'],
+                  data['학교급을 선택해주세요_etc'],
+                ),
+                schoolDetail: String(data['학교이름을 입력해주세요'] || ''),
+              }
+            : baseFormattedData;
+
+      const finalFormattedData = {
+        ...formattedData,
+        informationJson: JSON.stringify(dynamicFormData),
+      };
+
+      PostApplication(finalFormattedData);
+    }
   };
 
   return withLoading({
