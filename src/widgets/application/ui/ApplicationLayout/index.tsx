@@ -71,7 +71,6 @@ const ApplicationLayout = ({ params }: { params: string }) => {
     children: (
       <form
         onSubmit={handleSubmit(onSubmit, (errors) => {
-          console.log(errors);
           handleFormErrors(errors, showError);
         })}
       >

@@ -14,7 +14,6 @@ export async function POST(
       `/application/pre-standard/${expo_id}`,
       body,
     );
-    console.log('🐶' + response.status);
     return NextResponse.json(response.data, { status: response.status });
   } catch (error) {
     console.error('🚨 Error:', error);
