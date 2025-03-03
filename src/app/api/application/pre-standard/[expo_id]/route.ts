@@ -9,8 +9,6 @@ export async function POST(
   const body = await request.json();
   const { expo_id } = params;
 
-  console.log('🍒' + JSON.stringify(body, null, 2));
-
   try {
     const response = await apiClient.post(
       `/application/pre-standard/${expo_id}`,
