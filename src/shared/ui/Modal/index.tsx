@@ -15,7 +15,9 @@ const Modal = ({ text, onClose, params, name }: Props) => {
 
   const handleButtonClick = (type: string) => {
     if (name == 'application') {
-      router.push(`/application/${params}/${type}`);
+      router.push(
+        `/application/${params}?formType=application&userType=${type}&applicationType=register`,
+      );
     }
     if (name == 'message') {
       router.push(`/sms/${params}/${type}`);

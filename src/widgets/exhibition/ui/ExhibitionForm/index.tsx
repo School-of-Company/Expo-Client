@@ -41,7 +41,6 @@ const ExhibitionForm = ({
 
   const onSubmit = (data: ExhibitionFormData) => {
     mutation.mutate(data);
-    console.log(data);
   };
 
   const { openAddressSearch } = useAddressSearch(setValue);

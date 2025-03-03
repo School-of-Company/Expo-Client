@@ -40,7 +40,6 @@ export async function GET(
   const { expo_id } = params;
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type');
-
   try {
     const response = await apiClient.get(`/survey/${expo_id}`, {
       params: { type },
