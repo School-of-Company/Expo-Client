@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
-const ProgramNavigation: React.FC = () => {
+const ProgramNavigation = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [navigation, setNavigation] = useState<string>('standard');

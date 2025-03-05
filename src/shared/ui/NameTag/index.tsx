@@ -8,7 +8,7 @@ interface PrintBadgeProps {
   };
 }
 
-const PrintBadge: React.FC<PrintBadgeProps> = ({ selectedData }) => {
+const PrintBadge = ({ selectedData }: PrintBadgeProps) => {
   React.useEffect(() => {
     const printContents = `
       <div>
