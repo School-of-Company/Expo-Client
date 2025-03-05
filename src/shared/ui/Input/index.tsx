@@ -82,7 +82,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
               className="h-5 w-5 cursor-pointer"
               onClick={onIconClick}
               role="button"
-              aria-label="icon"
+              aria-label="비밀번호 표시 전환"
             >
               {icon}
             </div>

@@ -9,7 +9,7 @@ interface UserInfo {
   number: string;
 }
 
-const QRCodeScanner: React.FC = () => {
+const QRCodeScanner = () => {
   const [scannedData, setScannedData] = useState<string>('');
   const [inputBuffer, setInputBuffer] = useState<string>('');
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);

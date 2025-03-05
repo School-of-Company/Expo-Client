@@ -1,12 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import { SignInData } from '@/shared/types/signin/type';
 import { postSignin } from '../api/postSignin';
-
-interface SignInData {
-  nickname: string;
-  password: string;
-}
 
 export const useSignin = () => {
   const router = useRouter();

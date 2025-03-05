@@ -1,6 +1,7 @@
 import React from 'react';
+import { SignupPrompt } from '@/entities/signin';
 import Header from '@/widgets/layout/ui/Header';
-import SignInContainer from '@/widgets/signin/ui/signIn';
+import { SignInForm } from '@/widgets/signin';
 
 const SignIn = () => {
   return (
@@ -8,7 +9,11 @@ const SignIn = () => {
       <Header />
       <div className="flex flex-1 items-center justify-center">
         <div className="w-full max-w-[792px] px-5 py-8">
-          <SignInContainer />
+          <div className="space-y-50">
+            <p className="text-center text-h1">관리자 로그인</p>
+            <SignInForm />
+          </div>
+          <SignupPrompt />
         </div>
       </div>
     </div>
