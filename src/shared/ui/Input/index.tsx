@@ -15,6 +15,7 @@ interface Props
   icon?: ReactNode;
   onIconClick?: () => void;
   size?: 'default' | 'small';
+  error?: boolean;
 }
 
 const inputStyles = cva(
@@ -22,19 +23,34 @@ const inputStyles = cva(
   {
     variants: {
       size: {
-        default: 'px-6 py-5',
+        default: 'px-16 py-12',
         small: 'h-[34px] max-w-[164px] px-2 py-1 text-black text-center',
+      },
+      error: {
+        true: 'border-red-500',
+        false: '',
       },
     },
     defaultVariants: {
       size: 'default',
+      error: false,
     },
   },
 );
 
 const Input = forwardRef<HTMLInputElement, Props>(
   (
-    { type, placeholder, icon, onChange, value, onIconClick, size, ...props },
+    {
+      type,
+      placeholder,
+      icon,
+      onChange,
+      value,
+      onIconClick,
+      size,
+      error,
+      ...props
+    },
     ref,
   ) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +66,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
 
     return (
       <div className="w-full">
-        <label className={inputStyles({ size })}>
+        <label className={inputStyles({ size, error })}>
           <input
             {...props}
             ref={ref}
@@ -66,7 +82,6 @@ const Input = forwardRef<HTMLInputElement, Props>(
               className="h-5 w-5 cursor-pointer"
               onClick={onIconClick}
               role="button"
-              tabIndex={0}
               aria-label="icon"
             >
               {icon}

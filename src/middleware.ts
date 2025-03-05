@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const MANAGE_RESTRICTED_PATHS = [
-  /^\/signIn$/,
+  /^\/signin$/,
   /^\/signUp$/,
   /^\/application\/.+\/(STANDARD|TRAINEE)$/,
 ];
@@ -56,7 +56,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/api/role',
-    '/signIn',
+    '/signin',
     '/signUp',
     '/admin',
     '/exhibition/create',

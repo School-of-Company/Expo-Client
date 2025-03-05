@@ -1,11 +1,10 @@
 import React from 'react';
-import SignInForm from '@/entities/signIn/ui/SignInForm';
-import SignupPrompt from '@/entities/signIn/ui/SignupPrompt';
+import { SignInForm, SignupPrompt } from '@/entities/signin';
 
 const SignInContainer = () => {
   return (
     <div>
-      <div className="space-y-[50px]">
+      <div className="space-y-50">
         <p className="text-center text-h1">관리자 로그인</p>
         <SignInForm />
       </div>

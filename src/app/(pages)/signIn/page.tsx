@@ -1,12 +1,8 @@
 import React from 'react';
-import SignIn from '@/views/signIn/ui/signIn';
+import SignIn from '@/views/signin/ui/signIn';
 
 const page = () => {
-  return (
-    <div>
-      <SignIn />
-    </div>
-  );
+  return <SignIn />;
 };
 
 export default page;

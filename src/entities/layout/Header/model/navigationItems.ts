@@ -2,7 +2,7 @@ import { Museum, Person } from '@/shared/assets/icons';
 import { NavItem } from './types';
 
 export const userNavItems: NavItem[] = [
-  { href: '/signIn', icon: Person, label: '관리자 로그인' },
+  { href: '/signin', icon: Person, label: '관리자 로그인' },
 ];
 
 export const manageNavItems: NavItem[] = [

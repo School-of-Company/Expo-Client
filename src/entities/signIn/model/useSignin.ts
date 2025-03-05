@@ -17,8 +17,8 @@ export const useSignin = () => {
       toast.success('로그인이 완료되었습니다.');
       router.push('/');
     },
-    onError: () => {
-      toast.error('로그인에 실패했습니다.');
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };

@@ -38,8 +38,9 @@ export async function POST(request: Request) {
     const axiosError = error as AxiosError<{ message: string }>;
 
     const status = axiosError.response?.status || 500;
-    const message = axiosError.response?.data?.message || 'Signin failed';
+    const message =
+      axiosError.response?.data?.message || '로그인에 실패했습니다.';
 
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message, status }, { status });
   }
 }
