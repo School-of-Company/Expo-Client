@@ -9,12 +9,12 @@ const Navigation = () => {
   const { navItems, getColor } = useNavigation();
 
   return (
-    <nav className="flex gap-[50px] mobile:gap-8">
+    <nav className="flex gap-40 mobile:gap-20">
       {navItems.map((item: NavItem) => (
         <Link
           key={item.href}
           href={item.href}
-          className="flex items-center gap-5"
+          className="flex items-center gap-20"
         >
           <div>
             <item.icon fill={getColor(item.href)} />
