@@ -32,7 +32,13 @@ const PasswordInput = ({
       placeholder="비밀번호를 입력해주세요."
       type={passwordVisible ? 'text' : 'password'}
       error={!!errors.password}
-      icon={passwordVisible ? <SelectedEye /> : <Eye />}
+      icon={
+        passwordVisible ? (
+          <SelectedEye aria-label="비밀번호 숨기기" />
+        ) : (
+          <Eye aria-label="비밀번호 보기" />
+        )
+      }
       onIconClick={handlePasswordVisibilityToggle}
     />
     <div className="flex items-center justify-between">
