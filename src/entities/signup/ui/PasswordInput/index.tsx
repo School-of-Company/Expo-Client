@@ -24,7 +24,7 @@ const PasswordInput = ({ register, errors, watch }: PasswordInputProps) => {
 
   return (
     <div className="space-y-8">
-      <p className="text-h4 text-black">비밀번호</p>
+      <p className="text-h3b text-black">비밀번호</p>
       <Input
         {...register('password', {
           required: '비밀번호를 입력해주세요.',
@@ -47,7 +47,7 @@ const PasswordInput = ({ register, errors, watch }: PasswordInputProps) => {
         onIconClick={togglePasswordVisibility}
       />
       {errors.password && (
-        <p className="text-caption2 text-error">{errors.password.message}</p>
+        <p className="text-caption1r text-error">{errors.password.message}</p>
       )}
       <Input
         {...register('checkPassword', {
@@ -68,7 +68,7 @@ const PasswordInput = ({ register, errors, watch }: PasswordInputProps) => {
         onIconClick={toggleCheckPasswordVisibility}
       />
       {errors.checkPassword && (
-        <p className="text-caption2 text-error">
+        <p className="text-caption1r text-error">
           {errors.checkPassword.message}
         </p>
       )}

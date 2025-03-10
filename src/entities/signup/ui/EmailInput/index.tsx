@@ -10,7 +10,7 @@ interface EmailInputProps {
 
 const EmailInput = ({ register, errors }: EmailInputProps) => (
   <div className="space-y-8">
-    <p className="text-h4 text-black">이메일</p>
+    <p className="text-h3b text-black">이메일</p>
     <Input
       {...register('email', {
         required: '이메일을 입력해주세요.',
@@ -24,7 +24,7 @@ const EmailInput = ({ register, errors }: EmailInputProps) => (
       error={!!errors.email}
     />
     {errors.email && (
-      <p className="text-caption2 text-error">{errors.email.message}</p>
+      <p className="text-caption1r text-error">{errors.email.message}</p>
     )}
   </div>
 );
