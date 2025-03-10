@@ -72,7 +72,7 @@ const PhoneVerification = ({
             required: '인증 번호를 입력해주세요.',
             pattern: {
               value: /^\d{4}$/,
-              message: '6자리 숫자를 입력해주세요.',
+              message: '4자리 숫자를 입력해주세요.',
             },
           })}
           type="text"
