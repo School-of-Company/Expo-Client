@@ -3,5 +3,7 @@ export interface SignUpData {
   nickname: string;
   email: string;
   password: string;
+  checkPassword: string;
   phoneNumber: string;
+  code: string;
 }
