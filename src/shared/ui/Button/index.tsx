@@ -19,7 +19,7 @@ const buttonStyles = cva(
           'bg-main-100 border-1 border-solid border-main-600 text-main-600',
       },
       disabled: {
-        true: 'opacity-50 cursor-not-allowed',
+        true: 'bg-gray-400 opacity-50 cursor-not-allowed',
         false: '',
       },
     },

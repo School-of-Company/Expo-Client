@@ -49,7 +49,6 @@ const PhoneVerification = ({
         <Button
           onClick={() => sendSms(watch('phoneNumber'))}
           width="20%"
-          variant="white"
           disabled={
             !watch('phoneNumber') || isSendingSms || isSmsSent || isSmsVerified
           }
@@ -87,7 +86,6 @@ const PhoneVerification = ({
           onClick={() => checkSmsCode()}
           width="20%"
           disabled={!watch('code') || isSmsVerified || !isCheckingCode}
-          variant="white"
           type="button"
         >
           확인
