@@ -9,7 +9,7 @@ const SignupPrompt = () => {
         아직 관리자 로그인을 안 하셨나요?
       </p>
       <LineStroke />
-      <Link href="/signUp" className="text-caption2 text-main-600">
+      <Link href="/signup" className="text-caption2 text-main-600">
         회원가입
       </Link>
     </div>

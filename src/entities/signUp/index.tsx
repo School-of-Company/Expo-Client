@@ -1,1 +1,1 @@
-export { default as SignUpForm } from './ui/SignUpForm';
+export { default as SignUpForm } from '../../widgets/signup/ui/SignUpForm';

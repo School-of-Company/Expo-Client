@@ -20,8 +20,8 @@ export const useSignup = () => {
       toast.success('회원가입이 완료되었습니다.');
       router.push('/signIn');
     },
-    onError: () => {
-      toast.error('회원가입에 실패했습니다.');
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };

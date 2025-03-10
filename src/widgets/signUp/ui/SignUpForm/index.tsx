@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, Input } from '@/shared/ui';
+import DetailHeader from '@/shared/ui/DetailHeader';
 import { showError } from '../../model/showError';
 import { useCheckSmsCode } from '../../model/useCheckSmsCode';
 import { useSendSms } from '../../model/useSendSms';
@@ -45,6 +46,7 @@ const SignUpForm = () => {
 
   return (
     <form
+      className="space-y-[50px]"
       onSubmit={handleSubmit(
         (data) => signup(data),
         (errors) => {
@@ -55,8 +57,9 @@ const SignUpForm = () => {
         },
       )}
     >
-      <div className="space-y-6">
-        <div className="space-y-3">
+      <DetailHeader headerTitle="관리자 회원가입" />
+      <div className="space-y-20">
+        <div className="space-y-8">
           <p className="text-h4 text-black">이름</p>
           <Input
             {...register('name', { required: '이름을 입력해주세요.' })}
@@ -64,7 +67,7 @@ const SignUpForm = () => {
             placeholder="이름을 입력해주세요."
           />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-8">
           <p className="text-h4 text-black">아이디</p>
           <Input
             {...register('nickname', { required: '아이디를 입력해주세요.' })}
@@ -72,7 +75,7 @@ const SignUpForm = () => {
             placeholder="아이디를 입력해주세요."
           />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-8">
           <p className="text-h4 text-black">이메일</p>
           <Input
             {...register('email', {
@@ -86,7 +89,7 @@ const SignUpForm = () => {
             placeholder="이메일을 입력해주세요."
           />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-8">
           <p className="text-h4 text-black">비밀번호</p>
           <Input
             {...register('password', {
@@ -110,20 +113,40 @@ const SignUpForm = () => {
             placeholder="비밀번호를 다시 입력해주세요."
           />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-8">
           <p className="text-h4 text-black">연락처</p>
-          <Input
-            {...register('phoneNumber', {
-              required: '연락처를 입력해주세요.',
-              pattern: {
-                value: /^\d{10,11}$/,
-                message: '유효한 전화번호를 입력해주세요.',
-              },
-            })}
-            type="tel"
-            placeholder="연락처는 - 빼고 입력해주세요"
-            disabled={isSmsVerified}
-          />
+          <div className="flex space-x-3">
+            <Input
+              {...register('phoneNumber', {
+                required: '연락처를 입력해주세요.',
+                pattern: {
+                  value: /^\d{10,11}$/,
+                  message: '유효한 전화번호를 입력해주세요.',
+                },
+              })}
+              type="tel"
+              placeholder="연락처는 - 빼고 입력해주세요"
+              width="80%"
+              disabled={isSmsVerified}
+            />
+            <Button
+              onClick={() => sendSms(watch('phoneNumber'))}
+              width="20%"
+              variant="white"
+              disabled={
+                !watch('phoneNumber') ||
+                isSendingSms ||
+                isSmsSent ||
+                isSmsVerified
+              }
+            >
+              {isSmsVerified
+                ? '인증 완료'
+                : isSmsSent
+                  ? `(${Math.floor(timer / 60)}:${String(timer % 60).padStart(2, '0')})`
+                  : '인증 번호'}
+            </Button>
+          </div>
           <div className="flex space-x-3">
             <Input
               {...register('code', {
@@ -135,38 +158,25 @@ const SignUpForm = () => {
               })}
               type="text"
               placeholder="인증 번호 입력"
-              style={{ width: '80%' }}
+              width="80%"
               disabled={!isSmsSent || isSmsVerified}
             />
             <Button
               onClick={() => checkSmsCode()}
-              text="확인"
               width="20%"
               disabled={!watch('code') || isSmsVerified || !isCheckingCode}
+              variant="white"
               type="button"
-            />
+            >
+              확인
+            </Button>
           </div>
-          <button
-            type="button"
-            onClick={() => sendSms(watch('phoneNumber'))}
-            className="text-caption2 text-gray-300"
-            disabled={
-              !watch('phoneNumber') ||
-              isSendingSms ||
-              isSmsSent ||
-              isSmsVerified
-            }
-          >
-            {isSmsVerified
-              ? '인증 완료'
-              : isSmsSent
-                ? `인증번호 재발송 (${Math.floor(timer / 60)}:${String(timer % 60).padStart(2, '0')})`
-                : '인증번호 발송'}
-          </button>
         </div>
       </div>
       <div className="mt-[160px]">
-        <Button disabled={isSubmitting} type="submit" text="회원가입" />
+        <Button disabled={isSubmitting} type="submit">
+          확인
+        </Button>
       </div>
     </form>
   );

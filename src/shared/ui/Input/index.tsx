@@ -19,7 +19,7 @@ interface Props
 }
 
 const inputStyles = cva(
-  'flex rounded-sm border-1 border-solid border-gray-200 duration-200',
+  'flex rounded-sm border-1 border-solid border-gray-200 duration-200 [h-50px]',
   {
     variants: {
       size: {
