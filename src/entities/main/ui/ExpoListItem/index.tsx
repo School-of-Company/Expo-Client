@@ -42,7 +42,7 @@ const ExpoListItem = ({
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <p
-              className="overflow-hidden text-caption2 text-gray-600"
+              className="text-caption2 overflow-hidden text-gray-600"
               style={{
                 display: '-webkit-box',
                 WebkitLineClamp: 1,
@@ -53,7 +53,7 @@ const ExpoListItem = ({
               모집기간: {startedDay} ~ {finishedDay}
             </p>
             <p
-              className="overflow-hidden text-body1 text-black"
+              className="text-body1 overflow-hidden text-black"
               style={{
                 display: '-webkit-box',
                 WebkitLineClamp: 1,
@@ -64,7 +64,7 @@ const ExpoListItem = ({
               {title}
             </p>
             <p
-              className="overflow-hidden text-body4 text-gray-300"
+              className="text-body4 overflow-hidden text-gray-300"
               style={{
                 display: '-webkit-box',
                 WebkitLineClamp: 1,
