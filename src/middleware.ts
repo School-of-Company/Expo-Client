@@ -2,14 +2,15 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const MANAGE_RESTRICTED_PATHS = [
-  /^\/signIn$/,
+  /^\/signin$/,
   /^\/signUp$/,
   /^\/application\/.+\/(STANDARD|TRAINEE)$/,
 ];
 
 const USER_RESTRICTED_PATHS = [
   /^\/admin$/,
-  /^\/create-exhibition$/,
+  /^\/exhibition\/create$/,
+  /^\/exhibition\/edit(\/.*)?$/,
   /^\/expo-manage\/.+$/,
   /^\/name-tag\/.+$/,
   /^\/sms\/.+\/(STANDARD|TRAINEE)$/,
@@ -55,10 +56,11 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/api/role',
-    '/signIn',
+    '/signin',
     '/signUp',
     '/admin',
-    '/create-exhibition',
+    '/exhibition/create',
+    '/exhibition/edit/:path*',
     '/expo-manage/:path*',
     '/name-tag/:path*',
     '/sms/:path*/STANDARD',

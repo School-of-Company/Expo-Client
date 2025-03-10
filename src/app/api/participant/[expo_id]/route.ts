@@ -14,7 +14,6 @@ export async function GET(
   const type = request.nextUrl.searchParams.get('type') || 'PRE';
   const encodedName = request.nextUrl.searchParams.get('name');
   const name = encodedName ? decodeURIComponent(encodedName) : null;
-  console.log(encodedName);
 
   const config = accessToken
     ? {

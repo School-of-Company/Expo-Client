@@ -16,17 +16,22 @@ const OptionContainer = ({
 }: {
   title: string;
   formType: string;
-  jsonData?: string;
+  jsonData?: string | { [key: string]: string };
   requiredStatus: boolean;
   otherJson: string | null;
   register: UseFormRegister<ApplicationFormValues>;
   watch: UseFormWatch<ApplicationFormValues>;
 }) => {
   const options = jsonData
-    ? Object.entries(JSON.parse(jsonData)).map(([key, value]) => ({
-        value: key,
-        label: value as string,
-      }))
+    ? typeof jsonData === 'string'
+      ? Object.entries(JSON.parse(jsonData)).map(([key, value]) => ({
+          value: key,
+          label: value as string,
+        }))
+      : Object.entries(jsonData).map(([key, value]) => ({
+          value: key,
+          label: value as string,
+        }))
     : [];
 
   let inputComponent;

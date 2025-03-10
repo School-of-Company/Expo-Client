@@ -1,7 +1,7 @@
 import React from 'react';
 import { UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { Check } from '@/shared/assets/icons';
-import { ExhibitionFormData } from '@/widgets/create-exhibition/types/type';
+import { ExhibitionFormData } from '@/shared/types/exhibition/create/type';
 
 interface CheckBoxProps {
   text: string;

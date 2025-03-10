@@ -1,72 +1,68 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import OptionContainer from '@/entities/application/ui/OptionContainer';
 import withLoading from '@/shared/hocs/withLoading';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
-import { ApplicationFormValues } from '@/shared/types/application/type';
+import {
+  ApplicationFormValues,
+  DynamicFormItem,
+} from '@/shared/types/application/type';
 import { Button, PageHeader } from '@/shared/ui';
+import { getFormatter } from '../../model/formatterService';
 import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
 
-const ApplicationLayout = ({
-  params,
-  type,
-}: {
-  params: string;
-  type: string;
-}) => {
-  const { register, handleSubmit, watch } = useForm<ApplicationFormValues>();
+type DynamicFormValues = {
+  [key: string]: string | string[] | undefined;
+};
 
-  const { data: formList, isLoading } = useGetForm(params, type);
+type ExtendedApplicationFormValues = ApplicationFormValues & DynamicFormValues;
 
-  const { mutate: PostApplication } = usePostApplication(params, type);
+interface ApplicationForm {
+  dynamicForm?: DynamicFormItem[];
+  dynamicSurveyResponseDto?: DynamicFormItem[];
+}
+
+const ApplicationLayout = ({ params }: { params: string }) => {
+  const searchParams = useSearchParams();
+  const formType = searchParams.get('formType') as 'application' | 'survey';
+  const userType = searchParams.get('userType') as 'STANDARD' | 'TRAINEE';
+  const applicationType = searchParams.get('applicationType') as
+    | 'register'
+    | 'onsite';
+  const { register, handleSubmit, watch } =
+    useForm<ExtendedApplicationFormValues>();
+
+  const { data: formList, isLoading } = useGetForm(
+    params,
+    userType,
+    formType,
+  ) as {
+    data: ApplicationForm | undefined;
+    isLoading: boolean;
+  };
+
+  const { mutate: PostApplication } = usePostApplication(
+    params,
+    formType,
+    userType,
+    applicationType,
+  );
 
   const showError = (message: string) => {
     toast.error(message);
   };
 
-  const onSubmit = (data: ApplicationFormValues) => {
-    const formattedData: {
-      trainingId?: string;
-      name: string;
-      phoneNumber: string;
-      personalInformationStatus: boolean;
-      informationJson: string;
-    } = {
-      name: String(data['이름을 입력하세요'] || ''),
-      phoneNumber: String(data['휴대폰 번호를 입력하세요'] || ''),
-      personalInformationStatus: true,
-      informationJson: JSON.stringify(
-        formList?.dynamicForm?.reduce<Record<string, string>>((acc, form) => {
-          const value = data[form.title as keyof ApplicationFormValues];
-          if (form.formType === 'CHECKBOX') {
-            const selectedOptions = Array.isArray(value) ? value : [value];
-            if (selectedOptions.includes('etc')) {
-              const etcValue =
-                data[`${form.title}_etc` as keyof ApplicationFormValues];
-              selectedOptions[selectedOptions.indexOf('etc')] =
-                `기타: ${etcValue}`;
-            }
-            acc[form.title] = selectedOptions.join(', ');
-          } else if (form.formType === 'MULTIPLE' && value === 'etc') {
-            const etcValue =
-              data[`${form.title}_etc` as keyof ApplicationFormValues];
-            acc[form.title] = `기타: ${etcValue}`;
-          } else {
-            acc[form.title] = String(value || '');
-          }
-          return acc;
-        }, {}),
-      ),
-    };
+  const getDynamicFormData = (): DynamicFormItem[] => {
+    return formList?.dynamicForm || formList?.dynamicSurveyResponseDto || [];
+  };
 
-    if (type === 'TRAINEE') {
-      formattedData.trainingId = String(
-        data['연수원 아이디를 입력하세요'] || '',
-      );
-    }
+  const onSubmit = (data: ExtendedApplicationFormValues): void => {
+    const formatter = getFormatter(formType, userType, getDynamicFormData());
+    const formattedData = formatter(data);
     PostApplication(formattedData);
   };
 
@@ -75,14 +71,13 @@ const ApplicationLayout = ({
     children: (
       <form
         onSubmit={handleSubmit(onSubmit, (errors) => {
-          console.log(errors);
           handleFormErrors(errors, showError);
         })}
       >
         <PageHeader title="신청" />
         <div className="ml-[20px] mt-[48px] flex flex-col gap-[48px]">
           <div className="w-full space-y-[36px]">
-            {type === 'TRAINEE' ? (
+            {userType === 'TRAINEE' && formType === 'application' ? (
               <OptionContainer
                 title="연수원 아이디를 입력하세요"
                 formType="SENTENCE"
@@ -100,15 +95,52 @@ const ApplicationLayout = ({
               register={register}
               watch={watch}
             />
-            <OptionContainer
-              title="이름을 입력하세요"
-              formType="SENTENCE"
-              requiredStatus={true}
-              otherJson={null}
-              register={register}
-              watch={watch}
-            />
-            {formList?.dynamicForm?.map((form, index) => (
+            {formType === 'application' ? (
+              <OptionContainer
+                title="이름을 입력하세요"
+                formType="SENTENCE"
+                requiredStatus={true}
+                otherJson={null}
+                register={register}
+                watch={watch}
+              />
+            ) : null}
+            {userType === 'STANDARD' && formType === 'application' ? (
+              <>
+                <OptionContainer
+                  title="소속을 입력하세요"
+                  formType="SENTENCE"
+                  requiredStatus={true}
+                  otherJson={null}
+                  register={register}
+                  watch={watch}
+                />
+                <OptionContainer
+                  title="학교급을 선택해주세요"
+                  formType="MULTIPLE"
+                  requiredStatus={true}
+                  otherJson="etc"
+                  register={register}
+                  watch={watch}
+                  jsonData={{
+                    '1': '유치원',
+                    '2': '초등학교',
+                    '3': '중학교',
+                    '4': '고등학교',
+                  }}
+                />
+                <OptionContainer
+                  title="학교이름을 입력해주세요"
+                  formType="SENTENCE"
+                  requiredStatus={true}
+                  otherJson={null}
+                  register={register}
+                  watch={watch}
+                />
+              </>
+            ) : null}
+
+            {getDynamicFormData().map((form, index) => (
               <OptionContainer
                 key={index}
                 title={form.title}

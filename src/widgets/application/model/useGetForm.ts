@@ -1,11 +1,34 @@
 import { useQuery } from '@tanstack/react-query';
 import { ApplicationForm } from '@/shared/types/application/type';
+import { getApplicationForm } from '../api/getApplicationForm';
+import { getSurveyForm } from '../api/getSurveyForm';
 
-import { getForm } from '../api/getForm';
-
-export const useGetForm = (id: string, type: string) => {
+export const useGetApplicationForm = (
+  id: string,
+  userType: 'STANDARD' | 'TRAINEE',
+) => {
   return useQuery<ApplicationForm, Error>({
-    queryKey: ['expoList', id, type],
-    queryFn: () => getForm(id, type),
+    queryKey: ['getApplicationForm', id, userType],
+    queryFn: () => getApplicationForm(id, userType),
   });
+};
+
+export const useGetSurveyForm = (
+  expoId: string,
+  userType: 'STANDARD' | 'TRAINEE',
+) => {
+  return useQuery<ApplicationForm, Error>({
+    queryKey: ['getSurveyForm', expoId, userType],
+    queryFn: () => getSurveyForm(expoId, userType),
+  });
+};
+
+export const useGetForm = (
+  id: string,
+  userType: 'STANDARD' | 'TRAINEE',
+  formType: 'application' | 'survey',
+) => {
+  return formType === 'application'
+    ? useGetApplicationForm(id, userType)
+    : useGetSurveyForm(id, userType);
 };

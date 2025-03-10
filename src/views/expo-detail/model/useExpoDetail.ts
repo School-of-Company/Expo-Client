@@ -1,14 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
+import { getExpoDetail, getExpoStandard, getExpoTraining } from '@/shared/api';
 import {
   ExpoDetail,
   ExpoStandard,
   ExpoTrainingDetail,
 } from '@/shared/types/expo-detail/type';
-import {
-  getExpoDetail,
-  getExpoStandard,
-  getExpoTraining,
-} from '../api/getExpoDetail';
 
 interface ExpoTraining {
   essential: ExpoTrainingDetail[];

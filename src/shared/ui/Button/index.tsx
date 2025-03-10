@@ -1,5 +1,6 @@
 'use client';
 
+import { cva } from 'class-variance-authority';
 import React from 'react';
 
 interface Props {
@@ -11,6 +12,25 @@ interface Props {
   width?: string;
 }
 
+const buttonStyles = cva('rounded-sm py-3 text-h5', {
+  variants: {
+    style: {
+      default: 'bg-main-600 text-white',
+      white: 'border-1 border-solid border-main-600 text-main-600',
+      main100:
+        'bg-main-100 border-1 border-solid border-main-600 text-main-600',
+    },
+    disabled: {
+      true: 'opacity-50 cursor-not-allowed',
+      false: '',
+    },
+  },
+  defaultVariants: {
+    style: 'default',
+    disabled: false,
+  },
+});
+
 const Button = ({
   text,
   onClick,
@@ -19,27 +39,11 @@ const Button = ({
   disabled,
   width = '100%',
 }: Props) => {
-  let buttonClass = '';
-
-  if (style === 'white') {
-    buttonClass =
-      'rounded-sm border-1 border-solid border-main-600 py-3 text-h5 text-main-600';
-  } else if (style === 'main100') {
-    buttonClass =
-      'rounded-sm bg-main-100 border-1 border-solid border-main-600 py-3 text-h5 text-main-600';
-  } else {
-    buttonClass = 'rounded-sm bg-main-600 py-3 text-h5 text-white';
-  }
-
-  if (disabled) {
-    buttonClass += ' opacity-50 cursor-not-allowed';
-  }
-
   return (
     <button
       type={type}
       onClick={onClick || (() => {})}
-      className={buttonClass}
+      className={buttonStyles({ style, disabled })}
       disabled={disabled}
       style={{ width }}
     >
