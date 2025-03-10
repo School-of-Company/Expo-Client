@@ -12,11 +12,16 @@ const DetailHeader = ({ headerTitle }: Props) => {
   const router = useRouter();
 
   return (
-    <div className="flex items-center gap-[58px] mobile:gap-[27px]">
-      <label className="hover:cursor-pointer" onClick={() => router.back()}>
+    <div className="relative flex h-[60px] items-center justify-between">
+      <label
+        className="absolute left-0 hover:cursor-pointer"
+        onClick={() => router.back()}
+      >
         <ArrowLeft />
       </label>
-      <p className="text-h1 text-black mobile:text-body1">{headerTitle}</p>
+      <p className="flex-grow text-center text-h1 text-black mobile:text-body1">
+        {headerTitle}
+      </p>
     </div>
   );
 };
