@@ -19,30 +19,39 @@ const ExpoListItem = ({
   startedDay,
   finishedDay,
 }: Props) => {
+  const formatDate = (date: string) => {
+    const [, month, day] = date.split('-');
+    return `${month}.${day}`;
+  };
+
   return (
     <Link
       href={`/expo-detail/${id}`}
-      className="flex gap-6 rounded-md border-1 border-solid border-gray-200 bg-white px-6 py-5"
+      className="flex h-[150px] gap-22 rounded-sm border-1 border-solid border-gray-200 bg-white p-18"
     >
-      <div className="w-1/3">
+      <div
+        className="overflow-hidden rounded-sm"
+        style={{ width: 110, height: 110 }}
+      >
         <Image
           src={coverImage}
           alt="이미지 설명"
-          width={752}
-          height={360}
+          width={110}
+          height={110}
           style={{
-            width: '100%',
-            height: '100%',
             objectFit: 'cover',
             objectPosition: 'center',
+            width: '110px',
+            height: '110px',
           }}
         />
       </div>
+
       <div className="w-2/3">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <p
-              className="text-caption2 overflow-hidden text-gray-600"
+              className="overflow-hidden text-caption1r text-main-400"
               style={{
                 display: '-webkit-box',
                 WebkitLineClamp: 1,
@@ -50,10 +59,10 @@ const ExpoListItem = ({
                 textOverflow: 'ellipsis',
               }}
             >
-              모집기간: {startedDay} ~ {finishedDay}
+              행사기간 {formatDate(startedDay)} ~ {formatDate(finishedDay)}
             </p>
             <p
-              className="text-body1 overflow-hidden text-black"
+              className="overflow-hidden text-body1b text-black"
               style={{
                 display: '-webkit-box',
                 WebkitLineClamp: 1,
@@ -64,10 +73,10 @@ const ExpoListItem = ({
               {title}
             </p>
             <p
-              className="text-body4 overflow-hidden text-gray-300"
+              className="overflow-hidden text-body2r text-gray-300"
               style={{
                 display: '-webkit-box',
-                WebkitLineClamp: 1,
+                WebkitLineClamp: 3,
                 WebkitBoxOrient: 'vertical',
                 textOverflow: 'ellipsis',
               }}
