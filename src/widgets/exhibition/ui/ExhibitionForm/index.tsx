@@ -169,7 +169,7 @@ const ExhibitionForm = ({
             placeholder="상세주소를 입력해주세요."
           />
         </div>
-        <Button type="submit">확인</Button>
+        <Button type="submit" text="확인" />
       </div>
     </form>
   );

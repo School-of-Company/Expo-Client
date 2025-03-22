@@ -12,9 +12,8 @@ export async function POST(request: Request) {
     const axiosError = error as AxiosError<{ message: string }>;
 
     const status = axiosError.response?.status || 500;
-    const message =
-      axiosError.response?.data?.message || '회원가입에 실패했습니다.';
+    const message = axiosError.response?.data?.message || 'Signun failed';
 
-    return NextResponse.json({ error: message, status }, { status });
+    return NextResponse.json({ error: message }, { status });
   }
 }

@@ -153,7 +153,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
               />
             ))}
           </div>
-          <Button type="submit">신청하기</Button>
+          <Button type="submit" text="신청하기" />
         </div>
       </form>
     ),

@@ -13,8 +13,8 @@ export const useSendSms = (
       setTimer(180);
       toast.success('문자 메시지 전송이 완료되었습니다.');
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+    onError: () => {
+      toast.error('문자 메시지 전송에 실패했습니다.');
     },
   });
 };

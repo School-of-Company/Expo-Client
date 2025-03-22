@@ -44,9 +44,7 @@ const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
             />
           )}
         </div>
-        <Button onClick={() => setModal(false)} type="button">
-          확인
-        </Button>
+        <Button onClick={() => setModal(false)} type="button" text="확인" />
       </div>
     </div>
   );

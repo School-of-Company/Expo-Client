@@ -40,9 +40,7 @@ const SignInForm = () => {
         />
       </div>
       <div className="mt-100">
-        <Button disabled={isPending || isSuccess} type="submit">
-          로그인
-        </Button>
+        <Button disabled={isPending || isSuccess} type="submit" text="로그인" />
       </div>
     </form>
   );
