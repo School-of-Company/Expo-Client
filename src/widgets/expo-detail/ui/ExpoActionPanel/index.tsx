@@ -20,10 +20,9 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
   const getButtons = () => {
     if (role === 'user') {
       return (
-        <Button
-          onClick={() => openModal('해당 박람회에 지원하시겠습니까?')}
-          text="신청하기"
-        />
+        <Button onClick={() => openModal('해당 박람회에 지원하시겠습니까?')}>
+          신청하기
+        </Button>
       );
     }
     if (role === 'manage') {
@@ -34,35 +33,40 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
               onClick={() => {
                 router.push(`/name-tag/${params}`);
               }}
-              text="QR 조회하기"
-            />
+            >
+              QR 조회하기
+            </Button>
             <Button
               onClick={() => openModal('누구에게 문자를 전송하시겠습니까?')}
-              text="문자 보내기"
-            />
+            >
+              문자 보내기
+            </Button>
           </div>
           <Button
             onClick={() => {
               router.push(`/program/${params}?navigation=standard`);
             }}
-            text="프로그램"
-            style="main100"
-          />
+            variant="main100"
+          >
+            프로그램
+          </Button>
 
           <Button
             onClick={() => {
               router.push(`/expo-manage/${params}`);
             }}
-            text="조회하기"
-            style="main100"
-          />
+            variant="main100"
+          >
+            조회하기
+          </Button>
           <Button
             onClick={() => {
               router.push(`/exhibition/edit/${params}`);
             }}
-            text="수정하기"
-            style="white"
-          />
+            variant="white"
+          >
+            수정하기
+          </Button>
         </div>
       );
     }

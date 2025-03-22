@@ -3,51 +3,51 @@
 import { cva } from 'class-variance-authority';
 import React from 'react';
 
-interface Props {
-  text: string;
-  onClick?: () => void;
-  style?: 'default' | 'white' | 'main100';
-  type?: 'submit' | 'reset' | 'button' | undefined;
-  disabled?: boolean;
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'white' | 'main100';
   width?: string;
 }
 
-const buttonStyles = cva('rounded-sm py-3 text-h5', {
-  variants: {
-    style: {
-      default: 'bg-main-600 text-white',
-      white: 'border-1 border-solid border-main-600 text-main-600',
-      main100:
-        'bg-main-100 border-1 border-solid border-main-600 text-main-600',
+const buttonStyles = cva(
+  'rounded-sm py-14 text-body3 h-[50px] whitespace-nowrap',
+  {
+    variants: {
+      variant: {
+        default: 'bg-main-600 text-white',
+        white: 'border-1 border-solid border-main-600 text-main-600',
+        main100:
+          'bg-main-100 border-1 border-solid border-main-600 text-main-600',
+      },
+      disabled: {
+        true: 'opacity-50 cursor-not-allowed',
+        false: '',
+      },
     },
-    disabled: {
-      true: 'opacity-50 cursor-not-allowed',
-      false: '',
+    defaultVariants: {
+      variant: 'default',
+      disabled: false,
     },
   },
-  defaultVariants: {
-    style: 'default',
-    disabled: false,
-  },
-});
+);
 
 const Button = ({
-  text,
+  children,
   onClick,
-  style = 'default',
-  type,
+  variant = 'default',
   disabled,
   width = '100%',
-}: Props) => {
+  ...props
+}: ButtonProps) => {
   return (
     <button
-      type={type}
-      onClick={onClick || (() => {})}
-      className={buttonStyles({ style, disabled })}
+      type="button"
+      onClick={onClick}
+      className={buttonStyles({ variant, disabled })}
       disabled={disabled}
       style={{ width }}
+      {...props}
     >
-      {text}
+      {children}
     </button>
   );
 };
