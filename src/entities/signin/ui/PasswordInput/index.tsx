@@ -19,7 +19,7 @@ const PasswordInput = ({
   handlePasswordVisibilityToggle,
 }: PasswordInputProps) => (
   <div className="space-y-8">
-    <p className="text-h3b text-black">비밀번호</p>
+    <p className="text-h4 text-black">비밀번호</p>
     <Input
       {...register('password', {
         required: '비밀번호를 입력해주세요.',
@@ -43,12 +43,9 @@ const PasswordInput = ({
     />
     <div className="flex items-center justify-between">
       {errors.password && (
-        <p className="text-caption1r text-red-500">{errors.password.message}</p>
+        <p className="text-caption2 text-red-500">{errors.password.message}</p>
       )}
-      <Link
-        href="findPassword"
-        className="ml-auto text-caption1b text-main-300"
-      >
+      <Link href="findPassword" className="ml-auto text-caption2 text-main-300">
         비밀번호 찾기
       </Link>
     </div>

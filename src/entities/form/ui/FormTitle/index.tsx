@@ -15,7 +15,7 @@ const FormTitle = ({ register, index }: Props) => {
           required: `${index + 1}번 폼의 제목을 입력해주세요`,
         })}
         placeholder="제목 입력"
-        className="text-h4 w-full text-black"
+        className="w-full text-h4 text-black"
       />
     </div>
   );

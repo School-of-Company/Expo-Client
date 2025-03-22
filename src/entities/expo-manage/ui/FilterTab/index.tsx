@@ -9,7 +9,7 @@ const FilterTab = () => {
         <ArrowDown />
       </div>
       <button className="whitespace-nowrap rounded-sm bg-main-600 px-[14px] py-[6px]">
-        <div className="text-caption2 flex items-center gap-[10px] text-white">
+        <div className="flex items-center gap-[10px] text-caption2 text-white">
           <FilterIcon fill="#fff" />
           필터
         </div>

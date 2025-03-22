@@ -50,7 +50,7 @@ const ProgramDetailForm = ({ id }: { id: number }) => {
     isLoading,
     children: (
       <div className="mx-auto w-full max-w-[1200px] space-y-[46px] px-5">
-        <p className="text-h2 text-center text-black">프로그램</p>
+        <p className="text-center text-h2 text-black">프로그램</p>
         <TableForm
           categories={programCategories}
           data={programDetailData}

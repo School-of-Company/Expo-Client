@@ -65,7 +65,7 @@ const FormTypeSelect = ({
                 setValue(`questions.${index}.formType`, option.value);
                 setIsOpen(false);
               }}
-              className="text-h5 flex w-full cursor-pointer items-center justify-center p-2 text-gray-500 hover:bg-gray-100"
+              className="flex w-full cursor-pointer items-center justify-center p-2 text-h5 text-gray-500 hover:bg-gray-100"
             >
               {option.icon && <span className="mr-2">{option.icon}</span>}
               {option.label}
