@@ -16,13 +16,11 @@ const TanstackProviders = ({ children }: { children: React.ReactNode }) => {
           queries: {
             staleTime: 60 * 1000,
             gcTime: 60 * 5000,
-            retryDelay: 1500,
-            retry: 5,
           },
         },
         queryCache: new QueryCache({
           onError: (error) => {
-            toast.error(`Query failed: ${(error as Error).message}`);
+            toast.error(`${(error as Error).message}`);
           },
         }),
       }),
