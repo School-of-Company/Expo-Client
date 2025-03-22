@@ -1,13 +1,13 @@
 import Image from 'next/image';
 import ContentListText from '@/entities/expo-detail/ui/ContentListText';
 import ContentText from '@/entities/expo-detail/ui/ContentText';
+import DetailHeader from '@/entities/expo-detail/ui/DetailHeader';
 import KakaoMap from '@/entities/expo-detail/ui/KaKaoMap';
 import {
   ExpoDetail,
   ExpoStandard,
   ExpoTrainingDetail,
 } from '@/shared/types/expo-detail/type';
-import DetailHeader from '@/shared/ui/DetailHeader';
 
 const ExpoDetailLayout = ({
   expoDetail,
