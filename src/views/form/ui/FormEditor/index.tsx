@@ -81,11 +81,9 @@ const FormEditor = ({
             })
           }
         />
-        <Button
-          type="submit"
-          text={isLoading ? '제출 중...' : isSuccess ? '완료됨' : '다음'}
-          disabled={isLoading || isSuccess}
-        />
+        <Button type="submit" disabled={isLoading || isSuccess}>
+          {isLoading ? '제출 중...' : isSuccess ? '완료됨' : '다음'}
+        </Button>
       </form>
     </div>
   );

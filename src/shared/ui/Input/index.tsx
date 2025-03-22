@@ -19,7 +19,7 @@ interface Props
 }
 
 const inputStyles = cva(
-  'flex rounded-sm border-1 border-solid border-gray-200 duration-200',
+  'flex rounded-sm border-1 border-solid border-gray-200 duration-200 [h-50px]',
   {
     variants: {
       size: {
@@ -71,7 +71,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             {...props}
             ref={ref}
             type={type}
-            className="w-full border-none bg-transparent text-body4 outline-none"
+            className="text-body4 w-full border-none bg-transparent outline-none"
             style={inputStyle}
             placeholder={placeholder}
             onChange={handleChange}

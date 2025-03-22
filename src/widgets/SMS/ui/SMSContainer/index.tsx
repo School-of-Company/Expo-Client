@@ -62,10 +62,9 @@ export default function Write() {
           />
         </div>
         <div className="w-full mobile:px-5">
-          <Button
-            disabled={isSubmitting || sendSMSMutation.isPending}
-            text="보내기"
-          />
+          <Button disabled={isSubmitting || sendSMSMutation.isPending}>
+            보내기
+          </Button>
         </div>
       </div>
     </form>

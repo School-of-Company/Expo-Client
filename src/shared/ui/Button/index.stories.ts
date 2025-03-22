@@ -8,24 +8,32 @@ const meta: Meta<typeof Button> = {
 };
 
 export default meta;
+
 type Story = StoryObj<typeof Button>;
 
 export const Default: Story = {
   args: {
-    text: '확인',
+    children: '확인',
+    variant: 'default',
+    disabled: false,
+    width: '100%',
   },
 };
 
 export const White: Story = {
   args: {
-    style: 'white',
-    text: '확인',
+    children: '확인',
+    variant: 'white',
+    disabled: false,
+    width: '100%',
   },
 };
 
 export const Main100: Story = {
   args: {
-    style: 'main100',
-    text: '확인',
+    children: '확인',
+    variant: 'main100',
+    disabled: false,
+    width: '100%',
   },
 };
