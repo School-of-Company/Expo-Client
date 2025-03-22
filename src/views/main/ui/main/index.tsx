@@ -4,9 +4,9 @@ import { ExpoListContainer } from '@/widgets/main';
 
 const Main = () => {
   return (
-    <div className="flex h-screen flex-col gap-[5.625rem] pb-16 mobile:gap-[2.8125rem]">
+    <div className="flex h-screen flex-col gap-[30px] mobile:gap-0">
       <Header />
-      <div className="mx-auto w-full max-w-[75rem] flex-1 overflow-auto px-5">
+      <div className="mx-auto w-full max-w-[1200px] flex-1 overflow-auto px-5">
         <ExpoListContainer />
       </div>
     </div>

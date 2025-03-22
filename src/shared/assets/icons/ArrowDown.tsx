@@ -3,7 +3,7 @@ import React from 'react';
 const ArrowDown = ({ fill = '#121212' }) => {
   return (
     <svg
-      width="24"
+      width="25"
       height="24"
       viewBox="0 0 25 24"
       fill="none"
