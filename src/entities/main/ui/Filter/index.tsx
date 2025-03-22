@@ -13,7 +13,7 @@ const ExpoListSelect = () => {
         className="whitespace-nowrap rounded-[10px] bg-main-600 px-[14px] py-3"
         onClick={toggleOpen}
       >
-        <div className="text-caption2 flex items-center gap-[10px] text-white">
+        <div className="flex items-center gap-[10px] text-caption2 text-white">
           {selectedOption?.label}
           <ArrowDown fill="#fff" />
         </div>
@@ -23,7 +23,7 @@ const ExpoListSelect = () => {
           {options.map((option) => (
             <div
               key={option.value}
-              className="text-caption1 flex h-12 w-full cursor-pointer items-center justify-center text-white hover:bg-main-500"
+              className="flex h-12 w-full cursor-pointer items-center justify-center text-caption1 text-white hover:bg-main-500"
               onClick={() => handleOptionClick(option)}
             >
               {option.label}

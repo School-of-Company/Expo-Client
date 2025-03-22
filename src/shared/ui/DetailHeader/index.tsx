@@ -19,7 +19,7 @@ const DetailHeader = ({ headerTitle }: Props) => {
       >
         <ArrowLeft />
       </label>
-      <p className="mobile:text-body1 flex-grow text-center text-h1m text-black">
+      <p className="flex-grow text-center text-h1 text-black mobile:text-body1">
         {headerTitle}
       </p>
     </div>

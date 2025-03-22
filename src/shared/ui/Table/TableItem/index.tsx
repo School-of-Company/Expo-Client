@@ -37,7 +37,7 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
       {Object.entries(data).map(([key, value]) => (
         <div
           key={key}
-          className="text-caption1 flex-1 overflow-hidden text-center text-gray-500"
+          className="flex-1 overflow-hidden text-center text-caption1 text-gray-500"
           style={{
             display: '-webkit-box',
             WebkitLineClamp: 1,

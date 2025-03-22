@@ -9,7 +9,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const buttonStyles = cva(
-  'rounded-sm py-14 text-body1b h-[50px] whitespace-nowrap',
+  'rounded-sm py-14 text-body3 h-[50px] whitespace-nowrap',
   {
     variants: {
       variant: {
@@ -19,7 +19,7 @@ const buttonStyles = cva(
           'bg-main-100 border-1 border-solid border-main-600 text-main-600',
       },
       disabled: {
-        true: 'bg-gray-400 opacity-50 cursor-not-allowed',
+        true: 'opacity-50 cursor-not-allowed',
         false: '',
       },
     },

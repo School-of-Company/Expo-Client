@@ -10,7 +10,7 @@ interface NameInputProps {
 
 const NameInput = ({ register, errors }: NameInputProps) => (
   <div className="space-y-8">
-    <p className="text-h3b text-black">이름</p>
+    <p className="text-h4 text-black">이름</p>
     <Input
       {...register('name', { required: '이름을 입력해주세요.' })}
       type="text"
@@ -18,7 +18,7 @@ const NameInput = ({ register, errors }: NameInputProps) => (
       error={!!errors.name}
     />
     {errors.name && (
-      <p className="text-caption1r text-error">{errors.name.message}</p>
+      <p className="text-caption2 text-error">{errors.name.message}</p>
     )}
   </div>
 );

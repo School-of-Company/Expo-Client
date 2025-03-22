@@ -41,7 +41,7 @@ export default function SentenceOption({
             textareaRef.current = el;
             ref(el);
           }}
-          className="text-body3 w-full resize-none overflow-hidden bg-transparent text-black"
+          className="w-full resize-none overflow-hidden bg-transparent text-body3 text-black"
           rows={row}
           maxLength={maxLength}
           onChange={handleChange}

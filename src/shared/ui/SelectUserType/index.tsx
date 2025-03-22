@@ -50,7 +50,7 @@ const SelectUserType = ({
       <button
         type="button"
         onClick={toggleOpen}
-        className="text-h4 flex items-center gap-2 text-black"
+        className="flex items-center gap-2 text-h4 text-black"
       >
         {selectedOption?.label}
         <ArrowDown />
@@ -60,7 +60,7 @@ const SelectUserType = ({
           {options.map((option) => (
             <button
               key={option.value}
-              className="text-caption2 flex w-full cursor-pointer items-center justify-center py-2 text-gray-500 hover:bg-main-100"
+              className="flex w-full cursor-pointer items-center justify-center py-2 text-caption2 text-gray-500 hover:bg-main-100"
               onClick={() => handleOptionClick(option)}
             >
               {option.label}
