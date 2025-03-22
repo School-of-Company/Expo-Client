@@ -18,7 +18,7 @@ const PageHeader = ({ title }: { title: string }) => {
       <button type="button" onClick={handleGoBack} className="cursor-pointer">
         <ArrowLeft />
       </button>
-      <p className="w-full text-center text-h3 text-black">{title}</p>
+      <p className="text-h3 w-full text-center text-black">{title}</p>
     </div>
   );
 };

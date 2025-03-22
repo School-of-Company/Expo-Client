@@ -51,7 +51,7 @@ const ExpoInput = ({
                     required: '연수를 입력해주세요',
                   })}
                   placeholder="연수를 입력해주세요"
-                  className="w-full overflow-hidden overflow-ellipsis whitespace-nowrap bg-transparent text-body4 text-gray-500"
+                  className="text-body4 w-full overflow-hidden overflow-ellipsis whitespace-nowrap bg-transparent text-gray-500"
                   value={items[index]?.title || ''}
                   onChange={(e) =>
                     setValue(
@@ -87,7 +87,7 @@ const ExpoInput = ({
                 <button
                   onClick={() => handleTrainingModal(index)}
                   type="button"
-                  className="rounded-sm border-1 border-solid border-gray-200 px-2 py-1 text-body4 text-gray-300"
+                  className="text-body4 rounded-sm border-1 border-solid border-gray-200 px-2 py-1 text-gray-300"
                 >
                   수정 하기
                 </button>

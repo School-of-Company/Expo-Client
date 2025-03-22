@@ -61,7 +61,7 @@ const ImageInput = ({ register, setValue, defaultImage }: ImageInputProps) => {
             className="rounded-sm"
           />
         ) : (
-          <div className="flex items-center justify-center gap-2 text-h1 text-gray-300">
+          <div className="text-h1 flex items-center justify-center gap-2 text-gray-300">
             <Picture fill="#BDBDBD" />
             사진 가져오기
           </div>
