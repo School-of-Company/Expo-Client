@@ -14,7 +14,9 @@ const ExpoCreatedContainer = ({ id }: { id: string }) => {
     <div className="flex h-full w-full flex-col items-center justify-center gap-[40px]">
       <Museum width="200" height="200" fill="#448FFF" />
       <p className="text-h1 text-main-600">박람회 등록되었습니다.</p>
-      <Button onClick={handleButton} text="폼 생성하러 가기" style="white" />
+      <Button onClick={handleButton} variant="white">
+        폼 생성하러 가기
+      </Button>
     </div>
   );
 };
