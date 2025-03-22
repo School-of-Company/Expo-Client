@@ -20,8 +20,10 @@ export async function GET() {
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
     const status = axiosError.response?.status || 500;
-    const message = axiosError.response?.data?.message || 'expoList failed';
-    return NextResponse.json({ error: message }, { status });
+    const message =
+      axiosError.response?.data?.message || '박람회 불러오기를 실패 했습니다.';
+
+    return NextResponse.json({ error: message, status }, { status });
   }
 }
 
@@ -43,6 +45,6 @@ export async function POST(request: Request) {
     const status = axiosError.response?.status;
     const message = axiosError.response?.data?.message;
 
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message, status }, { status });
   }
 }
