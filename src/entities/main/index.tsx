@@ -1,2 +1,2 @@
 export { default as ExpoListItem } from './ui/ExpoListItem';
-export { default as ExpoListSelect } from './ui/ExpoListSelect';
+export { default as Filter } from './ui/Filter';
