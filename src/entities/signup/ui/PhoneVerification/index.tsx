@@ -29,9 +29,9 @@ const PhoneVerification = ({
   checkSmsCode,
 }: PhoneVerificationProps) => (
   <div className="space-y-8">
-    <p className="text-h4 text-black">연락처</p>
+    <p className="text-h3b text-black">연락처</p>
     <div>
-      <div className="flex space-x-3">
+      <div className="flex space-x-16 space-y-4">
         <Input
           {...register('phoneNumber', {
             required: '연락처를 입력해주세요.',
@@ -49,7 +49,6 @@ const PhoneVerification = ({
         <Button
           onClick={() => sendSms(watch('phoneNumber'))}
           width="20%"
-          variant="white"
           disabled={
             !watch('phoneNumber') || isSendingSms || isSmsSent || isSmsVerified
           }
@@ -62,11 +61,13 @@ const PhoneVerification = ({
         </Button>
       </div>
       {errors.phoneNumber && (
-        <p className="text-caption2 text-error">{errors.phoneNumber.message}</p>
+        <p className="text-caption1r text-error">
+          {errors.phoneNumber.message}
+        </p>
       )}
     </div>
     <div>
-      <div className="flex space-x-3">
+      <div className="flex space-x-16 space-y-4">
         <Input
           {...register('code', {
             required: '인증 번호를 입력해주세요.',
@@ -85,14 +86,13 @@ const PhoneVerification = ({
           onClick={() => checkSmsCode()}
           width="20%"
           disabled={!watch('code') || isSmsVerified || !isCheckingCode}
-          variant="white"
           type="button"
         >
           확인
         </Button>
       </div>
       {errors.code && (
-        <p className="text-caption2 text-error">{errors.code.message}</p>
+        <p className="text-caption1r text-error">{errors.code.message}</p>
       )}
     </div>
   </div>

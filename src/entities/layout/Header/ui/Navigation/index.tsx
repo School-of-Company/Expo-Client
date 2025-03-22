@@ -20,7 +20,7 @@ const Navigation = () => {
             <item.icon fill={getColor(item.href)} />
           </div>
           <span
-            className="block mobile:hidden"
+            className="block text-caption1r mobile:hidden"
             style={{ color: getColor(item.href) }}
           >
             {item.label}
