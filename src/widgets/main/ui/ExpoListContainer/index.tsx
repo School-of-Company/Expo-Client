@@ -1,11 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ExpoListItem, ExpoListSelect } from '@/entities/main';
+import { ExpoListItem } from '@/entities/main';
 import withLoading from '@/shared/hocs/withLoading';
+import { sortedData } from '@/shared/model/sortedData';
 import { ExpoItem } from '@/shared/types/main/type';
+import SortFilter from '@/shared/ui/SortFilter';
 import { filterOptions } from '../../constant/filterOptions';
-import { sortExpoList } from '../../model/sortedExpoList';
 import { useExpoList } from '../../model/useExpoList';
 
 const ExpoListContainer = () => {
@@ -13,7 +14,7 @@ const ExpoListContainer = () => {
   const [selectedFilter, setSelectedFilter] = useState(filterOptions[0]);
 
   const sortedExpoList = useMemo<ExpoItem[]>(
-    () => sortExpoList(expoList, selectedFilter.value),
+    () => sortedData(expoList, selectedFilter.value),
     [expoList, selectedFilter.value],
   );
 
@@ -23,7 +24,7 @@ const ExpoListContainer = () => {
       <>
         <div className="mb-[30px] flex justify-between">
           <p className="text-h1m text-black">박람회 신청</p>
-          <ExpoListSelect
+          <SortFilter
             options={filterOptions}
             selectedOption={selectedFilter}
             setSelectedOption={setSelectedFilter}

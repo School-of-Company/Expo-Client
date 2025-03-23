@@ -71,49 +71,49 @@ const TableFooter = ({
 
   return (
     <div className={tableFooterStyles({ type })}>
-      <div className="flex gap-6">
-        <p className="text-body2 text-gray-500">{text}</p>
-        <p className="text-body2 text-main-600">{num}</p>
+      <div className="flex gap-20">
+        <p className="text-body2r text-gray-500">{text}</p>
+        <p className="text-body2r text-main-600">{num}</p>
       </div>
 
       {type === 'file' && (
-        <div className="flex items-center gap-6">
-          <p className="text-body1 text-gray-400">출력</p>
+        <div className="flex items-center gap-20">
+          <p className="text-body1r text-gray-400">출력</p>
           <SmallButton text="Excel" onClick={handleExcel} />
         </div>
       )}
 
       {type === 'print' && (
-        <div className="flex items-center gap-6">
-          <p className="text-body1 text-gray-400">출력</p>
+        <div className="flex items-center gap-20">
+          <p className="text-body1r text-gray-400">출력</p>
           <SmallButton text="명찰로 출력하기" onClick={handlePrintClick} />
         </div>
       )}
 
       {type === 'check' && (
-        <div className="mr-5 flex items-center gap-6">
-          <button className="flex gap-6" onClick={handleCheckClick}>
-            <p className="text-body1 text-gray-400">승인</p>
+        <div className="mr-5 flex items-center gap-24">
+          <button className="flex gap-20" onClick={handleCheckClick}>
+            <p className="text-body1r text-gray-400">승인</p>
             <Check />
           </button>
-          <button className="flex gap-6" onClick={handleDeleteClick}>
-            <p className="text-body1 text-gray-400">삭제</p>
+          <button className="flex gap-20" onClick={handleDeleteClick}>
+            <p className="text-body1r text-gray-400">삭제</p>
             <Trash />
           </button>
         </div>
       )}
 
       {type === 'delete' && (
-        <div className="mr-5 flex items-center gap-6">
-          <button className="flex gap-6" onClick={handleDeleteClick}>
-            <p className="text-body1 text-gray-400">삭제</p>
+        <div className="mr-5 flex items-center gap-24">
+          <button className="flex gap-20" onClick={handleDeleteClick}>
+            <p className="text-body1r text-gray-400">삭제</p>
             <Trash />
           </button>
         </div>
       )}
       {type === 'route' && (
-        <div className="flex items-center gap-6">
-          <p className="text-body1 text-gray-400">페이지 이동</p>
+        <div className="flex items-center gap-20">
+          <p className="text-body1r text-gray-400">페이지 이동</p>
           <SmallButton text="이동하기" onClick={handleNavigationClick} />
         </div>
       )}

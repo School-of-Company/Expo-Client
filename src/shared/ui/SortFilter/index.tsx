@@ -2,23 +2,22 @@
 
 import { useState } from 'react';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
-import { OptionType } from '../../model/types';
+import { OptionType } from '../../../entities/main/model/types';
 
-interface ExpoListSelectProps {
+interface sortFilterProps {
   options: OptionType[];
   selectedOption: OptionType;
   setSelectedOption: (option: OptionType) => void;
 }
 
-const ExpoListSelect = ({
+const SortFilter = ({
   options,
   selectedOption,
   setSelectedOption,
-}: ExpoListSelectProps) => {
+}: sortFilterProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleOptionClick = (option: OptionType) => {
-    console.log('선택된 옵션:', option);
     setSelectedOption(option);
     setIsOpen(false);
   };
@@ -51,4 +50,4 @@ const ExpoListSelect = ({
   );
 };
 
-export default ExpoListSelect;
+export default SortFilter;

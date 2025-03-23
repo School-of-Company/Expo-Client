@@ -30,14 +30,14 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
   return (
     <button
       onClick={() => handleSelectItem(data.id)}
-      className={`mr-5 flex w-[calc(100%-16px)] items-center justify-between rounded-sm border-1 border-solid border-gray-200 py-2 ${
+      className={`flex w-full items-center justify-between rounded-sm border-1 border-solid border-gray-200 py-8 ${
         isSelected ? 'bg-main-100' : 'bg-white'
       }`}
     >
       {Object.entries(data).map(([key, value]) => (
         <div
           key={key}
-          className="text-caption1 flex-1 overflow-hidden text-center text-gray-500"
+          className="flex-1 overflow-hidden text-center text-body2r text-gray-500"
           style={{
             display: '-webkit-box',
             WebkitLineClamp: 1,
