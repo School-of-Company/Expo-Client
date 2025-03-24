@@ -3,7 +3,7 @@ import { SignUpItem } from '@/shared/types/admin/type';
 
 export const getRequestSignUp = async (): Promise<SignUpItem[]> => {
   try {
-    const response = await axios.get('/api/admin');
+    const response = await axios.get('/api/server/admin');
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

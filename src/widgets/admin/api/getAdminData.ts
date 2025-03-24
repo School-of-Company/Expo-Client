@@ -3,7 +3,7 @@ import { AdminData } from '@/shared/types/admin/type';
 
 export const getAdminData = async (): Promise<AdminData> => {
   try {
-    const response = await axios.get('/api/admin/my');
+    const response = await axios.get('/api/server/admin/my');
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
