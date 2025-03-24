@@ -22,13 +22,17 @@ const SignUpForm = () => {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<SignUpData>();
   const [isSmsSent, setIsSmsSent] = useState(false);
   const [timer, setTimer] = useState(0);
   const [isSmsVerified, setIsSmsVerified] = useState(false);
 
-  const { mutate: signup } = useSignup();
+  const {
+    mutate: signup,
+    isPending: isSignupPending,
+    isSuccess: isSignupSucess,
+  } = useSignup();
   const { mutate: sendSms, isPending: isSendingSms } = useSendSms(
     setTimer,
     setIsSmsSent,
@@ -71,7 +75,7 @@ const SignUpForm = () => {
         />
       </div>
       <div className="mt-[160px]">
-        <Button disabled={isSubmitting} type="submit">
+        <Button disabled={isSignupPending || isSignupSucess} type="submit">
           확인
         </Button>
       </div>
