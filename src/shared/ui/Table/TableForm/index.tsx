@@ -43,6 +43,7 @@ const TableForm = <T extends { id: number }>({
         num={data.length}
         actions={actions}
         selectItem={selectItem}
+        setSelectItem={setSelectItem}
       />
     </div>
   );

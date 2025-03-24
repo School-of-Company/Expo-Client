@@ -3,6 +3,22 @@ import React from 'react';
 import { Check, Trash } from '@/shared/assets/icons';
 import SmallButton from '@/shared/ui/SmallButton';
 
+type ActionKeys =
+  | 'CheckBadge'
+  | 'DeleteBadge'
+  | 'PrintBadge'
+  | 'exportExcel'
+  | 'RouteActions';
+type ActionsType = Partial<Record<ActionKeys, (selectItem: number) => void>>;
+
+type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
+  num: number;
+  text?: string;
+  actions?: ActionsType;
+  selectItem: number | null;
+  setSelectItem: React.Dispatch<React.SetStateAction<number | null>>;
+};
+
 const tableFooterStyles = cva('flex justify-between items-center', {
   variants: {
     type: {
@@ -19,53 +35,18 @@ const tableFooterStyles = cva('flex justify-between items-center', {
   },
 });
 
-type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
-  num: number;
-  text?: string;
-  actions?: {
-    CheckBadge?: (selectItem: number) => void;
-    DeleteBadge?: (selectItem: number) => void;
-    PrintBadge?: (selectItem: number) => void;
-    exportExcel?: () => void;
-    RouteActions?: (selectItem: number) => void;
-  };
-  selectItem: number | null;
-};
-
 const TableFooter = ({
   text = '참가자 전체 인원',
   type = 'default',
-  actions,
+  actions = {},
   num,
   selectItem,
+  setSelectItem,
 }: TableFooterProps) => {
-  const handleCheckClick = () => {
-    if (selectItem !== null && actions?.CheckBadge) {
-      actions.CheckBadge(selectItem);
-    }
-  };
-
-  const handleDeleteClick = () => {
-    if (selectItem !== null && actions?.DeleteBadge) {
-      actions.DeleteBadge(selectItem);
-    }
-  };
-
-  const handlePrintClick = () => {
-    if (selectItem !== null && actions?.PrintBadge) {
-      actions.PrintBadge(selectItem);
-    }
-  };
-
-  const handleExcel = () => {
-    if (actions?.exportExcel) {
-      actions.exportExcel();
-    }
-  };
-
-  const handleNavigationClick = () => {
-    if (selectItem !== null && actions?.RouteActions) {
-      actions.RouteActions(selectItem);
+  const handleActionClick = (actionKey: ActionKeys) => {
+    if (selectItem !== null && actions[actionKey]) {
+      actions[actionKey]!(selectItem);
+      setSelectItem(null);
     }
   };
 
@@ -79,24 +60,36 @@ const TableFooter = ({
       {type === 'file' && (
         <div className="flex items-center gap-20">
           <p className="text-body1r text-gray-400">출력</p>
-          <SmallButton text="Excel" onClick={handleExcel} />
+          <SmallButton
+            text="Excel"
+            onClick={() => handleActionClick('exportExcel')}
+          />
         </div>
       )}
 
       {type === 'print' && (
         <div className="flex items-center gap-20">
           <p className="text-body1r text-gray-400">출력</p>
-          <SmallButton text="명찰로 출력하기" onClick={handlePrintClick} />
+          <SmallButton
+            text="명찰로 출력하기"
+            onClick={() => handleActionClick('PrintBadge')}
+          />
         </div>
       )}
 
       {type === 'check' && (
         <div className="mr-5 flex items-center gap-24">
-          <button className="flex gap-20" onClick={handleCheckClick}>
+          <button
+            className="flex gap-20"
+            onClick={() => handleActionClick('CheckBadge')}
+          >
             <p className="text-body1r text-gray-400">승인</p>
             <Check />
           </button>
-          <button className="flex gap-20" onClick={handleDeleteClick}>
+          <button
+            className="flex gap-20"
+            onClick={() => handleActionClick('DeleteBadge')}
+          >
             <p className="text-body1r text-gray-400">삭제</p>
             <Trash />
           </button>
@@ -105,7 +98,10 @@ const TableFooter = ({
 
       {type === 'delete' && (
         <div className="mr-5 flex items-center gap-24">
-          <button className="flex gap-20" onClick={handleDeleteClick}>
+          <button
+            className="flex gap-20"
+            onClick={() => handleActionClick('DeleteBadge')}
+          >
             <p className="text-body1r text-gray-400">삭제</p>
             <Trash />
           </button>
@@ -114,7 +110,10 @@ const TableFooter = ({
       {type === 'route' && (
         <div className="flex items-center gap-20">
           <p className="text-body1r text-gray-400">페이지 이동</p>
-          <SmallButton text="이동하기" onClick={handleNavigationClick} />
+          <SmallButton
+            text="이동하기"
+            onClick={() => handleActionClick('RouteActions')}
+          />
         </div>
       )}
     </div>
