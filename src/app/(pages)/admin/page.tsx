@@ -2,11 +2,7 @@ import React from 'react';
 import { Admin } from '@/views/admin';
 
 const page = () => {
-  return (
-    <div>
-      <Admin />
-    </div>
-  );
+  return <Admin />;
 };
 
 export default page;

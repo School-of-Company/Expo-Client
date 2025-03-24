@@ -2,7 +2,7 @@ import { Meta, StoryObj } from '@storybook/react';
 import Filter from './index';
 
 const config: Meta<typeof Filter> = {
-  title: 'Components/Common/Filter',
+  title: 'Components/Common/SortFilter',
   component: Filter,
 };
 
