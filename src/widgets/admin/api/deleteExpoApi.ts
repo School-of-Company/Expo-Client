@@ -5,7 +5,7 @@ export const deleteExpoApi = async (id: number): Promise<void> => {
     await axios.delete(`/api/server/expo/${id}`);
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '회원가입 거절 실패');
+      throw new Error(error.response.data.error || '박람회 삭제 실패');
     }
     throw error;
   }
