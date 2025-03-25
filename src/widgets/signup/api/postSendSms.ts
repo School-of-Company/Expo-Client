@@ -8,7 +8,7 @@ export const postSendSms = async (phoneNumber: string) => {
       return;
     }
 
-    const response = await axios.post('/api/auth/sms', { phoneNumber });
+    const response = await axios.post('/api/server/sms', { phoneNumber });
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

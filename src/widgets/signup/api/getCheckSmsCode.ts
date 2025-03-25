@@ -9,7 +9,7 @@ export const getCheckSmsCode = async (phoneNumber: string, code: string) => {
 
   try {
     const response = await axios.get(
-      `/api/auth/sms?phoneNumber=${phoneNumber}&code=${code}`,
+      `/api/server/sms?phoneNumber=${phoneNumber}&code=${code}`,
     );
     if (response.status === 200) {
       toast.success('인증 번호 확인에 성공했습니다.');

@@ -1,4 +1,5 @@
 import { AxiosError } from 'axios';
+import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { apiClient } from '@/shared/libs/apiClient';
 
@@ -23,7 +24,9 @@ export async function PUT(req: NextRequest) {
 }
 
 async function handleRequest(req: NextRequest) {
-  const url = `${process.env.NEXT_PUBLIC_BASE_URL}${req.nextUrl.pathname.replace('/api/server', '')}`;
+  const cookieStore = cookies();
+  const accessToken = cookieStore.get('accessToken')?.value;
+  const url = `${process.env.NEXT_PUBLIC_BASE_URL}${req.nextUrl.pathname.replace('/api/server/token', '')}`;
 
   const method = req.method;
 
@@ -48,6 +51,9 @@ async function handleRequest(req: NextRequest) {
       method,
       params,
       data,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     console.log(response.status);
