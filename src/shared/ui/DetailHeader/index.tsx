@@ -12,7 +12,7 @@ const DetailHeader = ({ headerTitle }: Props) => {
   const router = useRouter();
 
   return (
-    <div className="relative flex h-[60px] items-center justify-between">
+    <div className="flex h-[60px] items-center justify-between gap-1.5">
       <label className="hover:cursor-pointer" onClick={() => router.back()}>
         <ArrowLeft size="36" />
       </label>
