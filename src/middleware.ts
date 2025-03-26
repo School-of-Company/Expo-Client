@@ -1,53 +1,22 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const MANAGE_RESTRICTED_PATHS = [
-  /^\/signin$/,
-  /^\/signUp$/,
-  /^\/application\/.+\/(STANDARD|TRAINEE)$/,
-];
-
-const USER_RESTRICTED_PATHS = [
-  /^\/admin$/,
-  /^\/exhibition\/create$/,
-  /^\/exhibition\/edit(\/.*)?$/,
-  /^\/expo-manage\/.+$/,
-  /^\/name-tag\/.+$/,
-  /^\/sms\/.+\/(STANDARD|TRAINEE)$/,
-  /^\/program(\/.*)?$/,
-];
-
-function handleApiRole(request: NextRequest): NextResponse {
-  const requestHeaders = new Headers(request.headers);
-  const role = request.cookies.get('accessToken') ? 'manage' : 'user';
-  requestHeaders.set('role', role);
-
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
-}
-
-function isPathMatch(pathname: string, patterns: RegExp[]): boolean {
-  return patterns.some((pattern) => pattern.test(pathname));
-}
-
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  if (pathname === '/api/role') {
-    return handleApiRole(request);
-  }
-
   const accessToken = request.cookies.get('accessToken');
+  const refreshToken = request.cookies.get('refreshToken');
+  const url = request.nextUrl.pathname;
 
-  if (!accessToken && isPathMatch(pathname, USER_RESTRICTED_PATHS)) {
-    return NextResponse.redirect(new URL('/', request.url));
+  if (
+    url.startsWith('/signin') ||
+    url.startsWith('/signUp') ||
+    url.startsWith('/application/STANDARD') ||
+    url.startsWith('/application/TRAINEE')
+  ) {
+    return NextResponse.next();
   }
 
-  if (accessToken && isPathMatch(pathname, MANAGE_RESTRICTED_PATHS)) {
-    return NextResponse.redirect(new URL('/', request.url));
+  if (!accessToken || !refreshToken) {
+    return NextResponse.redirect(new URL('/signin', request.url));
   }
 
   return NextResponse.next();
@@ -55,7 +24,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/api/role',
+    '/',
     '/signin',
     '/signUp',
     '/admin',
