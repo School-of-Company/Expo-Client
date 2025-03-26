@@ -6,6 +6,22 @@ import { toast } from 'react-toastify';
 import { XMark } from '@/shared/assets/icons';
 import Button from '../Button';
 
+const CATEGORIES = {
+  EXHIBITION: '박람회',
+  FORM: '폼',
+  SURVEY: '만족도 조사',
+};
+
+const FORM_TYPES = {
+  APPLICATION: 'application',
+  SURVEY: 'survey',
+};
+
+const USER_TYPES = {
+  STANDARD: 'STANDARD',
+  TRAINEE: 'TRAINEE',
+};
+
 interface Props {
   text: string;
   onClose: () => void;
@@ -19,17 +35,17 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   const [selectedFormType, setSelectedFormType] = useState<string | null>(null);
 
   const handleCategorySelect = (category: string) => {
-    if (category === '박람회') {
+    if (category === CATEGORIES.EXHIBITION) {
       router.push(`/exhibition/edit/${params}`);
       return;
     }
 
     setSelectedCategory(category);
 
-    if (category === '폼') {
-      setSelectedFormType('application');
-    } else if (category === '만족도 조사') {
-      setSelectedFormType('survey');
+    if (category === CATEGORIES.FORM) {
+      setSelectedFormType(FORM_TYPES.APPLICATION);
+    } else if (category === CATEGORIES.SURVEY) {
+      setSelectedFormType(FORM_TYPES.SURVEY);
     }
   };
 
@@ -50,6 +66,79 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
     onClose();
   };
 
+  const renderButtons = () => {
+    if (modalType === 'message') {
+      return [
+        {
+          label: '참가자',
+          onClick: () => handleFinalSelection(USER_TYPES.STANDARD),
+        },
+        {
+          label: '연수자',
+          onClick: () => handleFinalSelection(USER_TYPES.TRAINEE),
+        },
+      ];
+    }
+
+    if (modalType === 'edit' && !selectedCategory) {
+      return [
+        {
+          label: CATEGORIES.EXHIBITION,
+          onClick: () => handleCategorySelect(CATEGORIES.EXHIBITION),
+        },
+        {
+          label: CATEGORIES.FORM,
+          onClick: () => handleCategorySelect(CATEGORIES.FORM),
+        },
+        {
+          label: CATEGORIES.SURVEY,
+          onClick: () => handleCategorySelect(CATEGORIES.SURVEY),
+        },
+      ];
+    }
+
+    if (modalType === 'edit' && selectedCategory) {
+      return [
+        {
+          label: '참가자',
+          onClick: () => handleFinalSelection(USER_TYPES.STANDARD),
+        },
+        {
+          label: '연수자',
+          onClick: () => handleFinalSelection(USER_TYPES.TRAINEE),
+        },
+      ];
+    }
+
+    if (modalType === 'share' && !selectedCategory) {
+      return [
+        {
+          label: CATEGORIES.FORM,
+          onClick: () => handleCategorySelect(CATEGORIES.FORM),
+        },
+        {
+          label: CATEGORIES.SURVEY,
+          onClick: () => handleCategorySelect(CATEGORIES.SURVEY),
+        },
+      ];
+    }
+
+    if (modalType === 'share' && selectedCategory) {
+      return [
+        {
+          label: '참가자',
+          onClick: () => handleFinalSelection(USER_TYPES.STANDARD),
+        },
+        {
+          label: '연수자',
+          onClick: () => handleFinalSelection(USER_TYPES.TRAINEE),
+        },
+      ];
+    }
+
+    return [];
+  };
+
   return (
     <div className="w-[656px] rounded-sm bg-white p-28">
       <div className="flex flex-col gap-[90px]">
@@ -60,100 +149,11 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
           </label>
         </div>
         <div className="flex gap-12">
-          {modalType === 'message' && (
-            <>
-              <Button
-                variant="white"
-                onClick={() => handleFinalSelection('STANDARD')}
-              >
-                참가자
-              </Button>
-              <Button
-                variant="white"
-                onClick={() => handleFinalSelection('TRAINEE')}
-              >
-                연수자
-              </Button>
-            </>
-          )}
-
-          {modalType === 'edit' && selectedCategory === null && (
-            <>
-              <Button
-                variant="white"
-                onClick={() => handleCategorySelect('박람회')}
-              >
-                박람회
-              </Button>
-              <Button
-                variant="white"
-                onClick={() => handleCategorySelect('폼')}
-              >
-                폼
-              </Button>
-              <Button
-                variant="white"
-                onClick={() => handleCategorySelect('만족도 조사')}
-              >
-                만족도 조사
-              </Button>
-            </>
-          )}
-
-          {modalType === 'edit' && selectedCategory && (
-            <>
-              {selectedCategory !== '박람회' && (
-                <>
-                  <Button
-                    variant="white"
-                    onClick={() => handleFinalSelection('STANDARD')}
-                  >
-                    참가자
-                  </Button>
-                  <Button
-                    variant="white"
-                    onClick={() => handleFinalSelection('TRAINEE')}
-                  >
-                    연수자
-                  </Button>
-                </>
-              )}
-            </>
-          )}
-
-          {modalType === 'share' && selectedCategory === null && (
-            <>
-              <Button
-                variant="white"
-                onClick={() => handleCategorySelect('폼')}
-              >
-                폼
-              </Button>
-              <Button
-                variant="white"
-                onClick={() => handleCategorySelect('만족도 조사')}
-              >
-                만족도 조사
-              </Button>
-            </>
-          )}
-
-          {modalType === 'share' && selectedCategory && (
-            <>
-              <Button
-                variant="white"
-                onClick={() => handleFinalSelection('STANDARD')}
-              >
-                참가자
-              </Button>
-              <Button
-                variant="white"
-                onClick={() => handleFinalSelection('TRAINEE')}
-              >
-                연수자
-              </Button>
-            </>
-          )}
+          {renderButtons().map((button, index) => (
+            <Button key={index} variant="white" onClick={button.onClick}>
+              {button.label}
+            </Button>
+          ))}
         </div>
       </div>
     </div>
