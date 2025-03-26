@@ -37,12 +37,19 @@ export const useEditSurveyForm = (
   type: 'STANDARD' | 'TRAINEE',
   router: AppRouterInstance,
 ) => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ['editSurveyForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
       editSurveyForm({ data: formattedData, id }),
     onSuccess: () => {
       toast.success('만족도 조사 폼이 수정되었습니다.');
+      queryClient.invalidateQueries({
+        queryKey: ['getSurveyForm', id, type],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['getEditSurveyForm', id, type],
+      });
       router.push(`/expo-detail/${id}`);
     },
     onError: () => {
