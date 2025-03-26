@@ -13,13 +13,10 @@ const DetailHeader = ({ headerTitle }: Props) => {
 
   return (
     <div className="relative flex h-[60px] items-center justify-between">
-      <label
-        className="absolute left-0 hover:cursor-pointer"
-        onClick={() => router.back()}
-      >
-        <ArrowLeft />
+      <label className="hover:cursor-pointer" onClick={() => router.back()}>
+        <ArrowLeft size="36" />
       </label>
-      <p className="mobile:text-body1 flex-grow text-center text-h1m text-black">
+      <p className="mobile:text-body1 flex-grow text-h1m text-black">
         {headerTitle}
       </p>
     </div>
