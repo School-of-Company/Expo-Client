@@ -22,7 +22,6 @@ const ExpoDetailLayout = ({
   };
 }) => {
   const date = `${expoDetail?.startedDay} ~ ${expoDetail?.finishedDay}`;
-
   return (
     <div className="ml-[20px] mt-[48px] flex flex-col space-y-9">
       <DetailHeader headerTitle={expoDetail?.title} />
@@ -35,8 +34,12 @@ const ExpoDetailLayout = ({
           width={752}
           height={360}
         />
-        <ContentText title="소개 글" content={expoDetail?.description} />
-        <ContentText title="모집 기간" content={date} />
+        <div>
+          <ContentText title="소개 글" content={expoDetail?.description} />
+          <span className="mt-[1.12rem] text-caption1r text-gray-600">
+            모집 기간&nbsp; {date}
+          </span>
+        </div>
         {expoStandard?.length > 0 && (
           <ContentListText data={expoStandard} title="참여자 연수" />
         )}
