@@ -58,9 +58,14 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       router.push(`/form/edit/${params}?type=${type}&mode=${selectedFormType}`);
     } else if (modalType === 'share' && selectedFormType) {
       const url = `${baseURL}/application/${params}?formType=${selectedFormType}&userType=${type}&applicationType=register`;
-      navigator.clipboard.writeText(url).then(() => {
-        toast.success('URL이 클립보드에 복사되었습니다.');
-      });
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          toast.success('URL이 클립보드에 복사되었습니다.');
+        })
+        .catch(() => {
+          toast.error('URL 복사에 실패했습니다. 다시 시도해주세요.');
+        });
     }
 
     onClose();
