@@ -3,7 +3,7 @@ import { ExpoItem } from '@/shared/types/admin/type';
 
 export const getExpoList = async (): Promise<ExpoItem[]> => {
   try {
-    const response = await axios.get('/api/server/expo');
+    const response = await axios.get('/api/server/token/expo');
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

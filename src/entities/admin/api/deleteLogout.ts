@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const deleteLogout = async () => {
   try {
-    const response = await axios.delete('/api/auth/logout');
+    const response = await axios.delete('/api/server/token/auth');
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

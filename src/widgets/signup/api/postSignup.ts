@@ -3,7 +3,7 @@ import { SignUpData } from '@/shared/types/signup/type';
 
 export const postSignup = async (data: SignUpData) => {
   try {
-    const response = await axios.post('/api/auth/signup', data);
+    const response = await axios.post('/api/server/auth', data);
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
