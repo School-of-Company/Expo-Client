@@ -44,7 +44,7 @@ const ExpoDetailLayout = ({
           <ContentListText data={expoStandard} title="참여자 연수" />
         )}
         {expoTraining?.essential.length > 0 && (
-          <ContentListText data={expoTraining?.essential} title="필수 연수" /> // 여기
+          <ContentListText data={expoTraining?.essential} title="필수 연수" />
         )}
         {expoTraining?.choice.length > 0 && (
           <ContentListText data={expoTraining.choice} title="선택 연수" />
