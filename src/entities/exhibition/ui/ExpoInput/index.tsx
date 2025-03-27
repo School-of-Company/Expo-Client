@@ -87,7 +87,7 @@ const ExpoInput = ({
                 <button
                   onClick={() => handleTrainingModal(index)}
                   type="button"
-                  className="text-body4 rounded-sm border-1 border-solid border-gray-200 px-2 py-1 text-gray-300"
+                  className="text-body5 rounded-sm border-1 border-solid border-gray-200 px-3 py-1 text-gray-300"
                 >
                   수정 하기
                 </button>
