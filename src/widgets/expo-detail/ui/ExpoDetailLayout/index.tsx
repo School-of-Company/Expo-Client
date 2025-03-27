@@ -44,13 +44,16 @@ const ExpoDetailLayout = ({
           <ContentListText data={expoStandard} title="참여자 연수" />
         )}
         {expoTraining?.essential.length > 0 && (
-          <ContentListText data={expoTraining?.essential} title="필수 연수" />
+          <ContentListText data={expoTraining?.essential} title="필수 연수" /> // 여기
         )}
         {expoTraining?.choice.length > 0 && (
           <ContentListText data={expoTraining.choice} title="선택 연수" />
         )}
-        <div className="space-y-4">
-          <ContentText title="장소 지도" content={expoDetail?.location} />
+        <div className="flex flex-col gap-[0.88rem] space-y-4">
+          <ContentText
+            title="장소"
+            content={`주소 : ${expoDetail?.location}`}
+          />
           <KakaoMap latitude={expoDetail?.x} longitude={expoDetail?.y} />
         </div>
       </div>
