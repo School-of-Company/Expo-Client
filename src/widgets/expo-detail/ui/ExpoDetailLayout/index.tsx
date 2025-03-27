@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { ShowLocation } from '@/entities/expo-detail';
 import ContentListText from '@/entities/expo-detail/ui/ContentListText';
 import ContentText from '@/entities/expo-detail/ui/ContentText';
 import KakaoMap from '@/entities/expo-detail/ui/KaKaoMap';
@@ -50,9 +51,9 @@ const ExpoDetailLayout = ({
           <ContentListText data={expoTraining.choice} title="선택 연수" />
         )}
         <div className="flex flex-col gap-[0.88rem] space-y-4">
-          <ContentText
-            title="장소"
-            content={`주소 : ${expoDetail?.location}`}
+          <ShowLocation
+            address={`${expoDetail.x}${expoDetail.y}`}
+            detailAddress={expoDetail.location}
           />
           <KakaoMap latitude={expoDetail?.x} longitude={expoDetail?.y} />
         </div>
