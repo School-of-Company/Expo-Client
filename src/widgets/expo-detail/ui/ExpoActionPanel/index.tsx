@@ -77,7 +77,7 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
               </Button>
               {isMore ? (
                 <div
-                  className="mt-[0.5rem] flex w-full justify-center gap-[0.5rem] text-h3r text-main-600"
+                  className="mt-[0.5rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-main-600"
                   onClick={() => setIsMore(false)}
                 >
                   <span>접기</span>
@@ -86,7 +86,7 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
               ) : (
                 <div
                   onClick={() => setIsMore(true)}
-                  className="mt-[0.5rem] flex w-full justify-center gap-[0.5rem] text-h3r text-gray-400"
+                  className="mt-[0.5rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-gray-400"
                 >
                   <span>더보기</span>
                   <ArrowDown fill="#A7A7A7" />
