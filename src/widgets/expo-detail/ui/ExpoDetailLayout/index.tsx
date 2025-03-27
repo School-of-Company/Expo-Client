@@ -27,8 +27,8 @@ const ExpoDetailLayout = ({
       <DetailHeader headerTitle={expoDetail?.title} />
       <div className="space-y-[36px]">
         <Image
-          src={expoDetail?.coverImage}
-          alt="TestClubImg"
+          src={expoDetail.coverImage}
+          alt="expoImage"
           objectFit="cover"
           className="rounded-md"
           width={752}
