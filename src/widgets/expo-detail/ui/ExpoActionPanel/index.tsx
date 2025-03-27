@@ -39,7 +39,20 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
               </Button>
               <Button variant="white">폼 생성하기</Button>
               <Button variant="white">통계 확인하기</Button>
-              {isMore && (
+              {!isMore && (
+                <Button
+                  variant="gray"
+                  onClick={() =>
+                    handleOpenModal('edit', '수정할 항목을 선택하세요.')
+                  }
+                >
+                  수정하기
+                </Button>
+              )}
+              <div
+                style={{ maxHeight: isMore ? '30rem' : '0px' }}
+                className="flex flex-col gap-8 overflow-hidden transition-[max-height] duration-300 ease-in-out"
+              >
                 <Button
                   onClick={() =>
                     router.push(`/program/${params}?navigation=standard`)
@@ -48,16 +61,12 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
                 >
                   프로그램
                 </Button>
-              )}
-              {isMore && (
                 <Button
                   variant="white"
                   onClick={() => router.push(`/name-tag/${params}`)}
                 >
                   QR 조회하기
                 </Button>
-              )}
-              {isMore && (
                 <Button
                   variant="white"
                   onClick={() =>
@@ -66,18 +75,20 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
                 >
                   문자 보내기
                 </Button>
-              )}
-              <Button
-                onClick={() =>
-                  handleOpenModal('edit', '수정할 항목을 선택하세요.')
-                }
-                variant="gray"
-              >
-                수정하기
-              </Button>
+                {isMore && (
+                  <Button
+                    onClick={() =>
+                      handleOpenModal('edit', '수정할 항목을 선택하세요.')
+                    }
+                    variant="gray"
+                  >
+                    수정하기
+                  </Button>
+                )}
+              </div>
               {isMore ? (
                 <div
-                  className="mt-[0.5rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-main-600"
+                  className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-main-600"
                   onClick={() => setIsMore(false)}
                 >
                   <span>접기</span>
@@ -86,7 +97,7 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
               ) : (
                 <div
                   onClick={() => setIsMore(true)}
-                  className="mt-[0.5rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-gray-400"
+                  className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-gray-400"
                 >
                   <span>더보기</span>
                   <ArrowDown fill="#A7A7A7" />
