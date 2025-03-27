@@ -111,7 +111,7 @@ const ExhibitionForm = ({
           />
         </div>
         <div className="space-y-[10px]">
-          <p className="text-h3b text-black">모집기간</p>
+          <p className="text-h3b text-black">박람회 기간</p>
           <div className="space-y-2">
             <div className="flex items-center gap-7">
               <Input
@@ -152,7 +152,7 @@ const ExhibitionForm = ({
           row={1}
         />
         <div className="space-y-[10px]">
-          <p className="text-h3b text-black">연수자 연수 종류</p>
+          <p className="text-h3b text-black">참가자 연수 종류</p>
           <TrainingModule
             fields={trainingFields.fields}
             append={trainingFields.append}
@@ -164,7 +164,7 @@ const ExhibitionForm = ({
           />
         </div>
         <div className="space-y-[10px]">
-          <p className="text-h3b text-black">참가자 연수 종류</p>
+          <p className="text-h3b text-black">연수자 프로그램</p>
           <TrainingModule
             fields={standardFields.fields}
             append={standardFields.append}
