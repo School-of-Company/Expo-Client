@@ -19,7 +19,7 @@ const ExpoDetail = ({ params }: { params: number }) => {
     children: (
       <div className="flex h-screen flex-col mobile:gap-0">
         <Header />
-        <div className="flex justify-center gap-[20px] px-5 py-[30px] mobile:flex-col">
+        <div className="flex justify-center gap-[2.5rem] px-5 py-[30px] mobile:flex-col">
           <div className="w-full max-w-[842px]">
             <ExpoDetailLayout
               expoDetail={expoDetail}

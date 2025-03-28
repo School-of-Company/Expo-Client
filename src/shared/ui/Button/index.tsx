@@ -4,7 +4,7 @@ import { cva } from 'class-variance-authority';
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'white' | 'main100';
+  variant?: 'default' | 'white' | 'gray';
   width?: string;
 }
 
@@ -15,8 +15,7 @@ const buttonStyles = cva(
       variant: {
         default: 'bg-main-600 text-white',
         white: 'border-1 border-solid border-main-600 text-main-600',
-        main100:
-          'bg-main-100 border-1 border-solid border-main-600 text-main-600',
+        gray: 'bg-gray-100 text-gray-700',
       },
       disabled: {
         true: 'bg-gray-400 opacity-50 cursor-not-allowed',

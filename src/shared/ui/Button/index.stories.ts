@@ -28,12 +28,3 @@ export const White: Story = {
     width: '100%',
   },
 };
-
-export const Main100: Story = {
-  args: {
-    children: '확인',
-    variant: 'main100',
-    disabled: false,
-    width: '100%',
-  },
-};
