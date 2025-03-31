@@ -25,9 +25,9 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
   };
 
   return (
-    <div>
+    <div className="w-full max-w-[210px] mobile:max-w-full">
       <div className="flex flex-col items-center gap-24">
-        <div className="h-fit w-[210px] space-y-[26px] rounded-sm border-1 border-solid border-gray-200 p-[18px] mobile:w-full mobile:border-none mobile:px-[16px]">
+        <div className="h-fit w-[100%] space-y-[26px] rounded-sm border-1 border-solid border-gray-200 p-[1.125rem] mobile:w-full mobile:border-none mobile:px-[16px]">
           <div className="space-y-2">
             <div className="flex w-full flex-col gap-8 space-y-2 mobile:space-y-2">
               <div className="flex flex-col gap-8 space-y-2 mobile:flex mobile:gap-5 mobile:space-y-0" />
@@ -51,7 +51,7 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
               )}
               <div
                 style={{ maxHeight: isMore ? '30rem' : '0px' }}
-                className="flex flex-col gap-8 overflow-hidden transition-[max-height] duration-300 ease-in-out"
+                className="flex flex-col gap-8 overflow-hidden transition-[max-height] duration-300 ease-in-out mobile:flex mobile:space-y-0"
               >
                 <Button
                   onClick={() =>
