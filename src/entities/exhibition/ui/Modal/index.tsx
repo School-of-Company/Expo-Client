@@ -36,12 +36,14 @@ const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
             />
           </div>
 
-          <CheckBox
-            text="필수"
-            name={`trainings.${index}.category`}
-            setValue={setValue}
-            watch={watch}
-          />
+          {fieldName === 'trainings' && (
+            <CheckBox
+              text="필수"
+              name={`trainings.${index}.category`}
+              setValue={setValue}
+              watch={watch}
+            />
+          )}
         </div>
         <Button onClick={() => setModal(false)} type="button">
           확인
