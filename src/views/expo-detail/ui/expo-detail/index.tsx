@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import withLoading from '@/shared/hocs/withLoading';
-
+import { FormTypeModal } from '@/shared/ui';
 import ExpoActionPanel from '@/widgets/expo-detail/ui/ExpoActionPanel';
 import ExpoDetailLayout from '@/widgets/expo-detail/ui/ExpoDetailLayout';
 import { Header } from '@/widgets/layout';
+import { ModalLayout } from '@/widgets/layout';
 import { useExpoQueries } from '../../model/useExpoDetail';
 
 const ExpoDetail = ({ params }: { params: number }) => {
@@ -14,21 +15,54 @@ const ExpoDetail = ({ params }: { params: number }) => {
   const expoDetail = expoDetailQuery.data!;
   const expoStandard = expoStandardQuery.data!;
   const expoTraining = expoTrainingQuery.data!;
+
+  // 모달 관련 상태 및 핸들러
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState('');
+  const [modalType, setModalType] = useState<string | null>(null);
+
+  const openModal = (type: string, content: string) => {
+    setModalType(type);
+    setModalContent(content);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalContent('');
+    setModalType(null);
+  };
+
   return withLoading({
     isLoading,
     children: (
-      <div className="flex h-screen flex-col overflow-x-hidden mobile:gap-0">
+      <div className="flex min-h-screen flex-col">
         <Header />
-        <div className="flex justify-center gap-[2.5rem] px-5 py-[30px] mobile:flex-col">
-          <div className="w-full max-w-[842px]">
-            <ExpoDetailLayout
-              expoDetail={expoDetail}
-              expoStandard={expoStandard}
-              expoTraining={expoTraining}
-            />
+        <div className="flex w-full items-center justify-center px-16 py-[40px]">
+          <div className="flex w-full max-w-[1000px] gap-40 tablet:w-full tablet:max-w-none tablet:flex-col">
+            <div className="w-full max-w-[750px] tablet:w-full tablet:max-w-none">
+              <ExpoDetailLayout
+                expoDetail={expoDetail}
+                expoStandard={expoStandard}
+                expoTraining={expoTraining}
+                openModal={openModal}
+              />
+            </div>
+            <div className="w-full max-w-[210px] tablet:w-full tablet:max-w-none">
+              <ExpoActionPanel params={params} openModal={openModal} />
+            </div>
           </div>
-          <ExpoActionPanel params={params} />
         </div>
+        {isModalOpen && (
+          <ModalLayout>
+            <FormTypeModal
+              text={modalContent}
+              onClose={closeModal}
+              params={params}
+              modalType={modalType}
+            />
+          </ModalLayout>
+        )}
       </div>
     ),
   });

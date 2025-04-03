@@ -1,4 +1,4 @@
-import React, { useRef, useState, useLayoutEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 interface Props {
   title: string;
@@ -6,31 +6,33 @@ interface Props {
 }
 
 const ContentText = ({ title, content }: Props) => {
-  const [more, setMore] = useState(false);
   const [show, setShow] = useState(false);
+  const [isExpandable, setIsExpandable] = useState(false);
   const ContentRef = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
-    if (ContentRef.current)
-      setShow(ContentRef.current.scrollHeight > 5 * 1.6 * 16);
+  useEffect(() => {
+    if (ContentRef.current) {
+      setIsExpandable(ContentRef.current.scrollHeight > 120);
+    }
   }, [content]);
 
   return (
-    <div className="flex flex-col gap-[0.88rem] space-y-4 overflow-hidden">
+    <div className="flex flex-col gap-14 overflow-hidden">
       <p className="text-body1b text-gray-600">{title}</p>
       <div>
         <p
           ref={ContentRef}
-          className={`text-body2 ${!more && 'line-clamp-5'} overflow-hidden break-words text-gray-400`}
+          className={`text-body2r ${!show && 'line-clamp-5'} overflow-hidden break-words text-gray-400`}
+          style={{ whiteSpace: 'pre-line' }}
         >
           {content}
         </p>
-        {show && (
+        {isExpandable && (
           <button
-            className={`text-left text-caption1r ${more ? 'text-main-600' : 'text-gray-300'}`}
-            onClick={() => setMore(!more)}
+            className={`text-left text-caption1r ${show ? 'text-main-600' : 'text-gray-300'}`}
+            onClick={() => setShow(!show)}
           >
-            {more ? '접기' : '더보기'}
+            {show ? '접기' : '더보기'}
           </button>
         )}
       </div>

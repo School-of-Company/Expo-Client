@@ -132,6 +132,7 @@ const config: Config = {
     },
     screens: {
       mobile: { max: '640px' },
+      tablet: { max: '1024px' },
     },
   },
   plugins: [require('tailwindcss-animate')],

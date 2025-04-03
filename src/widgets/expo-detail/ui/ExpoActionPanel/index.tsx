@@ -1,58 +1,64 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
 import { Share } from '@/shared/assets/svg';
-import { Button, FormTypeModal } from '@/shared/ui';
-import { ModalLayout } from '@/widgets/layout';
-import { useExpoActionPanel } from '../../model/useExpoActionPanel';
+import { Button } from '@/shared/ui';
 
 interface ExpoActionPanelProps {
   params: number;
+  openModal: (type: string, content: string) => void;
 }
 
-const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
+const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
   const router = useRouter();
-  const { isModalOpen, modalContent, openModal, closeModal } =
-    useExpoActionPanel();
-  const [modalType, setModalType] = useState<string | null>(null);
   const [isMore, setIsMore] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const handleOpenModal = (type: string, content: string) => {
-    setModalType(type);
-    openModal(content);
-  };
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   return (
-    <div className="w-full max-w-[210px] mobile:max-w-full">
-      <div className="flex flex-col items-center gap-24">
-        <div className="h-fit w-[100%] space-y-[26px] rounded-sm border-1 border-solid border-gray-200 p-[1.125rem] mobile:w-full mobile:border-none mobile:px-[16px]">
-          <div className="space-y-2">
-            <div className="flex w-full flex-col gap-8 space-y-2 mobile:space-y-2">
-              <div className="flex flex-col gap-8 space-y-2 mobile:flex mobile:gap-5 mobile:space-y-0" />
+    <div className="w-full">
+      <div className="flex w-full flex-col items-center gap-24">
+        <div className="h-fit w-full rounded-sm border-1 border-solid border-gray-200 p-[18px] tablet:w-full tablet:border-none tablet:px-0">
+          <div className="w-full space-y-8">
+            <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
               <Button
                 onClick={() => router.push(`/expo-manage/${params}`)}
-                variant={isMore ? 'default' : 'white'}
+                variant="white"
               >
                 조회하기
               </Button>
               <Button variant="white">폼 생성하기</Button>
+            </div>
+            <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
               <Button variant="white">통계 확인하기</Button>
-              {!isMore && (
-                <Button
-                  variant="gray"
-                  onClick={() =>
-                    handleOpenModal('edit', '수정할 항목을 선택하세요.')
-                  }
-                >
-                  수정하기
-                </Button>
-              )}
-              <div
-                style={{ maxHeight: isMore ? '30rem' : '0px' }}
-                className="flex flex-col gap-8 overflow-hidden transition-[max-height] duration-300 ease-in-out mobile:flex mobile:space-y-0"
+              <Button
+                variant="white"
+                onClick={() => router.push(`/name-tag/${params}`)}
               >
+                QR 조회하기
+              </Button>
+            </div>
+            <div
+              style={{
+                maxHeight: isMobile || isMore ? 'none' : '0px',
+              }}
+              className={`flex flex-col gap-8 overflow-hidden`}
+            >
+              <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
                 <Button
                   onClick={() =>
                     router.push(`/program/${params}?navigation=standard`)
@@ -63,68 +69,54 @@ const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
                 </Button>
                 <Button
                   variant="white"
-                  onClick={() => router.push(`/name-tag/${params}`)}
-                >
-                  QR 조회하기
-                </Button>
-                <Button
-                  variant="white"
-                  onClick={() =>
-                    handleOpenModal('message', '대상을 선택하세요.')
-                  }
+                  onClick={() => openModal('message', '대상을 선택하세요.')}
                 >
                   문자 보내기
                 </Button>
-                {isMore && (
-                  <Button
-                    onClick={() =>
-                      handleOpenModal('edit', '수정할 항목을 선택하세요.')
-                    }
-                    variant="gray"
-                  >
-                    수정하기
-                  </Button>
-                )}
               </div>
-              {isMore ? (
-                <div
-                  className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-main-600"
-                  onClick={() => setIsMore(false)}
-                >
-                  <span>접기</span>
-                  <ArrowUp fill="#448FFF" />
-                </div>
-              ) : (
-                <div
-                  onClick={() => setIsMore(true)}
-                  className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-gray-400"
-                >
-                  <span>더보기</span>
-                  <ArrowDown fill="#A7A7A7" />
-                </div>
-              )}
+              <Button
+                variant="gray"
+                onClick={() => openModal('edit', '수정할 항목을 선택하세요.')}
+              >
+                수정하기
+              </Button>
             </div>
+            {!isMobile && (
+              <>
+                {isMore ? (
+                  <div
+                    className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-main-600"
+                    onClick={() => setIsMore(false)}
+                  >
+                    <span>접기</span>
+                    <ArrowUp fill="#448FFF" />
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => setIsMore(true)}
+                    className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-gray-400"
+                  >
+                    <span>더보기</span>
+                    <ArrowDown fill="#A7A7A7" />
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
-        <button
-          type="button"
-          className="flex items-center gap-10"
-          onClick={() => handleOpenModal('share', '공유할 항목을 선택하세요.')}
-        >
-          <Share />
-          <p className="text-h3r text-gray-400">공유하기</p>
-        </button>
+        {!isMobile && (
+          <button
+            type="button"
+            className="flex items-center gap-10"
+            onClick={
+              () => openModal('share', '공유할 항목을 선택하세요.') // 수정
+            }
+          >
+            <Share />
+            <p className="text-h3r text-gray-400">공유하기</p>
+          </button>
+        )}
       </div>
-      {isModalOpen && (
-        <ModalLayout>
-          <FormTypeModal
-            text={modalContent}
-            onClose={closeModal}
-            params={params}
-            modalType={modalType}
-          />
-        </ModalLayout>
-      )}
     </div>
   );
 };
