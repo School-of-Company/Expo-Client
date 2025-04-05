@@ -19,14 +19,14 @@ const CheckBox = ({ text, name, setValue, watch }: CheckBoxProps) => {
   };
 
   return (
-    <div className="flex items-center gap-5">
-      <p className="text-body4 text-gray-500">{text}</p>
+    <div className="flex shrink-0 items-center gap-12">
       <div
-        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded border border-solid border-gray-200 bg-white"
+        className="flex h-20 w-20 cursor-pointer items-center justify-center rounded border border-solid border-gray-200 bg-white"
         onClick={toggleCheck}
       >
         {isChecked && <Check />}
       </div>
+      <p className="whitespace-nowrap text-caption1r text-gray-500">{text}</p>
     </div>
   );
 };

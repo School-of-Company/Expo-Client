@@ -41,23 +41,20 @@ const ExpoInput = ({
         />
       )}
       {fields.length > 0 && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-12">
           {fields.map((field, index) => (
             <div key={field.id} className="flex items-center justify-between">
               <div className="flex flex-grow items-center gap-6">
                 <p className="text-body4 text-gray-500">{index + 1}</p>
                 <input
-                  {...register(`${fieldName}.${index}.title` as const, {
+                  {...register(`${fieldName}.${index}.title`, {
                     required: '연수를 입력해주세요',
                   })}
                   placeholder="연수를 입력해주세요"
                   className="text-body4 w-full overflow-hidden overflow-ellipsis whitespace-nowrap bg-transparent text-gray-500"
                   value={items[index]?.title || ''}
                   onChange={(e) =>
-                    setValue(
-                      `${fieldName}.${index}.title` as const,
-                      e.target.value,
-                    )
+                    setValue(`${fieldName}.${index}.title`, e.target.value)
                   }
                 />
                 <input
@@ -87,7 +84,7 @@ const ExpoInput = ({
                 <button
                   onClick={() => handleTrainingModal(index)}
                   type="button"
-                  className="text-body4 rounded-sm border-1 border-solid border-gray-200 px-2 py-1 text-gray-300"
+                  className="text-body5 rounded-sm border-1 border-solid border-gray-200 px-3 py-1 text-gray-300"
                 >
                   수정 하기
                 </button>
