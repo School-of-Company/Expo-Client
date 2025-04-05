@@ -41,7 +41,7 @@ const ExpoInput = ({
         />
       )}
       {fields.length > 0 && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-12">
           {fields.map((field, index) => (
             <div key={field.id} className="flex items-center justify-between">
               <div className="flex flex-grow items-center gap-6">

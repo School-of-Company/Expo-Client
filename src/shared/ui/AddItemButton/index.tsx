@@ -10,7 +10,7 @@ const AddItemButton = ({ onClick }: AddItemButtonProps) => (
     className="mx-auto flex items-center gap-5"
     onClick={onClick}
   >
-    <div className="flex translate-y-[14px] gap-8">
+    <div className="flex gap-8">
       <Plus fill="#A2C7FF" />
       <div className="text-body3 text-main-400">추가하기</div>
     </div>

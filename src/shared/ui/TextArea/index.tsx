@@ -39,7 +39,7 @@ export default function TextArea({
               textareaRef.current = e;
             }}
             placeholder={placeholder}
-            className="w-full resize-none overflow-hidden rounded-sm border-1 border-solid border-gray-200 bg-transparent p-[30px] py-5 text-black caret-main-500"
+            className="w-full resize-none overflow-hidden rounded-sm border-1 border-solid border-gray-200 bg-transparent px-16 py-12 leading-[32px] text-black caret-main-500"
             onBlur={registration.onBlur}
             name={registration.name}
             rows={row}

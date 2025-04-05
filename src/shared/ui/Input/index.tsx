@@ -71,7 +71,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             {...props}
             ref={ref}
             type={type}
-            className="text-body4 w-full border-none bg-transparent pl-8 outline-none"
+            className="text-body4 w-full border-none bg-transparent outline-none"
             style={inputStyle}
             placeholder={placeholder}
             onChange={handleChange}
