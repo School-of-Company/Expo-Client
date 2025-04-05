@@ -22,7 +22,7 @@ const CheckBox = ({ text, name, setValue, watch }: CheckBoxProps) => {
     <div className="flex items-center gap-5">
       <p className="text-body4 text-gray-500">{text}</p>
       <div
-        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded border border-solid border-gray-200 bg-white"
+        className="flex h-24 w-24 cursor-pointer items-center justify-center rounded border border-solid border-gray-200 bg-white"
         onClick={toggleCheck}
       >
         {isChecked && <Check />}

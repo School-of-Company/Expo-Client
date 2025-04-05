@@ -30,7 +30,7 @@ export default function TextArea({
 
   return (
     <div>
-      <p className="text-h4 mb-[10px] text-black">{title}</p>
+      <p className="mb-[10px] text-h3b text-black">{title}</p>
       <div className={`relative flex flex-col gap-2`}>
         <div className="relative">
           <textarea
