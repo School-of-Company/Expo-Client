@@ -3,9 +3,11 @@ import { EditExhibitionData } from '@/shared/types/exhibition/edit/type';
 
 export const editExhibition = async (data: EditExhibitionData, id: number) => {
   try {
-    await axios.patch(`/api/expo/${id}`, data);
+    await axios.patch(`/api/server/token/expo/${id}`, data);
   } catch (error) {
-    console.error('Error creating exhibition:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '박람회 수정 실패');
+    }
     throw error;
   }
 };

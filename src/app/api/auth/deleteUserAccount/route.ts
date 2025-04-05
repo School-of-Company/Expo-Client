@@ -7,13 +7,6 @@ export async function DELETE() {
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
 
-  if (!accessToken) {
-    return NextResponse.json(
-      { error: 'Access token not found' },
-      { status: 401 },
-    );
-  }
-
   try {
     await apiClient.delete('/admin', {
       headers: {
@@ -22,8 +15,8 @@ export async function DELETE() {
     });
 
     const response = NextResponse.json({ success: true });
-    response.cookies.set('accessToken', '', { maxAge: 0 });
-    response.cookies.set('refreshToken', '', { maxAge: 0 });
+    response.cookies.delete('accessToken');
+    response.cookies.delete('refreshToken');
     return response;
   } catch (error) {
     if (error instanceof AxiosError) {

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { toast } from 'react-toastify';
 
 export const uploadImage = async (file: File | null | string) => {
   if (!file) return null;
@@ -15,7 +14,11 @@ export const uploadImage = async (file: File | null | string) => {
     });
     return response.data.imageURL;
   } catch (error) {
-    toast.error('이미지 업로드 중 오류가 발생했습니다.');
-    return null;
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.error || '이미지 형식이 올바르지 않습니다',
+      );
+    }
+    throw error;
   }
 };

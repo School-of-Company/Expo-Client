@@ -30,10 +30,13 @@ const NameTagForm = ({ id }: { id: string }) => {
       }
 
       try {
-        const response = await axios.patch(`/api/attendance/${id}`, {
-          authority,
-          phoneNumber: scannedQR.phoneNumber,
-        });
+        const response = await axios.patch(
+          `/api/server/token/attendance/${id}`,
+          {
+            authority,
+            phoneNumber: scannedQR.phoneNumber,
+          },
+        );
 
         const responseData: UserData = {
           id: userData.length + 1,
@@ -46,7 +49,12 @@ const NameTagForm = ({ id }: { id: string }) => {
 
         setUserData((prevData) => [...prevData, responseData]);
       } catch (error) {
-        console.error('QR 코드 통신 에러:', error);
+        if (axios.isAxiosError(error) && error.response) {
+          throw new Error(
+            error.response.data.error || 'QR코드 데이터 불러오기 실패',
+          );
+        }
+        throw error;
       }
     },
     [userData, id],
