@@ -47,17 +47,14 @@ const ExpoInput = ({
               <div className="flex flex-grow items-center gap-6">
                 <p className="text-body4 text-gray-500">{index + 1}</p>
                 <input
-                  {...register(`${fieldName}.${index}.title` as const, {
+                  {...register(`${fieldName}.${index}.title`, {
                     required: '연수를 입력해주세요',
                   })}
                   placeholder="연수를 입력해주세요"
                   className="text-body4 w-full overflow-hidden overflow-ellipsis whitespace-nowrap bg-transparent text-gray-500"
                   value={items[index]?.title || ''}
                   onChange={(e) =>
-                    setValue(
-                      `${fieldName}.${index}.title` as const,
-                      e.target.value,
-                    )
+                    setValue(`${fieldName}.${index}.title`, e.target.value)
                   }
                 />
                 <input

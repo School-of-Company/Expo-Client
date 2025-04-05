@@ -1,5 +1,6 @@
 'use client';
 
+import { format } from 'date-fns';
 import { usePathname } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
@@ -9,7 +10,7 @@ import WarningMessage from '@/entities/exhibition/ui/WarningMessage';
 import { Location } from '@/shared/assets/icons';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { ExhibitionFormData } from '@/shared/types/exhibition/create/type';
-import { Button, Input } from '@/shared/ui';
+import { Button, Input, SelectDateInput } from '@/shared/ui';
 import DetailHeader from '@/shared/ui/DetailHeader';
 import TextArea from '@/shared/ui/TextArea';
 import { useAddressSearch } from '@/widgets/exhibition/model/useAddressSearch';
@@ -97,32 +98,29 @@ const ExhibitionForm = ({
           <p className="text-h3b text-black">박람회 기간</p>
           <div className="space-y-8">
             <div className="flex items-center gap-7">
-              <Input
-                {...register('startedDay', {
-                  required: '시작일을 입력해주세요',
-                  pattern: {
-                    value:
-                      /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
-                    message: 'yyyy-mm-dd 형식으로 입력해주세요',
-                  },
-                })}
-                type="text"
+              <SelectDateInput
+                value={
+                  watch('startedDay') ? new Date(watch('startedDay')) : null
+                }
+                onChange={(date) =>
+                  setValue('startedDay', date ? format(date, 'yyyy-MM-dd') : '')
+                }
                 placeholder="시작일"
               />
-              <Input
-                {...register('finishedDay', {
-                  required: '마감일을 입력해주세요',
-                  pattern: {
-                    value:
-                      /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/,
-                    message: 'yyyy-mm-dd 형식으로 입력해주세요',
-                  },
-                })}
-                type="text"
+              <SelectDateInput
+                value={
+                  watch('finishedDay') ? new Date(watch('finishedDay')) : null
+                }
+                onChange={(date) =>
+                  setValue(
+                    'finishedDay',
+                    date ? format(date, 'yyyy-MM-dd') : '',
+                  )
+                }
                 placeholder="마감일"
               />
             </div>
-            <WarningMessage text="시작일과 마감일 입력시 ' yyyy-mm-dd  ' 형식으로 입력해주세요" />
+            <WarningMessage text="시작일과 마감일 입력시 ' yyyy-mm-dd ' 형식으로 입력해주세요" />
           </div>
         </div>
         <TextArea
@@ -133,6 +131,7 @@ const ExhibitionForm = ({
             required: '소개글을 입력해주세요.',
           })}
           row={1}
+          value={watch('introduction')}
         />
         <div className="space-y-8">
           <p className="text-h3b text-black">참가자 연수 종류</p>
