@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { CreateFormButton } from '@/entities/form';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { FormValues } from '@/shared/types/form/create/type';
-import { Button, PageHeader } from '@/shared/ui';
+import { Button, DetailHeader } from '@/shared/ui';
 import FormContainer from '@/widgets/form/ui/FormContainer';
 import { getFormTitle } from '../../model/getFormTitle';
 import { selectOptionData } from '../../model/selectOptionData';
@@ -56,7 +56,10 @@ const FormEditor = ({
       >
         <div className="space-y-80">
           <div className="space-y-40">
-            <PageHeader title={getFormTitle(type, mode)} />
+            <DetailHeader
+              textCenter={true}
+              headerTitle={getFormTitle(type, mode)}
+            />
             <div className="space-y-12">
               <div className="w-full space-y-12">
                 {fields.map((field, index) => (

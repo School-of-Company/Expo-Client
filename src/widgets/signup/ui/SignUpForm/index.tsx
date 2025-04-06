@@ -55,7 +55,7 @@ const SignUpForm = () => {
 
   return (
     <form className="space-y-[50px]" onSubmit={handleSubmit(onSubmit)}>
-      <DetailHeader headerTitle="관리자 회원가입" />
+      <DetailHeader textCenter={true} headerTitle="관리자 회원가입" />
       <div className="space-y-20">
         <NameInput register={register} errors={errors} />
         <NicknameInput register={register} errors={errors} />

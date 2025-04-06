@@ -13,9 +13,9 @@ const DetailHeader = ({ headerTitle, textCenter = false }: Props) => {
   const router = useRouter();
 
   return (
-    <div className="flex items-center justify-between gap-24">
+    <div className="flex items-center">
       <label className="hover:cursor-pointer" onClick={() => router.back()}>
-        <ArrowLeft size="32" />
+        <ArrowLeft size={32} />
       </label>
       <p
         className={`flex-grow text-h2r text-black mobile:text-body1r ${
