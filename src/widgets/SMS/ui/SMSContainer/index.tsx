@@ -3,7 +3,8 @@
 import { useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { SendSmSData } from '@/shared/types/sms';
-import { Button, PageHeader } from '@/shared/ui';
+import { Button, DetailHeader } from '@/shared/ui';
+
 import TextArea from '@/shared/ui/TextArea';
 import { useSendSMS } from '../../model/useSendSMS';
 
@@ -28,7 +29,7 @@ export default function Write() {
       className="relative mx-auto flex w-full max-w-[792px] flex-1 flex-col pb-5"
     >
       <div className="flex flex-1 flex-col gap-[62px]">
-        <PageHeader title="문자 보내기" />
+        <DetailHeader textCenter={true} headerTitle="문자 보내기" />
         <div className="space-y-[40px]">
           <TextArea
             title="제목"
