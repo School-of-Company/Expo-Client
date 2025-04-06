@@ -15,7 +15,6 @@ import {
   FormTitle,
   FormTypeSelect,
   MultipleChoiceOption,
-  PictureOption,
   RequiredToggle,
 } from '@/entities/form';
 import { preventEvent } from '@/shared/model/preventEvent';
@@ -78,14 +77,6 @@ const FormContainer = ({
         isCheckBox={isCheckBox}
       />
     ),
-    IMAGE: (
-      <PictureOption
-        fields={fields}
-        remove={remove}
-        register={register}
-        index={index}
-      />
-    ),
   };
 
   const renderOptionComponent = () => {
@@ -108,7 +99,7 @@ const FormContainer = ({
   }, [selectedOption, index, setValue]);
 
   return (
-    <div className="flex w-full flex-col gap-6 rounded-sm border-1 border-solid border-gray-200 px-[32px] py-[18px]">
+    <div className="flex w-full flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 px-32 py-18">
       <div className="flex w-full items-center justify-between">
         <FormTitle register={register} index={index} />
         <FormTypeSelect
@@ -121,7 +112,7 @@ const FormContainer = ({
         />
       </div>
       {renderOptionComponent()}
-      <div className="border-b-1 border-solid border-gray-100 py-6">
+      <div className="border-b-1 border-solid border-gray-100">
         {selectedOption?.value !== 'SENTENCE' ? (
           <AddItemButton
             onClick={(e: React.MouseEvent) => {
@@ -131,7 +122,7 @@ const FormContainer = ({
           />
         ) : null}
       </div>
-      <div className="flex w-full items-center justify-end gap-6">
+      <div className="flex w-full items-center justify-end gap-20">
         {selectedOption?.value !== 'IMAGE' &&
         selectedOption?.value !== 'SENTENCE' &&
         selectedOption?.value !== 'DROPDOWN' ? (

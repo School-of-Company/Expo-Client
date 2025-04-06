@@ -12,7 +12,7 @@ const MultipleChoiceOption = ({
   isCheckBox,
 }: OptionProps) => {
   return (
-    <div className="space-y-2">
+    <div className="space-y-10">
       {fields.map((option, optionIndex) => (
         <OptionItem
           key={option.id}
