@@ -10,10 +10,10 @@ const CreateFormButton = ({ onClick }: Props) => {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-fit items-center gap-[10px] rounded-sm bg-main-300 px-6 py-3"
+      className="flex w-fit items-center gap-12 rounded-sm bg-main-100 px-16 py-12"
     >
-      <Plus fill="#FFF" />
-      <p className="text-h4 text-white">추가하기</p>
+      <Plus fill="#448FFF" />
+      <p className="text-body2r text-main-600">추가하기</p>
     </button>
   );
 };
