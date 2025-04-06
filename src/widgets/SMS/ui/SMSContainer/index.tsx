@@ -2,14 +2,10 @@
 
 import { useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { SendSmSData } from '@/shared/types/sms';
 import { Button, PageHeader } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
 import { useSendSMS } from '../../model/useSendSMS';
-
-interface FormData {
-  title: string;
-  content: string;
-}
 
 export default function Write() {
   const { id, authority } = useParams<{
@@ -17,21 +13,13 @@ export default function Write() {
     authority: 'STANDARD' | 'TRAINEE';
   }>();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { isSubmitting },
-    reset,
-  } = useForm<FormData>();
+  const { register, handleSubmit, watch, reset } = useForm<SendSmSData>();
 
-  const sendSMSMutation = useSendSMS(id, authority);
+  const { mutate: sendSmS, isPending } = useSendSMS(id, authority);
 
-  const onSubmit = (data: FormData) => {
-    sendSMSMutation.mutate(data, {
-      onSuccess: () => {
-        reset();
-      },
-    });
+  const onSubmit = (data: SendSmSData) => {
+    sendSmS(data);
+    reset();
   };
 
   return (
@@ -50,6 +38,7 @@ export default function Write() {
               required: '제목을 입력해주세요.',
             })}
             row={1}
+            value={watch('title')}
           />
           <TextArea
             title="내용"
@@ -59,10 +48,11 @@ export default function Write() {
               required: '내용을 입력해주세요.',
             })}
             row={12}
+            value={watch('content')}
           />
         </div>
         <div className="w-full mobile:px-5">
-          <Button disabled={isSubmitting || sendSMSMutation.isPending}>
+          <Button type="submit" disabled={isPending}>
             보내기
           </Button>
         </div>

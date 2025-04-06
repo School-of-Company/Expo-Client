@@ -1,25 +1,18 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
+import { SendSmSData } from '@/shared/types/sms';
 import { sendSMS } from '../api/sendSMS';
 
-interface FormData {
-  title: string;
-  content: string;
-}
-
 export function useSendSMS(id: string, authority: 'STANDARD' | 'TRAINEE') {
-  const queryClient = useQueryClient();
-
   const mutation = useMutation({
-    mutationFn: (data: FormData) => sendSMS({ ...data, id, authority }),
+    mutationFn: (data: SendSmSData) => sendSMS(id, authority, data),
     onSuccess: () => {
       toast.success('문자가 성공적으로 전송되었습니다.');
-      queryClient.invalidateQueries({ queryKey: ['messages', id] });
     },
     onError: (error: Error) => {
-      toast.error(`문자 전송 실패: ${error.message}`);
+      toast.error(error.message);
     },
   });
 
