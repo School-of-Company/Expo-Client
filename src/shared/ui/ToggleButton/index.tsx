@@ -16,13 +16,13 @@ const ToggleButton = ({ value, onChange }: Props) => {
     <button
       type="button"
       onClick={toggle}
-      className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${
+      className={`relative inline-flex h-16 w-50 items-center rounded-full transition-colors ${
         value ? 'bg-main-100' : 'bg-gray-100'
       }`}
     >
       <span
-        className={`inline-block h-7 w-7 transform rounded-full transition-transform duration-300 ${
-          value ? 'translate-x-9 bg-main-600' : 'translate-x-0 bg-gray-500'
+        className={`absolute left-2 h-20 w-20 rounded-full transition-transform duration-300 ${
+          value ? 'translate-x-30 bg-main-600' : 'translate-x-0 bg-gray-500'
         }`}
       />
     </button>
