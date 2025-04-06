@@ -16,18 +16,25 @@ const EtcOption = ({ type, register, watch, name }: Props) => {
     : watchedValue === 'etc';
 
   return (
-    <div className="flex items-center gap-[10px]">
-      <input type={type} value="etc" {...register(name)} />
-      <label className="text-body3 text-black">기타</label>
+    <div className="flex items-center gap-20">
       <input
-        type="text"
-        placeholder="(직접입력)"
-        className={`text-body3 text-black ${isEtcSelected ? '' : 'bg-transparent'}`}
-        {...register(`${name}_etc`, {
-          required: isEtcSelected ? '기타를 입력해야 합니다.' : false,
-        })}
-        disabled={!isEtcSelected}
+        type={type}
+        className="h-16 w-16"
+        value="etc"
+        {...register(name)}
       />
+      <div className="flex items-center gap-10">
+        <label className="text-body3 text-black">기타</label>
+        <input
+          type="text"
+          placeholder="(직접입력)"
+          className={`text-body3 text-black ${isEtcSelected ? '' : 'bg-transparent'}`}
+          {...register(`${name}_etc`, {
+            required: isEtcSelected ? '기타를 입력해야 합니다.' : false,
+          })}
+          disabled={!isEtcSelected}
+        />
+      </div>
     </div>
   );
 };

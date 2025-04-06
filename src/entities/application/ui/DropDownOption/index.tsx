@@ -17,7 +17,7 @@ interface Props {
 const DropDownOption = ({ options, register, name, required }: Props) => {
   return (
     <select
-      className="rounded border px-2 py-1"
+      className="w-fit rounded border px-12 py-10"
       {...register(name, {
         required: required ? '필수 옵션을 선택해주세요' : false,
       })}
