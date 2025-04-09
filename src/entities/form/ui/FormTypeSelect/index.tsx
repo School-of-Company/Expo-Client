@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
 import { preventEvent } from '@/shared/model/preventEvent';
@@ -44,18 +44,21 @@ const FormTypeSelect = ({
           preventEvent(e);
           setIsOpen(!isOpen);
         }}
-        className="flex w-full items-center justify-between rounded-md border-1 border-solid border-gray-100 bg-white px-3 py-[10px]"
+        className="flex w-full items-center justify-evenly rounded-md border-1 border-solid border-gray-100 bg-white px-12 py-10"
       >
-        <div className="flex items-center">
-          {selectedOption?.icon && (
-            <span className="mr-2">{selectedOption.icon}</span>
-          )}
-          <span className="text-h5 text-gray-500">{selectedOption?.label}</span>
-        </div>
+        {selectedOption?.icon && (
+          <span className="mr-2">
+            {React.cloneElement(selectedOption.icon as React.ReactElement, {
+              fill: '#909090', // 기본 색상
+            })}
+          </span>
+        )}
+        <span className="text-h3r text-gray-500">{selectedOption?.label}</span>
+
         {isOpen ? <ArrowUp fill="#909090" /> : <ArrowDown fill="#909090" />}
       </button>
       {isOpen && (
-        <ul className="absolute z-30 mt-1 flex w-full flex-col items-center gap-[10px] rounded-md border-1 border-solid border-gray-100 bg-white py-[30px] shadow-lg">
+        <ul className="absolute z-30 mt-1 flex w-full flex-col items-center gap-22 rounded-md border-1 border-solid border-gray-100 bg-white px-16 py-30 shadow-lg">
           {options.map((option) => (
             <li
               key={option.value}
@@ -65,9 +68,14 @@ const FormTypeSelect = ({
                 setValue(`questions.${index}.formType`, option.value);
                 setIsOpen(false);
               }}
-              className="text-h5 flex w-full cursor-pointer items-center justify-center p-2 text-gray-500 hover:bg-gray-100"
+              className="group flex w-full cursor-pointer items-center gap-18 text-h3r text-gray-500 hover:text-main-600"
             >
-              {option.icon && <span className="mr-2">{option.icon}</span>}
+              <span className="mr-2">
+                {React.cloneElement(option.icon as React.ReactElement, {
+                  fill: 'currentColor',
+                  className: 'group-hover:text-main-600',
+                })}
+              </span>
               {option.label}
             </li>
           ))}

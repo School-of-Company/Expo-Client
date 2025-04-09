@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { CreateFormButton } from '@/entities/form';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { FormValues } from '@/shared/types/form/create/type';
-import { Button, PageHeader } from '@/shared/ui';
+import { Button, DetailHeader } from '@/shared/ui';
 import FormContainer from '@/widgets/form/ui/FormContainer';
 import { getFormTitle } from '../../model/getFormTitle';
 import { selectOptionData } from '../../model/selectOptionData';
@@ -47,43 +47,52 @@ const FormEditor = ({
   };
 
   return (
-    <div className="flex h-screen flex-col gap-[30px] mobile:gap-0">
+    <div className="flex h-full flex-col items-center p-16">
       <form
         onSubmit={handleSubmit(handleFormSubmit, (errors) =>
           handleFormErrors(errors, toast.error),
         )}
-        className="mx-auto w-full max-w-[792px] flex-1 space-y-4 px-5 pb-5"
+        className="w-full max-w-[816px]"
       >
-        <PageHeader title={getFormTitle(type, mode)} />
-        <div className="w-full space-y-8">
-          {fields.map((field, index) => (
-            <FormContainer
-              key={field.id}
-              {...{
-                options: selectOptionData,
-                formRemove: remove,
-                index,
-                register,
-                setValue,
-                control,
-              }}
+        <div className="space-y-80">
+          <div className="space-y-40">
+            <DetailHeader
+              textCenter={true}
+              headerTitle={getFormTitle(type, mode)}
             />
-          ))}
+            <div className="space-y-12">
+              <div className="w-full space-y-12">
+                {fields.map((field, index) => (
+                  <FormContainer
+                    key={field.id}
+                    {...{
+                      options: selectOptionData,
+                      formRemove: remove,
+                      index,
+                      register,
+                      setValue,
+                      control,
+                    }}
+                  />
+                ))}
+              </div>
+              <CreateFormButton
+                onClick={() =>
+                  append({
+                    title: '',
+                    formType: 'SENTENCE',
+                    options: [],
+                    requiredStatus: false,
+                    otherJson: null,
+                  })
+                }
+              />
+            </div>
+          </div>
+          <Button type="submit" disabled={isLoading || isSuccess}>
+            {isLoading ? '제출 중...' : isSuccess ? '완료됨' : '다음'}
+          </Button>
         </div>
-        <CreateFormButton
-          onClick={() =>
-            append({
-              title: '',
-              formType: 'SENTENCE',
-              options: [],
-              requiredStatus: false,
-              otherJson: null,
-            })
-          }
-        />
-        <Button type="submit" disabled={isLoading || isSuccess}>
-          {isLoading ? '제출 중...' : isSuccess ? '완료됨' : '다음'}
-        </Button>
       </form>
     </div>
   );

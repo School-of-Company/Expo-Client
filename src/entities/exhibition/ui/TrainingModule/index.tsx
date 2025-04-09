@@ -24,7 +24,7 @@ const TrainingModule = ({
   };
 
   return (
-    <div className="w-full rounded-sm border-1 border-solid border-gray-200 px-[30px] py-[26px]">
+    <div className="w-full rounded-sm border-1 border-solid border-gray-200 px-[30px] py-[16px]">
       <div className="w-full">
         <ExpoInput
           fields={fields}

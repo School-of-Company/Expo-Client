@@ -29,16 +29,18 @@ const EditForm = ({ id }: { id: string }) => {
   return withLoading({
     isLoading,
     children: (
-      <div className="flex h-screen flex-col gap-[30px] mobile:gap-0">
+      <div className="flex min-h-screen flex-col">
         <Header />
-        <FormEditor
-          type={type}
-          mode={mode}
-          defaultValues={defaultValues}
-          onSubmit={handleSubmitForm}
-          isLoading={isApplicationPending || isSurveyPending}
-          isSuccess={isApplicationSuccess || isSurveySuccess}
-        />
+        <div className="flex-1 overflow-auto">
+          <FormEditor
+            type={type}
+            mode={mode}
+            defaultValues={defaultValues}
+            onSubmit={handleSubmitForm}
+            isLoading={isApplicationPending || isSurveyPending}
+            isSuccess={isApplicationSuccess || isSurveySuccess}
+          />
+        </div>
       </div>
     ),
   });

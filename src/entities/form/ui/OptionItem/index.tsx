@@ -22,8 +22,8 @@ const OptionItem = ({
 }: OptionItemProps) => {
   return (
     <div key={optionId} className="flex w-full items-center justify-between">
-      <div className="flex w-full items-center gap-[10px]">
-        {icon}
+      <div className="flex w-full items-center gap-10">
+        <p className="text-body2b text-gray-500">{icon}</p>
         <input
           {...register(inputName, { required: '폼의 옵션을 입력해주세요' })}
           placeholder="문장을 입력해주세요."

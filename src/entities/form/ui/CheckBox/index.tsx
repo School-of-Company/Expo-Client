@@ -1,6 +1,6 @@
 import React from 'react';
 import { Control, useController } from 'react-hook-form';
-import { Check } from '@/shared/assets/icons';
+import { CheckBoxIcon, CheckedBoxIcon } from '@/shared/assets/svg';
 import { FormValues } from '@/shared/types/form/create/type';
 
 interface Props {
@@ -24,15 +24,9 @@ const CheckBox = ({ control, index, text }: Props) => {
     <button
       type="button"
       onClick={toggleCheck}
-      className="flex items-center gap-2"
+      className="flex items-center gap-8"
     >
-      <div
-        className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-[3px] border-2 border-solid ${
-          field.value ? 'border-main-600' : 'border-gray-500'
-        } bg-white`}
-      >
-        {field.value && <Check />}
-      </div>
+      {field.value ? <CheckedBoxIcon /> : <CheckBoxIcon />}
       <p
         className={`text-caption2 ${field.value ? 'text-main-600' : 'text-gray-500'}`}
       >

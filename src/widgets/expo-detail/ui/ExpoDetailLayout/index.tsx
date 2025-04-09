@@ -31,12 +31,12 @@ const ExpoDetailLayout = ({
 
   return (
     <div className="flex w-full flex-col space-y-48">
-      <div className="flex items-center justify-between">
-        <DetailHeader headerTitle={expoDetail?.title} />
+      <div className="relative">
+        <DetailHeader textCenter={true} headerTitle={expoDetail?.title} />
         <button
           type="button"
           onClick={() => openModal('share', '공유할 항목을 선택하세요.')}
-          className="hidden tablet:block"
+          className="absolute right-0 top-1/2 hidden -translate-y-1/2 tablet:block"
         >
           <Share />
         </button>

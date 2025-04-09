@@ -10,7 +10,7 @@ import {
   ApplicationFormValues,
   DynamicFormItem,
 } from '@/shared/types/application/type';
-import { Button, PageHeader } from '@/shared/ui';
+import { Button, DetailHeader } from '@/shared/ui';
 import { getFormatter } from '../../model/formatterService';
 import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
@@ -74,7 +74,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
           handleFormErrors(errors, showError);
         })}
       >
-        <PageHeader title="신청" />
+        <DetailHeader textCenter={true} headerTitle="신청" />
         <div className="ml-[20px] mt-[48px] flex flex-col gap-[48px]">
           <div className="w-full space-y-[36px]">
             {userType === 'TRAINEE' && formType === 'application' ? (

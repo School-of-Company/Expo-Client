@@ -1,10 +1,10 @@
 import React from 'react';
 
-const ArrowLeft = ({ size }: { size?: string }) => {
+const ArrowLeft = ({ size = 32 }: { size?: number }) => {
   return (
     <svg
-      width={size ? size : '25'}
-      height={size ? size : '24'}
+      width={size}
+      height={size}
       viewBox="0 0 25 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

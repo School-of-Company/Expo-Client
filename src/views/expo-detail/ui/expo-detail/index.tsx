@@ -16,7 +16,6 @@ const ExpoDetail = ({ params }: { params: number }) => {
   const expoStandard = expoStandardQuery.data!;
   const expoTraining = expoTrainingQuery.data!;
 
-  // 모달 관련 상태 및 핸들러
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState('');
   const [modalType, setModalType] = useState<string | null>(null);
