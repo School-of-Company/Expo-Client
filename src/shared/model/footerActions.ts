@@ -38,6 +38,7 @@ export const printActions = (data: UserData[]) => ({
 
         qrCode: selectedData.phoneNumber,
       };
+
       printBadge(badgeData);
     }
   },
