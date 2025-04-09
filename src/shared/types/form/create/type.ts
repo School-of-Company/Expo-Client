@@ -15,6 +15,7 @@ export interface FormValues {
     requiredStatus: boolean;
     otherJson: string | null;
   }[];
+  informationText: string;
 }
 export interface OptionProps {
   fields: { id: string; value: string }[];
