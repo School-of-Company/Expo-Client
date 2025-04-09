@@ -45,7 +45,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
     isLoading: boolean;
   };
 
-  const { mutate: PostApplication } = usePostApplication(
+  const { mutate: PostApplication, isPending } = usePostApplication(
     params,
     formType,
     userType,
@@ -153,7 +153,9 @@ const ApplicationLayout = ({ params }: { params: string }) => {
               />
             ))}
           </div>
-          <Button type="submit">신청하기</Button>
+          <Button disabled={isPending} type="submit">
+            신청하기
+          </Button>
         </div>
       </form>
     ),

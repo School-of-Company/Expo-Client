@@ -84,13 +84,12 @@ const OptionContainer = ({
   }
 
   return (
-    <div className="flex flex-col gap-[20px] rounded-sm border-1 border-solid border-gray-200 p-[18px]">
+    <div className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-18">
       <div className="flex items-center gap-2">
-        <p className="text-h4 text-black">{title}</p>
+        <p className="text-h3b text-black">{title}</p>
         {requiredStatus ? <p className="text-main-600">*</p> : null}
       </div>
-
-      <div className="space-y-2">{inputComponent}</div>
+      <div className="space-y-10">{inputComponent}</div>
     </div>
   );
 };
