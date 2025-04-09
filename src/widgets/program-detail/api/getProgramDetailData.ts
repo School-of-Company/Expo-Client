@@ -7,13 +7,31 @@ import {
 export const getTrainingProgramDetail = async (
   id: number,
 ): Promise<TrainingProgram[]> => {
-  const response = await axios.get(`/api/training/${id}`);
-  return response.data;
+  try {
+    const response = await axios.get(`/api/server/token/training/${id}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.error || '연수 프로그램 상세 보기 실패',
+      );
+    }
+    throw error;
+  }
 };
 
 export const getStandardProgramDetail = async (
   id: number,
 ): Promise<StandardProgram[]> => {
-  const response = await axios.get(`/api/standard/${id}`);
-  return response.data;
+  try {
+    const response = await axios.get(`/api/server/token/standard/${id}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.error || '참가자 프로그램 상세 보기 실패',
+      );
+    }
+    throw error;
+  }
 };

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import { QrScanData } from '../types/common/QrScanData';
 
 export const useQRScanner = (
@@ -13,7 +14,7 @@ export const useQRScanner = (
         const parsedData: QrScanData = JSON.parse(cleanData);
         setScannedQR(parsedData);
       } catch (error) {
-        console.error('QR 코드 데이터 파싱 오류:', error);
+        toast.error('QR 코드 데이터 파싱 오류');
       }
     },
     [setScannedQR],
@@ -28,6 +29,14 @@ export const useQRScanner = (
 
       if (event.key === 'Enter') {
         const cleanData = buffer.replace(/Shift/g, '');
+
+        if (!/^[a-zA-Z0-9{}":,._[\]\s-]+$/.test(cleanData)) {
+          toast.warn('입력 언어를 영어로 변경해주세요.');
+          setBuffer('');
+          setIsScanning(false);
+          return;
+        }
+
         handleQRScan(cleanData);
         setBuffer('');
         setIsScanning(false);

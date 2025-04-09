@@ -13,13 +13,10 @@ export async function GET(
 
   const config: AxiosRequestConfig = {
     responseType: 'arraybuffer',
-    headers: accessToken
-      ? {
-          Authorization: `Bearer ${accessToken}`,
-        }
-      : undefined,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   };
-
   try {
     const response = await apiClient.get(`/excel/${expo_id}`, config);
 

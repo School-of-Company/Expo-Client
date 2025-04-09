@@ -1,7 +1,8 @@
 'use client';
 
 import axios from 'axios';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import NameTagHeader from '@/entities/name-tag/ui/NameTagHeader';
 import { printActions, UserData } from '@/shared/model/footerActions';
 import { useQRScanner } from '@/shared/model/useQRScanner';
@@ -16,47 +17,52 @@ const NameTagForm = ({ id }: { id: string }) => {
 
   useQRScanner(setScannedQR);
 
-  const fetchUserData = useCallback(
-    async (scannedQR: QrScanData) => {
-      const authority = scannedQR.traineeId ? 'ROLE_TRAINEE' : 'ROLE_STANDARD';
+  const fetchUserData = async (scannedQR: QrScanData) => {
+    const authority = scannedQR.traineeId ? 'ROLE_TRAINEE' : 'ROLE_STANDARD';
 
-      const isAlreadyScanned = userData.some(
-        (user) => user.phoneNumber === scannedQR.phoneNumber,
-      );
+    const alreadyExists = userData.some(
+      (user) => user.phoneNumber === scannedQR.phoneNumber,
+    );
+    if (alreadyExists) {
+      toast.info('이미 스캔된 사용자입니다.');
+      return;
+    }
 
-      if (isAlreadyScanned) {
-        console.warn('이미 스캔된 QR 코드입니다.');
-        return;
+    try {
+      const response = await axios.patch(`/api/server/token/attendance/${id}`, {
+        authority,
+        phoneNumber: scannedQR.phoneNumber,
+      });
+
+      const responseData: UserData = {
+        id: userData.length + 1,
+        name: response.data.name,
+        phoneNumber: response.data.phoneNumber,
+        personalInformationStatus: response.data.personalInformationStatus
+          ? '동의'
+          : '미동의',
+      };
+
+      setUserData((prevData) => [...prevData, responseData]);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.error || 'QR코드 데이터 불러오기 실패');
+      } else {
+        toast.error('요청 실패');
       }
-
-      try {
-        const response = await axios.patch(`/api/attendance/${id}`, {
-          authority,
-          phoneNumber: scannedQR.phoneNumber,
-        });
-
-        const responseData: UserData = {
-          id: userData.length + 1,
-          name: response.data.name,
-          phoneNumber: response.data.phoneNumber,
-          personalInformationStatus: response.data.personalInformationStatus
-            ? '동의'
-            : '미동의',
-        };
-
-        setUserData((prevData) => [...prevData, responseData]);
-      } catch (error) {
-        console.error('QR 코드 통신 에러:', error);
-      }
-    },
-    [userData, id],
-  );
+    }
+  };
 
   useEffect(() => {
     if (scannedQR) {
-      fetchUserData(scannedQR);
+      const handleScan = async () => {
+        await fetchUserData(scannedQR);
+        setScannedQR(null);
+      };
+
+      handleScan();
     }
-  }, [scannedQR, fetchUserData]);
+  }, [scannedQR]);
 
   const printNameTagActions = printActions(userData);
 

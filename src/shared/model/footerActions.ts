@@ -38,6 +38,7 @@ export const printActions = (data: UserData[]) => ({
 
         qrCode: selectedData.phoneNumber,
       };
+
       printBadge(badgeData);
     }
   },
@@ -46,7 +47,7 @@ export const printActions = (data: UserData[]) => ({
 export const checkActions = (fetchSignupList: () => Promise<void>) => ({
   CheckBadge: async (selectItem: number) => {
     try {
-      await axios.patch(`/api/admin/${selectItem}`);
+      await axios.patch(`/api/server/token/admin/${selectItem}`);
       await fetchSignupList();
       toast.success('회원가입 승인 성공');
     } catch (error) {
@@ -55,7 +56,7 @@ export const checkActions = (fetchSignupList: () => Promise<void>) => ({
   },
   DeleteBadge: async (selectItem: number) => {
     try {
-      await axios.delete(`/api/admin/${selectItem}`);
+      await axios.delete(`/api/server/token/admin/${selectItem}`);
       await fetchSignupList();
       toast.success('회원가입 거절 성공');
     } catch (error) {
@@ -67,7 +68,7 @@ export const checkActions = (fetchSignupList: () => Promise<void>) => ({
 export const deleteActions = (fetchExpoList: () => Promise<void>) => ({
   DeleteBadge: async (selectItem: number) => {
     try {
-      await axios.delete(`/api/expo/${selectItem}`);
+      await axios.delete(`/api/server/token/expo/${selectItem}`);
       await fetchExpoList();
       toast.success('박람회 삭제 성공');
     } catch (error) {

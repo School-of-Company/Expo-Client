@@ -29,7 +29,7 @@ const ProgramDetailForm = ({ id }: { id: number }) => {
     if (navigation === 'standard') {
       standardAttendance({
         id,
-        participantId: scannedQR.traineeId!,
+        participantId: scannedQR.participantId!,
         phoneNumber: scannedQR.phoneNumber!,
       });
     } else {

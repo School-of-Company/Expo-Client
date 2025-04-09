@@ -1,4 +1,5 @@
 export interface QrScanData {
-  traineeId: number;
+  traineeId?: number;
+  participantId?: number;
   phoneNumber: string;
 }

@@ -8,14 +8,14 @@ export type SurveyData = {
 
 const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
   application: {
-    STANDARD_register: '/api/application/pre-standard/',
-    TRAINEE_register: '/api/application/',
-    STANDARD_onsite: '/api/application/field/standard/',
-    TRAINEE_onsite: '/api/application/field/',
+    STANDARD_register: '/api/server/application/pre-standard/',
+    TRAINEE_register: '/api/server/application/',
+    STANDARD_onsite: '/api/server/application/field/standard/',
+    TRAINEE_onsite: '/api/server/application/field/',
   },
   survey: {
-    STANDARD: '/api/survey/answer/standard/',
-    TRAINEE: '/api/survey/answer/trainee/',
+    STANDARD: '/api/server/survey/answer/standard/',
+    TRAINEE: '/api/server/survey/answer/trainee/',
   },
 };
 
@@ -33,7 +33,13 @@ export const postApplication = async (
       : userType;
 
   const url = `${baseUrl[key] || '/api/application/'}${params}`;
-
-  const response = await axios.post(url, data);
-  return response.data;
+  try {
+    const response = await axios.post(url, data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '폼 신청 실패');
+    }
+    throw error;
+  }
 };

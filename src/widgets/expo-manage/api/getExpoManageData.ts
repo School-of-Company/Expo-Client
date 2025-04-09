@@ -5,10 +5,17 @@ export const getTraineeExpoManageData = async (
   id: string,
   searchText: string,
 ): Promise<Trainee[]> => {
-  const response = await axios.get(`/api/trainee/${id}`, {
-    params: { name: searchText },
-  });
-  return response.data;
+  try {
+    const response = await axios.get(`/api/server/token/trainee/${id}`, {
+      params: { name: searchText },
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '연수자 불러오기 실패');
+    }
+    throw error;
+  }
 };
 
 export const getParticipantExpoManageData = async (
@@ -16,8 +23,15 @@ export const getParticipantExpoManageData = async (
   type: string,
   searchText: string,
 ): Promise<Participant[]> => {
-  const response = await axios.get(`/api/participant/${id}`, {
-    params: { type, name: searchText },
-  });
-  return response.data;
+  try {
+    const response = await axios.get(`/api/server/token/participant/${id}`, {
+      params: { type, name: searchText },
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '참가자 불러오기 실패');
+    }
+    throw error;
+  }
 };

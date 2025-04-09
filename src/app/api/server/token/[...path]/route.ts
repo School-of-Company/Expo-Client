@@ -45,6 +45,9 @@ async function handleRequest(req: NextRequest) {
       );
     }
   }
+
+  console.log(accessToken);
+
   try {
     const response = await apiClient.request({
       url,

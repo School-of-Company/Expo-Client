@@ -5,8 +5,18 @@ export const patchTrainingAttendance = async ({
   id,
   traineeId,
 }: PatchTrainingProgramData) => {
-  const response = await axios.patch(`/api/attendance/training/${id}`, {
-    traineeId,
-  });
-  return response;
+  try {
+    const response = await axios.patch(
+      `/api/server/token/attendance/training/${id}`,
+      {
+        traineeId,
+      },
+    );
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '연수 프로그램 QR인식 필패');
+    }
+    throw error;
+  }
 };

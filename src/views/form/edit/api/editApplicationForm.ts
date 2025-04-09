@@ -8,6 +8,13 @@ export const editApplicationForm = async ({
   data: CreateFormRequest;
   id: string;
 }) => {
-  const response = await axios.patch(`/api/form/${id}`, data);
-  return response;
+  try {
+    const response = await axios.patch(`/api/server/token/form/${id}`, data);
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '신청 폼 수정 실패');
+    }
+    throw error;
+  }
 };

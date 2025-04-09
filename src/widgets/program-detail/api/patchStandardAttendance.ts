@@ -6,9 +6,19 @@ export const patchStandardAttendance = async ({
   participantId,
   phoneNumber,
 }: PatchStandardProgramData) => {
-  const response = await axios.patch(`/api/attendance/standard/${id}`, {
-    participantId,
-    phoneNumber,
-  });
-  return response;
+  try {
+    const response = await axios.patch(
+      `/api/server/token/attendance/standard/${id}`,
+      {
+        participantId,
+        phoneNumber,
+      },
+    );
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || 'QR코드 스캔 실패');
+    }
+    throw error;
+  }
 };

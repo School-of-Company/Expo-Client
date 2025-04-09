@@ -20,6 +20,7 @@ export const handleCreateExhibitionFormSubmit = async (
     const { lat, lng } = coordinates;
 
     const img = await uploadImage(data.image);
+
     if (!lat || !lng || !img) {
       toast.error('필수 정보가 누락되었습니다.');
       throw new Error('Missing required information.');

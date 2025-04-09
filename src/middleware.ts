@@ -1,22 +1,30 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  const accessToken = request.cookies.get('accessToken');
-  const refreshToken = request.cookies.get('refreshToken');
-  const url = request.nextUrl.pathname;
-
-  if (
-    url.startsWith('/signin') ||
-    url.startsWith('/signUp') ||
-    url.startsWith('/application/STANDARD') ||
-    url.startsWith('/application/TRAINEE')
-  ) {
-    return NextResponse.next();
+export async function middleware(request: NextRequest) {
+  const code = request.nextUrl.searchParams.get('code');
+  if (code) {
+    const callbackUrl = new URL('/api/signin', request.nextUrl.origin);
+    callbackUrl.searchParams.set('code', code);
+    return NextResponse.redirect(callbackUrl);
   }
 
-  if (!accessToken || !refreshToken) {
+  const publicPaths = ['/signin', '/signup', '/application'];
+  const pathname = request.nextUrl.pathname;
+
+  const isPublicPath = publicPaths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+
+  const accessToken = request.cookies.get('accessToken')?.value;
+  const refreshToken = request.cookies.get('refreshToken')?.value;
+
+  if (!isPublicPath && !refreshToken) {
     return NextResponse.redirect(new URL('/signin', request.url));
+  }
+
+  if (isPublicPath && accessToken) {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();
@@ -24,19 +32,18 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/',
-    '/signin',
-    '/signUp',
     '/admin',
-    '/exhibition/create',
-    '/exhibition/edit/:path*',
+    '/application/:path*',
+    '/exhibition/:path*',
+    '/expo-created/:path*',
+    '/expo-detail/:path*',
     '/expo-manage/:path*',
+    '/form/:path*',
     '/name-tag/:path*',
-    '/sms/:path*/STANDARD',
-    '/sms/:path*/TRAINEE',
     '/program/:path*',
-    '/program/detail/:path*',
-    '/application/:path*/STANDARD',
-    '/application/:path*/TRAINEE',
+    '/signin',
+    '/signup',
+    '/sms/:path*',
+    '/',
   ],
 };
