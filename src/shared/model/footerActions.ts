@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import { AttendUserResponse } from '../types/name-tag/type';
 import { printBadge } from './printUtils';
 
 export interface UserData {
@@ -29,14 +30,20 @@ export const fileActions = (id: string | number) => ({
   },
 });
 
-export const printActions = (data: UserData[]) => ({
+export const printActions = (data: AttendUserResponse[]) => ({
   PrintBadge: async (selectItem: number) => {
     const selectedData = data.find((item) => item.id === selectItem);
     if (selectedData) {
+      const isTrainee = selectedData.participationType === 'TRAINEE';
+
+      const qrPayload = {
+        [isTrainee ? 'traineeId' : 'participantId']: selectedData.id,
+        phoneNumber: selectedData.phoneNumber,
+      };
+
       const badgeData = {
         name: selectedData.name,
-
-        qrCode: selectedData.phoneNumber,
+        qrCode: JSON.stringify(qrPayload),
       };
 
       printBadge(badgeData);
