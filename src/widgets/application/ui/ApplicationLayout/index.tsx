@@ -89,6 +89,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 otherJson={null}
                 register={register}
                 watch={watch}
+                setValue={setValue}
               />
             ) : null}
             <OptionContainer
@@ -98,6 +99,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
               otherJson={null}
               register={register}
               watch={watch}
+              setValue={setValue}
             />
             {formType === 'application' ? (
               <OptionContainer
@@ -107,6 +109,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 otherJson={null}
                 register={register}
                 watch={watch}
+                setValue={setValue}
               />
             ) : null}
             {userType === 'STANDARD' && formType === 'application' ? (
@@ -118,6 +121,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                   otherJson={null}
                   register={register}
                   watch={watch}
+                  setValue={setValue}
                 />
                 <OptionContainer
                   title="학교급을 선택해주세요"
@@ -126,6 +130,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                   otherJson="etc"
                   register={register}
                   watch={watch}
+                  setValue={setValue}
                   jsonData={{
                     '1': '유치원',
                     '2': '초등학교',
@@ -140,6 +145,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                   otherJson={null}
                   register={register}
                   watch={watch}
+                  setValue={setValue}
                 />
               </>
             ) : null}
@@ -154,6 +160,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 otherJson={form.otherJson}
                 register={register}
                 watch={watch}
+                setValue={setValue}
               />
             ))}
           </div>
