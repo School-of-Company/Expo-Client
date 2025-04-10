@@ -13,7 +13,9 @@ export interface ApplicationForm {
 }
 
 export type ApplicationFormValues = {
-  [key: string]: string | string[];
+  privacyConsent: boolean;
+} & {
+  [key: string]: string | string[] | boolean;
 };
 
 export type FormattedApplicationData = {
