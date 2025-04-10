@@ -26,18 +26,18 @@ const CheckBoxOption = ({
   otherJson,
 }: Props) => {
   return (
-    <div>
+    <>
       {options.map((option) => (
-        <div key={option.value} className="flex items-center gap-[10px]">
+        <div key={option.value} className="flex items-center gap-20">
           <input
             type="checkbox"
             value={option.label}
-            className="h-4 w-4 accent-blue-500"
+            className="h-16 w-16 accent-blue-500"
             {...register(name, {
               required: required ? '필수 옵션을 선택해주세요' : false,
             })}
           />
-          <label className="text-body3 text-black">{option.label}</label>
+          <label className="text-body2r text-black">{option.label}</label>
         </div>
       ))}
       {otherJson !== null && (
@@ -48,7 +48,7 @@ const CheckBoxOption = ({
           type="checkbox"
         />
       )}
-    </div>
+    </>
   );
 };
 

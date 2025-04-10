@@ -34,14 +34,14 @@ export default function SentenceOption({
   };
 
   return (
-    <div className="relative flex flex-col gap-2">
+    <div className="relative flex flex-col gap-8">
       <div className="relative">
         <textarea
           ref={(el) => {
             textareaRef.current = el;
             ref(el);
           }}
-          className="text-body3 w-full resize-none overflow-hidden bg-transparent text-black"
+          className="w-full resize-none overflow-hidden bg-transparent text-body2r text-black"
           rows={row}
           maxLength={maxLength}
           onChange={handleChange}
@@ -49,7 +49,7 @@ export default function SentenceOption({
           {...rest}
         />
       </div>
-      <hr className="border-gray-200" />
+      <hr className="border-gray-100" />
     </div>
   );
 }

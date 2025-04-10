@@ -3,7 +3,7 @@ import ApplicationLayout from '@/widgets/application/ui/ApplicationLayout';
 
 const Application = ({ params }: { params: string }) => {
   return (
-    <div className="minh-screen flex flex-col mobile:gap-0">
+    <div className="flex h-screen flex-col mobile:gap-0">
       <div className="flex justify-center gap-[20px] px-5 py-[30px] mobile:flex-col">
         <div className="w-full max-w-[842px]">
           <ApplicationLayout params={params} />

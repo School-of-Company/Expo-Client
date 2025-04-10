@@ -1,5 +1,4 @@
 import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { FormattedApplicationData } from '@/shared/types/application/type';
 import { postApplication } from '../api/postApplication';
@@ -15,8 +14,6 @@ export const usePostApplication = (
   userType: 'STANDARD' | 'TRAINEE',
   applicationType: 'register' | 'onsite',
 ) => {
-  const router = useRouter();
-
   const getMessages = () => {
     if (formType === 'survey') {
       return {
@@ -37,7 +34,6 @@ export const usePostApplication = (
       postApplication(params, formType, userType, applicationType, data),
     onSuccess: () => {
       toast.success(success);
-      router.push('/');
     },
     onError: () => {
       toast.error(error);

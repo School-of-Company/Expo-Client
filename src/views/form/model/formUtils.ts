@@ -17,7 +17,7 @@ const getSurveyRequestData = (
   type: 'STANDARD' | 'TRAINEE',
 ) => {
   return {
-    informationText: '',
+    informationText: data.informationText,
     participationType: type,
     dynamicSurveyRequestDto: data.questions.map((question) => ({
       title: question.title,
@@ -34,7 +34,7 @@ const getApplicationRequestData = (
   type: 'STANDARD' | 'TRAINEE',
 ) => {
   return {
-    informationText: '',
+    informationText: data.informationText,
     participantType: type,
     dynamicForm: data.questions.map((question) => ({
       title: question.title,

@@ -3,25 +3,22 @@
 import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import { PrivacyConsent } from '@/entities/application';
 import OptionContainer from '@/entities/application/ui/OptionContainer';
 import withLoading from '@/shared/hocs/withLoading';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import {
   ApplicationFormValues,
   DynamicFormItem,
+  DynamicFormValues,
 } from '@/shared/types/application/type';
 import { Button, DetailHeader } from '@/shared/ui';
 import { getFormatter } from '../../model/formatterService';
 import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
 
-type DynamicFormValues = {
-  [key: string]: string | string[] | undefined;
-};
-
-type ExtendedApplicationFormValues = ApplicationFormValues & DynamicFormValues;
-
 interface ApplicationForm {
+  informationText: string;
   dynamicForm?: DynamicFormItem[];
   dynamicSurveyResponseDto?: DynamicFormItem[];
 }
@@ -33,8 +30,8 @@ const ApplicationLayout = ({ params }: { params: string }) => {
   const applicationType = searchParams.get('applicationType') as
     | 'register'
     | 'onsite';
-  const { register, handleSubmit, watch } =
-    useForm<ExtendedApplicationFormValues>();
+  const { register, handleSubmit, watch, setValue } =
+    useForm<ApplicationFormValues>();
 
   const { data: formList, isLoading } = useGetForm(
     params,
@@ -45,7 +42,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
     isLoading: boolean;
   };
 
-  const { mutate: PostApplication } = usePostApplication(
+  const { mutate: PostApplication, isPending } = usePostApplication(
     params,
     formType,
     userType,
@@ -60,9 +57,16 @@ const ApplicationLayout = ({ params }: { params: string }) => {
     return formList?.dynamicForm || formList?.dynamicSurveyResponseDto || [];
   };
 
-  const onSubmit = (data: ExtendedApplicationFormValues): void => {
+  const onSubmit = (data: ApplicationFormValues): void => {
+    if (!data.privacyConsent) {
+      toast.error('개인정보 제공 동의 여부를 체크해주세요');
+      return;
+    }
+
+    const { privacyConsent: _privacyConsent, ...dynamicFormValues } = data;
     const formatter = getFormatter(formType, userType, getDynamicFormData());
-    const formattedData = formatter(data);
+    const formattedData = formatter(dynamicFormValues as DynamicFormValues);
+
     PostApplication(formattedData);
   };
 
@@ -85,6 +89,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 otherJson={null}
                 register={register}
                 watch={watch}
+                setValue={setValue}
               />
             ) : null}
             <OptionContainer
@@ -94,6 +99,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
               otherJson={null}
               register={register}
               watch={watch}
+              setValue={setValue}
             />
             {formType === 'application' ? (
               <OptionContainer
@@ -103,6 +109,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 otherJson={null}
                 register={register}
                 watch={watch}
+                setValue={setValue}
               />
             ) : null}
             {userType === 'STANDARD' && formType === 'application' ? (
@@ -114,6 +121,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                   otherJson={null}
                   register={register}
                   watch={watch}
+                  setValue={setValue}
                 />
                 <OptionContainer
                   title="학교급을 선택해주세요"
@@ -122,6 +130,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                   otherJson="etc"
                   register={register}
                   watch={watch}
+                  setValue={setValue}
                   jsonData={{
                     '1': '유치원',
                     '2': '초등학교',
@@ -136,6 +145,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                   otherJson={null}
                   register={register}
                   watch={watch}
+                  setValue={setValue}
                 />
               </>
             ) : null}
@@ -150,10 +160,18 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 otherJson={form.otherJson}
                 register={register}
                 watch={watch}
+                setValue={setValue}
               />
             ))}
           </div>
-          <Button type="submit">신청하기</Button>
+          <PrivacyConsent
+            content={formList?.informationText ?? ''}
+            watch={watch}
+            setValue={setValue}
+          />
+          <Button disabled={isPending} type="submit">
+            신청하기
+          </Button>
         </div>
       </form>
     ),

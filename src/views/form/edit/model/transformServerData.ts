@@ -1,12 +1,13 @@
 import { FormValues, Option } from '@/shared/types/form/create/type';
 
 interface ApplicationFormData {
-  informationImage: string;
+  informationText: string;
   participantType: 'STANDARD' | 'TRAINEE';
   dynamicForm: ServerFormItem[];
 }
 
 interface SurveyFormData {
+  informationText: string;
   participationType: 'STANDARD' | 'TRAINEE';
   dynamicSurveyResponseDto: ServerFormItem[];
 }
@@ -30,11 +31,17 @@ export const transformServerData = (
       ? (data as ApplicationFormData).dynamicForm
       : (data as SurveyFormData).dynamicSurveyResponseDto;
 
+  const informationText =
+    mode === 'application'
+      ? (data as ApplicationFormData).informationText
+      : (data as SurveyFormData).informationText;
+
   if (!formItems) {
-    return { questions: [] };
+    return { informationText, questions: [] };
   }
 
   return {
+    informationText,
     questions: formItems.map((item) => ({
       title: item.title,
       formType: item.formType,

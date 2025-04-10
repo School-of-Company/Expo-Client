@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { CreateFormButton } from '@/entities/form';
+import { CreateFormButton, PrivacyConsentForm } from '@/entities/form';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { FormValues } from '@/shared/types/form/create/type';
 import { Button, DetailHeader } from '@/shared/ui';
@@ -26,7 +26,7 @@ const FormEditor = ({
   isLoading: boolean;
   isSuccess: boolean;
 }) => {
-  const { control, handleSubmit, register, setValue, reset } =
+  const { control, handleSubmit, register, setValue, watch, reset } =
     useForm<FormValues>({
       defaultValues: defaultValues || { questions: [] },
     });
@@ -76,6 +76,14 @@ const FormEditor = ({
                   />
                 ))}
               </div>
+              <PrivacyConsentForm
+                placeholder="개인정보 동의 안내문을 입력해주세요"
+                registration={register('informationText', {
+                  required: '개인정보 동의 안내문을 입력해주세요.',
+                })}
+                row={1}
+                value={watch('informationText')}
+              />
               <CreateFormButton
                 onClick={() =>
                   append({
