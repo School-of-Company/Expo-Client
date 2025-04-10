@@ -56,6 +56,10 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       router.push(`/sms/${params}/${type}`);
     } else if (modalType === 'edit' && selectedFormType) {
       router.push(`/form/edit/${params}?type=${type}&mode=${selectedFormType}`);
+    } else if (modalType === 'formcreate' && selectedFormType) {
+      router.push(
+        `/form/create/${params}?type=${type}&mode=${selectedFormType}`,
+      );
     } else if (modalType === 'share' && selectedFormType) {
       const url = `${baseURL}/application/${params}?formType=${selectedFormType}&userType=${type}&applicationType=register`;
       navigator.clipboard
@@ -85,50 +89,29 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       ];
     }
 
-    if (modalType === 'edit' && !selectedCategory) {
-      return [
-        {
-          label: CATEGORIES.EXHIBITION,
-          onClick: () => handleCategorySelect(CATEGORIES.EXHIBITION),
-        },
-        {
-          label: CATEGORIES.FORM,
-          onClick: () => handleCategorySelect(CATEGORIES.FORM),
-        },
-        {
-          label: CATEGORIES.SURVEY,
-          onClick: () => handleCategorySelect(CATEGORIES.SURVEY),
-        },
-      ];
+    if (
+      (modalType === 'edit' ||
+        modalType === 'formcreate' ||
+        modalType === 'share') &&
+      !selectedCategory
+    ) {
+      const categories =
+        modalType === 'edit'
+          ? [CATEGORIES.EXHIBITION, CATEGORIES.FORM, CATEGORIES.SURVEY]
+          : [CATEGORIES.FORM, CATEGORIES.SURVEY];
+
+      return categories.map((category) => ({
+        label: category,
+        onClick: () => handleCategorySelect(category),
+      }));
     }
 
-    if (modalType === 'edit' && selectedCategory) {
-      return [
-        {
-          label: '참가자',
-          onClick: () => handleFinalSelection(USER_TYPES.STANDARD),
-        },
-        {
-          label: '연수자',
-          onClick: () => handleFinalSelection(USER_TYPES.TRAINEE),
-        },
-      ];
-    }
-
-    if (modalType === 'share' && !selectedCategory) {
-      return [
-        {
-          label: CATEGORIES.FORM,
-          onClick: () => handleCategorySelect(CATEGORIES.FORM),
-        },
-        {
-          label: CATEGORIES.SURVEY,
-          onClick: () => handleCategorySelect(CATEGORIES.SURVEY),
-        },
-      ];
-    }
-
-    if (modalType === 'share' && selectedCategory) {
+    if (
+      (modalType === 'edit' ||
+        modalType === 'formcreate' ||
+        modalType === 'share') &&
+      selectedCategory
+    ) {
       return [
         {
           label: '참가자',
