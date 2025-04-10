@@ -41,7 +41,14 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
               >
                 조회하기
               </Button>
-              <Button variant="white">폼 생성하기</Button>
+              <Button
+                variant="white"
+                onClick={() =>
+                  openModal('formcreate', '생성할 항목을 선택하세요.')
+                }
+              >
+                폼 생성하기
+              </Button>
             </div>
             <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
               <Button variant="white">통계 확인하기</Button>
@@ -108,9 +115,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
           <button
             type="button"
             className="flex items-center gap-10"
-            onClick={
-              () => openModal('share', '공유할 항목을 선택하세요.') // 수정
-            }
+            onClick={() => openModal('share', '공유할 항목을 선택하세요.')}
           >
             <Share />
             <p className="text-h3r text-gray-400">공유하기</p>

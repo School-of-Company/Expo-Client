@@ -2,14 +2,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { toast } from 'react-toastify';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
-import { formCreateRouter } from '../../model/formCreateRouter';
 import { createApplicationForm } from '../api/createApplicationForm';
 
 export const useCreateApplicationForm = (
   id: string,
   type: 'STANDARD' | 'TRAINEE',
   router: AppRouterInstance,
-  mode: 'application' | 'survey',
 ) => {
   const queryClient = useQueryClient();
 
@@ -19,7 +17,7 @@ export const useCreateApplicationForm = (
       createApplicationForm({ data: formattedData, id }),
     onSuccess: () => {
       toast.success('신청 폼이 생성되었습니다.');
-      formCreateRouter({ id, type, mode, router });
+      router.push(`/expo-detail/${id}`);
       queryClient.resetQueries({
         queryKey: ['createApplicationForm', id, type],
       });

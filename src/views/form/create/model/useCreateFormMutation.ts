@@ -15,12 +15,12 @@ export const useCreateFormMutation = (
     mutate: createApplicationForm,
     isPending: isApplicationPending,
     isSuccess: isApplicationSuccess,
-  } = useCreateApplicationForm(id, type, router, mode);
+  } = useCreateApplicationForm(id, type, router);
   const {
     mutate: createSurveyForm,
     isPending: isSurveyPending,
     isSuccess: isSurveySuccess,
-  } = useCreateSurveyForm(id, type, router, mode);
+  } = useCreateSurveyForm(id, type, router);
 
   const handleSubmitForm = (data: FormValues) => {
     const formattedData = transformFormData(data, type, mode);

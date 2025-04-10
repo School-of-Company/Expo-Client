@@ -13,7 +13,7 @@ export const useCreateExhibitionMutation = () => {
       handleCreateExhibitionFormSubmit(data, router, queryClient),
     onSuccess: (expoId) => {
       if (expoId) {
-        router.push(`/expo-created/${expoId}`);
+        router.push(`/`);
         toast.success('박람회가 생성되었습니다.');
       }
     },
