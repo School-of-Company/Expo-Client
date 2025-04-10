@@ -35,7 +35,6 @@ async function handleRequest(req: NextRequest) {
       const textBody = await req.text();
       data = textBody ? JSON.parse(textBody) : undefined;
     } catch (error) {
-      console.error('JSON 파싱 실패:', error);
       return NextResponse.json(
         { error: '잘못된 JSON 형식입니다.' },
         { status: 400 },
@@ -50,8 +49,6 @@ async function handleRequest(req: NextRequest) {
       data,
     });
 
-    console.log(response.status);
-
     if (response.status === 204) {
       return new NextResponse(null, { status: 204 });
     }
@@ -59,7 +56,6 @@ async function handleRequest(req: NextRequest) {
     return NextResponse.json(response.data, { status: response.status });
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
-    console.log(axiosError.response?.status);
     const status = axiosError.response?.status || 500;
     const message =
       axiosError.response?.data?.message ||

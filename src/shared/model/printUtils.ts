@@ -7,6 +7,8 @@ export const printBadge = (selectedData: { name: string; qrCode: string }) => {
       (selectedData.qrCode.startsWith('/9j/') ||
         selectedData.qrCode.includes('base64'));
 
+    const encodedQRCode = encodeURIComponent(selectedData.qrCode);
+
     printWindow.document.write(`
       <html>
         <head>
@@ -66,8 +68,9 @@ export const printBadge = (selectedData: { name: string; qrCode: string }) => {
             ${
               !isBase64
                 ? `
+                  const decodedQRText = decodeURIComponent("${encodedQRCode}");
                   new QRCode("qrcode", {
-                    text: "${selectedData.qrCode}",
+                    text: decodedQRText,
                     width: 100,
                     height: 100
                   });
