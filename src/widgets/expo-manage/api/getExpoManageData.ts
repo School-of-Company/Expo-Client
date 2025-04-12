@@ -1,13 +1,18 @@
 import axios from 'axios';
-import { Participant, Trainee } from '@/shared/types/expo-manage/type';
+import {
+  ParticipantResponse,
+  TraineeResponse,
+} from '@/shared/types/expo-manage/type';
 
 export const getTraineeExpoManageData = async (
   id: string,
-  searchText: string,
-): Promise<Trainee[]> => {
+  page: number,
+  date?: string,
+): Promise<TraineeResponse> => {
   try {
+    const today = date || new Date().toISOString().split('T')[0];
     const response = await axios.get(`/api/server/token/trainee/${id}`, {
-      params: { name: searchText },
+      params: { page: page - 1, size: 7, date: today },
     });
     return response.data;
   } catch (error) {
@@ -21,11 +26,14 @@ export const getTraineeExpoManageData = async (
 export const getParticipantExpoManageData = async (
   id: string,
   type: string,
-  searchText: string,
-): Promise<Participant[]> => {
+  page: number,
+  date?: string,
+): Promise<ParticipantResponse> => {
   try {
+    const today = date || new Date().toISOString().split('T')[0];
+
     const response = await axios.get(`/api/server/token/participant/${id}`, {
-      params: { type, name: searchText },
+      params: { type, page: page - 1, size: 7, date: today },
     });
     return response.data;
   } catch (error) {

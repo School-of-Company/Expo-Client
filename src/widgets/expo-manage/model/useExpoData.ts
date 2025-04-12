@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { Participant, Trainee } from '@/shared/types/expo-manage/type';
+import {
+  ParticipantResponse,
+  TraineeResponse,
+} from '@/shared/types/expo-manage/type';
 import {
   getTraineeExpoManageData,
   getParticipantExpoManageData,
@@ -8,17 +11,17 @@ import {
 export const useExpoManageQueries = (
   id: string,
   selectOption: string,
-  searchText: string,
+  page: number,
 ) => {
-  const traineeQueries = useQuery<Trainee[], Error>({
-    queryKey: ['traineeData', id, searchText],
-    queryFn: () => getTraineeExpoManageData(id, searchText),
+  const traineeQueries = useQuery<TraineeResponse, Error>({
+    queryKey: ['traineeData', id, page],
+    queryFn: () => getTraineeExpoManageData(id, page),
     enabled: selectOption === 'trainee',
   });
 
-  const participantQueries = useQuery<Participant[], Error>({
-    queryKey: ['participantData', id, selectOption, searchText],
-    queryFn: () => getParticipantExpoManageData(id, selectOption, searchText),
+  const participantQueries = useQuery<ParticipantResponse, Error>({
+    queryKey: ['participantData', id, selectOption, page],
+    queryFn: () => getParticipantExpoManageData(id, selectOption, page),
     enabled: selectOption !== 'trainee',
   });
 

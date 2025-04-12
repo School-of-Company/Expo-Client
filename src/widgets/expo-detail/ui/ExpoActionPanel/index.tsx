@@ -36,7 +36,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
           <div className="w-full space-y-8">
             <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
               <Button
-                onClick={() => router.push(`/expo-manage/${params}`)}
+                onClick={() => router.push(`/expo-manage/${params}?page=1`)}
                 variant="white"
               >
                 조회하기
