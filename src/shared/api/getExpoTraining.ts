@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ExpoTrainingDetail } from '../types/expo-detail/type';
 
 export const getExpoTraining = async (
-  id: number,
+  id: string,
 ): Promise<ExpoTrainingDetail[]> => {
   try {
     const response = await axios.get(

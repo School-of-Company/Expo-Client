@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ExpoDetail } from '../types/expo-detail/type';
 
-export const getExpoDetail = async (id: number): Promise<ExpoDetail> => {
+export const getExpoDetail = async (id: string): Promise<ExpoDetail> => {
   try {
     const response = await axios.get(`/api/server/token/expo/${id}`);
     return response.data;

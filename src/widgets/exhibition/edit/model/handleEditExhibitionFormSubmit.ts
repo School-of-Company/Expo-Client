@@ -11,7 +11,7 @@ export const handleEditExhibitionFormSubmit = async (
   data: ExhibitionFormData,
   router: ReturnType<typeof useRouter>,
   queryClient: QueryClient,
-  id: number,
+  id: string,
 ) => {
   try {
     const coordinates = await convertAddressToCoordinates(data.address);

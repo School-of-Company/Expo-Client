@@ -9,7 +9,7 @@ import { Header } from '@/widgets/layout';
 import { ModalLayout } from '@/widgets/layout';
 import { useExpoQueries } from '../../model/useExpoDetail';
 
-const ExpoDetail = ({ params }: { params: number }) => {
+const ExpoDetail = ({ params }: { params: string }) => {
   const { expoDetailQuery, expoStandardQuery, expoTrainingQuery, isLoading } =
     useExpoQueries(params);
   const expoDetail = expoDetailQuery.data!;

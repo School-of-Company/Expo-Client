@@ -8,7 +8,7 @@ import ExhibitionForm from '@/widgets/exhibition/ui/ExhibitionForm';
 import { Header } from '@/widgets/layout';
 import { useExpoData } from '../../model/useExpoData';
 
-const EditExhibition = ({ id }: { id: number }) => {
+const EditExhibition = ({ id }: { id: string }) => {
   const {
     expoDetailQuery,
     geoQuery,

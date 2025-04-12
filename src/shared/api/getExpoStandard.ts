@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ExpoStandard } from '../types/expo-detail/type';
 
-export const getExpoStandard = async (id: number): Promise<ExpoStandard[]> => {
+export const getExpoStandard = async (id: string): Promise<ExpoStandard[]> => {
   try {
     const response = await axios.get(
       `/api/server/token/standard/program/${id}`,

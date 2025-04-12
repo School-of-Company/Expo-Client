@@ -7,7 +7,7 @@ import { Share } from '@/shared/assets/svg';
 import { Button } from '@/shared/ui';
 
 interface ExpoActionPanelProps {
-  params: number;
+  params: string;
   openModal: (type: string, content: string) => void;
 }
 

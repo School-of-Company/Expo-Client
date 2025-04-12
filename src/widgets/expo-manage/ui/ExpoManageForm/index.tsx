@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import withLoading from '@/shared/hocs/withLoading';
 import { fileActions } from '@/shared/model/footerActions';
 import {
@@ -14,33 +14,52 @@ import SelectUserType from '@/shared/ui/SelectUserType';
 import { TableForm } from '@/shared/ui/Table';
 import { category, selectOptionCategories } from '../../model/category';
 import { useExpoManageQueries } from '../../model/useExpoData';
+import { useGetExpoDetailQuery } from '../../model/useExpoDetailQuery';
+import DateContainer from '../DateContainer';
 
 const ExpoManageForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
-  const [selectOption, setSelectOption] = useState<string>('trainee');
 
-  const { expoQueries, isLoading } = useExpoManageQueries(
-    id,
-    selectOption,
-    page,
+  const { data: expoDetailQuery, isLoading: expoDetailLoading } =
+    useGetExpoDetailQuery(id);
+
+  const [selectOption, setSelectOption] = useState<string>('trainee');
+  const [selectedDate, setSelectedDate] = useState<string | undefined>(
+    undefined,
   );
+
+  useEffect(() => {
+    if (expoDetailQuery?.startedDay && selectedDate === undefined) {
+      setSelectedDate(expoDetailQuery.startedDay);
+    }
+  }, [expoDetailQuery?.startedDay]);
+
+  const { expoManageQueries, isLoading: expoManageLoading } =
+    useExpoManageQueries(id, selectOption, page, selectedDate || '');
 
   const requestPrintCategories = useMemo(() => {
     return category(selectOption);
   }, [selectOption]);
 
-  const expoData = expoQueries.data;
+  const expoData = expoManageQueries.data;
   const totalPage = expoData?.info?.totalPage ?? 1;
 
   return withLoading({
-    isLoading,
+    isLoading: expoManageLoading || !selectedDate || expoDetailLoading,
     children: (
-      <div className="mx-auto w-full max-w-[1200px] space-y-[30px] px-5">
+      <div className="mx-auto w-full max-w-[1200px] space-y-[29px] px-5">
         <SelectUserType
           options={selectOptionCategories}
           value={selectOption}
           onChange={(value) => setSelectOption(value)}
+        />
+
+        <DateContainer
+          startedDay={expoDetailQuery?.startedDay || ''}
+          finishedDay={expoDetailQuery?.finishedDay || ''}
+          onDateSelect={setSelectedDate}
+          selectedDate={selectedDate || ''}
         />
 
         {selectOption === 'trainee' ? (

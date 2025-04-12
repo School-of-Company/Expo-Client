@@ -12,21 +12,22 @@ export const useExpoManageQueries = (
   id: string,
   selectOption: string,
   page: number,
+  date: string,
 ) => {
   const traineeQueries = useQuery<TraineeResponse, Error>({
-    queryKey: ['traineeData', id, page],
-    queryFn: () => getTraineeExpoManageData(id, page),
+    queryKey: ['traineeData', id, page, date],
+    queryFn: () => getTraineeExpoManageData(id, page, date),
     enabled: selectOption === 'trainee',
   });
 
   const participantQueries = useQuery<ParticipantResponse, Error>({
-    queryKey: ['participantData', id, selectOption, page],
-    queryFn: () => getParticipantExpoManageData(id, selectOption, page),
+    queryKey: ['participantData', id, selectOption, page, date],
+    queryFn: () => getParticipantExpoManageData(id, selectOption, page, date),
     enabled: selectOption !== 'trainee',
   });
 
-  const expoQueries =
+  const expoManageQueries =
     selectOption === 'trainee' ? traineeQueries : participantQueries;
 
-  return { expoQueries, isLoading: expoQueries.isLoading };
+  return { expoManageQueries, isLoading: expoManageQueries.isLoading };
 };
