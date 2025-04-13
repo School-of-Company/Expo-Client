@@ -112,43 +112,6 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 setValue={setValue}
               />
             ) : null}
-            {userType === 'STANDARD' && formType === 'application' ? (
-              <>
-                <OptionContainer
-                  title="소속을 입력하세요"
-                  formType="SENTENCE"
-                  requiredStatus={true}
-                  otherJson={null}
-                  register={register}
-                  watch={watch}
-                  setValue={setValue}
-                />
-                <OptionContainer
-                  title="학교급을 선택해주세요"
-                  formType="MULTIPLE"
-                  requiredStatus={true}
-                  otherJson="etc"
-                  register={register}
-                  watch={watch}
-                  setValue={setValue}
-                  jsonData={{
-                    '1': '유치원',
-                    '2': '초등학교',
-                    '3': '중학교',
-                    '4': '고등학교',
-                  }}
-                />
-                <OptionContainer
-                  title="학교이름을 입력해주세요"
-                  formType="SENTENCE"
-                  requiredStatus={true}
-                  otherJson={null}
-                  register={register}
-                  watch={watch}
-                  setValue={setValue}
-                />
-              </>
-            ) : null}
 
             {getDynamicFormData().map((form, index) => (
               <OptionContainer
