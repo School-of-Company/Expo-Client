@@ -21,7 +21,7 @@ const ExpoListContainer = () => {
   return withLoading({
     isLoading,
     children: (
-      <>
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col overflow-auto">
         <div className="mb-[30px] flex justify-between">
           <p className="text-h1m text-black">박람회 신청</p>
           <SortFilter
@@ -44,7 +44,7 @@ const ExpoListContainer = () => {
             />
           ))}
         </div>
-      </>
+      </div>
     ),
   });
 };

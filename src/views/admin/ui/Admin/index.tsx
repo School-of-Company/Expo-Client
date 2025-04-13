@@ -4,9 +4,9 @@ import { Header } from '@/widgets/layout';
 
 const CreateExhibition = () => {
   return (
-    <div className="flex min-h-screen flex-col mobile:gap-0">
+    <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
-      <div className="mx-auto w-full max-w-[1200px] flex-1 px-5 py-[30px]">
+      <div className="flex flex-1 justify-center p-16">
         <AdminPageWrapper />
       </div>
     </div>

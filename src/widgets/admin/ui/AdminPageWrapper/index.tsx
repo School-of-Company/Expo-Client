@@ -52,7 +52,7 @@ const AdminPageWrapper = () => {
   return withLoading({
     isLoading,
     children: (
-      <div className="space-y-[80px]">
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[80px] overflow-auto">
         {requestAdmin && <AdminProfile data={requestAdmin} />}
         <div className="space-y-36">
           <div className="space-y-[26px]">
