@@ -78,7 +78,13 @@ const ApplicationLayout = ({ params }: { params: string }) => {
           handleFormErrors(errors, showError);
         })}
       >
-        <DetailHeader textCenter={true} headerTitle="신청" />
+        <DetailHeader
+          textCenter={true}
+          headerTitle={
+            formType === 'application' ? '박람회 신청' : '만족도 조사 신청'
+          }
+        />
+
         <div className="ml-[20px] mt-[48px] flex flex-col gap-[48px]">
           <div className="w-full space-y-[36px]">
             {userType === 'TRAINEE' && formType === 'application' ? (
