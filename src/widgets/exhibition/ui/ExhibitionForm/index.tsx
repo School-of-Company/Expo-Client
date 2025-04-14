@@ -9,22 +9,22 @@ import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
 import WarningMessage from '@/entities/exhibition/ui/WarningMessage';
 import { Location } from '@/shared/assets/icons';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
-import { ExhibitionFormData } from '@/shared/types/exhibition/create/type';
+
+import {
+  ExhibitionFormData,
+  MutationType,
+} from '@/shared/types/exhibition/type';
 import { Button, Input, SelectDateInput } from '@/shared/ui';
 import DetailHeader from '@/shared/ui/DetailHeader';
 import TextArea from '@/shared/ui/TextArea';
 import { useAddressSearch } from '@/widgets/exhibition/model/useAddressSearch';
-import { useCreateExhibitionMutation } from '../../create/model/useCreateExhibitionMutation';
-import { useEditExhibitionMutation } from '../../edit/model/useEditExhibitionMutation';
 
 const ExhibitionForm = ({
   defaultValues = {},
   mutation,
 }: {
   defaultValues?: Partial<ExhibitionFormData>;
-  mutation:
-    | ReturnType<typeof useEditExhibitionMutation>
-    | ReturnType<typeof useCreateExhibitionMutation>;
+  mutation: MutationType;
 }) => {
   const pathname = usePathname();
   const isEditMode = pathname.includes('/edit');
@@ -65,12 +65,17 @@ const ExhibitionForm = ({
     name: 'standard',
   });
 
+  register('startedDay', { required: '박람회 시작 일과 시간을 입력해주세요.' });
+  register('finishedDay', {
+    required: '박람회 종료 일과 시간을 입력해주세요.',
+  });
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit, (errors) => {
         handleFormErrors(errors, showError);
       })}
-      className="w-full"
+      className="flex w-full max-w-[816px] flex-1 flex-col overflow-auto"
     >
       <DetailHeader
         headerTitle={isEditMode ? '박람회 수정하기' : '박람회 생성하기'}
@@ -177,7 +182,12 @@ const ExhibitionForm = ({
             placeholder="상세주소를 입력해주세요."
           />
         </div>
-        <Button type="submit">확인</Button>
+        <Button
+          disabled={mutation.isPending || mutation.isSuccess}
+          type="submit"
+        >
+          확인
+        </Button>
       </div>
     </form>
   );

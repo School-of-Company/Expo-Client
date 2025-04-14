@@ -85,11 +85,11 @@ const ExpoDetailLayout = ({
 
           <div className="space-y-14">
             <ShowLocation
-              latitude={expoDetail?.x}
-              longitude={expoDetail?.y}
+              latitude={expoDetail?.y}
+              longitude={expoDetail?.x}
               detailAddress={expoDetail.location}
             />
-            <KakaoMap latitude={expoDetail?.x} longitude={expoDetail?.y} />
+            <KakaoMap latitude={expoDetail?.y} longitude={expoDetail?.x} />
           </div>
         </div>
       </div>

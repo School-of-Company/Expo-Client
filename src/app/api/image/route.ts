@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     const axiosError = error as AxiosError<{ message: string }>;
 
     const status = axiosError.response?.status || 500;
-    const message = axiosError.response?.data?.message || 'image upload failed';
+    const message = axiosError.response?.data?.message || '이미지 업로드 오류';
 
     return NextResponse.json({ error: message }, { status });
   }

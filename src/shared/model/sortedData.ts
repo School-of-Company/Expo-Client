@@ -3,5 +3,5 @@ export const sortedData = <T>(
   filterValue: string,
 ): T[] => {
   if (!list) return [];
-  return filterValue === '오래된순' ? [...list].reverse() : list;
+  return filterValue === '최신순' ? [...list].reverse() : list;
 };

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { UseFormSetValue } from 'react-hook-form';
-import { ExhibitionFormData } from '@/shared/types/exhibition/create/type';
+import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 
 interface AddressData {
   address: string;

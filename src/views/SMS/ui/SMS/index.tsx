@@ -4,9 +4,9 @@ import { SMSContainer } from '@/widgets/SMS';
 
 const SMS = () => {
   return (
-    <div className="flex h-screen flex-col gap-[30px] mobile:gap-5">
+    <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
-      <div className="px-5">
+      <div className="flex flex-1 justify-center p-16">
         <SMSContainer />
       </div>
     </div>

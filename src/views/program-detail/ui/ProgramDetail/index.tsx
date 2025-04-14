@@ -4,9 +4,11 @@ import { ProgramDetailForm } from '@/widgets/program-detail';
 
 const ProgramDetail = ({ id }: { id: number }) => {
   return (
-    <div className="flex h-screen flex-col gap-[30px] mobile:gap-5">
+    <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
-      <ProgramDetailForm id={id} />
+      <div className="flex flex-1 justify-center p-16">
+        <ProgramDetailForm id={id} />
+      </div>
     </div>
   );
 };
