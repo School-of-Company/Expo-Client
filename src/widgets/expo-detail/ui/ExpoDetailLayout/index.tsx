@@ -89,7 +89,7 @@ const ExpoDetailLayout = ({
               longitude={expoDetail?.y}
               detailAddress={expoDetail.location}
             />
-            <KakaoMap latitude={expoDetail?.x} longitude={expoDetail?.y} />
+            <KakaoMap latitude={expoDetail?.y} longitude={expoDetail?.x} />
           </div>
         </div>
       </div>

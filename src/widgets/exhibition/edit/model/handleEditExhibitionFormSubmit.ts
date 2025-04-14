@@ -40,8 +40,8 @@ export const handleEditExhibitionFormSubmit = async (
       finishedDay: data.finishedDay,
       location: data.location,
       coverImage: coverImage,
-      x: lat,
-      y: lng,
+      x: lng,
+      y: lat,
       updateStandardProRequestDto: data.standard.map((standard) => ({
         id: standard.id || generateUniqueId(),
         title: standard.title,

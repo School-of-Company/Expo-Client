@@ -2,13 +2,13 @@ import axios from 'axios';
 import { AddressResponse } from '@/shared/types/exhibition/edit/type';
 
 export const getAddress = async (
-  x: string,
-  y: string,
+  latitude: string,
+  longitude: string,
 ): Promise<AddressResponse> => {
   const response = await axios.get(`/api/map/change-geo`, {
     params: {
-      x,
-      y,
+      x: longitude,
+      y: latitude,
     },
   });
   return response.data;

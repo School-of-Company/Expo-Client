@@ -33,8 +33,8 @@ export const handleCreateExhibitionFormSubmit = async (
       finishedDay: data.finishedDay,
       location: data.location,
       coverImage: img,
-      x: lat,
-      y: lng,
+      x: lng,
+      y: lat,
       addStandardProRequestDto: data.standard.map((standard) => ({
         title: standard.title,
         startedAt: `${standard.startedAt}`,
