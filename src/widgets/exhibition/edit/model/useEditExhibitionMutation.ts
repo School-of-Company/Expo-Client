@@ -10,7 +10,7 @@ export const useEditExhibitionMutation = (id: number) => {
 
   return useMutation({
     mutationFn: (data: ExhibitionFormData) =>
-      handleEditExhibitionFormSubmit(data, router, queryClient, id),
+      handleEditExhibitionFormSubmit(data, id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['expoList'],
@@ -29,8 +29,11 @@ export const useEditExhibitionMutation = (id: number) => {
       toast.success('박람회가 수정되었습니다.');
     },
     onError: (error) => {
-      console.error(error);
-      toast.error('박람회 수정에 실패했습니다.');
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('알 수 없는 오류가 발생했습니다.');
+      }
     },
   });
 };
