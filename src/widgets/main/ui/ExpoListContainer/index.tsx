@@ -11,13 +11,17 @@ import { useExpoList } from '../../model/useExpoList';
 import EmptyExpoList from '../EmptyExpoList';
 
 const ExpoListContainer = () => {
-  const { data: expoList, isLoading } = useExpoList();
+  const { data: expoList, isLoading, error } = useExpoList();
   const [selectedFilter, setSelectedFilter] = useState(filterOptions[0]);
 
   const sortedExpoList = useMemo<ExpoItem[]>(
     () => sortedData(expoList ?? [], selectedFilter.value),
     [expoList, selectedFilter.value],
   );
+
+  if (error) {
+    return <p>데이터를 가져오는 중 오류가 발생했습니다.</p>;
+  }
 
   return withLoading({
     isLoading,
