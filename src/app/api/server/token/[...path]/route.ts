@@ -64,10 +64,17 @@ async function handleRequest(req: NextRequest) {
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
     const status = axiosError.response?.status || 500;
+
+    if (status === 401) {
+      return NextResponse.json(
+        { error: 'Unauthorized', status: 401 },
+        { status: 401 },
+      );
+    }
+
     const message =
       axiosError.response?.data?.message ||
       '요청을 처리하는 중 오류가 발생했습니다.';
-
     return NextResponse.json({ error: message, status }, { status });
   }
 }
