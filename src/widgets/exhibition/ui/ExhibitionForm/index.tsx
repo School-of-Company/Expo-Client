@@ -65,6 +65,11 @@ const ExhibitionForm = ({
     name: 'standard',
   });
 
+  register('startedDay', { required: '박람회 시작 일과 시간을 입력해주세요.' });
+  register('finishedDay', {
+    required: '박람회 종료 일과 시간을 입력해주세요.',
+  });
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit, (errors) => {
