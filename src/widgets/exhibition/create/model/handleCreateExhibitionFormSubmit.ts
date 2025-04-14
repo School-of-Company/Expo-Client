@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { ExhibitionFormData } from '@/shared/types/exhibition/create/type';
+import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 import { convertAddressToCoordinates } from '../../api/convertAddressToCoordinates';
 import { uploadImage } from '../../api/uploadImage';
 import { createExhibition } from '../api/createExhibition';

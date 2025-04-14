@@ -48,7 +48,7 @@ const EditExhibition = ({ id }: { id: number }) => {
     })),
   };
 
-  const mutation = useEditExhibitionMutation(id);
+  const { mutate, isPending, isSuccess } = useEditExhibitionMutation(id);
 
   return (
     <div className="flex min-h-screen flex-col gap-[30px]">
@@ -57,7 +57,10 @@ const EditExhibition = ({ id }: { id: number }) => {
         isLoading,
         children: (
           <div className="flex flex-1 justify-center overflow-hidden p-16">
-            <ExhibitionForm defaultValues={defaultValues} mutation={mutation} />
+            <ExhibitionForm
+              defaultValues={defaultValues}
+              mutation={{ mutate, isPending, isSuccess }}
+            />
           </div>
         ),
       })}

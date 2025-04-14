@@ -4,7 +4,7 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
-import { ExhibitionFormData } from '../create/type';
+import { ExhibitionFormData } from '../type';
 
 export interface AddressResponse {
   meta: {

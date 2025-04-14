@@ -9,22 +9,22 @@ import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
 import WarningMessage from '@/entities/exhibition/ui/WarningMessage';
 import { Location } from '@/shared/assets/icons';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
-import { ExhibitionFormData } from '@/shared/types/exhibition/create/type';
+
+import {
+  ExhibitionFormData,
+  MutationType,
+} from '@/shared/types/exhibition/type';
 import { Button, Input, SelectDateInput } from '@/shared/ui';
 import DetailHeader from '@/shared/ui/DetailHeader';
 import TextArea from '@/shared/ui/TextArea';
 import { useAddressSearch } from '@/widgets/exhibition/model/useAddressSearch';
-import { useCreateExhibitionMutation } from '../../create/model/useCreateExhibitionMutation';
-import { useEditExhibitionMutation } from '../../edit/model/useEditExhibitionMutation';
 
 const ExhibitionForm = ({
   defaultValues = {},
   mutation,
 }: {
   defaultValues?: Partial<ExhibitionFormData>;
-  mutation:
-    | ReturnType<typeof useEditExhibitionMutation>
-    | ReturnType<typeof useCreateExhibitionMutation>;
+  mutation: MutationType;
 }) => {
   const pathname = usePathname();
   const isEditMode = pathname.includes('/edit');
@@ -177,7 +177,12 @@ const ExhibitionForm = ({
             placeholder="상세주소를 입력해주세요."
           />
         </div>
-        <Button type="submit">확인</Button>
+        <Button
+          disabled={mutation.isPending || mutation.isSuccess}
+          type="submit"
+        >
+          확인
+        </Button>
       </div>
     </form>
   );

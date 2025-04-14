@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { ExhibitionFormData } from '@/shared/types/exhibition/create/type';
+import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 import { handleCreateExhibitionFormSubmit } from './handleCreateExhibitionFormSubmit';
 
 export const useCreateExhibitionMutation = () => {
