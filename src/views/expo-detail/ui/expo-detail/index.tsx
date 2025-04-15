@@ -32,39 +32,41 @@ const ExpoDetail = ({ params }: { params: string }) => {
     setModalType(null);
   };
 
-  return withLoading({
-    isLoading,
-    children: (
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <div className="flex w-full items-center justify-center px-16 py-[40px]">
-          <div className="flex w-full max-w-[1000px] gap-40 tablet:w-full tablet:max-w-none tablet:flex-col">
-            <div className="w-full max-w-[750px] tablet:w-full tablet:max-w-none">
-              <ExpoDetailLayout
-                expoDetail={expoDetail}
-                expoStandard={expoStandard}
-                expoTraining={expoTraining}
-                openModal={openModal}
-              />
-            </div>
-            <div className="w-full max-w-[210px] tablet:w-full tablet:max-w-none">
-              <ExpoActionPanel params={params} openModal={openModal} />
+  return (
+    <div className="flex min-h-screen flex-col gap-30">
+      <Header />
+      {withLoading({
+        isLoading,
+        children: (
+          <div className="flex flex-1 justify-center p-16">
+            <div className="flex w-full max-w-[1000px] flex-1 gap-40 tablet:w-full tablet:max-w-none tablet:flex-col">
+              <div className="w-full max-w-[750px] tablet:w-full tablet:max-w-none">
+                <ExpoDetailLayout
+                  expoDetail={expoDetail}
+                  expoStandard={expoStandard}
+                  expoTraining={expoTraining}
+                  openModal={openModal}
+                />
+              </div>
+              <div className="w-full max-w-[210px] tablet:w-full tablet:max-w-none">
+                <ExpoActionPanel params={params} openModal={openModal} />
+              </div>
             </div>
           </div>
-        </div>
-        {isModalOpen && (
-          <ModalLayout>
-            <FormTypeModal
-              text={modalContent}
-              onClose={closeModal}
-              params={params}
-              modalType={modalType}
-            />
-          </ModalLayout>
-        )}
-      </div>
-    ),
-  });
+        ),
+      })}
+      {isModalOpen && (
+        <ModalLayout>
+          <FormTypeModal
+            text={modalContent}
+            onClose={closeModal}
+            params={params}
+            modalType={modalType}
+          />
+        </ModalLayout>
+      )}
+    </div>
+  );
 };
 
 export default ExpoDetail;

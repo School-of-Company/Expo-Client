@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const convertAddressToCoordinates = async (
   address: string,
-): Promise<{ lat: number; lng: number } | null> => {
+): Promise<{ lat: number; lng: number }> => {
   try {
     const response = await axios.get(
       `/api/map/change-local?address=${encodeURIComponent(address)}`,
@@ -17,8 +17,12 @@ export const convertAddressToCoordinates = async (
         lng: parseFloat(parseFloat(x).toFixed(7)),
       };
     }
+
+    throw new Error('주소 변환에 실패했습니다.');
   } catch (error) {
-    console.error('주소 변환 오류:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '주소 변환에 실패했습니다.');
+    }
+    throw error;
   }
-  return null;
 };

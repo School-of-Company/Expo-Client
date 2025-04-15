@@ -4,7 +4,35 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
-import { ExhibitionFormData } from './create/type';
+
+export type ExhibitionFormData = {
+  title: string;
+  introduction: string;
+  address: string;
+  location: string;
+  trainings: {
+    id?: number;
+    title: string;
+    startedAt: string;
+    endedAt: string;
+    category?: 'ESSENTIAL' | 'CHOICE';
+  }[];
+  standard: {
+    id?: number;
+    title: string;
+    startedAt: string;
+    endedAt: string;
+  }[];
+  image: File | null | string;
+  startedDay: string;
+  finishedDay: string;
+};
+
+export interface MutationType {
+  mutate: (data: ExhibitionFormData) => void;
+  isPending: boolean;
+  isSuccess: boolean;
+}
 
 export interface FieldArrayProps {
   fields: UseFieldArrayReturn<

@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const url = `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${y}&y=${x}`;
+  const url = `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${x}&y=${y}`;
 
   try {
     const response = await axios.get(url, {

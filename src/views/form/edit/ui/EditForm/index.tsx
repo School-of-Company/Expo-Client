@@ -26,24 +26,26 @@ const EditForm = ({ id }: { id: string }) => {
     ? transformServerData(formData, mode)
     : undefined;
 
-  return withLoading({
-    isLoading,
-    children: (
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <div className="flex-1 overflow-auto">
-          <FormEditor
-            type={type}
-            mode={mode}
-            defaultValues={defaultValues}
-            onSubmit={handleSubmitForm}
-            isLoading={isApplicationPending || isSurveyPending}
-            isSuccess={isApplicationSuccess || isSurveySuccess}
-          />
-        </div>
-      </div>
-    ),
-  });
+  return (
+    <div className="flex min-h-screen flex-col gap-[30px]">
+      <Header />
+      {withLoading({
+        isLoading,
+        children: (
+          <div className="flex flex-1 justify-center overflow-hidden p-16">
+            <FormEditor
+              type={type}
+              mode={mode}
+              defaultValues={defaultValues}
+              onSubmit={handleSubmitForm}
+              isLoading={isApplicationPending || isSurveyPending}
+              isSuccess={isApplicationSuccess || isSurveySuccess}
+            />
+          </div>
+        ),
+      })}
+    </div>
+  );
 };
 
 export default EditForm;

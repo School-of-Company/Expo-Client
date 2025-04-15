@@ -47,62 +47,60 @@ const FormEditor = ({
   };
 
   return (
-    <div className="flex h-full flex-col items-center p-16">
-      <form
-        onSubmit={handleSubmit(handleFormSubmit, (errors) =>
-          handleFormErrors(errors, toast.error),
-        )}
-        className="w-full max-w-[816px]"
-      >
-        <div className="space-y-80">
-          <div className="space-y-40">
-            <DetailHeader
-              textCenter={true}
-              headerTitle={getFormTitle(type, mode)}
-            />
-            <div className="space-y-12">
-              <div className="w-full space-y-12">
-                {fields.map((field, index) => (
-                  <FormContainer
-                    key={field.id}
-                    {...{
-                      options: selectOptionData,
-                      formRemove: remove,
-                      index,
-                      register,
-                      setValue,
-                      control,
-                    }}
-                  />
-                ))}
-              </div>
-              <PrivacyConsentForm
-                placeholder="개인정보 동의 안내문을 입력해주세요"
-                registration={register('informationText', {
-                  required: '개인정보 동의 안내문을 입력해주세요.',
-                })}
-                row={1}
-                value={watch('informationText')}
-              />
-              <CreateFormButton
-                onClick={() =>
-                  append({
-                    title: '',
-                    formType: 'SENTENCE',
-                    options: [],
-                    requiredStatus: false,
-                    otherJson: null,
-                  })
-                }
-              />
+    <form
+      onSubmit={handleSubmit(handleFormSubmit, (errors) =>
+        handleFormErrors(errors, toast.error),
+      )}
+      className="flex w-full max-w-[816px] flex-1 flex-col overflow-auto"
+    >
+      <div className="space-y-80">
+        <div className="space-y-40">
+          <DetailHeader
+            textCenter={true}
+            headerTitle={getFormTitle(type, mode)}
+          />
+          <div className="space-y-12">
+            <div className="w-full space-y-12">
+              {fields.map((field, index) => (
+                <FormContainer
+                  key={field.id}
+                  {...{
+                    options: selectOptionData,
+                    formRemove: remove,
+                    index,
+                    register,
+                    setValue,
+                    control,
+                  }}
+                />
+              ))}
             </div>
+            <PrivacyConsentForm
+              placeholder="개인정보 동의 안내문을 입력해주세요"
+              registration={register('informationText', {
+                required: '개인정보 동의 안내문을 입력해주세요.',
+              })}
+              row={1}
+              value={watch('informationText')}
+            />
+            <CreateFormButton
+              onClick={() =>
+                append({
+                  title: '',
+                  formType: 'SENTENCE',
+                  options: [],
+                  requiredStatus: false,
+                  otherJson: null,
+                })
+              }
+            />
           </div>
-          <Button type="submit" disabled={isLoading || isSuccess}>
-            {isLoading ? '제출 중...' : isSuccess ? '완료됨' : '생성하기'}
-          </Button>
         </div>
-      </form>
-    </div>
+        <Button type="submit" disabled={isLoading || isSuccess}>
+          {isLoading ? '제출 중...' : isSuccess ? '완료됨' : '생성하기'}
+        </Button>
+      </div>
+    </form>
   );
 };
 

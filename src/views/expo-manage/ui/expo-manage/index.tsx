@@ -4,9 +4,11 @@ import { Header } from '@/widgets/layout';
 
 const ExpoManage = ({ id }: { id: string }) => {
   return (
-    <div className="bg-red flex min-h-screen flex-col gap-80 mobile:gap-40">
+    <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
-      <ExpoManageForm id={id} />
+      <div className="flex flex-1 justify-center p-16">
+        <ExpoManageForm id={id} />
+      </div>
     </div>
   );
 };

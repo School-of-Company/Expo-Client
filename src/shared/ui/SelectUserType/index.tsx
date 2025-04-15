@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowDown } from '@/shared/assets/icons';
 
 interface Option {
@@ -19,6 +19,10 @@ const SelectUserType = ({ options, value, onChange }: SelectProps) => {
   const [selectedOption, setSelectedOption] = useState<Option | undefined>(
     options.find((option) => option.value === value) || options[0],
   );
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownWidth, setDropdownWidth] = useState<number | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     const newSelectedOption = options.find((option) => option.value === value);
@@ -26,6 +30,12 @@ const SelectUserType = ({ options, value, onChange }: SelectProps) => {
       setSelectedOption(newSelectedOption);
     }
   }, [value, options]);
+
+  useEffect(() => {
+    if (buttonRef.current) {
+      setDropdownWidth(buttonRef.current.offsetWidth);
+    }
+  }, [selectedOption?.label]);
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
@@ -38,6 +48,7 @@ const SelectUserType = ({ options, value, onChange }: SelectProps) => {
   return (
     <div className="relative inline-block">
       <button
+        ref={buttonRef}
         type="button"
         onClick={toggleOpen}
         className="flex items-center gap-16 text-h2b text-black"
@@ -46,7 +57,10 @@ const SelectUserType = ({ options, value, onChange }: SelectProps) => {
         <ArrowDown />
       </button>
       {isOpen && (
-        <div className="absolute top-9 z-30 min-w-full space-y-12 rounded-sm bg-white p-8 shadow-md">
+        <div
+          className="absolute top-9 z-30 space-y-12 rounded-sm bg-white p-8 shadow-md"
+          style={{ width: dropdownWidth }}
+        >
           {options.map((option) => (
             <button
               key={option.value}

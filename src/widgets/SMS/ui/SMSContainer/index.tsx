@@ -26,7 +26,7 @@ export default function Write() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="relative mx-auto flex w-full max-w-[792px] flex-1 flex-col pb-5"
+      className="flex w-full max-w-[792px] flex-1 flex-col overflow-auto"
     >
       <div className="flex flex-1 flex-col gap-[62px]">
         <DetailHeader textCenter={true} headerTitle="문자 보내기" />

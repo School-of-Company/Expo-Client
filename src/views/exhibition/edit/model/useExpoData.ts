@@ -27,9 +27,10 @@ export const useExpoData = (id: string) => {
     ],
     queryFn: () =>
       getAddress(
-        String(expoDetailQuery.data?.x),
         String(expoDetailQuery.data?.y),
+        String(expoDetailQuery.data?.x),
       ),
+
     enabled: !!expoDetailQuery.data,
   });
 

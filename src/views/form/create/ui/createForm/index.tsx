@@ -18,15 +18,17 @@ const CreateForm = ({ id }: { id: string }) => {
     isSurveySuccess,
   } = useCreateFormMutation(id, type, mode);
   return (
-    <div className="flex h-screen flex-col gap-[30px] mobile:gap-0">
+    <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
-      <FormEditor
-        type={type}
-        mode={mode}
-        onSubmit={handleSubmitForm}
-        isLoading={isApplicationPending || isSurveyPending}
-        isSuccess={isApplicationSuccess || isSurveySuccess}
-      />
+      <div className="flex flex-1 justify-center p-16">
+        <FormEditor
+          type={type}
+          mode={mode}
+          onSubmit={handleSubmitForm}
+          isLoading={isApplicationPending || isSurveyPending}
+          isSuccess={isApplicationSuccess || isSurveySuccess}
+        />
+      </div>
     </div>
   );
 };

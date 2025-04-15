@@ -77,6 +77,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
         onSubmit={handleSubmit(onSubmit, (errors) => {
           handleFormErrors(errors, showError);
         })}
+        className="flex w-full max-w-[816px] flex-1 flex-col overflow-auto"
       >
         <DetailHeader textCenter={true} headerTitle="신청" />
         <div className="ml-[20px] mt-[48px] flex flex-col gap-[48px]">
