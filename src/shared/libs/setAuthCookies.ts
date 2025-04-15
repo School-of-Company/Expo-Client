@@ -1,24 +1,19 @@
 import { cookies } from 'next/headers';
 
-export const setAuthCookies = (tokens: {
-  accessToken: string;
-  refreshToken: string;
-  accessTokenExpiresIn: string;
-  refreshTokenExpiresIn: string;
-}) => {
+export function setAuthCookies(accessToken: string, refreshToken: string) {
   const cookieStore = cookies();
 
-  cookieStore.set('accessToken', tokens.accessToken, {
+  cookieStore.set('accessToken', accessToken, {
     httpOnly: true,
     secure: true,
-    expires: new Date(tokens.accessTokenExpiresIn),
-    sameSite: 'strict',
+    sameSite: 'lax',
+    maxAge: Number.MAX_SAFE_INTEGER,
   });
 
-  cookieStore.set('refreshToken', tokens.refreshToken, {
+  cookieStore.set('refreshToken', refreshToken, {
     httpOnly: true,
     secure: true,
-    expires: new Date(tokens.refreshTokenExpiresIn),
-    sameSite: 'strict',
+    sameSite: 'lax',
+    maxAge: Number.MAX_SAFE_INTEGER,
   });
-};
+}
