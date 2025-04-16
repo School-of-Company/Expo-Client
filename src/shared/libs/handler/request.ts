@@ -1,7 +1,7 @@
 import { AxiosRequestConfig, ResponseType } from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
 import { serverInstance } from '@/shared/libs/http/serverInstance';
-import { handleRequest } from './tokenHandler';
+import { tokenHandleRequest } from './tokenHandler';
 import { RequestData } from './type';
 
 export async function parseRequestData(
@@ -80,5 +80,5 @@ export async function retryRequest(
     body: body && typeof body === 'string' ? body : undefined,
   });
 
-  return handleRequest(newReq, true, body);
+  return tokenHandleRequest(newReq, true, body);
 }
