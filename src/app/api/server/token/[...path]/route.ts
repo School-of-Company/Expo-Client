@@ -71,7 +71,7 @@ async function handleRequest(
     if (newTokens) {
       accessToken = newTokens.accessToken;
     } else {
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           error: '토큰 갱신에 실패했습니다.',
           status: 401,
@@ -79,6 +79,7 @@ async function handleRequest(
         },
         { status: 401 },
       );
+      return deleteAuthCookies(response);
     }
   }
 
