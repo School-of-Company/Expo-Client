@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { refreshAccessToken } from '@/shared/libs/refreshAccessToken';
+import { refreshAccessToken } from '@/shared/libs/handler/refreshAccessToken';
 import { retryRequest } from './request';
 import { GlobalRefreshState, RefreshTokenResult } from './type';
 
