@@ -1,6 +1,7 @@
 import { AxiosError, AxiosRequestConfig, ResponseType } from 'axios';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { deleteAuthCookies } from '@/shared/libs/deleteCookies';
 import { refreshAccessToken } from '@/shared/libs/refreshAccessToken';
 import { serverInstance } from '@/shared/libs/serverInstance';
 
@@ -170,9 +171,7 @@ async function handleRequest(
               },
               { status: 401 },
             );
-            response.cookies.delete('accessToken');
-            response.cookies.delete('refreshToken');
-            return response;
+            return deleteAuthCookies(response);
           }
         }
       } else {
@@ -184,9 +183,7 @@ async function handleRequest(
           },
           { status: 401 },
         );
-        response.cookies.delete('accessToken');
-        response.cookies.delete('refreshToken');
-        return response;
+        return deleteAuthCookies(response);
       }
     }
 
