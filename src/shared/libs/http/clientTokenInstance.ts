@@ -2,9 +2,6 @@ import axios from 'axios';
 
 const clientTokenInstance = axios.create({
   baseURL: '/api/server/token',
-  headers: {
-    'Content-Type': 'application/json',
-  },
   withCredentials: true,
 });
 
