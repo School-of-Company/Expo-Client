@@ -7,11 +7,7 @@ export const uploadImage = async (file: File | null | string) => {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await axios.post('/api/image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axios.post('/api/server/token/image', formData);
     return response.data.imageURL;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

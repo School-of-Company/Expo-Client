@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiClient } from '@/shared/libs/apiClient';
 import { refreshAccessToken } from '@/shared/libs/refreshAccessToken';
 
+type RequestData = FormData | Record<string, unknown> | string | undefined;
+
 const globalForRefresh: {
   refreshTokenPromise: Promise<{
     accessToken: string;
@@ -21,7 +23,7 @@ const globalForRefresh: {
     reject: (error: AxiosError) => void;
     req: NextRequest;
     isRetry: boolean;
-    originalBody?: string;
+    originalBody?: string | FormData;
   }[];
 } = {
   refreshTokenPromise: null,
@@ -49,11 +51,12 @@ export async function PUT(req: NextRequest) {
 async function handleRequest(
   req: NextRequest,
   isRetry = false,
-  originalBody?: string,
+  originalBody?: string | FormData,
 ): Promise<NextResponse> {
   const cookieStore = cookies();
   let accessToken = cookieStore.get('accessToken')?.value;
   const refreshToken = cookieStore.get('refreshToken')?.value;
+  const contentType = req.headers.get('content-type') || '';
 
   if (
     globalForRefresh.cachedTokens &&
@@ -79,14 +82,33 @@ async function handleRequest(
   }
 
   try {
+    let requestData: RequestData = undefined;
+    const headers: Record<string, string | undefined> = {
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    if (!['GET', 'DELETE', 'HEAD'].includes(req.method)) {
+      if (contentType.includes('multipart/form-data')) {
+        requestData = await req.formData();
+        headers['Content-Type'] = undefined;
+      } else if (contentType.includes('application/json')) {
+        const bodyText =
+          typeof originalBody === 'string' ? originalBody : await req.text();
+        requestData = JSON.parse(bodyText);
+        headers['Content-Type'] = 'application/json';
+      } else {
+        const bodyText =
+          typeof originalBody === 'string' ? originalBody : await req.text();
+        requestData = bodyText;
+      }
+    }
+
     const response = await apiClient.request({
       url: `${process.env.NEXT_PUBLIC_BASE_URL}${req.nextUrl.pathname.replace('/api/server/token', '')}`,
       method: req.method,
       params: Object.fromEntries(req.nextUrl.searchParams.entries()),
-      data: !['GET', 'DELETE', 'HEAD'].includes(req.method)
-        ? JSON.parse(originalBody || (await req.text()) || '{}')
-        : undefined,
-      headers: { Authorization: `Bearer ${accessToken}` },
+      data: requestData,
+      headers,
     });
 
     return response.status === 204
@@ -179,7 +201,7 @@ async function performTokenRefresh(
     if (result) {
       globalForRefresh.cachedTokens = {
         ...result,
-        expiresAt: Date.now() + 1000,
+        expiresAt: Date.now() + 10000,
       };
       await processWaitingRequests(result.accessToken);
     }
@@ -219,15 +241,15 @@ function rejectWaitingRequests(error: AxiosError) {
 async function retryRequest(
   req: NextRequest,
   accessToken: string,
-  body?: string,
+  body?: string | FormData,
 ): Promise<NextResponse> {
+  const headers = new Headers(req.headers);
+  headers.set('Authorization', `Bearer ${accessToken}`);
+
   const newReq = new NextRequest(req.url, {
     method: req.method,
-    headers: new Headers({
-      ...Object.fromEntries(req.headers.entries()),
-      Authorization: `Bearer ${accessToken}`,
-    }),
-    body,
+    headers,
+    body: body && typeof body === 'string' ? body : undefined,
   });
 
   return handleRequest(newReq, true, body);
