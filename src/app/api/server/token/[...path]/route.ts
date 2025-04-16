@@ -94,7 +94,6 @@ async function handleRequest(
     if (!['GET', 'DELETE', 'HEAD'].includes(req.method)) {
       if (contentType.includes('multipart/form-data')) {
         requestData = await req.formData();
-        headers['Content-Type'] = undefined;
       } else if (contentType.includes('application/json')) {
         const bodyText =
           typeof originalBody === 'string' ? originalBody : await req.text();
@@ -139,7 +138,6 @@ async function handleRequest(
       });
     }
 
-    // 일반 응답 처리
     return response.status === 204
       ? new NextResponse(null, { status: 204 })
       : NextResponse.json(response.data, { status: response.status });
