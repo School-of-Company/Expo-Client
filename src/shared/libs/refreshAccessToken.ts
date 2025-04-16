@@ -9,8 +9,19 @@ export async function refreshAccessToken(
       headers: { RefreshToken: `Bearer ${refreshToken}` },
     });
 
-    const { accessToken, refreshToken: newRefreshToken } = response.data;
-    setAuthCookies(accessToken, newRefreshToken);
+    const {
+      accessToken,
+      refreshToken: newRefreshToken,
+      accessTokenExpiresIn,
+      refreshTokenExpiresIn,
+    } = response.data;
+
+    setAuthCookies({
+      accessToken,
+      refreshToken: newRefreshToken,
+      accessTokenExpires: new Date(accessTokenExpiresIn),
+      refreshTokenExpires: new Date(refreshTokenExpiresIn),
+    });
 
     return { accessToken, refreshToken: newRefreshToken };
   } catch (error) {
