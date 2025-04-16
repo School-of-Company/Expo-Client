@@ -1,4 +1,5 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 
 export const editSurveyForm = async ({
@@ -9,7 +10,7 @@ export const editSurveyForm = async ({
   id: string;
 }) => {
   try {
-    const response = await axios.patch(`/api/server/token/survey/${id}`, data);
+    const response = await clientTokenInstance.patch(`/survey/${id}`, data);
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

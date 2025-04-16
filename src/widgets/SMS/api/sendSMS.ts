@@ -1,4 +1,5 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { SendSmSData } from '@/shared/types/sms';
 
 export const sendSMS = async (
@@ -7,7 +8,7 @@ export const sendSMS = async (
   data: SendSmSData,
 ) => {
   try {
-    const response = await axios.post(`/api/server/token/sms/message/${id}`, {
+    const response = await clientTokenInstance.post(`/sms/message/${id}`, {
       title: data.title,
       content: data.content,
       authority: 'ROLE_' + authority,

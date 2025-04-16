@@ -1,11 +1,10 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { Program } from '@/shared/types/program/type';
 
 export const getTrainingProgram = async (id: string): Promise<Program[]> => {
   try {
-    const response = await axios.get(
-      `/api/server/token/training/program/${id}`,
-    );
+    const response = await clientTokenInstance.get(`/training/program/${id}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
@@ -19,9 +18,7 @@ export const getTrainingProgram = async (id: string): Promise<Program[]> => {
 
 export const getStandardProgram = async (id: string): Promise<Program[]> => {
   try {
-    const response = await axios.get(
-      `/api/server/token/standard/program/${id}`,
-    );
+    const response = await clientTokenInstance.get(`/standard/program/${id}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

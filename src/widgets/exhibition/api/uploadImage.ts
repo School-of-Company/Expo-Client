@@ -1,4 +1,5 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
 export const uploadImage = async (file: File | null | string) => {
   if (!file) return null;
@@ -7,11 +8,7 @@ export const uploadImage = async (file: File | null | string) => {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await axios.post('/api/image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await clientTokenInstance.post('/image', formData);
     return response.data.imageURL;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
