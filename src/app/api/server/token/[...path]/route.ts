@@ -1,22 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { handleRequest } from '@/shared/libs/handler/handler';
+import { tokenHandleRequest } from '@/shared/libs/handler/tokenHandler';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  return handleRequest(req);
+  return tokenHandleRequest(req);
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  return handleRequest(req);
+  return tokenHandleRequest(req);
 }
 
 export async function DELETE(req: NextRequest): Promise<NextResponse> {
-  return handleRequest(req);
+  return tokenHandleRequest(req);
 }
 
 export async function PATCH(req: NextRequest): Promise<NextResponse> {
-  return handleRequest(req);
+  return tokenHandleRequest(req);
 }
 
 export async function PUT(req: NextRequest): Promise<NextResponse> {
-  return handleRequest(req);
+  return tokenHandleRequest(req);
 }

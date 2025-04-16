@@ -6,7 +6,7 @@ import { parseRequestData, sendRequest } from './request';
 import { createResponse } from './response';
 import { globalForRefresh, performTokenRefresh } from './token';
 
-export async function handleRequest(
+export async function tokenHandleRequest(
   req: NextRequest,
   isRetry = false,
   originalBody?: string | FormData,

@@ -1,7 +1,7 @@
 import { AxiosRequestConfig, ResponseType } from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
 import { serverInstance } from '@/shared/libs/http/serverInstance';
-import { handleRequest } from './handler';
+import { handleRequest } from './tokenHandler';
 import { RequestData } from './type';
 
 export async function parseRequestData(
