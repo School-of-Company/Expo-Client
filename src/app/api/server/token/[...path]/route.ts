@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import { AxiosError, AxiosRequestConfig, ResponseType } from 'axios';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { apiClient } from '@/shared/libs/apiClient';
@@ -87,6 +87,10 @@ async function handleRequest(
       Authorization: `Bearer ${accessToken}`,
     };
 
+    const isFileDownload =
+      req.headers.get('X-File-Download') === 'true' ||
+      req.nextUrl.pathname.includes('/excel/');
+
     if (!['GET', 'DELETE', 'HEAD'].includes(req.method)) {
       if (contentType.includes('multipart/form-data')) {
         requestData = await req.formData();
@@ -103,14 +107,39 @@ async function handleRequest(
       }
     }
 
+    const responseType: ResponseType = isFileDownload ? 'arraybuffer' : 'json';
+    const axiosConfig: AxiosRequestConfig = {
+      responseType,
+      headers: headers as AxiosRequestConfig['headers'],
+    };
+
     const response = await apiClient.request({
       url: `${process.env.NEXT_PUBLIC_BASE_URL}${req.nextUrl.pathname.replace('/api/server/token', '')}`,
-      method: req.method,
+      method: req.method as AxiosRequestConfig['method'],
       params: Object.fromEntries(req.nextUrl.searchParams.entries()),
       data: requestData,
-      headers,
+      ...axiosConfig,
     });
 
+    if (isFileDownload) {
+      const downloadHeaders = new Headers();
+      downloadHeaders.set(
+        'Content-Disposition',
+        response.headers?.['content-disposition'] ||
+          'attachment; filename="export.xlsx"',
+      );
+      downloadHeaders.set(
+        'Content-Type',
+        response.headers?.['content-type'] ||
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      return new NextResponse(response.data, {
+        status: response.status,
+        headers: downloadHeaders,
+      });
+    }
+
+    // 일반 응답 처리
     return response.status === 204
       ? new NextResponse(null, { status: 204 })
       : NextResponse.json(response.data, { status: response.status });

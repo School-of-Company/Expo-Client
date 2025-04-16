@@ -14,7 +14,10 @@ export interface UserData {
 export const fileActions = (id: string | number) => ({
   exportExcel: async () => {
     try {
-      const response = await axios.get(`/api/excel/${id}`, {
+      const response = await axios.get(`/api/server/token/excel/${id}`, {
+        headers: {
+          'X-File-Download': 'true',
+        },
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
