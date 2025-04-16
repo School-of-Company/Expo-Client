@@ -1,9 +1,10 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/clientTokenInstance';
 import { CreateExhibitionData } from '@/shared/types/exhibition/create/type';
 
 export const createExhibition = async (data: CreateExhibitionData) => {
   try {
-    const response = await axios.post('/api/server/token/expo', data);
+    const response = await clientTokenInstance.post('/expo', data);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

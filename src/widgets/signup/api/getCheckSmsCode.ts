@@ -1,5 +1,6 @@
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import { toast } from 'react-toastify';
+import clientInstance from '@/shared/libs/clientInstance';
 
 export const getCheckSmsCode = async (phoneNumber: string, code: string) => {
   if (!phoneNumber || !code) {
@@ -8,8 +9,8 @@ export const getCheckSmsCode = async (phoneNumber: string, code: string) => {
   }
 
   try {
-    const response = await axios.get(
-      `/api/server/sms?phoneNumber=${phoneNumber}&code=${code}`,
+    const response = await clientInstance.get(
+      `/sms?phoneNumber=${phoneNumber}&code=${code}`,
     );
     if (response.status === 200) {
       toast.success('인증 번호 확인에 성공했습니다.');

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/clientTokenInstance';
 import { Participant, Trainee } from '@/shared/types/expo-manage/type';
 
 export const getTraineeExpoManageData = async (
@@ -6,7 +7,7 @@ export const getTraineeExpoManageData = async (
   searchText: string,
 ): Promise<Trainee[]> => {
   try {
-    const response = await axios.get(`/api/server/token/trainee/${id}`, {
+    const response = await clientTokenInstance.get(`/trainee/${id}`, {
       params: { name: searchText },
     });
     return response.data;
@@ -24,7 +25,7 @@ export const getParticipantExpoManageData = async (
   searchText: string,
 ): Promise<Participant[]> => {
   try {
-    const response = await axios.get(`/api/server/token/participant/${id}`, {
+    const response = await clientTokenInstance.get(`/participant/${id}`, {
       params: { type, name: searchText },
     });
     return response.data;

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/clientTokenInstance';
 import { PatchStandardProgramData } from '@/shared/types/program-detail/type';
 
 export const patchStandardAttendance = async ({
@@ -7,8 +8,8 @@ export const patchStandardAttendance = async ({
   phoneNumber,
 }: PatchStandardProgramData) => {
   try {
-    const response = await axios.patch(
-      `/api/server/token/attendance/standard/${id}`,
+    const response = await clientTokenInstance.patch(
+      `/attendance/standard/${id}`,
       {
         participantId,
         phoneNumber,

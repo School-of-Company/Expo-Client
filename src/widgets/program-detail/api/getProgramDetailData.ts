@@ -1,4 +1,5 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/clientTokenInstance';
 import {
   StandardProgram,
   TrainingProgram,
@@ -8,7 +9,7 @@ export const getTrainingProgramDetail = async (
   id: number,
 ): Promise<TrainingProgram[]> => {
   try {
-    const response = await axios.get(`/api/server/token/training/${id}`);
+    const response = await clientTokenInstance.get(`/training/${id}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
@@ -24,7 +25,7 @@ export const getStandardProgramDetail = async (
   id: number,
 ): Promise<StandardProgram[]> => {
   try {
-    const response = await axios.get(`/api/server/token/standard/${id}`);
+    const response = await clientTokenInstance.get(`/standard/${id}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

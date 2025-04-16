@@ -1,8 +1,9 @@
 import axios from 'axios';
+import clientInstance from '@/shared/libs/clientInstance';
 
 export const getEditApplicationForm = async (id: string, type: string) => {
   try {
-    const response = await axios.get(`/api/server/form/${id}?type=${type}`);
+    const response = await clientInstance.get(`/form/${id}?type=${type}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

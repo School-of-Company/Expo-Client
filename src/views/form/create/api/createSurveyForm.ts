@@ -1,4 +1,5 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/clientTokenInstance';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 
 export const createSurveyForm = async ({
@@ -9,7 +10,7 @@ export const createSurveyForm = async ({
   id: string;
 }) => {
   try {
-    const response = await axios.post(`/api/server/token/survey/${id}`, data);
+    const response = await clientTokenInstance.post(`/survey/${id}`, data);
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

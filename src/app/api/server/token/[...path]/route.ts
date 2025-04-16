@@ -1,8 +1,8 @@
 import { AxiosError, AxiosRequestConfig, ResponseType } from 'axios';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { apiClient } from '@/shared/libs/apiClient';
 import { refreshAccessToken } from '@/shared/libs/refreshAccessToken';
+import { serverInstance } from '@/shared/libs/serverInstance';
 
 type RequestData = FormData | Record<string, unknown> | string | undefined;
 
@@ -112,7 +112,7 @@ async function handleRequest(
       headers: headers as AxiosRequestConfig['headers'],
     };
 
-    const response = await apiClient.request({
+    const response = await serverInstance.request({
       url: `${process.env.NEXT_PUBLIC_BASE_URL}${req.nextUrl.pathname.replace('/api/server/token', '')}`,
       method: req.method as AxiosRequestConfig['method'],
       params: Object.fromEntries(req.nextUrl.searchParams.entries()),
@@ -162,9 +162,7 @@ async function handleRequest(
           if (newTokens) {
             return retryRequest(req, newTokens.accessToken, originalBody);
           } else {
-            cookieStore.delete('accessToken');
-            cookieStore.delete('refreshToken');
-            return NextResponse.json(
+            const response = NextResponse.json(
               {
                 error: '토큰 갱신에 실패했습니다.',
                 status: 401,
@@ -172,19 +170,23 @@ async function handleRequest(
               },
               { status: 401 },
             );
+            response.cookies.delete('accessToken');
+            response.cookies.delete('refreshToken');
+            return response;
           }
         }
       } else {
-        cookieStore.delete('accessToken');
-        cookieStore.delete('refreshToken');
-        return NextResponse.json(
+        const response = NextResponse.json(
           {
-            error: '리프레시 토큰이 없습니다.',
+            error: '토큰 갱신에 실패했습니다.',
             status: 401,
             isRefreshError: true,
           },
           { status: 401 },
         );
+        response.cookies.delete('accessToken');
+        response.cookies.delete('refreshToken');
+        return response;
       }
     }
 
@@ -228,7 +230,7 @@ async function performTokenRefresh(
     if (result) {
       globalForRefresh.cachedTokens = {
         ...result,
-        expiresAt: Date.now() + 10000,
+        expiresAt: Date.now() + 1000,
       };
       await processWaitingRequests(result.accessToken);
     }

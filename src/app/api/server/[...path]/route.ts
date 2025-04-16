@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
-import { apiClient } from '@/shared/libs/apiClient';
+import { serverInstance } from '@/shared/libs/serverInstance';
 
 export async function GET(req: NextRequest) {
   return handleRequest(req);
@@ -42,7 +42,7 @@ async function handleRequest(req: NextRequest) {
     }
   }
   try {
-    const response = await apiClient.request({
+    const response = await serverInstance.request({
       url,
       method,
       params,

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/clientTokenInstance';
 import {
   AttendUserQrRequest,
   AttendUserResponse,
@@ -9,7 +10,7 @@ export const patchAttendUser = async (
   data: AttendUserQrRequest,
 ): Promise<AttendUserResponse> => {
   try {
-    const response = await axios.patch(`/api/server/token/attendance/${id}`, {
+    const response = await clientTokenInstance.patch(`/attendance/${id}`, {
       authority: data.authority,
       phoneNumber: data.phoneNumber,
     });

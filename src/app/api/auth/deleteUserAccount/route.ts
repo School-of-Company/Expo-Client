@@ -1,15 +1,15 @@
 import { AxiosError } from 'axios';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { apiClient } from '@/shared/libs/apiClient';
 import { deleteAuthCookies } from '@/shared/libs/deleteCookies';
+import { serverInstance } from '@/shared/libs/serverInstance';
 
 export async function DELETE() {
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
 
   try {
-    await apiClient.delete('/admin', {
+    await serverInstance.delete('/admin', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

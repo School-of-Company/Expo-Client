@@ -1,11 +1,10 @@
 import axios from 'axios';
+import clientTokenInstance from '../libs/clientTokenInstance';
 import { ExpoStandard } from '../types/expo-detail/type';
 
 export const getExpoStandard = async (id: number): Promise<ExpoStandard[]> => {
   try {
-    const response = await axios.get(
-      `/api/server/token/standard/program/${id}`,
-    );
+    const response = await clientTokenInstance.get(`/standard/program/${id}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

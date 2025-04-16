@@ -1,8 +1,9 @@
 import axios from 'axios';
+import clientInstance from '@/shared/libs/clientInstance';
 
 export const getApplicationForm = async (id: string, userType: string) => {
   try {
-    const response = await axios.get(`/api/server/form/${id}?type=${userType}`);
+    const response = await clientInstance.get(`/form/${id}?type=${userType}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
