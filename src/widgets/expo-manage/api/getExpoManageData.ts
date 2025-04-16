@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientTokenInstance from '@/shared/libs/clientTokenInstance';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { Participant, Trainee } from '@/shared/types/expo-manage/type';
 
 export const getTraineeExpoManageData = async (

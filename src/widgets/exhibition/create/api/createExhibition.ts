@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientTokenInstance from '@/shared/libs/clientTokenInstance';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { CreateExhibitionData } from '@/shared/types/exhibition/create/type';
 
 export const createExhibition = async (data: CreateExhibitionData) => {

@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 import { toast } from 'react-toastify';
-import clientInstance from '@/shared/libs/clientInstance';
+import clientInstance from '@/shared/libs/http/clientInstance';
 
 export const getCheckSmsCode = async (phoneNumber: string, code: string) => {
   if (!phoneNumber || !code) {

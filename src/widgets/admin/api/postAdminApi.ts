@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientTokenInstance from '@/shared/libs/clientTokenInstance';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
 export const approveSignupApi = async (id: number): Promise<void> => {
   try {

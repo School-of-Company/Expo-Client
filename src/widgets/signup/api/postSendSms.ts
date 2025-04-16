@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import clientInstance from '@/shared/libs/clientInstance';
+import clientInstance from '@/shared/libs/http/clientInstance';
 
 export const postSendSms = async (phoneNumber: string) => {
   try {

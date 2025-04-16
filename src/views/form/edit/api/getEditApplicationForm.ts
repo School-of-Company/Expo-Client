@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientInstance from '@/shared/libs/clientInstance';
+import clientInstance from '@/shared/libs/http/clientInstance';
 
 export const getEditApplicationForm = async (id: string, type: string) => {
   try {

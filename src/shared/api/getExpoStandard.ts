@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientTokenInstance from '../libs/clientTokenInstance';
+import clientTokenInstance from '../libs/http/clientTokenInstance';
 import { ExpoStandard } from '../types/expo-detail/type';
 
 export const getExpoStandard = async (id: number): Promise<ExpoStandard[]> => {

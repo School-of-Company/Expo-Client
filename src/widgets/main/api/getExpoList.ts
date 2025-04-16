@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientTokenInstance from '@/shared/libs/clientTokenInstance';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { ExpoItem } from '@/shared/types/main/type';
 
 export const getExpoList = async (): Promise<ExpoItem[]> => {

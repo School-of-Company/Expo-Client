@@ -1,8 +1,8 @@
 import { AxiosError } from 'axios';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { deleteAuthCookies } from '@/shared/libs/deleteCookies';
-import { serverInstance } from '@/shared/libs/serverInstance';
+import { deleteAuthCookies } from '@/shared/libs/cookie/deleteCookies';
+import { serverInstance } from '@/shared/libs/http/serverInstance';
 
 export async function DELETE() {
   const cookieStore = cookies();

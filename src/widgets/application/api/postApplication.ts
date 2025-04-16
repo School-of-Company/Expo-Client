@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientInstance from '@/shared/libs/clientInstance';
+import clientInstance from '@/shared/libs/http/clientInstance';
 import { FormattedApplicationData } from '@/shared/types/application/type';
 
 export type SurveyData = {

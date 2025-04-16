@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import { NextResponse } from 'next/server';
-import { serverInstance } from '@/shared/libs/serverInstance';
-import { setAuthCookies } from '@/shared/libs/setAuthCookies';
+import { setAuthCookies } from '@/shared/libs/cookie/setAuthCookies';
+import { serverInstance } from '@/shared/libs/http/serverInstance';
 import { SignInData } from '@/shared/types/signin/type';
 
 export async function POST(request: Request) {

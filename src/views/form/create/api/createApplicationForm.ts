@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientTokenInstance from '@/shared/libs/clientTokenInstance';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 
 export const createApplicationForm = async ({

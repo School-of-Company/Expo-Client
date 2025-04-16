@@ -1,6 +1,6 @@
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import clientTokenInstance from '../libs/clientTokenInstance';
+import clientTokenInstance from '../libs/http/clientTokenInstance';
 import { AttendUserResponse } from '../types/name-tag/type';
 import { printBadge } from './printUtils';
 

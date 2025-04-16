@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientTokenInstance from '@/shared/libs/clientTokenInstance';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { Program } from '@/shared/types/program/type';
 
 export const getTrainingProgram = async (id: string): Promise<Program[]> => {

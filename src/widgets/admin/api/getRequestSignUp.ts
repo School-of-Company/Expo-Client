@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientTokenInstance from '@/shared/libs/clientTokenInstance';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { SignUpItem } from '@/shared/types/admin/type';
 
 export const getRequestSignUp = async (): Promise<SignUpItem[]> => {

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientInstance from '@/shared/libs/clientInstance';
+import clientInstance from '@/shared/libs/http/clientInstance';
 import { SignUpData } from '@/shared/types/signup/type';
 
 export const postSignup = async (data: SignUpData) => {

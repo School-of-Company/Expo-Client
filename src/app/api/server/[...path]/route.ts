@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
-import { serverInstance } from '@/shared/libs/serverInstance';
+import { serverInstance } from '@/shared/libs/http/serverInstance';
 
 export async function GET(req: NextRequest) {
   return handleRequest(req);

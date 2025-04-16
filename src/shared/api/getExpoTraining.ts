@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientTokenInstance from '../libs/clientTokenInstance';
+import clientTokenInstance from '../libs/http/clientTokenInstance';
 import { ExpoTrainingDetail } from '../types/expo-detail/type';
 
 export const getExpoTraining = async (
