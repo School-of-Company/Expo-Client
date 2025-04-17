@@ -39,7 +39,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
                 onClick={() => router.push(`/expo-manage/${params}`)}
                 variant="white"
               >
-                조회하기
+                조회
               </Button>
               <Button
                 variant="white"
@@ -47,16 +47,21 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
                   openModal('formcreate', '생성할 항목을 선택하세요.')
                 }
               >
-                폼 생성하기
+                폼 생성
               </Button>
             </div>
             <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
-              <Button variant="white">통계 확인하기</Button>
+              <Button
+                variant="white"
+                onClick={() => openModal('onsite', '대상을 선택하세요.')}
+              >
+                현장 신청 QR
+              </Button>
               <Button
                 variant="white"
                 onClick={() => router.push(`/name-tag/${params}`)}
               >
-                QR 조회하기
+                박람회 입장
               </Button>
             </div>
             <div
@@ -78,14 +83,14 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
                   variant="white"
                   onClick={() => openModal('message', '대상을 선택하세요.')}
                 >
-                  문자 보내기
+                  문자 전송
                 </Button>
               </div>
               <Button
                 variant="gray"
                 onClick={() => openModal('edit', '수정할 항목을 선택하세요.')}
               >
-                수정하기
+                수정
               </Button>
             </div>
             {!isMobile && (
@@ -118,7 +123,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
             onClick={() => openModal('share', '공유할 항목을 선택하세요.')}
           >
             <Share />
-            <p className="text-h3r text-gray-400">공유하기</p>
+            <p className="text-h3r text-gray-400">공유</p>
           </button>
         )}
       </div>
