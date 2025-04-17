@@ -12,6 +12,7 @@ interface Props {
   required: boolean;
   register: UseFormRegister<ApplicationFormValues>;
   name: string;
+  type: string;
   setValue: UseFormSetValue<ApplicationFormValues>;
   watch: UseFormWatch<ApplicationFormValues>;
 }
@@ -22,6 +23,7 @@ export default function ApplicationPhoneOption({
   required,
   register,
   name,
+  type,
   setValue,
   watch,
 }: Props) {
@@ -39,6 +41,14 @@ export default function ApplicationPhoneOption({
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+
+    let value = e.target.value;
+
+    // ✅ 숫자 타입일 경우 숫자만 허용
+    if (type === 'number') {
+      value = value.replace(/[^0-9]/g, '');
+      e.target.value = value; // react-hook-form에서 사용하는 값도 업데이트
     }
 
     if (onChange) {

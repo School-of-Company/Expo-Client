@@ -107,6 +107,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 formType="APPLICATIONPHONEOPTION"
                 requiredStatus={true}
                 otherJson={null}
+                type="number"
                 register={register}
                 watch={watch}
                 setValue={setValue}
@@ -117,6 +118,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 formType="SENTENCE"
                 requiredStatus={true}
                 otherJson={null}
+                type="number"
                 register={register}
                 watch={watch}
                 setValue={setValue}

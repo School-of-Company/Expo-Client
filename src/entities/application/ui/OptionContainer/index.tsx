@@ -16,6 +16,7 @@ const OptionContainer = ({
   jsonData,
   requiredStatus,
   otherJson,
+  type = 'text',
   register,
   watch,
   setValue,
@@ -25,6 +26,7 @@ const OptionContainer = ({
   jsonData?: string | { [key: string]: string };
   requiredStatus: boolean;
   otherJson: string | null;
+  type?: string;
   register: UseFormRegister<ApplicationFormValues>;
   watch: UseFormWatch<ApplicationFormValues>;
   setValue: UseFormSetValue<ApplicationFormValues>;
@@ -48,9 +50,10 @@ const OptionContainer = ({
         <SentenceOption
           register={register}
           name={title}
-          maxLength={10}
+          maxLength={20}
           row={1}
           required={requiredStatus}
+          type={type}
         />
       );
       break;
@@ -99,6 +102,7 @@ const OptionContainer = ({
           required={requiredStatus}
           watch={watch}
           setValue={setValue}
+          type={type}
         />
       );
   }

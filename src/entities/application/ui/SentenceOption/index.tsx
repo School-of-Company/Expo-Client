@@ -8,6 +8,7 @@ interface Props {
   required: boolean;
   register: UseFormRegister<ApplicationFormValues>;
   name: string;
+  type?: string;
 }
 
 export default function SentenceOption({
@@ -16,6 +17,7 @@ export default function SentenceOption({
   required,
   register,
   name,
+  type,
 }: Props) {
   const { ref, onChange, ...rest } = register(name, {
     required: required ? '필수 옵션을 작성해주세요' : false,
@@ -26,6 +28,13 @@ export default function SentenceOption({
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+
+    let value = e.target.value;
+
+    if (type === 'number') {
+      value = value.replace(/[^0-9]/g, '');
+      e.target.value = value;
     }
 
     if (onChange) {
