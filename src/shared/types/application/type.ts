@@ -7,7 +7,7 @@ export interface DynamicFormItem {
 }
 
 export interface ApplicationForm {
-  informationImage: string;
+  informationText: string;
   participantType: 'STANDARD' | 'TRAINEE';
   dynamicForm?: DynamicFormItem[];
   dynamicSurveyResponseDto?: DynamicFormItem[];
@@ -24,11 +24,13 @@ export type FormattedApplicationData = {
   phoneNumber: string;
   informationJson: string;
   trainingId?: string;
+  personalInformationStatus: boolean;
 };
 
-export interface SurveyData {
+export interface FormattedSurveyData {
   phoneNumber: string;
   answerJson: string;
+  personalInformationStatus: boolean;
 }
 
 export type DynamicFormValues = {

@@ -8,6 +8,7 @@ import OptionContainer from '@/entities/application/ui/OptionContainer';
 import withLoading from '@/shared/hocs/withLoading';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import {
+  ApplicationForm,
   ApplicationFormValues,
   DynamicFormItem,
   DynamicFormValues,
@@ -16,12 +17,6 @@ import { Button, DetailHeader } from '@/shared/ui';
 import { getFormatter } from '../../model/formatterService';
 import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
-
-interface ApplicationForm {
-  informationText: string;
-  dynamicForm?: DynamicFormItem[];
-  dynamicSurveyResponseDto?: DynamicFormItem[];
-}
 
 const ApplicationLayout = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
@@ -63,9 +58,14 @@ const ApplicationLayout = ({ params }: { params: string }) => {
       return;
     }
 
-    const { privacyConsent: _privacyConsent, ...dynamicFormValues } = data;
+    const { privacyConsent, ...dynamicFormValues } = data;
+
     const formatter = getFormatter(formType, userType, getDynamicFormData());
-    const formattedData = formatter(dynamicFormValues as DynamicFormValues);
+
+    const formattedData = formatter({
+      ...dynamicFormValues,
+      privacyConsent,
+    } as DynamicFormValues & { privacyConsent: boolean });
 
     PostApplication(formattedData);
   };
