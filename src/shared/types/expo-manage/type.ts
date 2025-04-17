@@ -15,10 +15,10 @@ export interface TraineeResponse {
     totalPage: number;
     totalElement: number;
   };
-  participant: Trainee[];
+  participants: Trainee[];
 }
 
-export interface Participant {
+export interface participants {
   id: number;
   name: string;
   phoneNumber: string;
@@ -30,5 +30,5 @@ export interface ParticipantResponse {
     totalPage: number;
     totalElement: number;
   };
-  participant: Participant[];
+  participants: participants[];
 }

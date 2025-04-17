@@ -5,7 +5,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import withLoading from '@/shared/hocs/withLoading';
 import { fileActions } from '@/shared/model/footerActions';
 import {
-  Participant,
+  participants,
   ParticipantResponse,
   Trainee,
   TraineeResponse,
@@ -65,7 +65,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
         {selectOption === 'trainee' ? (
           <TableForm<Trainee>
             categories={requestPrintCategories}
-            data={(expoData as TraineeResponse)?.participant ?? []}
+            data={(expoData as TraineeResponse)?.participants ?? []}
             maxHeight="414px"
             footerType="file"
             text="참가자 전체 인원"
@@ -74,9 +74,9 @@ const ExpoManageForm = ({ id }: { id: string }) => {
             id={id}
           />
         ) : (
-          <TableForm<Participant>
+          <TableForm<participants>
             categories={requestPrintCategories}
-            data={(expoData as ParticipantResponse)?.participant ?? []}
+            data={(expoData as ParticipantResponse)?.participants ?? []}
             maxHeight="414px"
             footerType="file"
             text="참가자 전체 인원"
