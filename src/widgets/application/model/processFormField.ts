@@ -6,6 +6,15 @@ export const processFormField = (
   formType: string,
   allData: DynamicFormValues,
 ): string => {
+  if (
+    value === undefined ||
+    value === null ||
+    value === false ||
+    (Array.isArray(value) && value.length === 0)
+  ) {
+    return '';
+  }
+
   if (formType === 'CHECKBOX' || formType === 'MULTIPLE') {
     const selectedOptions = Array.isArray(value) ? value : [value];
     return selectedOptions
@@ -19,7 +28,7 @@ export const processFormField = (
           : String(option),
       )
       .join(', ');
-  } else {
-    return String(value || '');
   }
+
+  return String(value || '');
 };

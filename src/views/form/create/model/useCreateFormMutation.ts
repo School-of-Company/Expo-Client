@@ -1,4 +1,3 @@
-import { useRouter } from 'next/navigation';
 import { FormValues } from '@/shared/types/form/create/type';
 import { transformFormData } from '../../model/formUtils';
 import { useCreateApplicationForm } from './useCreateApplicationForm';
@@ -9,18 +8,16 @@ export const useCreateFormMutation = (
   type: 'STANDARD' | 'TRAINEE',
   mode: 'application' | 'survey',
 ) => {
-  const router = useRouter();
-
   const {
     mutate: createApplicationForm,
     isPending: isApplicationPending,
     isSuccess: isApplicationSuccess,
-  } = useCreateApplicationForm(id, type, router);
+  } = useCreateApplicationForm(id, type);
   const {
     mutate: createSurveyForm,
     isPending: isSurveyPending,
     isSuccess: isSurveySuccess,
-  } = useCreateSurveyForm(id, type, router);
+  } = useCreateSurveyForm(id, type);
 
   const handleSubmitForm = (data: FormValues) => {
     const formattedData = transformFormData(data, type, mode);
