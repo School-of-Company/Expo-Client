@@ -1,6 +1,11 @@
 export interface DynamicFormItem {
   title: string;
-  formType: 'SENTENCE' | 'CHECKBOX' | 'MULTIPLE' | 'DROPDOWN';
+  formType:
+    | 'SENTENCE'
+    | 'CHECKBOX'
+    | 'MULTIPLE'
+    | 'DROPDOWN'
+    | 'APPLICATIONPHONEOPTION';
   jsonData?: Record<string, string>;
   requiredStatus: boolean;
   otherJson: string | null;

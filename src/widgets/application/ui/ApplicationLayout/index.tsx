@@ -99,15 +99,30 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 setValue={setValue}
               />
             ) : null}
-            <OptionContainer
-              title="휴대폰 번호를 입력하세요"
-              formType="SENTENCE"
-              requiredStatus={true}
-              otherJson={null}
-              register={register}
-              watch={watch}
-              setValue={setValue}
-            />
+            {formType === 'application' &&
+            applicationType === 'onsite' &&
+            userType === 'STANDARD' ? (
+              <OptionContainer
+                title="휴대폰 번호를 입력하세요"
+                formType="APPLICATIONPHONEOPTION"
+                requiredStatus={true}
+                otherJson={null}
+                register={register}
+                watch={watch}
+                setValue={setValue}
+              />
+            ) : (
+              <OptionContainer
+                title="휴대폰 번호를 입력하세요"
+                formType="SENTENCE"
+                requiredStatus={true}
+                otherJson={null}
+                register={register}
+                watch={watch}
+                setValue={setValue}
+              />
+            )}
+
             {formType === 'application' ? (
               <OptionContainer
                 title="이름을 입력하세요"
