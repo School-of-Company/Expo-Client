@@ -17,6 +17,6 @@ export const createTraineeApplicationFormatter = (
     informationJson: JSON.stringify(
       processDynamicFormData(data, dynamicFormItems),
     ),
-    personalInformationStatus: data.privacyConsent, // ✅ 추가
+    personalInformationStatus: data.privacyConsent,
   });
 };

@@ -16,6 +16,6 @@ export const createStandardApplicationFormatter = (
     informationJson: JSON.stringify(
       processDynamicFormData(data, dynamicFormItems),
     ),
-    personalInformationStatus: data.privacyConsent, // ✅ 추가
+    personalInformationStatus: data.privacyConsent,
   });
 };
