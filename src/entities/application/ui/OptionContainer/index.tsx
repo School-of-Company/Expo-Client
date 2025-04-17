@@ -4,6 +4,7 @@ import {
   UseFormWatch,
 } from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
+import ApplicationPhoneOption from '../ApplicationPhoneOption';
 import CheckBoxOption from '../CheckBoxOption';
 import DropDownOption from '../DropDownOption';
 import MultipleOption from '../MultipleOption';
@@ -15,6 +16,7 @@ const OptionContainer = ({
   jsonData,
   requiredStatus,
   otherJson,
+  type = 'text',
   register,
   watch,
   setValue,
@@ -24,6 +26,7 @@ const OptionContainer = ({
   jsonData?: string | { [key: string]: string };
   requiredStatus: boolean;
   otherJson: string | null;
+  type?: string;
   register: UseFormRegister<ApplicationFormValues>;
   watch: UseFormWatch<ApplicationFormValues>;
   setValue: UseFormSetValue<ApplicationFormValues>;
@@ -47,9 +50,10 @@ const OptionContainer = ({
         <SentenceOption
           register={register}
           name={title}
-          maxLength={1000}
+          maxLength={20}
           row={1}
           required={requiredStatus}
+          type={type}
         />
       );
       break;
@@ -88,6 +92,19 @@ const OptionContainer = ({
         />
       );
       break;
+    case 'APPLICATIONPHONEOPTION':
+      inputComponent = (
+        <ApplicationPhoneOption
+          register={register}
+          name={title}
+          maxLength={20}
+          row={1}
+          required={requiredStatus}
+          watch={watch}
+          setValue={setValue}
+          type={type}
+        />
+      );
   }
 
   return (
