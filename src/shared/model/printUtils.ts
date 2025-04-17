@@ -1,4 +1,8 @@
-export const printBadge = (selectedData: { name: string; qrCode: string }) => {
+export const printBadge = (selectedData: {
+  name: string;
+  qrCode: string;
+  isTemporary: boolean;
+}) => {
   const printWindow = window.open('', '_blank');
 
   if (printWindow) {
@@ -45,7 +49,7 @@ export const printBadge = (selectedData: { name: string; qrCode: string }) => {
             }
             @media print {
               @page {
-                margin: 0; 
+                margin: 0;
               }
               body {
                 margin: 0;
@@ -56,6 +60,7 @@ export const printBadge = (selectedData: { name: string; qrCode: string }) => {
         <body>
           <div class="badge">
             <h1>${selectedData.name}</h1>
+            ${selectedData.isTemporary ? `<p style="font-size:14px; color: #d00;">(임시 QR)</p>` : ''}
             <div class="qr-container">
               ${
                 isBase64

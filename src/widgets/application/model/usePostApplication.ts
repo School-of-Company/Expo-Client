@@ -31,7 +31,7 @@ export const usePostApplication = (
   return useMutation({
     mutationFn: (data: FormattedApplicationData | FormattedSurveyData) =>
       postApplication(params, formType, userType, applicationType, data),
-    onSuccess: (response) => {
+    onSuccess: (response, variables) => {
       toast.success(success);
 
       if (
@@ -47,9 +47,12 @@ export const usePostApplication = (
           phoneNumber: response.phoneNumber,
         };
 
+        const name = 'name' in variables ? variables.name : '이름 없음';
+
         const badgeData = {
-          name: '임시 QR 발급',
+          name,
           qrCode: JSON.stringify(qrPayload),
+          isTemporary: true,
         };
 
         printBadge(badgeData);

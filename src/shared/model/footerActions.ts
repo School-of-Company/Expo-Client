@@ -47,6 +47,7 @@ export const printActions = (data: AttendUserResponse[]) => ({
       const badgeData = {
         name: selectedData.name,
         qrCode: JSON.stringify(qrPayload),
+        isTemporary: false,
       };
 
       printBadge(badgeData);
