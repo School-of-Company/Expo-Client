@@ -1,4 +1,5 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import {
   ParticipantResponse,
   TraineeResponse,
@@ -10,9 +11,12 @@ export const getTraineeExpoManageData = async (
   date: string,
 ): Promise<TraineeResponse> => {
   try {
-    const response = await axios.get(`/api/server/token/trainee/${id}`, {
-      params: { page: page - 1, size: 7, date },
-    });
+    const response = await clientTokenInstance.get(
+      `/api/server/token/trainee/${id}`,
+      {
+        params: { page: page - 1, size: 7, date },
+      },
+    );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
@@ -29,9 +33,12 @@ export const getParticipantExpoManageData = async (
   date: string,
 ): Promise<ParticipantResponse> => {
   try {
-    const response = await axios.get(`/api/server/token/participant/${id}`, {
-      params: { type, page: page - 1, size: 7, date },
-    });
+    const response = await clientTokenInstance.get(
+      `/api/server/token/participant/${id}`,
+      {
+        params: { type, page: page - 1, size: 7, date },
+      },
+    );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

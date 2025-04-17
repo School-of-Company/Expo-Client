@@ -1,9 +1,10 @@
 import axios from 'axios';
+import clientInstance from '@/shared/libs/http/clientInstance';
 
 export const getSurveyForm = async (expoId: string, userType: string) => {
   try {
-    const response = await axios.get(
-      `/api/server/survey/${expoId}?type=${userType}`,
+    const response = await clientInstance.get(
+      `/survey/${expoId}?type=${userType}`,
     );
     return response.data;
   } catch (error) {

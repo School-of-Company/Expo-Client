@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 import { createApplicationForm } from '../api/createApplicationForm';
@@ -7,9 +7,9 @@ import { createApplicationForm } from '../api/createApplicationForm';
 export const useCreateApplicationForm = (
   id: string,
   type: 'STANDARD' | 'TRAINEE',
-  router: AppRouterInstance,
 ) => {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   return useMutation({
     mutationKey: ['createApplicationForm', id, type],

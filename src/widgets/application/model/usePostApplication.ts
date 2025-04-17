@@ -1,12 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { FormattedApplicationData } from '@/shared/types/application/type';
+import {
+  FormattedApplicationData,
+  FormattedSurveyData,
+} from '@/shared/types/application/type';
 import { postApplication } from '../api/postApplication';
-
-export type SurveyData = {
-  phoneNumber: string;
-  answerJson: string;
-};
 
 export const usePostApplication = (
   params: string,
@@ -30,7 +28,7 @@ export const usePostApplication = (
   const { success, error } = getMessages();
 
   return useMutation({
-    mutationFn: (data: FormattedApplicationData | SurveyData) =>
+    mutationFn: (data: FormattedApplicationData | FormattedSurveyData) =>
       postApplication(params, formType, userType, applicationType, data),
     onSuccess: () => {
       toast.success(success);

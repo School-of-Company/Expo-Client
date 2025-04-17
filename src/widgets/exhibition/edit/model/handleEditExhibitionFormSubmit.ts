@@ -6,7 +6,7 @@ import { editExhibition } from '../api/editExhibition';
 
 export const handleEditExhibitionFormSubmit = async (
   data: ExhibitionFormData,
-  id: number,
+  id: string,
 ) => {
   try {
     const coordinates = await convertAddressToCoordinates(data.address);

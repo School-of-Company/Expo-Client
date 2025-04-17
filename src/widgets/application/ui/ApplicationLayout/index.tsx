@@ -8,6 +8,7 @@ import OptionContainer from '@/entities/application/ui/OptionContainer';
 import withLoading from '@/shared/hocs/withLoading';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import {
+  ApplicationForm,
   ApplicationFormValues,
   DynamicFormItem,
   DynamicFormValues,
@@ -16,12 +17,6 @@ import { Button, DetailHeader } from '@/shared/ui';
 import { getFormatter } from '../../model/formatterService';
 import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
-
-interface ApplicationForm {
-  informationText: string;
-  dynamicForm?: DynamicFormItem[];
-  dynamicSurveyResponseDto?: DynamicFormItem[];
-}
 
 const ApplicationLayout = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
@@ -63,9 +58,14 @@ const ApplicationLayout = ({ params }: { params: string }) => {
       return;
     }
 
-    const { privacyConsent: _privacyConsent, ...dynamicFormValues } = data;
+    const { privacyConsent, ...dynamicFormValues } = data;
+
     const formatter = getFormatter(formType, userType, getDynamicFormData());
-    const formattedData = formatter(dynamicFormValues as DynamicFormValues);
+
+    const formattedData = formatter({
+      ...dynamicFormValues,
+      privacyConsent,
+    } as DynamicFormValues & { privacyConsent: boolean });
 
     PostApplication(formattedData);
   };
@@ -79,7 +79,13 @@ const ApplicationLayout = ({ params }: { params: string }) => {
         })}
         className="flex w-full max-w-[816px] flex-1 flex-col overflow-auto"
       >
-        <DetailHeader textCenter={true} headerTitle="신청" />
+        <DetailHeader
+          textCenter={true}
+          headerTitle={
+            formType === 'application' ? '박람회 신청' : '만족도 조사 신청'
+          }
+        />
+
         <div className="ml-[20px] mt-[48px] flex flex-col gap-[48px]">
           <div className="w-full space-y-[36px]">
             {userType === 'TRAINEE' && formType === 'application' ? (
@@ -112,43 +118,6 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 watch={watch}
                 setValue={setValue}
               />
-            ) : null}
-            {userType === 'STANDARD' && formType === 'application' ? (
-              <>
-                <OptionContainer
-                  title="소속을 입력하세요"
-                  formType="SENTENCE"
-                  requiredStatus={true}
-                  otherJson={null}
-                  register={register}
-                  watch={watch}
-                  setValue={setValue}
-                />
-                <OptionContainer
-                  title="학교급을 선택해주세요"
-                  formType="MULTIPLE"
-                  requiredStatus={true}
-                  otherJson="etc"
-                  register={register}
-                  watch={watch}
-                  setValue={setValue}
-                  jsonData={{
-                    '1': '유치원',
-                    '2': '초등학교',
-                    '3': '중학교',
-                    '4': '고등학교',
-                  }}
-                />
-                <OptionContainer
-                  title="학교이름을 입력해주세요"
-                  formType="SENTENCE"
-                  requiredStatus={true}
-                  otherJson={null}
-                  register={register}
-                  watch={watch}
-                  setValue={setValue}
-                />
-              </>
             ) : null}
 
             {getDynamicFormData().map((form, index) => (

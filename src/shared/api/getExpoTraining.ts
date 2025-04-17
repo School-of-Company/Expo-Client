@@ -1,13 +1,12 @@
 import axios from 'axios';
+import clientTokenInstance from '../libs/http/clientTokenInstance';
 import { ExpoTrainingDetail } from '../types/expo-detail/type';
 
 export const getExpoTraining = async (
   id: string,
 ): Promise<ExpoTrainingDetail[]> => {
   try {
-    const response = await axios.get(
-      `/api/server/token/training/program/${id}`,
-    );
+    const response = await clientTokenInstance.get(`/training/program/${id}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

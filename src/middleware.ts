@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(callbackUrl);
   }
 
-  const publicPaths = ['/signin', '/signup', '/application'];
+  const publicPaths = ['/signin', '/signup'];
   const pathname = request.nextUrl.pathname;
 
   const isPublicPath = publicPaths.some(
@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('accessToken')?.value;
   const refreshToken = request.cookies.get('refreshToken')?.value;
 
-  if (!isPublicPath && !refreshToken) {
+  if (!isPublicPath && !accessToken && !refreshToken) {
     return NextResponse.redirect(new URL('/signin', request.url));
   }
 
@@ -33,7 +33,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/admin',
-    '/application/:path*',
     '/exhibition/:path*',
     '/expo-created/:path*',
     '/expo-detail/:path*',
