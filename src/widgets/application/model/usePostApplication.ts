@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { printBadge } from '@/shared/model/printUtils';
 import {
@@ -13,6 +14,7 @@ export const usePostApplication = (
   userType: 'STANDARD' | 'TRAINEE',
   applicationType: 'register' | 'onsite',
 ) => {
+  const router = useRouter();
   const getMessages = () => {
     if (formType === 'survey') {
       return {
@@ -57,6 +59,9 @@ export const usePostApplication = (
 
         printBadge(badgeData);
       }
+      router.push(
+        `/application-success/${params}?userType=${userType}?formType=${formType}`,
+      );
     },
     onError: () => {
       toast.error(error);

@@ -60,7 +60,7 @@ export const printBadge = (selectedData: {
         <body>
           <div class="badge">
             <h1>${selectedData.name}</h1>
-            ${selectedData.isTemporary ? `<p style="font-size:14px; color: #d00;">(임시 QR)</p>` : ''}
+            ${selectedData.isTemporary ? `<p style="font-size:14px;">(임시 QR)</p>` : ''}
             <div class="qr-container">
               ${
                 isBase64

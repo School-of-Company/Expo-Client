@@ -15,6 +15,7 @@ import {
 } from '@/shared/types/application/type';
 import { Button, DetailHeader } from '@/shared/ui';
 import { getFormatter } from '../../model/formatterService';
+import { getHeaderTitle } from '../../model/getHeaderTitle';
 import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
 
@@ -86,9 +87,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
       >
         <DetailHeader
           textCenter={true}
-          headerTitle={
-            formType === 'application' ? '박람회 신청' : '만족도 조사 신청'
-          }
+          headerTitle={getHeaderTitle(formType, userType, applicationType)}
         />
 
         <div className="ml-[20px] mt-[48px] flex flex-col gap-[48px]">
