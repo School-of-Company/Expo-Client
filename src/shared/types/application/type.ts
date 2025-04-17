@@ -10,6 +10,7 @@ export interface ApplicationForm {
   informationImage: string;
   participantType: 'STANDARD' | 'TRAINEE';
   dynamicForm?: DynamicFormItem[];
+  dynamicSurveyResponseDto?: DynamicFormItem[];
 }
 
 export type ApplicationFormValues = {
@@ -19,40 +20,15 @@ export type ApplicationFormValues = {
 };
 
 export type FormattedApplicationData = {
-  trainingId?: string;
   name: string;
   phoneNumber: string;
-  personalInformationStatus: boolean;
   informationJson: string;
+  trainingId?: string;
 };
 
-export interface BaseFormData {
+export interface SurveyData {
   phoneNumber: string;
-}
-
-export interface ApplicationBaseData extends BaseFormData {
-  name: string;
-  personalInformationStatus: boolean;
-  informationJson: string;
-}
-
-export interface TraineeApplicationData extends ApplicationBaseData {
-  trainingId: string;
-}
-
-export interface StandardApplicationData extends ApplicationBaseData {
-  affiliation: string;
-  schoolLevel: string;
-  schoolDetail: string;
-}
-
-export interface SurveyData extends BaseFormData {
   answerJson: string;
-}
-
-export interface ApplicationForm {
-  dynamicForm?: DynamicFormItem[];
-  dynamicSurveyResponseDto?: DynamicFormItem[];
 }
 
 export type DynamicFormValues = {

@@ -1,6 +1,5 @@
 'use client';
 
-import React, { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { CreateFormButton, PrivacyConsentForm } from '@/entities/form';
@@ -26,7 +25,7 @@ const FormEditor = ({
   isLoading: boolean;
   isSuccess: boolean;
 }) => {
-  const { control, handleSubmit, register, setValue, watch, reset } =
+  const { control, handleSubmit, register, setValue, watch } =
     useForm<FormValues>({
       defaultValues: defaultValues || { questions: [] },
     });
@@ -35,12 +34,6 @@ const FormEditor = ({
     control,
     name: 'questions',
   });
-
-  useEffect(() => {
-    if (isSuccess) {
-      reset();
-    }
-  }, [isSuccess, reset]);
 
   const handleFormSubmit = (data: FormValues) => {
     onSubmit(data);
