@@ -60,7 +60,12 @@ const ApplicationLayout = ({ params }: { params: string }) => {
 
     const { privacyConsent, ...dynamicFormValues } = data;
 
-    const formatter = getFormatter(formType, userType, getDynamicFormData());
+    const formatter = getFormatter(
+      formType,
+      userType,
+      getDynamicFormData(),
+      applicationType,
+    );
 
     const formattedData = formatter({
       ...dynamicFormValues,

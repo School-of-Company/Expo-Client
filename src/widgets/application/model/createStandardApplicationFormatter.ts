@@ -7,6 +7,7 @@ import { processDynamicFormData } from './processDynamicFormData';
 
 export const createStandardApplicationFormatter = (
   dynamicFormItems: DynamicFormItem[],
+  applicationType?: 'register' | 'onsite',
 ) => {
   return (
     data: DynamicFormValues & { privacyConsent: boolean },
@@ -14,7 +15,9 @@ export const createStandardApplicationFormatter = (
     const name = String(data['이름을 입력하세요'] || '');
 
     const phoneNumberStatus = data['phoneNumberStatus'];
-    const includePhoneNumber = phoneNumberStatus === 'true';
+    const includePhoneNumber =
+      applicationType !== 'onsite' || phoneNumberStatus === 'true';
+
     const phoneNumber = includePhoneNumber
       ? String(data['휴대폰 번호를 입력하세요'] || '')
       : '';
