@@ -70,13 +70,15 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
         .catch(() => {
           toast.error('URL 복사에 실패했습니다. 다시 시도해주세요.');
         });
+    } else if (modalType === 'onsite') {
+      router.push(`/onsite-qr/${params}?userType=${type}`);
     }
 
     onClose();
   };
 
   const renderButtons = () => {
-    if (modalType === 'message') {
+    if (modalType === 'message' || modalType === 'onsite') {
       return [
         {
           label: '참가자',

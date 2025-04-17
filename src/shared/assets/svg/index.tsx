@@ -5,3 +5,4 @@ export { default as LineStroke } from './LineStroke';
 export { default as Share } from './Share';
 export { default as CheckedBoxIcon } from './CheckedBoxIcon';
 export { default as CheckBoxIcon } from './CheckBoxIcon';
+export { default as ApplicationSuccessLogo } from './ApplicationSuccessLogo';

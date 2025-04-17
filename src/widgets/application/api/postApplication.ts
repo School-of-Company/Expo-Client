@@ -1,11 +1,9 @@
 import axios from 'axios';
 import clientInstance from '@/shared/libs/http/clientInstance';
-import { FormattedApplicationData } from '@/shared/types/application/type';
-
-export type SurveyData = {
-  phoneNumber: string;
-  answerJson: string;
-};
+import {
+  FormattedApplicationData,
+  FormattedSurveyData,
+} from '@/shared/types/application/type';
 
 const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
   application: {
@@ -13,6 +11,7 @@ const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
     TRAINEE_register: '/application/',
     STANDARD_onsite: '/application/field/standard/',
     TRAINEE_onsite: '/application/field/',
+    STANDARD_onsite_temporary: '/application/field/temporary/',
   },
   survey: {
     STANDARD: '/survey/answer/standard/',
@@ -25,13 +24,22 @@ export const postApplication = async (
   formType: 'application' | 'survey',
   userType: 'STANDARD' | 'TRAINEE',
   applicationType: 'register' | 'onsite',
-  data: FormattedApplicationData | SurveyData,
+  data: FormattedApplicationData | FormattedSurveyData,
 ) => {
   const baseUrl = URL_MAP[formType] || {};
-  const key =
+  let key =
     formType === 'application'
-      ? (`${userType}_${applicationType}` as const)
+      ? (`${userType}_${applicationType}` as keyof typeof URL_MAP.application)
       : userType;
+
+  if (
+    formType === 'application' &&
+    userType === 'STANDARD' &&
+    applicationType === 'onsite' &&
+    (!('phoneNumber' in data) || !data.phoneNumber)
+  ) {
+    key = 'STANDARD_onsite_temporary';
+  }
 
   const url = `${baseUrl[key] || '/api/application/'}${params}`;
   try {
