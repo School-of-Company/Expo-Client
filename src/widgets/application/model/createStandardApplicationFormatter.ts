@@ -27,7 +27,6 @@ export const createStandardApplicationFormatter = (
       name,
       informationJson,
       personalInformationStatus: data.privacyConsent,
-      phoneNumberStatus: includePhoneNumber,
     };
 
     if (includePhoneNumber) {

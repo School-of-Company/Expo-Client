@@ -30,7 +30,6 @@ export type FormattedApplicationData = {
   informationJson: string;
   trainingId?: string;
   personalInformationStatus: boolean;
-  phoneNumberStatus?: boolean;
 };
 
 export interface FormattedSurveyData {

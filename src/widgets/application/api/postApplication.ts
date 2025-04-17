@@ -36,8 +36,7 @@ export const postApplication = async (
     formType === 'application' &&
     userType === 'STANDARD' &&
     applicationType === 'onsite' &&
-    'phoneNumberStatus' in data &&
-    data.phoneNumberStatus === false
+    (!('phoneNumber' in data) || !data.phoneNumber)
   ) {
     key = 'STANDARD_onsite_temporary';
   }
