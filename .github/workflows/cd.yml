@@ -19,7 +19,7 @@ jobs:
           node-version: 22.14.0
 
       - name: Deploy to EC2 using SSH
-        uses: appleboy/ssh-action@v0.1.0
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
