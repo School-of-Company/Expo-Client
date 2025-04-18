@@ -75,7 +75,7 @@ const ExhibitionForm = ({
       onSubmit={handleSubmit(onSubmit, (errors) => {
         handleFormErrors(errors, showError);
       })}
-      className="flex w-full max-w-[816px] flex-1 flex-col overflow-auto"
+      className="flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto"
     >
       <DetailHeader
         headerTitle={isEditMode ? '박람회 수정하기' : '박람회 생성하기'}

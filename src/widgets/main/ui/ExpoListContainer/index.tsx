@@ -22,7 +22,7 @@ const ExpoListContainer = () => {
   return withLoading({
     isLoading,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col overflow-auto">
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col overflow-y-auto">
         {sortedExpoList.length > 0 ? (
           <>
             <div className="mb-[30px] flex justify-between">
