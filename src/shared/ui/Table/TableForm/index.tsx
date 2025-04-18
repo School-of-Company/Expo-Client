@@ -23,7 +23,6 @@ const TableForm = <T extends { id: number }>({
   text,
   actions,
   totalPage,
-
   id,
 }: Props<T>) => {
   const [selectItem, setSelectItem] = useState<number | null>(null);
@@ -45,7 +44,7 @@ const TableForm = <T extends { id: number }>({
       </div>
       {id && totalPage ? (
         <div className="flex justify-center">
-          <NavigationBar id={id} totalPage={totalPage} />
+          <NavigationBar totalPage={totalPage} />
         </div>
       ) : null}
 

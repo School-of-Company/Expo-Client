@@ -3,12 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, ArrowRight } from '@/shared/assets/icons';
 
-interface NavigationBarProps {
-  id: string;
-  totalPage: number;
-}
-
-const NavigationBar = ({ id, totalPage }: NavigationBarProps) => {
+const NavigationBar = ({ totalPage }: { totalPage: number }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -18,7 +13,9 @@ const NavigationBar = ({ id, totalPage }: NavigationBarProps) => {
   const maxPagesToShow = 5;
 
   const changePage = (page: number) => {
-    router.push(`/expo-manage/${id}?page=${page}`);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(page));
+    router.push(`?${params.toString()}`);
   };
 
   const handlePrev = () => {

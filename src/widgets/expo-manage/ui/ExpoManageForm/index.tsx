@@ -57,6 +57,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
   const handleSlectUserChange = (newValue: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('userType', newValue);
+    params.set('page', '1');
     router.push(`?${params.toString()}`);
   };
 
