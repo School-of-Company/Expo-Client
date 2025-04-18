@@ -1,7 +1,7 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import React, { useState, useMemo, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useMemo, useEffect, useState } from 'react';
 import withLoading from '@/shared/hocs/withLoading';
 import { fileActions } from '@/shared/model/footerActions';
 import {
@@ -18,13 +18,16 @@ import { useGetExpoDetailQuery } from '../../model/useExpoDetailQuery';
 import DateContainer from '../DateContainer';
 
 const ExpoManageForm = ({ id }: { id: string }) => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
+  const userType = searchParams.get('userType') || 'TRAINEE';
+
+  const isTrainee = userType === 'TRAINEE';
 
   const { data: expoDetailQuery, isLoading: expoDetailLoading } =
     useGetExpoDetailQuery(id);
 
-  const [selectOption, setSelectOption] = useState<string>('trainee');
   const [selectedDate, setSelectedDate] = useState<string | undefined>(
     undefined,
   );
@@ -36,14 +39,26 @@ const ExpoManageForm = ({ id }: { id: string }) => {
   }, [expoDetailQuery?.startedDay]);
 
   const { expoManageQueries, isLoading: expoManageLoading } =
-    useExpoManageQueries(id, selectOption, page, selectedDate || '');
+    useExpoManageQueries(
+      id,
+      userType,
+      page,
+      selectedDate || '',
+      Boolean(selectedDate),
+    );
 
   const requestPrintCategories = useMemo(() => {
-    return category(selectOption);
-  }, [selectOption]);
+    return category(userType);
+  }, [userType]);
 
   const expoData = expoManageQueries.data;
   const totalPage = expoData?.info?.totalPage ?? 1;
+
+  const handleSlectUserChange = (newValue: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('userType', newValue);
+    router.push(`?${params.toString()}`);
+  };
 
   return withLoading({
     isLoading: expoManageLoading || !selectedDate || expoDetailLoading,
@@ -51,8 +66,8 @@ const ExpoManageForm = ({ id }: { id: string }) => {
       <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-auto">
         <SelectUserType
           options={selectOptionCategories}
-          value={selectOption}
-          onChange={(value) => setSelectOption(value)}
+          value={userType}
+          onChange={handleSlectUserChange}
         />
 
         <DateContainer
@@ -62,7 +77,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
           selectedDate={selectedDate || ''}
         />
 
-        {selectOption === 'trainee' ? (
+        {isTrainee ? (
           <TableForm<Trainee>
             categories={requestPrintCategories}
             data={(expoData as TraineeResponse)?.participants ?? []}

@@ -25,13 +25,12 @@ export const getTraineeExpoManageData = async (
 
 export const getParticipantExpoManageData = async (
   id: string,
-  type: string,
   page: number,
   date: string,
 ): Promise<ParticipantResponse> => {
   try {
     const response = await clientTokenInstance.get(`/participant/${id}`, {
-      params: { type, page: page - 1, size: 7, date },
+      params: { page: page - 1, size: 7, date },
     });
     return response.data;
   } catch (error) {
