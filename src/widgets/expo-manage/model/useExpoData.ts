@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { Participant, Trainee } from '@/shared/types/expo-manage/type';
+import {
+  ParticipantResponse,
+  TraineeResponse,
+} from '@/shared/types/expo-manage/type';
 import {
   getTraineeExpoManageData,
   getParticipantExpoManageData,
@@ -7,23 +10,26 @@ import {
 
 export const useExpoManageQueries = (
   id: string,
-  selectOption: string,
-  searchText: string,
+  userType: string,
+  page: number,
+  date: string,
+  enabled: boolean,
 ) => {
-  const traineeQueries = useQuery<Trainee[], Error>({
-    queryKey: ['traineeData', id, searchText],
-    queryFn: () => getTraineeExpoManageData(id, searchText),
-    enabled: selectOption === 'trainee',
+  const isTrainee = userType === 'TRAINEE';
+
+  const traineeQueries = useQuery<TraineeResponse, Error>({
+    queryKey: ['traineeData', id, page, date],
+    queryFn: () => getTraineeExpoManageData(id, page, date),
+    enabled: isTrainee && enabled,
   });
 
-  const participantQueries = useQuery<Participant[], Error>({
-    queryKey: ['participantData', id, selectOption, searchText],
-    queryFn: () => getParticipantExpoManageData(id, selectOption, searchText),
-    enabled: selectOption !== 'trainee',
+  const participantQueries = useQuery<ParticipantResponse, Error>({
+    queryKey: ['participantData', id, page, date],
+    queryFn: () => getParticipantExpoManageData(id, page, date),
+    enabled: !isTrainee && enabled,
   });
 
-  const expoQueries =
-    selectOption === 'trainee' ? traineeQueries : participantQueries;
+  const expoManageQueries = isTrainee ? traineeQueries : participantQueries;
 
-  return { expoQueries, isLoading: expoQueries.isLoading };
+  return { expoManageQueries, isLoading: expoManageQueries.isLoading };
 };

@@ -8,3 +8,4 @@ export { default as AddItemButton } from './AddItemButton';
 export { default as SelectDateInput } from './SelectDateInput';
 export { default as SelectTimeInput } from './SelectTimeInput';
 export { default as DetailHeader } from './DetailHeader';
+export { default as NavigationBar } from './NavigationBar';

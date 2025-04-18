@@ -25,7 +25,7 @@ const USER_TYPES = {
 interface Props {
   text: string;
   onClose: () => void;
-  params: number;
+  params: string;
   modalType: string | null;
 }
 

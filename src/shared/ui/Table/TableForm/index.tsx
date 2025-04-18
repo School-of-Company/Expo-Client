@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { TableFooter, TableHeader, TableItem } from '@/shared/ui/Table';
+import NavigationBar from '../../NavigationBar';
 
 interface Props<T> {
   data: T[];
@@ -10,6 +11,8 @@ interface Props<T> {
   categories: string[];
   text?: string;
   actions?: { [key: string]: (selectItem: number) => void };
+  totalPage?: number;
+  id?: string;
 }
 
 const TableForm = <T extends { id: number }>({
@@ -19,6 +22,8 @@ const TableForm = <T extends { id: number }>({
   categories,
   text,
   actions,
+  totalPage,
+  id,
 }: Props<T>) => {
   const [selectItem, setSelectItem] = useState<number | null>(null);
 
@@ -37,6 +42,12 @@ const TableForm = <T extends { id: number }>({
           ))}
         </div>
       </div>
+      {id && totalPage ? (
+        <div className="flex justify-center">
+          <NavigationBar totalPage={totalPage} />
+        </div>
+      ) : null}
+
       <TableFooter
         type={footerType}
         text={text}

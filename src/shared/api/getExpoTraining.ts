@@ -3,7 +3,7 @@ import clientTokenInstance from '../libs/http/clientTokenInstance';
 import { ExpoTrainingDetail } from '../types/expo-detail/type';
 
 export const getExpoTraining = async (
-  id: number,
+  id: string,
 ): Promise<ExpoTrainingDetail[]> => {
   try {
     const response = await clientTokenInstance.get(`/training/program/${id}`);

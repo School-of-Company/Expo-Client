@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 import { handleEditExhibitionFormSubmit } from './handleEditExhibitionFormSubmit';
 
-export const useEditExhibitionMutation = (id: number) => {
+export const useEditExhibitionMutation = (id: string) => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
