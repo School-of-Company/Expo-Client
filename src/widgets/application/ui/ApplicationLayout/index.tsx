@@ -83,14 +83,14 @@ const ApplicationLayout = ({ params }: { params: string }) => {
         onSubmit={handleSubmit(onSubmit, (errors) => {
           handleFormErrors(errors, showError);
         })}
-        className="flex w-full max-w-[816px] flex-1 flex-col overflow-auto"
+        className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-auto"
       >
         <DetailHeader
           textCenter={true}
           headerTitle={getHeaderTitle(formType, userType, applicationType)}
         />
 
-        <div className="ml-[20px] mt-[48px] flex flex-col gap-[48px]">
+        <div className="flex flex-col gap-[48px]">
           <div className="w-full space-y-[36px]">
             {userType === 'TRAINEE' && formType === 'application' ? (
               <OptionContainer
