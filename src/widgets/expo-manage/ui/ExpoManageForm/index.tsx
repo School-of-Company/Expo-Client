@@ -88,6 +88,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
             actions={fileActions(id, '/excel')}
             totalPage={totalPage}
             id={id}
+            selectItemBoolean={false}
           />
         ) : (
           <TableForm<participants>
@@ -99,6 +100,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
             actions={fileActions(id, '/excel/standard')}
             totalPage={totalPage}
             id={id}
+            selectItemBoolean={false}
           />
         )}
       </div>

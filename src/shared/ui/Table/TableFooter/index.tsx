@@ -17,6 +17,7 @@ type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
   actions?: ActionsType;
   selectItem: number | null;
   setSelectItem: React.Dispatch<React.SetStateAction<number | null>>;
+  selectItemBoolean: boolean;
 };
 
 const tableFooterStyles = cva('flex justify-between items-center', {
@@ -42,10 +43,13 @@ const TableFooter = ({
   num,
   selectItem,
   setSelectItem,
+  selectItemBoolean,
 }: TableFooterProps) => {
   const handleActionClick = (actionKey: ActionKeys) => {
-    if (selectItem !== null && actions[actionKey]) {
-      actions[actionKey]!(selectItem);
+    const isDisabled = selectItemBoolean !== false && selectItem === null;
+
+    if (!isDisabled && actions[actionKey]) {
+      actions[actionKey]!(selectItem!);
       setSelectItem(null);
     }
   };

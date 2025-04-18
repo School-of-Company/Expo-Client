@@ -13,6 +13,7 @@ interface Props<T> {
   actions?: { [key: string]: (selectItem: number) => void };
   totalPage?: number;
   id?: string;
+  selectItemBoolean?: boolean;
 }
 
 const TableForm = <T extends { id: number }>({
@@ -24,6 +25,7 @@ const TableForm = <T extends { id: number }>({
   actions,
   totalPage,
   id,
+  selectItemBoolean = true,
 }: Props<T>) => {
   const [selectItem, setSelectItem] = useState<number | null>(null);
 
@@ -38,6 +40,7 @@ const TableForm = <T extends { id: number }>({
               setState={setSelectItem}
               key={index}
               data={item}
+              selectItemBoolean={selectItemBoolean}
             />
           ))}
         </div>
@@ -55,6 +58,7 @@ const TableForm = <T extends { id: number }>({
         actions={actions}
         selectItem={selectItem}
         setSelectItem={setSelectItem}
+        selectItemBoolean={selectItemBoolean}
       />
     </div>
   );

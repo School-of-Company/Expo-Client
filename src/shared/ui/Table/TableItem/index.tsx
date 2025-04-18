@@ -2,14 +2,17 @@ interface TableItemProps<T extends { id: number } & Record<string, unknown>> {
   data: T;
   state: number | null;
   setState: React.Dispatch<React.SetStateAction<number | null>>;
+  selectItemBoolean: boolean;
 }
 
 const TableItem = <T extends { id: number } & Record<string, unknown>>({
   data,
   state,
   setState,
+  selectItemBoolean,
 }: TableItemProps<T>) => {
   const handleSelectItem = (id: number) => {
+    if (!selectItemBoolean) return;
     setState((prev) => (prev === id ? null : id));
   };
 
