@@ -19,15 +19,19 @@ jobs:
           node-version: 22.14.0
 
       - name: Deploy to EC2 using SSH
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v0.1.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
+            export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v22.14.0/bin
+
             cd Expo-Client
             git pull origin main
+
             npm install
             npm run build
+
             pm2 restart "expo-client" || pm2 start npm --name "expo-client" -- run start
