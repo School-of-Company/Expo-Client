@@ -57,7 +57,7 @@ const ProgramDetailForm = ({ id }: { id: number }) => {
           maxHeight="414px"
           footerType="file"
           text="인원 수"
-          actions={fileActions(id)}
+          actions={fileActions(id, '/excel')}
         />
       </div>
     ),
