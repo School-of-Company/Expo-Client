@@ -28,43 +28,25 @@ const DateContainer = ({
   const initialScrollDone = useRef(false);
 
   useEffect(() => {
+    const handleResize = () => checkArrowVisibility();
     checkArrowVisibility();
-    window.addEventListener('resize', checkArrowVisibility);
-    return () => {
-      window.removeEventListener('resize', checkArrowVisibility);
-    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [dates]);
 
   useEffect(() => {
-    if (
-      selectedDate &&
-      containerRef.current &&
-      buttonRefs.current[selectedDate]
-    ) {
-      // Use a small delay to ensure DOM is fully updated
-      setTimeout(() => {
-        const button = buttonRefs.current[selectedDate];
-        if (button && containerRef.current) {
-          const container = containerRef.current;
+    const selectedButton = buttonRefs.current[selectedDate];
+    if (selectedDate && selectedButton) {
+      selectedButton.scrollIntoView({
+        behavior: initialScrollDone.current ? 'smooth' : 'auto',
+        inline: 'center',
+        block: 'nearest',
+      });
+      initialScrollDone.current = true;
 
-          // Calculate position to center the button in the container
-          const scrollLeft =
-            button.offsetLeft -
-            container.offsetWidth / 2 +
-            button.offsetWidth / 2;
-
-          // Scroll to the position
-          container.scrollTo({
-            left: Math.max(0, scrollLeft),
-            behavior: initialScrollDone.current ? 'smooth' : 'auto',
-          });
-
-          initialScrollDone.current = true;
-
-          // Check arrow visibility after scrolling completes
-          setTimeout(checkArrowVisibility, 500);
-        }
-      }, 50);
+      requestAnimationFrame(() => {
+        checkArrowVisibility();
+      });
     }
   }, [selectedDate]);
 
@@ -77,28 +59,21 @@ const DateContainer = ({
   };
 
   const handleScroll = () => {
-    // Only check visibility, don't modify scroll position here
     checkArrowVisibility();
   };
 
   const scrollLeft = () => {
-    if (containerRef.current) {
-      const scrollAmount = 120;
-      containerRef.current.scrollBy({
-        left: -scrollAmount,
-        behavior: 'smooth',
-      });
-    }
+    containerRef.current?.scrollBy({
+      left: -120,
+      behavior: 'smooth',
+    });
   };
 
   const scrollRight = () => {
-    if (containerRef.current) {
-      const scrollAmount = 120;
-      containerRef.current.scrollBy({
-        left: scrollAmount,
-        behavior: 'smooth',
-      });
-    }
+    containerRef.current?.scrollBy({
+      left: 120,
+      behavior: 'smooth',
+    });
   };
 
   const setButtonRef = (date: string, element: HTMLButtonElement | null) => {
