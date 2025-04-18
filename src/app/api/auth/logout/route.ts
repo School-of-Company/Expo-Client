@@ -1,30 +1,22 @@
 import { AxiosError } from 'axios';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { apiClient } from '@/shared/libs/apiClient';
+import { deleteAuthCookies } from '@/shared/libs/cookie/deleteCookies';
+import { serverInstance } from '@/shared/libs/http/serverInstance';
 
 export async function DELETE() {
   const cookieStore = cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
 
-  if (!accessToken) {
-    return NextResponse.json(
-      { error: 'Access token not found' },
-      { status: 401 },
-    );
-  }
-
   try {
-    await apiClient.delete('/auth', {
+    await serverInstance.delete('/auth', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
 
     const response = NextResponse.json({ success: true });
-    response.cookies.set('accessToken', '', { maxAge: 0 });
-    response.cookies.set('refreshToken', '', { maxAge: 0 });
-    return response;
+    return deleteAuthCookies(response);
   } catch (error) {
     if (error instanceof AxiosError) {
       const status = error.response?.status || 500;

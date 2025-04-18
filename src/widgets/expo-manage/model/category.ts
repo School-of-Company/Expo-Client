@@ -1,7 +1,6 @@
 export const selectOptionCategories = [
-  { value: 'trainee', label: '사전 교원연수참가자' },
-  { value: 'FIELD', label: '현장신청자' },
-  { value: 'PRE', label: '사전 행사참가자' },
+  { value: 'TRAINEE', label: '연수자' },
+  { value: 'STANDARD', label: '참가자' },
 ];
 
 export const category = (selectOption: string) => {

@@ -1,21 +1,21 @@
 import axios from 'axios';
-import { FormattedApplicationData } from '@/shared/types/application/type';
-
-export type SurveyData = {
-  phoneNumber: string;
-  answerJson: string;
-};
+import clientInstance from '@/shared/libs/http/clientInstance';
+import {
+  FormattedApplicationData,
+  FormattedSurveyData,
+} from '@/shared/types/application/type';
 
 const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
   application: {
-    STANDARD_register: '/api/application/pre-standard/',
-    TRAINEE_register: '/api/application/',
-    STANDARD_onsite: '/api/application/field/standard/',
-    TRAINEE_onsite: '/api/application/field/',
+    STANDARD_register: '/application/pre-standard/',
+    TRAINEE_register: '/application/',
+    STANDARD_onsite: '/application/field/standard/',
+    TRAINEE_onsite: '/application/field/',
+    STANDARD_onsite_temporary: '/application/field/temporary/',
   },
   survey: {
-    STANDARD: '/api/survey/answer/standard/',
-    TRAINEE: '/api/survey/answer/trainee/',
+    STANDARD: '/survey/answer/standard/',
+    TRAINEE: '/survey/answer/trainee/',
   },
 };
 
@@ -24,16 +24,31 @@ export const postApplication = async (
   formType: 'application' | 'survey',
   userType: 'STANDARD' | 'TRAINEE',
   applicationType: 'register' | 'onsite',
-  data: FormattedApplicationData | SurveyData,
+  data: FormattedApplicationData | FormattedSurveyData,
 ) => {
   const baseUrl = URL_MAP[formType] || {};
-  const key =
+  let key =
     formType === 'application'
-      ? (`${userType}_${applicationType}` as const)
+      ? (`${userType}_${applicationType}` as keyof typeof URL_MAP.application)
       : userType;
 
-  const url = `${baseUrl[key] || '/api/application/'}${params}`;
+  if (
+    formType === 'application' &&
+    userType === 'STANDARD' &&
+    applicationType === 'onsite' &&
+    (!('phoneNumber' in data) || !data.phoneNumber)
+  ) {
+    key = 'STANDARD_onsite_temporary';
+  }
 
-  const response = await axios.post(url, data);
-  return response.data;
+  const url = `${baseUrl[key] || '/api/application/'}${params}`;
+  try {
+    const response = await clientInstance.post(url, data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '폼 신청 실패');
+    }
+    throw error;
+  }
 };

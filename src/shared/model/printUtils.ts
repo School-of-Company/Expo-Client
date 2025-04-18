@@ -1,4 +1,8 @@
-export const printBadge = (selectedData: { name: string; qrCode: string }) => {
+export const printBadge = (selectedData: {
+  name: string;
+  qrCode: string;
+  isTemporary: boolean;
+}) => {
   const printWindow = window.open('', '_blank');
 
   if (printWindow) {
@@ -6,6 +10,8 @@ export const printBadge = (selectedData: { name: string; qrCode: string }) => {
       selectedData.qrCode &&
       (selectedData.qrCode.startsWith('/9j/') ||
         selectedData.qrCode.includes('base64'));
+
+    const encodedQRCode = encodeURIComponent(selectedData.qrCode);
 
     printWindow.document.write(`
       <html>
@@ -43,7 +49,7 @@ export const printBadge = (selectedData: { name: string; qrCode: string }) => {
             }
             @media print {
               @page {
-                margin: 0; 
+                margin: 0;
               }
               body {
                 margin: 0;
@@ -54,6 +60,7 @@ export const printBadge = (selectedData: { name: string; qrCode: string }) => {
         <body>
           <div class="badge">
             <h1>${selectedData.name}</h1>
+            ${selectedData.isTemporary ? `<p style="font-size:14px;">(임시 QR)</p>` : ''}
             <div class="qr-container">
               ${
                 isBase64
@@ -66,8 +73,9 @@ export const printBadge = (selectedData: { name: string; qrCode: string }) => {
             ${
               !isBase64
                 ? `
+                  const decodedQRText = decodeURIComponent("${encodedQRCode}");
                   new QRCode("qrcode", {
-                    text: "${selectedData.qrCode}",
+                    text: decodedQRText,
                     width: 100,
                     height: 100
                   });

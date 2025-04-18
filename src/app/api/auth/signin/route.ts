@@ -1,36 +1,23 @@
 import { AxiosError } from 'axios';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { apiClient } from '@/shared/libs/apiClient';
-
-interface SigninRequestBody {
-  nickname: string;
-  password: string;
-}
+import { setAuthCookies } from '@/shared/libs/cookie/setAuthCookies';
+import { serverInstance } from '@/shared/libs/http/serverInstance';
+import { SignInData } from '@/shared/types/signin/type';
 
 export async function POST(request: Request) {
-  const body: SigninRequestBody = await request.json();
+  const body: SignInData = await request.json();
 
   try {
-    const response = await apiClient.post('/auth/signin', body);
+    const response = await serverInstance.post('/auth/signin', body);
 
-    const accessTokenExpires = new Date();
-    accessTokenExpires.setHours(accessTokenExpires.getHours() + 1);
-
+    const accessTokenExpires = new Date(response.data.accessTokenExpiresIn);
     const refreshTokenExpires = new Date(response.data.refreshTokenExpiresIn);
 
-    cookies().set('accessToken', response.data.accessToken, {
-      httpOnly: true,
-      secure: true,
-      expires: accessTokenExpires,
-      sameSite: 'strict',
-    });
-
-    cookies().set('refreshToken', response.data.refreshToken, {
-      httpOnly: true,
-      secure: true,
-      expires: refreshTokenExpires,
-      sameSite: 'strict',
+    setAuthCookies({
+      accessToken: response.data.accessToken,
+      refreshToken: response.data.refreshToken,
+      accessTokenExpires,
+      refreshTokenExpires,
     });
 
     return NextResponse.json(response.data);

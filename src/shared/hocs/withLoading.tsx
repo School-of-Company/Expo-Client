@@ -9,7 +9,7 @@ type WithLoadingProps = {
 const withLoading = ({ isLoading, children }: WithLoadingProps) => {
   if (isLoading)
     return (
-      <div className="h-screen w-full">
+      <div className="flex w-full flex-1 items-center justify-center">
         <Loading />
       </div>
     );

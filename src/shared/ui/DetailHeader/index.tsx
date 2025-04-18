@@ -6,20 +6,22 @@ import { ArrowLeft } from '@/shared/assets/icons';
 
 interface Props {
   headerTitle: string;
+  textCenter?: boolean;
 }
 
-const DetailHeader = ({ headerTitle }: Props) => {
+const DetailHeader = ({ headerTitle, textCenter = false }: Props) => {
   const router = useRouter();
 
   return (
-    <div className="relative flex h-[60px] items-center justify-between">
-      <label
-        className="absolute left-0 hover:cursor-pointer"
-        onClick={() => router.back()}
-      >
-        <ArrowLeft />
+    <div className="flex items-center">
+      <label className="hover:cursor-pointer" onClick={() => router.back()}>
+        <ArrowLeft size={32} />
       </label>
-      <p className="mobile:text-body1 flex-grow text-center text-h1m text-black">
+      <p
+        className={`flex-grow text-h2r text-black mobile:text-body1r ${
+          textCenter ? 'text-center' : ''
+        }`}
+      >
         {headerTitle}
       </p>
     </div>

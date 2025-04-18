@@ -1,10 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { AdminData, ExpoItem, SignUpItem } from '@/shared/types/admin/type';
-import {
-  getAdminData,
-  getExpoList,
-  getRequestSignUp,
-} from '../api/getAdminData';
+import { getAdminData } from '../api/getAdminData';
+import { getExpoList } from '../api/getExpoList';
+import { getRequestSignUp } from '../api/getRequestSignUp';
 
 export const useAdminData = () => {
   const expoListData = useQuery<ExpoItem[], Error>({

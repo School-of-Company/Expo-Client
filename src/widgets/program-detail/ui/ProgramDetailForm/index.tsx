@@ -29,7 +29,7 @@ const ProgramDetailForm = ({ id }: { id: number }) => {
     if (navigation === 'standard') {
       standardAttendance({
         id,
-        participantId: scannedQR.traineeId!,
+        participantId: scannedQR.participantId!,
         phoneNumber: scannedQR.phoneNumber!,
       });
     } else {
@@ -49,15 +49,15 @@ const ProgramDetailForm = ({ id }: { id: number }) => {
   return withLoading({
     isLoading,
     children: (
-      <div className="mx-auto w-full max-w-[1200px] space-y-[46px] px-5">
-        <p className="text-h2 text-center text-black">프로그램</p>
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-46 overflow-auto">
+        <p className="text-center text-h2b text-black">프로그램</p>
         <TableForm
           categories={programCategories}
           data={programDetailData}
           maxHeight="414px"
           footerType="file"
           text="인원 수"
-          actions={fileActions(id)}
+          actions={fileActions(id, '/excel')}
         />
       </div>
     ),

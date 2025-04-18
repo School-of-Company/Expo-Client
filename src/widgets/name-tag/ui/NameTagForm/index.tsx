@@ -1,68 +1,64 @@
 'use client';
 
-import axios from 'axios';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import NameTagHeader from '@/entities/name-tag/ui/NameTagHeader';
-import { printActions, UserData } from '@/shared/model/footerActions';
+import { printActions } from '@/shared/model/footerActions';
 import { useQRScanner } from '@/shared/model/useQRScanner';
 import { QrScanData } from '@/shared/types/common/QrScanData';
+import { AttendUserResponse } from '@/shared/types/name-tag/type';
 import { TableForm } from '@/shared/ui/Table';
+import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';
 
 const NameTagForm = ({ id }: { id: string }) => {
-  const requestPrintCategories = ['아이디', '이름', '번호', '개인정보 상태'];
+  const requestPrintCategories = [
+    '아이디',
+    '이름',
+    '번호',
+    '개인정보 상태',
+    '참가자 상태',
+  ];
 
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
-  const [userData, setUserData] = useState<UserData[]>([]);
-
+  const [userData, setUserData] = useState<AttendUserResponse[]>([]);
+  const { mutateAsync: attendUser } = usePatchAttendUserMutation(id);
   useQRScanner(setScannedQR);
 
-  const fetchUserData = useCallback(
-    async (scannedQR: QrScanData) => {
-      const authority = scannedQR.traineeId ? 'ROLE_TRAINEE' : 'ROLE_STANDARD';
+  const fetchUserData = async (scannedQR: QrScanData) => {
+    const authority = scannedQR.traineeId ? 'ROLE_TRAINEE' : 'ROLE_STANDARD';
 
-      const isAlreadyScanned = userData.some(
-        (user) => user.phoneNumber === scannedQR.phoneNumber,
-      );
+    const alreadyExists = userData.some(
+      (user) => user.phoneNumber === scannedQR.phoneNumber,
+    );
+    if (alreadyExists) {
+      toast.info('이미 스캔된 사용자입니다.');
+      return;
+    }
 
-      if (isAlreadyScanned) {
-        console.warn('이미 스캔된 QR 코드입니다.');
-        return;
-      }
+    const newUser: AttendUserResponse = await attendUser({
+      authority,
+      phoneNumber: scannedQR.phoneNumber,
+    });
 
-      try {
-        const response = await axios.patch(`/api/attendance/${id}`, {
-          authority,
-          phoneNumber: scannedQR.phoneNumber,
-        });
-
-        const responseData: UserData = {
-          id: userData.length + 1,
-          name: response.data.name,
-          phoneNumber: response.data.phoneNumber,
-          personalInformationStatus: response.data.personalInformationStatus
-            ? '동의'
-            : '미동의',
-        };
-
-        setUserData((prevData) => [...prevData, responseData]);
-      } catch (error) {
-        console.error('QR 코드 통신 에러:', error);
-      }
-    },
-    [userData, id],
-  );
+    setUserData((prev) => [...prev, newUser]);
+  };
 
   useEffect(() => {
     if (scannedQR) {
-      fetchUserData(scannedQR);
+      const handleScan = async () => {
+        await fetchUserData(scannedQR);
+        setScannedQR(null);
+      };
+
+      handleScan();
     }
-  }, [scannedQR, fetchUserData]);
+  }, [scannedQR]);
 
   const printNameTagActions = printActions(userData);
 
   return (
-    <div className="mx-auto w-full max-w-[1200px] space-y-[30px] px-5">
-      <NameTagHeader params={id} />
+    <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-auto">
+      <NameTagHeader />
       <TableForm
         categories={requestPrintCategories}
         data={userData}

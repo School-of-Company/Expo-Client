@@ -6,12 +6,13 @@ import ExhibitionForm from '@/widgets/exhibition/ui/ExhibitionForm';
 import { Header } from '@/widgets/layout';
 
 const CreateExhibition = () => {
-  const mutation = useCreateExhibitionMutation();
+  const { mutate, isPending, isSuccess } = useCreateExhibitionMutation();
+
   return (
-    <div className="flex h-screen flex-col gap-[30px] mobile:gap-0">
+    <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
-      <div className="mx-auto w-full max-w-[792px] flex-1 px-5 pb-5">
-        <ExhibitionForm mutation={mutation} />
+      <div className="flex flex-1 justify-center p-16">
+        <ExhibitionForm mutation={{ mutate, isPending, isSuccess }} />
       </div>
     </div>
   );

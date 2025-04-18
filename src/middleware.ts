@@ -1,52 +1,29 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const MANAGE_RESTRICTED_PATHS = [
-  /^\/signin$/,
-  /^\/signUp$/,
-  /^\/application\/.+\/(STANDARD|TRAINEE)$/,
-];
-
-const USER_RESTRICTED_PATHS = [
-  /^\/admin$/,
-  /^\/exhibition\/create$/,
-  /^\/exhibition\/edit(\/.*)?$/,
-  /^\/expo-manage\/.+$/,
-  /^\/name-tag\/.+$/,
-  /^\/sms\/.+\/(STANDARD|TRAINEE)$/,
-  /^\/program(\/.*)?$/,
-];
-
-function handleApiRole(request: NextRequest): NextResponse {
-  const requestHeaders = new Headers(request.headers);
-  const role = request.cookies.get('accessToken') ? 'manage' : 'user';
-  requestHeaders.set('role', role);
-
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
-}
-
-function isPathMatch(pathname: string, patterns: RegExp[]): boolean {
-  return patterns.some((pattern) => pattern.test(pathname));
-}
-
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  if (pathname === '/api/role') {
-    return handleApiRole(request);
+export async function middleware(request: NextRequest) {
+  const code = request.nextUrl.searchParams.get('code');
+  if (code) {
+    const callbackUrl = new URL('/api/signin', request.nextUrl.origin);
+    callbackUrl.searchParams.set('code', code);
+    return NextResponse.redirect(callbackUrl);
   }
 
-  const accessToken = request.cookies.get('accessToken');
+  const publicPaths = ['/signin', '/signup'];
+  const pathname = request.nextUrl.pathname;
 
-  if (!accessToken && isPathMatch(pathname, USER_RESTRICTED_PATHS)) {
-    return NextResponse.redirect(new URL('/', request.url));
+  const isPublicPath = publicPaths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+
+  const accessToken = request.cookies.get('accessToken')?.value;
+  const refreshToken = request.cookies.get('refreshToken')?.value;
+
+  if (!isPublicPath && !accessToken && !refreshToken) {
+    return NextResponse.redirect(new URL('/signin', request.url));
   }
 
-  if (accessToken && isPathMatch(pathname, MANAGE_RESTRICTED_PATHS)) {
+  if (isPublicPath && accessToken) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
@@ -55,19 +32,17 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/api/role',
-    '/signin',
-    '/signUp',
     '/admin',
-    '/exhibition/create',
-    '/exhibition/edit/:path*',
+    '/exhibition/:path*',
+    '/expo-created/:path*',
+    '/expo-detail/:path*',
     '/expo-manage/:path*',
+    '/form/:path*',
     '/name-tag/:path*',
-    '/sms/:path*/STANDARD',
-    '/sms/:path*/TRAINEE',
     '/program/:path*',
-    '/program/detail/:path*',
-    '/application/:path*/STANDARD',
-    '/application/:path*/TRAINEE',
+    '/signin',
+    '/signup',
+    '/sms/:path*',
+    '/',
   ],
 };

@@ -1,6 +1,7 @@
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import clientTokenInstance from '../libs/http/clientTokenInstance';
+import { AttendUserResponse } from '../types/name-tag/type';
 import { printBadge } from './printUtils';
 
 export interface UserData {
@@ -10,10 +11,13 @@ export interface UserData {
   personalInformationStatus: string;
 }
 
-export const fileActions = (id: string | number) => ({
+export const fileActions = (id: string | number, urlPrefix: string) => ({
   exportExcel: async () => {
     try {
-      const response = await axios.get(`/api/excel/${id}`, {
+      const response = await clientTokenInstance.get(`${urlPrefix}/${id}`, {
+        headers: {
+          'X-File-Download': 'true',
+        },
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -29,15 +33,23 @@ export const fileActions = (id: string | number) => ({
   },
 });
 
-export const printActions = (data: UserData[]) => ({
+export const printActions = (data: AttendUserResponse[]) => ({
   PrintBadge: async (selectItem: number) => {
     const selectedData = data.find((item) => item.id === selectItem);
     if (selectedData) {
+      const isTrainee = selectedData.participationType === 'TRAINEE';
+
+      const qrPayload = {
+        [isTrainee ? 'traineeId' : 'participantId']: selectedData.id,
+        phoneNumber: selectedData.phoneNumber,
+      };
+
       const badgeData = {
         name: selectedData.name,
-
-        qrCode: selectedData.phoneNumber,
+        qrCode: JSON.stringify(qrPayload),
+        isTemporary: false,
       };
+
       printBadge(badgeData);
     }
   },
@@ -46,7 +58,7 @@ export const printActions = (data: UserData[]) => ({
 export const checkActions = (fetchSignupList: () => Promise<void>) => ({
   CheckBadge: async (selectItem: number) => {
     try {
-      await axios.patch(`/api/admin/${selectItem}`);
+      await clientTokenInstance.patch(`/admin/${selectItem}`);
       await fetchSignupList();
       toast.success('회원가입 승인 성공');
     } catch (error) {
@@ -55,7 +67,7 @@ export const checkActions = (fetchSignupList: () => Promise<void>) => ({
   },
   DeleteBadge: async (selectItem: number) => {
     try {
-      await axios.delete(`/api/admin/${selectItem}`);
+      await clientTokenInstance.delete(`/admin/${selectItem}`);
       await fetchSignupList();
       toast.success('회원가입 거절 성공');
     } catch (error) {
@@ -67,7 +79,7 @@ export const checkActions = (fetchSignupList: () => Promise<void>) => ({
 export const deleteActions = (fetchExpoList: () => Promise<void>) => ({
   DeleteBadge: async (selectItem: number) => {
     try {
-      await axios.delete(`/api/expo/${selectItem}`);
+      await clientTokenInstance.delete(`/expo/${selectItem}`);
       await fetchExpoList();
       toast.success('박람회 삭제 성공');
     } catch (error) {

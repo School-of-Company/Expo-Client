@@ -8,3 +8,4 @@ export { default as PictureOption } from './ui/PictureOption';
 export { default as RequiredToggle } from './ui/RequiredToggle';
 export { default as CreateFormButton } from './ui/CreateFormButton';
 export { default as CheckBox } from './ui/CheckBox';
+export { default as PrivacyConsentForm } from './ui/PrivacyConsentForm';

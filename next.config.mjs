@@ -4,11 +4,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'mindway-bucket.s3.ap-northeast-2.amazonaws.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'exposerver-bucket.s3.ap-northeast-2.amazonaws.com',
+        hostname: 'start-up-test.s3.ap-northeast-2.amazonaws.com',
       },
     ],
   },

@@ -15,6 +15,7 @@ export interface FormValues {
     requiredStatus: boolean;
     otherJson: string | null;
   }[];
+  informationText: string;
 }
 export interface OptionProps {
   fields: { id: string; value: string }[];
@@ -31,7 +32,7 @@ export interface ApplicationFormRequest {
     formType: string;
     jsonData: string;
   }[];
-  informationImage: string;
+  informationText: string;
 }
 
 export interface SurveyFormRequest {
@@ -43,6 +44,7 @@ export interface SurveyFormRequest {
     requiredStatus: boolean;
     otherJson: string | null;
   }[];
+  informationText: string;
 }
 
 export type CreateFormRequest = ApplicationFormRequest | SurveyFormRequest;

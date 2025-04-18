@@ -1,12 +1,8 @@
 import React from 'react';
 import ExpoDetail from '@/views/expo-detail/ui/expo-detail';
 
-const page = ({ params }: { params: { id: number } }) => {
-  return (
-    <div>
-      <ExpoDetail params={params.id} />
-    </div>
-  );
+const page = ({ params }: { params: { id: string } }) => {
+  return <ExpoDetail params={params.id} />;
 };
 
 export default page;

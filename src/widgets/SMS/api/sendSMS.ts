@@ -1,23 +1,24 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
+import { SendSmSData } from '@/shared/types/sms';
 
-interface SMSData {
-  title: string;
-  content: string;
-  authority: 'STANDARD' | 'TRAINEE';
-  id: string;
-}
-
-export const sendSMS = async (data: SMSData) => {
+export const sendSMS = async (
+  id: string,
+  authority: string,
+  data: SendSmSData,
+) => {
   try {
-    const response = await axios.post(`/api/sms/message/${data.id}`, {
+    const response = await clientTokenInstance.post(`/sms/message/${id}`, {
       title: data.title,
       content: data.content,
-      authority: 'ROLE_' + data.authority,
+      authority: 'ROLE_' + authority,
     });
 
     return response.data;
   } catch (error) {
-    console.error('Error creating exhibition:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '문자 전송에 실패했습니다');
+    }
     throw error;
   }
 };

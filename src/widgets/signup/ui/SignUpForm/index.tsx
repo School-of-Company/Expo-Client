@@ -22,13 +22,17 @@ const SignUpForm = () => {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<SignUpData>();
   const [isSmsSent, setIsSmsSent] = useState(false);
   const [timer, setTimer] = useState(0);
   const [isSmsVerified, setIsSmsVerified] = useState(false);
 
-  const { mutate: signup } = useSignup();
+  const {
+    mutate: signup,
+    isPending: isSignupPending,
+    isSuccess: isSignupSucess,
+  } = useSignup();
   const { mutate: sendSms, isPending: isSendingSms } = useSendSms(
     setTimer,
     setIsSmsSent,
@@ -51,7 +55,7 @@ const SignUpForm = () => {
 
   return (
     <form className="space-y-[50px]" onSubmit={handleSubmit(onSubmit)}>
-      <DetailHeader headerTitle="관리자 회원가입" />
+      <DetailHeader textCenter={true} headerTitle="관리자 회원가입" />
       <div className="space-y-20">
         <NameInput register={register} errors={errors} />
         <NicknameInput register={register} errors={errors} />
@@ -71,7 +75,7 @@ const SignUpForm = () => {
         />
       </div>
       <div className="mt-[160px]">
-        <Button disabled={isSubmitting} type="submit">
+        <Button disabled={isSignupPending || isSignupSucess} type="submit">
           확인
         </Button>
       </div>

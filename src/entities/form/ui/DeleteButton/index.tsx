@@ -7,7 +7,7 @@ interface Props {
 
 const DeleteButton = ({ onClick }: Props) => {
   return (
-    <button type="button" onClick={onClick} className="flex items-center gap-2">
+    <button type="button" onClick={onClick} className="flex items-center gap-8">
       <Trash />
       <p className="text-caption2 text-error">버리기</p>
     </button>

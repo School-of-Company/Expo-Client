@@ -1,17 +1,17 @@
 import axios from 'axios';
-import { AdminData, ExpoItem, SignUpItem } from '@/shared/types/admin/type';
-
-export const getExpoList = async (): Promise<ExpoItem[]> => {
-  const response = await axios.get('/api/expo');
-  return response.data;
-};
-
-export const getRequestSignUp = async (): Promise<SignUpItem[]> => {
-  const response = await axios.get('/api/admin');
-  return response.data;
-};
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
+import { AdminData } from '@/shared/types/admin/type';
 
 export const getAdminData = async (): Promise<AdminData> => {
-  const response = await axios.get('/api/admin/my');
-  return response.data;
+  try {
+    const response = await clientTokenInstance.get('/admin/my');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.error || '관리자 프로필 불러오기 실패',
+      );
+    }
+    throw error;
+  }
 };

@@ -8,7 +8,7 @@ import ExhibitionForm from '@/widgets/exhibition/ui/ExhibitionForm';
 import { Header } from '@/widgets/layout';
 import { useExpoData } from '../../model/useExpoData';
 
-const EditExhibition = ({ id }: { id: number }) => {
+const EditExhibition = ({ id }: { id: string }) => {
   const {
     expoDetailQuery,
     geoQuery,
@@ -48,19 +48,24 @@ const EditExhibition = ({ id }: { id: number }) => {
     })),
   };
 
-  const mutation = useEditExhibitionMutation(id);
+  const { mutate, isPending, isSuccess } = useEditExhibitionMutation(id);
 
-  return withLoading({
-    isLoading,
-    children: (
-      <div className="flex h-screen flex-col gap-[30px] mobile:gap-0">
-        <Header />
-        <div className="mx-auto w-full max-w-[792px] flex-1 px-5 pb-5">
-          <ExhibitionForm defaultValues={defaultValues} mutation={mutation} />
-        </div>
-      </div>
-    ),
-  });
+  return (
+    <div className="flex min-h-screen flex-col gap-[30px]">
+      <Header />
+      {withLoading({
+        isLoading,
+        children: (
+          <div className="flex flex-1 justify-center overflow-hidden p-16">
+            <ExhibitionForm
+              defaultValues={defaultValues}
+              mutation={{ mutate, isPending, isSuccess }}
+            />
+          </div>
+        ),
+      })}
+    </div>
+  );
 };
 
 export default EditExhibition;

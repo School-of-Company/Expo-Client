@@ -1,13 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { FormattedApplicationData } from '@/shared/types/application/type';
+import { printBadge } from '@/shared/model/printUtils';
+import {
+  FormattedApplicationData,
+  FormattedSurveyData,
+} from '@/shared/types/application/type';
 import { postApplication } from '../api/postApplication';
-
-export type SurveyData = {
-  phoneNumber: string;
-  answerJson: string;
-};
 
 export const usePostApplication = (
   params: string,
@@ -16,7 +15,6 @@ export const usePostApplication = (
   applicationType: 'register' | 'onsite',
 ) => {
   const router = useRouter();
-
   const getMessages = () => {
     if (formType === 'survey') {
       return {
@@ -33,11 +31,37 @@ export const usePostApplication = (
   const { success, error } = getMessages();
 
   return useMutation({
-    mutationFn: (data: FormattedApplicationData | SurveyData) =>
+    mutationFn: (data: FormattedApplicationData | FormattedSurveyData) =>
       postApplication(params, formType, userType, applicationType, data),
-    onSuccess: () => {
+    onSuccess: (response, variables) => {
       toast.success(success);
-      router.push('/');
+
+      if (
+        formType === 'application' &&
+        userType === 'STANDARD' &&
+        applicationType === 'onsite' &&
+        response &&
+        response.participantId &&
+        response.phoneNumber
+      ) {
+        const qrPayload = {
+          participantId: response.participantId,
+          phoneNumber: response.phoneNumber,
+        };
+
+        const name = 'name' in variables ? variables.name : '이름 없음';
+
+        const badgeData = {
+          name,
+          qrCode: JSON.stringify(qrPayload),
+          isTemporary: true,
+        };
+
+        printBadge(badgeData);
+      }
+      router.push(
+        `/application-success/${params}?userType=${userType}?formType=${formType}`,
+      );
     },
     onError: () => {
       toast.error(error);

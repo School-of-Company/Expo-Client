@@ -1,56 +1,41 @@
 export interface DynamicFormItem {
   title: string;
-  formType: 'SENTENCE' | 'CHECKBOX' | 'MULTIPLE' | 'DROPDOWN';
+  formType:
+    | 'SENTENCE'
+    | 'CHECKBOX'
+    | 'MULTIPLE'
+    | 'DROPDOWN'
+    | 'APPLICATIONPHONEOPTION';
   jsonData?: Record<string, string>;
   requiredStatus: boolean;
   otherJson: string | null;
 }
 
 export interface ApplicationForm {
-  informationImage: string;
+  informationText: string;
   participantType: 'STANDARD' | 'TRAINEE';
   dynamicForm?: DynamicFormItem[];
+  dynamicSurveyResponseDto?: DynamicFormItem[];
 }
 
 export type ApplicationFormValues = {
-  [key: string]: string | string[];
+  privacyConsent: boolean;
+} & {
+  [key: string]: string | string[] | boolean;
 };
 
 export type FormattedApplicationData = {
-  trainingId?: string;
   name: string;
-  phoneNumber: string;
-  personalInformationStatus: boolean;
+  phoneNumber?: string;
   informationJson: string;
+  trainingId?: string;
+  personalInformationStatus: boolean;
 };
 
-export interface BaseFormData {
+export interface FormattedSurveyData {
   phoneNumber: string;
-}
-
-export interface ApplicationBaseData extends BaseFormData {
-  name: string;
-  personalInformationStatus: boolean;
-  informationJson: string;
-}
-
-export interface TraineeApplicationData extends ApplicationBaseData {
-  trainingId: string;
-}
-
-export interface StandardApplicationData extends ApplicationBaseData {
-  affiliation: string;
-  schoolLevel: string;
-  schoolDetail: string;
-}
-
-export interface SurveyData extends BaseFormData {
   answerJson: string;
-}
-
-export interface ApplicationForm {
-  dynamicForm?: DynamicFormItem[];
-  dynamicSurveyResponseDto?: DynamicFormItem[];
+  personalInformationStatus: boolean;
 }
 
 export type DynamicFormValues = {

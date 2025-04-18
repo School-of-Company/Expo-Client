@@ -10,7 +10,7 @@ export const useDeleteUserAccount = () => {
     mutationFn: () => deleteUserAccount(),
     onSuccess: () => {
       toast.success('탈퇴가 완료되었습니다.');
-      router.push('/');
+      router.push('/signin');
     },
     onError: () => {
       toast.error('유저 탈퇴를 실패했습니다.');

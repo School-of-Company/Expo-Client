@@ -1,5 +1,10 @@
-import { UseFormRegister, UseFormWatch } from 'react-hook-form';
+import {
+  UseFormRegister,
+  UseFormSetValue,
+  UseFormWatch,
+} from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
+import ApplicationPhoneOption from '../ApplicationPhoneOption';
 import CheckBoxOption from '../CheckBoxOption';
 import DropDownOption from '../DropDownOption';
 import MultipleOption from '../MultipleOption';
@@ -11,16 +16,20 @@ const OptionContainer = ({
   jsonData,
   requiredStatus,
   otherJson,
+  type = 'text',
   register,
   watch,
+  setValue,
 }: {
   title: string;
   formType: string;
   jsonData?: string | { [key: string]: string };
   requiredStatus: boolean;
   otherJson: string | null;
+  type?: string;
   register: UseFormRegister<ApplicationFormValues>;
   watch: UseFormWatch<ApplicationFormValues>;
+  setValue: UseFormSetValue<ApplicationFormValues>;
 }) => {
   const options = jsonData
     ? typeof jsonData === 'string'
@@ -41,9 +50,10 @@ const OptionContainer = ({
         <SentenceOption
           register={register}
           name={title}
-          maxLength={1000}
+          maxLength={20}
           row={1}
           required={requiredStatus}
+          type={type}
         />
       );
       break;
@@ -78,19 +88,32 @@ const OptionContainer = ({
           register={register}
           name={title}
           required={requiredStatus}
+          setValue={setValue}
         />
       );
       break;
+    case 'APPLICATIONPHONEOPTION':
+      inputComponent = (
+        <ApplicationPhoneOption
+          register={register}
+          name={title}
+          maxLength={20}
+          row={1}
+          required={requiredStatus}
+          watch={watch}
+          setValue={setValue}
+          type={type}
+        />
+      );
   }
 
   return (
-    <div className="flex flex-col gap-[20px] rounded-sm border-1 border-solid border-gray-200 p-[18px]">
+    <div className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-18">
       <div className="flex items-center gap-2">
-        <p className="text-h4 text-black">{title}</p>
+        <p className="text-h3b text-black">{title}</p>
         {requiredStatus ? <p className="text-main-600">*</p> : null}
       </div>
-
-      <div className="space-y-2">{inputComponent}</div>
+      <div className="space-y-10">{inputComponent}</div>
     </div>
   );
 };

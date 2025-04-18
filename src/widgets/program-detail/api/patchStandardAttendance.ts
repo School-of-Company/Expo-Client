@@ -1,4 +1,5 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { PatchStandardProgramData } from '@/shared/types/program-detail/type';
 
 export const patchStandardAttendance = async ({
@@ -6,9 +7,19 @@ export const patchStandardAttendance = async ({
   participantId,
   phoneNumber,
 }: PatchStandardProgramData) => {
-  const response = await axios.patch(`/api/attendance/standard/${id}`, {
-    participantId,
-    phoneNumber,
-  });
-  return response;
+  try {
+    const response = await clientTokenInstance.patch(
+      `/attendance/standard/${id}`,
+      {
+        participantId,
+        phoneNumber,
+      },
+    );
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || 'QR코드 스캔 실패');
+    }
+    throw error;
+  }
 };

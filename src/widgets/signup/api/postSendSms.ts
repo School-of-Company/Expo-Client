@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import clientInstance from '@/shared/libs/http/clientInstance';
 
 export const postSendSms = async (phoneNumber: string) => {
   try {
@@ -8,7 +9,7 @@ export const postSendSms = async (phoneNumber: string) => {
       return;
     }
 
-    const response = await axios.post('/api/auth/sms', { phoneNumber });
+    const response = await clientInstance.post('/sms', { phoneNumber });
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

@@ -1,103 +1,134 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React from 'react';
-import { useRole } from '@/shared/model/useRole';
-import { Button, Modal } from '@/shared/ui';
-import { ModalLayout } from '@/widgets/layout';
-import { useExpoActionPanel } from '../../model/useExpoActionPanel';
+import React, { useState, useEffect } from 'react';
+import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
+import { Share } from '@/shared/assets/svg';
+import { Button } from '@/shared/ui';
 
 interface ExpoActionPanelProps {
-  params: number;
+  params: string;
+  openModal: (type: string, content: string) => void;
 }
 
-const ExpoActionPanel = ({ params }: ExpoActionPanelProps) => {
-  const role = useRole();
+const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
   const router = useRouter();
-  const { isModalOpen, modalContent, openModal, closeModal } =
-    useExpoActionPanel();
+  const [isMore, setIsMore] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const getButtons = () => {
-    if (role === 'user') {
-      return (
-        <Button onClick={() => openModal('해당 박람회에 지원하시겠습니까?')}>
-          신청하기
-        </Button>
-      );
-    }
-    if (role === 'manage') {
-      return (
-        <div className="w-full space-y-2 mobile:space-y-2">
-          <div className="space-y-2 mobile:flex mobile:gap-5 mobile:space-y-0">
-            <Button
-              onClick={() => {
-                router.push(`/name-tag/${params}`);
-              }}
-            >
-              QR 조회하기
-            </Button>
-            <Button
-              onClick={() => openModal('누구에게 문자를 전송하시겠습니까?')}
-            >
-              문자 보내기
-            </Button>
-          </div>
-          <Button
-            onClick={() => {
-              router.push(`/program/${params}?navigation=standard`);
-            }}
-            variant="main100"
-          >
-            프로그램
-          </Button>
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
 
-          <Button
-            onClick={() => {
-              router.push(`/expo-manage/${params}`);
-            }}
-            variant="main100"
-          >
-            조회하기
-          </Button>
-          <Button
-            onClick={() => {
-              router.push(`/exhibition/edit/${params}`);
-            }}
-            variant="white"
-          >
-            수정하기
-          </Button>
-        </div>
-      );
-    }
-    return null;
-  };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   return (
-    <div>
-      <div className="h-fit w-[210px] space-y-[26px] rounded-sm border-1 border-solid border-gray-200 p-[18px] mobile:w-full mobile:border-none mobile:px-[16px]">
-        <div className="space-y-2">{getButtons()}</div>
+    <div className="w-full">
+      <div className="flex w-full flex-col items-center gap-24">
+        <div className="h-fit w-full rounded-sm border-1 border-solid border-gray-200 p-[18px] tablet:w-full tablet:border-none tablet:px-0">
+          <div className="w-full space-y-8">
+            <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
+              <Button
+                onClick={() =>
+                  router.push(`/expo-manage/${params}?page=1&userType=TRAINEE`)
+                }
+                variant="white"
+              >
+                조회
+              </Button>
+              <Button
+                variant="white"
+                onClick={() =>
+                  openModal('formcreate', '생성할 항목을 선택하세요.')
+                }
+              >
+                폼 생성
+              </Button>
+            </div>
+            <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
+              <Button
+                variant="white"
+                onClick={() => openModal('onsite', '대상을 선택하세요.')}
+              >
+                현장 신청 QR
+              </Button>
+              <Button
+                variant="white"
+                onClick={() => router.push(`/name-tag/${params}`)}
+              >
+                박람회 입장
+              </Button>
+            </div>
+            <div
+              style={{
+                maxHeight: isMobile || isMore ? 'none' : '0px',
+              }}
+              className={`flex flex-col gap-8 overflow-hidden`}
+            >
+              <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
+                <Button
+                  onClick={() =>
+                    router.push(`/program/${params}?navigation=standard`)
+                  }
+                  variant="white"
+                >
+                  프로그램
+                </Button>
+                <Button
+                  variant="white"
+                  onClick={() => openModal('message', '대상을 선택하세요.')}
+                >
+                  문자 전송
+                </Button>
+              </div>
+              <Button
+                variant="gray"
+                onClick={() => openModal('edit', '수정할 항목을 선택하세요.')}
+              >
+                수정
+              </Button>
+            </div>
+            {!isMobile && (
+              <>
+                {isMore ? (
+                  <div
+                    className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-main-600"
+                    onClick={() => setIsMore(false)}
+                  >
+                    <span>접기</span>
+                    <ArrowUp fill="#448FFF" />
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => setIsMore(true)}
+                    className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-gray-400"
+                  >
+                    <span>더보기</span>
+                    <ArrowDown fill="#A7A7A7" />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+        {!isMobile && (
+          <button
+            type="button"
+            className="flex items-center gap-10"
+            onClick={() => openModal('share', '공유할 항목을 선택하세요.')}
+          >
+            <Share />
+            <p className="text-h3r text-gray-400">공유</p>
+          </button>
+        )}
       </div>
-      {isModalOpen && (
-        <ModalLayout>
-          {role === 'user' && (
-            <Modal
-              text={modalContent}
-              onClose={closeModal}
-              params={params}
-              name={'application'}
-            />
-          )}
-          {role == 'manage' && (
-            <Modal
-              text={modalContent}
-              onClose={closeModal}
-              params={params}
-              name={'message'}
-            />
-          )}
-        </ModalLayout>
-      )}
     </div>
   );
 };

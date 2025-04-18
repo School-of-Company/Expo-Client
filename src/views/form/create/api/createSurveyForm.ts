@@ -1,4 +1,5 @@
 import axios from 'axios';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 
 export const createSurveyForm = async ({
@@ -8,6 +9,13 @@ export const createSurveyForm = async ({
   data: CreateFormRequest;
   id: string;
 }) => {
-  const response = await axios.post(`/api/survey/${id}`, data);
-  return response;
+  try {
+    const response = await clientTokenInstance.post(`/survey/${id}`, data);
+    return response;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '만족도 조사 폼 생성 실패');
+    }
+    throw error;
+  }
 };
