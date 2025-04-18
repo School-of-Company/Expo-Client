@@ -49,7 +49,7 @@ const ProgramDetailForm = ({ id }: { id: number }) => {
   return withLoading({
     isLoading,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-46 overflow-auto">
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-46 overflow-y-auto">
         <p className="text-center text-h2b text-black">프로그램</p>
         <TableForm
           categories={programCategories}

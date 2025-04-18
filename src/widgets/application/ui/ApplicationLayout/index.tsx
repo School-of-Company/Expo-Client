@@ -83,7 +83,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
         onSubmit={handleSubmit(onSubmit, (errors) => {
           handleFormErrors(errors, showError);
         })}
-        className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-auto"
+        className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto"
       >
         <DetailHeader
           textCenter={true}

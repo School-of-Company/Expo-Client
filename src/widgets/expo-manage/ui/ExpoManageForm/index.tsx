@@ -64,7 +64,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
   return withLoading({
     isLoading: expoManageLoading || !selectedDate || expoDetailLoading,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-auto">
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-y-auto">
         <SelectUserType
           options={selectOptionCategories}
           value={userType}
