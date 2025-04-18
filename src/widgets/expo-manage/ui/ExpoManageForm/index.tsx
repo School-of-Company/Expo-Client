@@ -85,9 +85,10 @@ const ExpoManageForm = ({ id }: { id: string }) => {
             maxHeight="414px"
             footerType="file"
             text="참가자 전체 인원"
-            actions={fileActions(id)}
+            actions={fileActions(id, '/excel')}
             totalPage={totalPage}
             id={id}
+            selectItemBoolean={false}
           />
         ) : (
           <TableForm<participants>
@@ -96,9 +97,10 @@ const ExpoManageForm = ({ id }: { id: string }) => {
             maxHeight="414px"
             footerType="file"
             text="참가자 전체 인원"
-            actions={fileActions(id)}
+            actions={fileActions(id, '/excel/standard')}
             totalPage={totalPage}
             id={id}
+            selectItemBoolean={false}
           />
         )}
       </div>

@@ -11,10 +11,10 @@ export interface UserData {
   personalInformationStatus: string;
 }
 
-export const fileActions = (id: string | number) => ({
+export const fileActions = (id: string | number, urlPrefix: string) => ({
   exportExcel: async () => {
     try {
-      const response = await clientTokenInstance.get(`/excel/${id}`, {
+      const response = await clientTokenInstance.get(`${urlPrefix}/${id}`, {
         headers: {
           'X-File-Download': 'true',
         },
