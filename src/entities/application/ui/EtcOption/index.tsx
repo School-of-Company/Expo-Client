@@ -29,14 +29,14 @@ const EtcOption = ({ type, register, watch, name }: Props) => {
       <div className="flex items-center gap-10">
         <label
           htmlFor={inputId}
-          className="text-body3 cursor-pointer text-black"
+          className="text-body3 cursor-pointer text-nowrap text-black"
         >
           기타
         </label>
         <input
           type="text"
           placeholder="(직접입력)"
-          className={`text-body3 text-black ${isEtcSelected ? '' : 'bg-transparent'}`}
+          className={`text-body3 w-full min-w-0 text-black ${isEtcSelected ? '' : 'bg-transparent'}`}
           {...register(`${name}_etc`, {
             required: isEtcSelected ? '기타를 입력해야 합니다.' : false,
           })}
