@@ -1,7 +1,7 @@
 import { useGetApplicationForm } from '@/shared/queries/useGetApplicationForm';
 import { useGetSurveyForm } from '@/shared/queries/useGetSurveyForm';
 
-export const useGetForm = (
+export const useGetEditForm = (
   id: string,
   userType: 'STANDARD' | 'TRAINEE',
   formType: 'application' | 'survey',
