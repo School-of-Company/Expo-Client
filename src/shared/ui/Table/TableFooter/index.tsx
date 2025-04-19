@@ -56,7 +56,7 @@ const TableFooter = ({
 
   return (
     <div className={tableFooterStyles({ type })}>
-      <div className="flex gap-20">
+      <div className="flex gap-20 mobile:gap-12">
         <p className="text-body2r text-gray-500">{text}</p>
         <p className="text-body2r text-main-600">{num}</p>
       </div>
@@ -75,7 +75,7 @@ const TableFooter = ({
         <div className="flex items-center gap-20">
           <p className="text-body1r text-gray-400">출력</p>
           <SmallButton
-            text="명찰로 출력하기"
+            text="QR출력"
             onClick={() => handleActionClick('PrintBadge')}
           />
         </div>
@@ -113,9 +113,8 @@ const TableFooter = ({
       )}
       {type === 'route' && (
         <div className="flex items-center gap-20">
-          <p className="text-body1r text-gray-400">페이지 이동</p>
           <SmallButton
-            text="이동하기"
+            text="이동"
             onClick={() => handleActionClick('RouteActions')}
           />
         </div>

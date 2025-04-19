@@ -43,20 +43,27 @@ const ExpoInput = ({
       {fields.length > 0 && (
         <div className="flex flex-col gap-12">
           {fields.map((field, index) => (
-            <div key={field.id} className="flex items-center justify-between">
-              <div className="flex flex-grow items-center gap-6">
-                <p className="text-body4 text-gray-500">{index + 1}</p>
-                <input
-                  {...register(`${fieldName}.${index}.title`, {
-                    required: '연수를 입력해주세요',
-                  })}
-                  placeholder="연수를 입력해주세요"
-                  className="text-body4 w-full overflow-hidden overflow-ellipsis whitespace-nowrap bg-transparent text-gray-500"
-                  value={items[index]?.title || ''}
-                  onChange={(e) =>
-                    setValue(`${fieldName}.${index}.title`, e.target.value)
-                  }
-                />
+            <div
+              key={field.id}
+              className="flex items-center justify-between gap-8"
+            >
+              <div className="flex min-w-0 flex-1 items-center gap-6">
+                <p className="text-body4 flex-shrink-0 text-gray-500">
+                  {index + 1}
+                </p>
+                <div className="min-w-0 flex-1">
+                  <input
+                    {...register(`${fieldName}.${index}.title`, {
+                      required: '연수를 입력해주세요',
+                    })}
+                    placeholder="연수를 입력해주세요"
+                    className="text-body4 w-full overflow-hidden overflow-ellipsis whitespace-nowrap bg-transparent text-gray-500"
+                    value={items[index]?.title || ''}
+                    onChange={(e) =>
+                      setValue(`${fieldName}.${index}.title`, e.target.value)
+                    }
+                  />
+                </div>
                 <input
                   type="hidden"
                   {...register(`${fieldName}.${index}.startedAt`, {
@@ -80,13 +87,13 @@ const ExpoInput = ({
                   })}
                 />
               </div>
-              <div className="flex gap-7 mobile:gap-3">
+              <div className="flex flex-shrink-0 gap-7 mobile:gap-3">
                 <button
                   onClick={() => handleTrainingModal(index)}
                   type="button"
-                  className="text-body5 rounded-sm border-1 border-solid border-gray-200 px-3 py-1 text-gray-300"
+                  className="rounded-sm border-1 border-solid border-gray-200 px-3 py-1 text-body2r text-gray-300"
                 >
-                  수정 하기
+                  수정
                 </button>
                 <button
                   type="button"

@@ -100,7 +100,7 @@ const FormContainer = ({
 
   return (
     <div className="flex w-full flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 px-32 py-18">
-      <div className="flex w-full items-center justify-between">
+      <div className="flex w-full items-center justify-between gap-16">
         <FormTitle register={register} index={index} />
         <FormTypeSelect
           options={options}

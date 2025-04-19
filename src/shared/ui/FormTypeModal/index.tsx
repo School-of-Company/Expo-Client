@@ -133,7 +133,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
     <div className="w-[656px] rounded-sm bg-white p-28">
       <div className="flex flex-col gap-[90px]">
         <div className="flex w-full justify-between">
-          <p className="text-h2b">{text}</p>
+          <p className="text-h2b mobile:text-body1b">{text}</p>
           <label className="hover:cursor-pointer" onClick={onClose}>
             <XMark />
           </label>

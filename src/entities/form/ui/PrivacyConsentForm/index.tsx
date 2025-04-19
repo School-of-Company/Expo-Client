@@ -31,7 +31,7 @@ const PrivacyConsentForm = ({
   };
   return (
     <div className="space-y-20 rounded-sm border-1 border-solid border-gray-200 px-32 py-18">
-      <p className="border-b-1 border-solid border-gray-100 py-14 text-h3b text-black">
+      <p className="border-b-1 border-solid border-gray-100 py-14 text-h3b text-black mobile:text-body2b">
         개인정보 동의 안내 문장을 입력하세요
       </p>
       <textarea
