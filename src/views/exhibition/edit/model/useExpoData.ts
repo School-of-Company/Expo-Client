@@ -1,23 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { getExpoDetail, getExpoStandard, getExpoTraining } from '@/shared/api';
+import { useExpoDetail } from '@/shared/queries/useExpoDetail';
+import { useStandardProgram } from '@/shared/queries/useStandardProgram';
+import { useTrainingProgram } from '@/shared/queries/useTrainingProgramQuery';
 import { AddressResponse } from '@/shared/types/exhibition/edit/type';
-import {
-  ExpoDetail,
-  ExpoStandard,
-  ExpoTrainingDetail,
-} from '@/shared/types/expo-detail/type';
+import { ExpoTrainingDetail } from '@/shared/types/expo-detail/type';
 import { getAddress } from '../api/getAddress';
 
-interface ExpoTraining {
-  essential: ExpoTrainingDetail[];
-  choice: ExpoTrainingDetail[];
-}
-
 export const useExpoData = (id: string) => {
-  const expoDetailQuery = useQuery<ExpoDetail, Error>({
-    queryKey: ['expoDetail', id],
-    queryFn: () => getExpoDetail(id),
-  });
+  const expoDetailQuery = useExpoDetail(id);
 
   const geoQuery = useQuery<AddressResponse, Error>({
     queryKey: [
@@ -34,21 +24,15 @@ export const useExpoData = (id: string) => {
     enabled: !!expoDetailQuery.data,
   });
 
-  const expoStandardQuery = useQuery<ExpoStandard[], Error>({
-    queryKey: ['expoStandard', id],
-    queryFn: () => getExpoStandard(id),
-  });
-
-  const expoTrainingQuery = useQuery<ExpoTrainingDetail[], Error, ExpoTraining>(
-    {
-      queryKey: ['expoTraining', id],
-      queryFn: () => getExpoTraining(id),
-      select: (data) => ({
-        essential: data.filter((item) => item.category === 'ESSENTIAL'),
-        choice: data.filter((item) => item.category === 'CHOICE'),
-      }),
-    },
-  );
+  const expoStandardQuery = useStandardProgram(id);
+  const expoTrainingQuery = useTrainingProgram(id, {
+    selectEssentialChoice: true,
+  }) as ReturnType<typeof useTrainingProgram> & {
+    data: {
+      essential: ExpoTrainingDetail[];
+      choice: ExpoTrainingDetail[];
+    };
+  };
 
   const isLoading =
     expoDetailQuery.isLoading ||

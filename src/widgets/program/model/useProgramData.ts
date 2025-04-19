@@ -1,18 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
-import { Program } from '@/shared/types/program/type';
-import { getStandardProgram, getTrainingProgram } from '../api/getProgramData';
+import { useStandardProgram } from '@/shared/queries/useStandardProgram';
+import { useTrainingProgram } from '@/shared/queries/useTrainingProgramQuery';
 
 export const useProgramQueries = (id: string, navigation: string) => {
-  const trainingProgramQueries = useQuery<Program[], Error>({
-    queryKey: ['trainingProgram', id],
-    queryFn: () => getTrainingProgram(id),
+  const trainingProgramQueries = useTrainingProgram(id, {
     enabled: navigation === 'training',
   });
-  const standardProgramQueries = useQuery<Program[], Error>({
-    queryKey: ['standardProgram', id],
-    queryFn: () => getStandardProgram(id),
-    enabled: navigation === 'standard',
-  });
+
+  const standardProgramQueries = useStandardProgram(
+    id,
+    navigation === 'standard',
+  );
 
   const programQueries =
     navigation === 'training' ? trainingProgramQueries : standardProgramQueries;

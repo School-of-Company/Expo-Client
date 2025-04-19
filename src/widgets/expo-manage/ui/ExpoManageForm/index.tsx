@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useMemo, useEffect, useState } from 'react';
 import withLoading from '@/shared/hocs/withLoading';
 import { fileActions } from '@/shared/model/footerActions';
+import { useExpoDetail } from '@/shared/queries/useExpoDetail';
 import {
   participants,
   ParticipantResponse,
@@ -14,7 +15,6 @@ import SelectUserType from '@/shared/ui/SelectUserType';
 import { TableForm } from '@/shared/ui/Table';
 import { category, selectOptionCategories } from '../../model/category';
 import { useExpoManageQueries } from '../../model/useExpoData';
-import { useGetExpoDetailQuery } from '../../model/useExpoDetailQuery';
 import DateContainer from '../DateContainer';
 
 const ExpoManageForm = ({ id }: { id: string }) => {
@@ -26,7 +26,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
   const isTrainee = userType === 'TRAINEE';
 
   const { data: expoDetailQuery, isLoading: expoDetailLoading } =
-    useGetExpoDetailQuery(id);
+    useExpoDetail(id);
 
   const [selectedDate, setSelectedDate] = useState<string | undefined>(
     undefined,

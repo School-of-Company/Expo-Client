@@ -19,10 +19,10 @@ export const useEditExhibitionMutation = (id: string) => {
         queryKey: ['expoDetail', id],
       });
       queryClient.invalidateQueries({
-        queryKey: ['expoStandard', id],
+        queryKey: ['standardProgram', id],
       });
       queryClient.invalidateQueries({
-        queryKey: ['expoTraining', id],
+        queryKey: ['trainingProgram', id],
       });
 
       router.push(`/expo-detail/${id}`);
