@@ -7,13 +7,13 @@ import FormEditor from '@/views/form/ui/FormEditor';
 import { Header } from '@/widgets/layout';
 import { transformServerData } from '../../model/transformServerData';
 import { useEditFormMutation } from '../../model/useEditFormMutation';
-import { useGetFormData } from '../../model/useGetFormData';
+import { useGetEditForm } from '../../model/useGetEditForm';
 
 const EditForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const type = searchParams.get('type') as 'STANDARD' | 'TRAINEE';
   const mode = searchParams.get('mode') as 'application' | 'survey';
-  const { formData, isLoading } = useGetFormData(id, type, mode);
+  const { data, isLoading } = useGetEditForm(id, type, mode);
   const {
     handleSubmitForm,
     isApplicationPending,
@@ -22,9 +22,7 @@ const EditForm = ({ id }: { id: string }) => {
     isSurveySuccess,
   } = useEditFormMutation(id, type, mode);
 
-  const defaultValues = formData
-    ? transformServerData(formData, mode)
-    : undefined;
+  const defaultValues = data ? transformServerData(data, mode) : undefined;
 
   return (
     <div className="flex min-h-screen flex-col gap-[30px]">

@@ -22,8 +22,8 @@ export const useCreateApplicationForm = (
         queryKey: ['createApplicationForm', id, type],
       });
     },
-    onError: () => {
-      toast.error('신청 폼 생성에 실패했습니다.');
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };

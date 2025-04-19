@@ -11,8 +11,8 @@ export const useDeleteActions = () => {
       queryClient.invalidateQueries({ queryKey: ['expoList'] });
       toast.success('박람회 삭제 성공');
     },
-    onError: () => {
-      toast.error('박람회 삭제 실패');
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 

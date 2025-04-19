@@ -26,8 +26,8 @@ export const useEditApplicationForm = (
       });
       router.push(`/expo-detail/${id}`);
     },
-    onError: () => {
-      toast.error('신청 폼 수정에 실패했습니다.');
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };
@@ -52,8 +52,8 @@ export const useEditSurveyForm = (
       });
       router.push(`/expo-detail/${id}`);
     },
-    onError: () => {
-      toast.error('만족도 조사 폼 수정에 실패했습니다.');
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };

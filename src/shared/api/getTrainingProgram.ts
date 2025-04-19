@@ -1,17 +1,15 @@
 import axios from 'axios';
 import clientTokenInstance from '../libs/http/clientTokenInstance';
-import { ExpoTrainingDetail } from '../types/expo-detail/type';
+import { Program } from '../types/program/type';
 
-export const getExpoTraining = async (
-  id: string,
-): Promise<ExpoTrainingDetail[]> => {
+export const getTrainingProgram = async (id: string): Promise<Program[]> => {
   try {
     const response = await clientTokenInstance.get(`/training/program/${id}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(
-        error.response.data.error || '연수자 프로그램 불러오기 실패',
+        error.response.data.error || '연수 프로그램 불러오기 실패',
       );
     }
     throw error;

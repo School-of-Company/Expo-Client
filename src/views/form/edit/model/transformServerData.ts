@@ -1,40 +1,14 @@
+import { ApplicationForm } from '@/shared/types/application/type';
 import { FormValues, Option } from '@/shared/types/form/create/type';
 
-interface ApplicationFormData {
-  informationText: string;
-  participantType: 'STANDARD' | 'TRAINEE';
-  dynamicForm: ServerFormItem[];
-}
-
-interface SurveyFormData {
-  informationText: string;
-  participationType: 'STANDARD' | 'TRAINEE';
-  dynamicSurveyResponseDto: ServerFormItem[];
-}
-
-interface ServerFormItem {
-  title: string;
-  formType: string;
-  jsonData: string;
-  requiredStatus: boolean;
-  otherJson: string | null;
-}
-
-type ServerFormData = ApplicationFormData | SurveyFormData;
-
 export const transformServerData = (
-  data: ServerFormData,
+  data: ApplicationForm,
   mode: 'application' | 'survey',
 ): FormValues => {
   const formItems =
-    mode === 'application'
-      ? (data as ApplicationFormData).dynamicForm
-      : (data as SurveyFormData).dynamicSurveyResponseDto;
+    mode === 'application' ? data.dynamicForm : data.dynamicSurveyResponseDto;
 
-  const informationText =
-    mode === 'application'
-      ? (data as ApplicationFormData).informationText
-      : (data as SurveyFormData).informationText;
+  const informationText = data.informationText;
 
   if (!formItems) {
     return { informationText, questions: [] };
@@ -42,17 +16,30 @@ export const transformServerData = (
 
   return {
     informationText,
-    questions: formItems.map((item) => ({
-      title: item.title,
-      formType: item.formType,
-      options: Object.entries(JSON.parse(item.jsonData || '{}')).map(
-        ([_key, value]): Option => ({
-          value: value as string,
-          label: value as string,
-        }),
-      ),
-      requiredStatus: item.requiredStatus,
-      otherJson: item.otherJson,
-    })),
+    questions: formItems.map((item) => {
+      let parsedJsonData: Record<string, string> = {};
+      try {
+        if (typeof item.jsonData === 'string') {
+          parsedJsonData = JSON.parse(item.jsonData);
+        } else if (item.jsonData) {
+          parsedJsonData = item.jsonData;
+        }
+      } catch (error) {
+        console.error('Error parsing jsonData:', error);
+      }
+
+      return {
+        title: item.title,
+        formType: item.formType,
+        options: Object.entries(parsedJsonData).map(
+          ([_key, value]): Option => ({
+            value: value,
+            label: value,
+          }),
+        ),
+        requiredStatus: item.requiredStatus,
+        otherJson: item.otherJson,
+      };
+    }),
   };
 };

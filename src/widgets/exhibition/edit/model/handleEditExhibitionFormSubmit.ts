@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { generateUniqueId } from '@/entities/exhibition/model/generateUniqueId';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 import { convertAddressToCoordinates } from '../../api/convertAddressToCoordinates';
@@ -48,7 +49,9 @@ export const handleEditExhibitionFormSubmit = async (
 
     return id;
   } catch (error) {
-    console.error(error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '박람회 수정 실패');
+    }
     throw error;
   }
 };
