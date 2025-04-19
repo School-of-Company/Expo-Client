@@ -28,12 +28,8 @@ export const useEditExhibitionMutation = (id: string) => {
       router.push(`/expo-detail/${id}`);
       toast.success('박람회가 수정되었습니다.');
     },
-    onError: (error) => {
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error('알 수 없는 오류가 발생했습니다.');
-      }
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };

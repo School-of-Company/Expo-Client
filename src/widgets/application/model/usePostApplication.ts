@@ -19,16 +19,14 @@ export const usePostApplication = (
     if (formType === 'survey') {
       return {
         success: '만족도 조사 제출이 완료되었습니다.',
-        error: '만족도 조사 제출에 실패했습니다.',
       };
     }
     return {
       success: '박람회 신청이 완료되었습니다.',
-      error: '박람회 신청에 실패했습니다.',
     };
   };
 
-  const { success, error } = getMessages();
+  const { success } = getMessages();
 
   return useMutation({
     mutationFn: (data: FormattedApplicationData | FormattedSurveyData) =>
@@ -63,8 +61,8 @@ export const usePostApplication = (
         `/application-success/${params}?userType=${userType}?formType=${formType}`,
       );
     },
-    onError: () => {
-      toast.error(error);
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };
