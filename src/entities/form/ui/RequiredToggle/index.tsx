@@ -16,8 +16,8 @@ const RequiredToggle = ({ control, index }: Props) => {
   });
 
   return (
-    <label className="flex items-center gap-20">
-      <p className="text-caption2 text-black">필수</p>
+    <label className="flex items-center gap-8">
+      <p className="text-caption1r text-black mobile:text-caption2r">필수</p>
       <ToggleButton value={field.value ?? false} onChange={field.onChange} />
     </label>
   );

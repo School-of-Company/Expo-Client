@@ -28,7 +28,7 @@ const CheckBox = ({ control, index, text }: Props) => {
     >
       {field.value ? <CheckedBoxIcon /> : <CheckBoxIcon />}
       <p
-        className={`text-caption2 ${field.value ? 'text-main-600' : 'text-gray-500'}`}
+        className={`text-caption1r mobile:text-caption2r ${field.value ? 'text-main-600' : 'text-gray-500'}`}
       >
         {text}
       </p>
