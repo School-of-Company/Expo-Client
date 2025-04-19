@@ -4,10 +4,10 @@ import { useMemo, useState } from 'react';
 import { ExpoListItem } from '@/entities/main';
 import withLoading from '@/shared/hocs/withLoading';
 import { sortedData } from '@/shared/model/sortedData';
+import { useExpoList } from '@/shared/queries/useExpoList';
 import { ExpoItem } from '@/shared/types/main/type';
 import SortFilter from '@/shared/ui/SortFilter';
 import { filterOptions } from '../../constant/filterOptions';
-import { useExpoList } from '../../model/useExpoList';
 import EmptyExpoList from '../EmptyExpoList';
 
 const ExpoListContainer = () => {

@@ -1,5 +1,4 @@
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
 import clientTokenInstance from '../libs/http/clientTokenInstance';
 import { AttendUserResponse } from '../types/name-tag/type';
 import { printBadge } from './printUtils';
@@ -51,39 +50,6 @@ export const printActions = (data: AttendUserResponse[]) => ({
       };
 
       printBadge(badgeData);
-    }
-  },
-});
-
-export const checkActions = (fetchSignupList: () => Promise<void>) => ({
-  CheckBadge: async (selectItem: number) => {
-    try {
-      await clientTokenInstance.patch(`/admin/${selectItem}`);
-      await fetchSignupList();
-      toast.success('회원가입 승인 성공');
-    } catch (error) {
-      console.error('Failed to check signup:', error);
-    }
-  },
-  DeleteBadge: async (selectItem: number) => {
-    try {
-      await clientTokenInstance.delete(`/admin/${selectItem}`);
-      await fetchSignupList();
-      toast.success('회원가입 거절 성공');
-    } catch (error) {
-      console.error('Failed to check signup:', error);
-    }
-  },
-});
-
-export const deleteActions = (fetchExpoList: () => Promise<void>) => ({
-  DeleteBadge: async (selectItem: number) => {
-    try {
-      await clientTokenInstance.delete(`/expo/${selectItem}`);
-      await fetchExpoList();
-      toast.success('박람회 삭제 성공');
-    } catch (error) {
-      toast.error('박람회 삭제 실패');
     }
   },
 });
