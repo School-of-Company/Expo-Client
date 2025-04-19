@@ -36,7 +36,7 @@ const EtcOption = ({ type, register, watch, name }: Props) => {
         <input
           type="text"
           placeholder="(직접입력)"
-          className={`text-body3 w-full min-w-10 text-black ${isEtcSelected ? '' : 'bg-transparent'}`}
+          className={`text-body3 w-full min-w-0 text-black ${isEtcSelected ? '' : 'bg-transparent'}`}
           {...register(`${name}_etc`, {
             required: isEtcSelected ? '기타를 입력해야 합니다.' : false,
           })}
