@@ -57,12 +57,14 @@ const TableFooter = ({
   return (
     <div className={tableFooterStyles({ type })}>
       <div className="flex gap-20 mobile:gap-12">
-        <p className="text-body2r text-gray-500">{text}</p>
-        <p className="text-body2r text-main-600">{num}</p>
+        <p className="text-body2r text-gray-500 mobile:text-caption1r">
+          {text}
+        </p>
+        <p className="text-body2r text-main-600 mobile:text-caption1r">{num}</p>
       </div>
 
       {type === 'file' && (
-        <div className="flex items-center gap-20">
+        <div className="flex items-center gap-20 mobile:gap-16">
           <p className="text-body1r text-gray-400">출력</p>
           <SmallButton
             text="Excel"
@@ -72,8 +74,10 @@ const TableFooter = ({
       )}
 
       {type === 'print' && (
-        <div className="flex items-center gap-20">
-          <p className="text-body1r text-gray-400">출력</p>
+        <div className="flex items-center gap-20 mobile:gap-16">
+          <p className="text-body2r text-gray-400 mobile:text-caption1r">
+            출력
+          </p>
           <SmallButton
             text="QR출력"
             onClick={() => handleActionClick('PrintBadge')}
@@ -82,31 +86,37 @@ const TableFooter = ({
       )}
 
       {type === 'check' && (
-        <div className="mr-5 flex items-center gap-24">
+        <div className="flex items-center gap-20 mobile:gap-8">
           <button
-            className="flex gap-20"
+            className="flex items-center gap-20"
             onClick={() => handleActionClick('CheckBadge')}
           >
-            <p className="text-body1r text-gray-400">승인</p>
+            <p className="text-body1r text-gray-400 mobile:text-caption2r">
+              승인
+            </p>
             <Check />
           </button>
           <button
-            className="flex gap-20"
+            className="flex items-center gap-20 mobile:gap-8"
             onClick={() => handleActionClick('DeleteBadge')}
           >
-            <p className="text-body1r text-gray-400">삭제</p>
+            <p className="text-body1r text-gray-400 mobile:text-caption1r">
+              삭제
+            </p>
             <Trash />
           </button>
         </div>
       )}
 
       {type === 'delete' && (
-        <div className="mr-5 flex items-center gap-24">
+        <div className="flex items-center gap-20 mobile:gap-8">
           <button
-            className="flex gap-20"
+            className="flex items-center gap-20"
             onClick={() => handleActionClick('DeleteBadge')}
           >
-            <p className="text-body1r text-gray-400">삭제</p>
+            <p className="text-body1r text-gray-400 mobile:text-caption1r">
+              삭제
+            </p>
             <Trash />
           </button>
         </div>

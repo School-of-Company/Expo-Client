@@ -70,7 +70,7 @@ const AdminPageWrapper = () => {
                 data={sortedRequestSignUp}
                 maxHeight="270px"
                 footerType="check"
-                text="회원가입 요청"
+                text="요청"
                 actions={checkSignupActions}
               />
             </div>
