@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import NameTagHeader from '@/entities/name-tag/ui/NameTagHeader';
-import { printActions } from '@/shared/model/footerActions';
 import { useQRScanner } from '@/shared/model/useQRScanner';
 import { QrScanData } from '@/shared/types/common/QrScanData';
 import { AttendUserResponse } from '@/shared/types/name-tag/type';
 import { TableForm } from '@/shared/ui/Table';
 import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';
+import { userQrPrint } from '../../model/userQrPrint';
 
 const NameTagForm = ({ id }: { id: string }) => {
   const requestPrintCategories = [
@@ -54,7 +54,9 @@ const NameTagForm = ({ id }: { id: string }) => {
     }
   }, [scannedQR]);
 
-  const printNameTagActions = printActions(userData);
+  const userQrPrintActions = {
+    PrintBadge: (selectItem: number) => userQrPrint(userData, selectItem),
+  };
 
   return (
     <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-y-auto">
@@ -65,7 +67,7 @@ const NameTagForm = ({ id }: { id: string }) => {
         maxHeight="414px"
         footerType="print"
         text="QR 스캔"
-        actions={printNameTagActions}
+        actions={userQrPrintActions}
       />
     </div>
   );

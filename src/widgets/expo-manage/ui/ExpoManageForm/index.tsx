@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useMemo, useEffect, useState } from 'react';
 import withLoading from '@/shared/hocs/withLoading';
-import { fileActions } from '@/shared/model/footerActions';
 import { useExpoDetail } from '@/shared/queries/useExpoDetail';
 import {
   participants,
@@ -13,6 +12,8 @@ import {
 } from '@/shared/types/expo-manage/type';
 import SelectUserType from '@/shared/ui/SelectUserType';
 import { TableForm } from '@/shared/ui/Table';
+import { getStandardExcelFile } from '../../api/getStandardExcelFile';
+import { getTraineeExcelFile } from '../../api/getTraineeExcelFile';
 import { category, selectOptionCategories } from '../../model/category';
 import { useExpoManageQueries } from '../../model/useExpoData';
 import DateContainer from '../DateContainer';
@@ -61,6 +62,13 @@ const ExpoManageForm = ({ id }: { id: string }) => {
     router.push(`?${params.toString()}`);
   };
 
+  const traineeExcelFile = {
+    exportExcel: () => getTraineeExcelFile(id),
+  };
+  const standardExcelFile = {
+    exportExcel: () => getStandardExcelFile(id),
+  };
+
   return withLoading({
     isLoading: expoManageLoading || !selectedDate || expoDetailLoading,
     children: (
@@ -85,7 +93,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
             maxHeight="414px"
             footerType="file"
             text="참가자 전체 인원"
-            actions={fileActions(id, '/excel')}
+            actions={traineeExcelFile}
             totalPage={totalPage}
             id={id}
             selectItemBoolean={false}
@@ -97,7 +105,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
             maxHeight="414px"
             footerType="file"
             text="참가자 전체 인원"
-            actions={fileActions(id, '/excel/standard')}
+            actions={standardExcelFile}
             totalPage={totalPage}
             id={id}
             selectItemBoolean={false}

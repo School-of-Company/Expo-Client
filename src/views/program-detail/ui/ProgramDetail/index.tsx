@@ -2,7 +2,7 @@ import React from 'react';
 import { Header } from '@/widgets/layout';
 import { ProgramDetailForm } from '@/widgets/program-detail';
 
-const ProgramDetail = ({ id }: { id: number }) => {
+const ProgramDetail = ({ id }: { id: string }) => {
   return (
     <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
