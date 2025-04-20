@@ -1,4 +1,13 @@
 export const filterOptions = [
-  { value: '최신순', label: '최신순' },
-  { value: '오래된순', label: '오래된순' },
+  //   { value: '연수자 폼 (O)', label: '연수자 폼 (O)' },
+  //   { value: '연수자 폼 (X)', label: '연수자 폼 (X)' },
+  //   { value: '참가자 폼 (O)', label: '참가자 폼 (O)' },
+  //   { value: '참가자 폼 (X)', label: '참가자 폼 (X)' },
+  { value: 'standardFormCreatedStatus', label: 'standardFormCreatedStatus' },
+  {
+    value: 'standardSurveyCreatedStatus',
+    label: 'standardSurveyCreatedStatus',
+  },
+  { value: 'traineeFormCreatedStatus', label: 'traineeFormCreatedStatus' },
+  { value: 'traineeSurveyCreatedStatus', label: 'traineeSurveyCreatedStatus' },
 ];

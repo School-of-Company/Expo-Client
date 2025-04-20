@@ -18,7 +18,8 @@ const SortFilter = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const handleOptionClick = (option: OptionType) => {
-    setSelectedOption(option);
+    const isSameOption = option.value === selectedOption?.value;
+    setSelectedOption(isSameOption ? { value: '필터', label: '필터' } : option);
     setIsOpen(false);
   };
 
@@ -29,21 +30,27 @@ const SortFilter = ({
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-[24px] text-caption1r text-white">
-          {selectedOption.label}
+          {selectedOption.label || '필터'}
           {isOpen ? <ArrowUp fill="#fff" /> : <ArrowDown fill="#fff" />}
         </div>
       </button>
       {isOpen && (
-        <div className="top-45 absolute left-1/2 z-30 w-[100px] -translate-x-1/2 transform rounded-lg border-2 border-solid border-gray-200 bg-white px-8 py-3 text-body2b">
-          {options.map((option) => (
-            <div
-              key={option.value}
-              className="flex h-40 w-full cursor-pointer items-center justify-center rounded-sm py-8 text-body2b text-gray-500 hover:bg-main-500 hover:text-white"
-              onClick={() => handleOptionClick(option)}
-            >
-              {option.label}
+        <div className="top-45 absolute right-0 z-30 mt-[1rem] w-[300px] rounded-lg border-2 border-solid border-gray-200 bg-white p-7">
+          <h1 className="mb-[1.5rem] text-h3b">필터</h1>
+          <div>
+            <p className="mb-[1rem] text-body1r">폼생성</p>
+            <div className="flex flex-wrap justify-between gap-y-[1rem]">
+              {options.map((option) => (
+                <div
+                  key={option.value}
+                  className={`flex h-[2.875rem] w-[7rem] cursor-pointer items-center justify-center rounded-sm border-1 border-solid border-gray-200 py-8 text-body2r text-gray-500 hover:bg-main-500 hover:text-white ${option.label === selectedOption.label ? 'bg-[#3B82F6] text-white' : ''} `}
+                  onClick={() => handleOptionClick(option)}
+                >
+                  {option.label}
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       )}
     </div>
