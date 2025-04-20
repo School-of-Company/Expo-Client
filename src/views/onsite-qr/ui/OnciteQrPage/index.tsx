@@ -15,7 +15,7 @@ const OnsiteQrPage = ({ id }: { id: string }) => {
 
   return (
     <div className="flex min-h-screen flex-col items-center px-16">
-      <div className="mt-30 flex w-full max-w-[816px] flex-1 flex-col overflow-auto">
+      <div className="mt-30 flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto">
         <DetailHeader
           headerTitle={getHeaderTitleByUserType(userType)}
           textCenter={true}

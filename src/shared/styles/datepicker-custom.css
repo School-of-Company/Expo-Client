@@ -160,3 +160,48 @@
     line-height: 1.4rem;
   }
 }
+
+@media (max-width: 400px) {
+  .react-datepicker {
+    font-size: 0.5rem;
+    max-width: 170px;
+  }
+
+  .react-datepicker__day,
+  .react-datepicker__day-name {
+    font-size: 0.5rem;
+    width: 1.2rem;
+    line-height: 1.2rem;
+    margin: 0.05rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .react-datepicker {
+    font-size: 0.45rem;
+    max-width: 150px;
+  }
+
+  .react-datepicker__day,
+  .react-datepicker__day-name {
+    font-size: 0.45rem;
+    width: 1.05rem;
+    line-height: 1.05rem;
+    margin: 0.04rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .react-datepicker {
+    font-size: 0.4rem;
+    max-width: 140px;
+  }
+
+  .react-datepicker__day,
+  .react-datepicker__day-name {
+    font-size: 0.4rem;
+    width: 0.95rem;
+    line-height: 0.95rem;
+    margin: 0.03rem;
+  }
+}

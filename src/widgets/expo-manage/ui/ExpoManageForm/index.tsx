@@ -64,7 +64,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
   return withLoading({
     isLoading: expoManageLoading || !selectedDate || expoDetailLoading,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-auto">
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-y-auto">
         <SelectUserType
           options={selectOptionCategories}
           value={userType}
@@ -84,7 +84,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
             data={(expoData as TraineeResponse)?.participants ?? []}
             maxHeight="414px"
             footerType="file"
-            text="참가자 전체 인원"
+            text="전체 인원"
             actions={fileActions(id, '/excel')}
             totalPage={totalPage}
             id={id}
@@ -96,7 +96,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
             data={(expoData as ParticipantResponse)?.participants ?? []}
             maxHeight="414px"
             footerType="file"
-            text="참가자 전체 인원"
+            text="전체 인원"
             actions={fileActions(id, '/excel/standard')}
             totalPage={totalPage}
             id={id}
