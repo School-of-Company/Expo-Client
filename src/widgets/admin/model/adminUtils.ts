@@ -1,4 +1,4 @@
-import { sortedData } from '@/shared/model/sortedData';
+import { sortedData } from './sortedData';
 import { ExpoItem, SignUpItem } from '@/shared/types/admin/type';
 
 export const getFilteredExpoList = (
