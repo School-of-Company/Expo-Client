@@ -38,7 +38,7 @@ export async function performTokenRefresh(
     if (result) {
       globalForRefresh.cachedTokens = {
         ...result,
-        expiresAt: Date.now() + 1000,
+        expiresAt: Date.now() + 10000,
       };
       await processWaitingRequests(result.accessToken);
     }
