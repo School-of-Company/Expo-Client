@@ -1,36 +1,47 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ExpoListItem } from '@/entities/main';
 import withLoading from '@/shared/hocs/withLoading';
-import SortFilter from '@/shared/ui/SortFilter';
 import { filterOptions } from '../../constant/filterOptions';
 import { useExpoList } from '../../model/useExpoList';
 import EmptyExpoList from '../EmptyExpoList';
-import { sortedData } from '@/shared/model/sortedData';
+import FormFilter from '../FormFilter';
 import { ExpoItem } from '@/shared/types/main/type';
+import { FormStatusData } from '@/widgets/main/model/FormStatusData';
 
 const ExpoListContainer = () => {
   const { data: expoList, isLoading } = useExpoList();
   const [selectedFilter, setSelectedFilter] = useState({
     value: '필터',
     label: '필터',
+    status: true,
   });
-  // const sortedExpoList = expoList ?? [];
-  const sortedExpoList = useMemo<ExpoItem[]>(
-    () => sortedData(expoList ?? [], selectedFilter.value),
-    [expoList, selectedFilter.value],
-  );
+  const [sortedExpoList, setSortedExpoList] = useState<ExpoItem[]>([]);
+
+  useEffect(() => {
+    const fetchSortedExpoList = async () => {
+      if (expoList) {
+        const sortedList = await FormStatusData(
+          expoList || [],
+          selectedFilter.value,
+          selectedFilter.status,
+        );
+        setSortedExpoList(sortedList);
+      }
+    };
+    fetchSortedExpoList();
+  }, [expoList, selectedFilter]);
 
   return withLoading({
     isLoading,
     children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col overflow-auto">
-        {sortedExpoList.length > 0 ? (
+        {sortedExpoList.length > 0 || expoList ? (
           <>
             <div className="mb-[30px] flex justify-between">
               <p className="text-h1m text-black">박람회 신청</p>
-              <SortFilter
+              <FormFilter
                 options={filterOptions}
                 selectedOption={selectedFilter}
                 setSelectedOption={setSelectedFilter}

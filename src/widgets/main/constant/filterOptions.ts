@@ -1,13 +1,52 @@
 export const filterOptions = [
-  //   { value: '연수자 폼 (O)', label: '연수자 폼 (O)' },
-  //   { value: '연수자 폼 (X)', label: '연수자 폼 (X)' },
-  //   { value: '참가자 폼 (O)', label: '참가자 폼 (O)' },
-  //   { value: '참가자 폼 (X)', label: '참가자 폼 (X)' },
-  { value: 'standardFormCreatedStatus', label: 'standardFormCreatedStatus' },
   {
-    value: 'standardSurveyCreatedStatus',
-    label: 'standardSurveyCreatedStatus',
+    name: '참가자',
+    options: [
+      {
+        value: 'standardFormCreatedStatus',
+        label: '참가자 폼 (O)',
+        status: true,
+      },
+      {
+        value: 'standardFormCreatedStatus',
+        label: '참가자 폼 (X)',
+        status: false,
+      },
+      {
+        value: 'standardSurveyCreatedStatus',
+        label: '참가자 만족도 폼 (O)',
+        status: true,
+      },
+      {
+        value: 'standardSurveyCreatedStatus',
+        label: '참가자 만족도 폼 (X)',
+        status: false,
+      },
+    ],
   },
-  { value: 'traineeFormCreatedStatus', label: 'traineeFormCreatedStatus' },
-  { value: 'traineeSurveyCreatedStatus', label: 'traineeSurveyCreatedStatus' },
+  {
+    name: '연수자',
+    options: [
+      {
+        value: 'traineeFormCreatedStatus',
+        label: '연수자 폼 (O)',
+        status: true,
+      },
+      {
+        value: 'traineeFormCreatedStatus',
+        label: '연수자 폼 (X)',
+        status: false,
+      },
+      {
+        value: 'traineeSurveyCreatedStatus',
+        label: '연수자 만족도 폼 (O)',
+        status: true,
+      },
+      {
+        value: 'traineeSurveyCreatedStatus',
+        label: '연수자 만족도 폼 (X)',
+        status: false,
+      },
+    ],
+  },
 ];
