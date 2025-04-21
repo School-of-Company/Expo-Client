@@ -3,5 +3,5 @@ export interface Program {
   title: string;
   startedAt: string;
   endedAt: string;
-  category: string;
+  category: 'ESSENTIAL' | 'CHOICE';
 }

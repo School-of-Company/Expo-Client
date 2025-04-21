@@ -15,8 +15,8 @@ export const useStandardAttendance = () => {
         queryKey: ['standardProgramDetail', variables.id],
       });
     },
-    onError: () => {
-      toast.error('프로그램 스캔 실패했습니다.');
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };

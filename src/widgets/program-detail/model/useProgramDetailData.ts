@@ -8,7 +8,7 @@ import {
   getTrainingProgramDetail,
 } from '../api/getProgramDetailData';
 
-export const useProgramDetailQueries = (id: number, navigation: string) => {
+export const useProgramDetailQueries = (id: string, navigation: string) => {
   const trainingProgramDetailQueries = useQuery<TrainingProgram[], Error>({
     queryKey: ['trainingProgramDetail', id],
     queryFn: () => getTrainingProgramDetail(id),

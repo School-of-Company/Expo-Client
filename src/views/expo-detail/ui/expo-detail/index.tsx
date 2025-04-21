@@ -14,7 +14,12 @@ const ExpoDetail = ({ params }: { params: string }) => {
     useExpoQueries(params);
   const expoDetail = expoDetailQuery.data!;
   const expoStandard = expoStandardQuery.data!;
-  const expoTraining = expoTrainingQuery.data!;
+
+  const expoTrainingData = expoTrainingQuery.data || [];
+  const expoTraining = {
+    essential: expoTrainingData.filter((item) => item.category === 'ESSENTIAL'),
+    choice: expoTrainingData.filter((item) => item.category === 'CHOICE'),
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState('');
