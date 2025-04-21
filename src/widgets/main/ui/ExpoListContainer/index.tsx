@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react';
 import { ExpoListItem } from '@/entities/main';
 import withLoading from '@/shared/hocs/withLoading';
-import { ExpoItem } from '@/shared/types/main/type';
-import { FormStatusData } from '@/widgets/main/model/FormStatusData';
 import { filterOptions } from '../../constant/filterOptions';
-import { useExpoList } from '../../model/useExpoList';
 import EmptyExpoList from '../EmptyExpoList';
 import FormFilter from '../FormFilter';
+import { useExpoList } from '@/shared/queries/useExpoList';
+import { ExpoItem } from '@/shared/types/main/type';
+import { FormStatusData } from '@/widgets/main/model/FormStatusData';
 
 const ExpoListContainer = () => {
   const { data: expoList, isLoading } = useExpoList();
