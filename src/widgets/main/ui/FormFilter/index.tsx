@@ -28,7 +28,7 @@ const FormFilter = ({
   };
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block text-right">
       <button
         className="whitespace-nowrap rounded-[10px] bg-main-600 px-[14px] py-3"
         onClick={() => setIsOpen(!isOpen)}
@@ -39,7 +39,7 @@ const FormFilter = ({
         </div>
       </button>
       {isOpen && (
-        <div className="top-45 absolute right-0 z-30 mt-[1rem] w-[23.375rem] rounded-lg border-2 border-solid border-gray-200 bg-white p-7 mobile:w-[19.5rem]">
+        <div className="top-45 absolute right-0 z-30 mt-[1rem] w-[23.375rem] rounded-lg border-2 border-solid border-gray-200 bg-white p-7 text-start mobile:w-[19.5rem]">
           <h1 className="mb-[1.5rem] text-h3b">필터</h1>
           <div className="mb-[1.5rem] h-[0.0625rem] w-full bg-gray-100" />
           <div>

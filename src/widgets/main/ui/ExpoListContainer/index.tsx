@@ -37,7 +37,7 @@ const ExpoListContainer = () => {
     isLoading,
     children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col overflow-auto">
-        {sortedExpoList.length > 0 || expoList ? (
+        {expoList ? (
           <>
             <div className="mb-[30px] flex justify-between">
               <p className="text-h1m text-black">박람회 신청</p>
@@ -63,7 +63,14 @@ const ExpoListContainer = () => {
             </div>
           </>
         ) : (
-          <EmptyExpoList />
+          <>
+            <FormFilter
+              options={filterOptions}
+              selectedOption={selectedFilter}
+              setSelectedOption={setSelectedFilter}
+            />
+            <EmptyExpoList />
+          </>
         )}
       </div>
     ),
