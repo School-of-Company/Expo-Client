@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
-import { OptionType } from '../../../entities/main/model/types';
+import { OptionType } from '@/widgets/admin/model/types';
 
 interface sortFilterProps {
   options: OptionType[];
