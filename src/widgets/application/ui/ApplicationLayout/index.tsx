@@ -26,6 +26,8 @@ const ApplicationLayout = ({ params }: { params: string }) => {
   const applicationType = searchParams.get('applicationType') as
     | 'register'
     | 'onsite';
+  const phoneNumber = searchParams.get('phoneNumber');
+
   const { register, handleSubmit, watch, setValue } =
     useForm<ApplicationFormValues>();
 
@@ -126,6 +128,8 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 register={register}
                 watch={watch}
                 setValue={setValue}
+                readOnly={formType === 'survey' && !!phoneNumber}
+                defaultValue={phoneNumber ?? ''}
               />
             )}
 
