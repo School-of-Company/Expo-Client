@@ -1,4 +1,4 @@
 export const runtime = 'nodejs';
 export default function HealthPage() {
-  return null;
+  return <p>expo-client OK</p>;
 }
