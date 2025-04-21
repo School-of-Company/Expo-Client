@@ -37,40 +37,30 @@ const ExpoListContainer = () => {
     isLoading,
     children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col overflow-auto">
-        {expoList ? (
-          <>
-            <div className="mb-[30px] flex justify-between">
-              <p className="text-h1m text-black">박람회 신청</p>
-              <FormFilter
-                options={filterOptions}
-                selectedOption={selectedFilter}
-                setSelectedOption={setSelectedFilter}
+        <div className="mb-[30px] flex justify-between">
+          <p className="text-h1m text-black">박람회 신청</p>
+          <FormFilter
+            options={filterOptions}
+            selectedOption={selectedFilter}
+            setSelectedOption={setSelectedFilter}
+          />
+        </div>
+        {sortedExpoList.length > 0 ? (
+          <div className="grid grid-cols-3 gap-x-36 gap-y-24 mobile:grid-cols-1">
+            {sortedExpoList.map((item, index) => (
+              <ExpoListItem
+                id={item.id}
+                coverImage={item.coverImage}
+                key={index}
+                title={item.title}
+                description={item.description}
+                startedDay={item.startedDay}
+                finishedDay={item.finishedDay}
               />
-            </div>
-
-            <div className="grid grid-cols-3 gap-x-36 gap-y-24 mobile:grid-cols-1">
-              {sortedExpoList.map((item, index) => (
-                <ExpoListItem
-                  id={item.id}
-                  coverImage={item.coverImage}
-                  key={index}
-                  title={item.title}
-                  description={item.description}
-                  startedDay={item.startedDay}
-                  finishedDay={item.finishedDay}
-                />
-              ))}
-            </div>
-          </>
+            ))}
+          </div>
         ) : (
-          <>
-            <FormFilter
-              options={filterOptions}
-              selectedOption={selectedFilter}
-              setSelectedOption={setSelectedFilter}
-            />
-            <EmptyExpoList />
-          </>
+          <EmptyExpoList />
         )}
       </div>
     ),
