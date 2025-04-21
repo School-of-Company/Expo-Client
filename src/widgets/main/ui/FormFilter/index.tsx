@@ -39,8 +39,9 @@ const FormFilter = ({
         </div>
       </button>
       {isOpen && (
-        <div className="top-45 absolute right-0 z-30 mt-[1rem] w-[23.375rem] rounded-lg border-2 border-solid border-gray-200 bg-white p-7">
+        <div className="top-45 absolute right-0 z-30 mt-[1rem] w-[23.375rem] rounded-lg border-2 border-solid border-gray-200 bg-white p-7 mobile:w-[19.5rem]">
           <h1 className="mb-[1.5rem] text-h3b">필터</h1>
+          <div className="mb-[1.5rem] h-[0.0625rem] w-full bg-gray-100" />
           <div>
             <div className="flex flex-wrap justify-between gap-y-[1rem]">
               {options.map((filter) => (
@@ -50,7 +51,7 @@ const FormFilter = ({
                     {filter.options.map((option) => (
                       <div
                         key={option.value}
-                        className={`flex h-[2.875rem] w-[9.375rem] cursor-pointer items-center justify-center rounded-sm border-1 border-solid border-gray-200 py-8 text-body2r text-gray-500 hover:bg-main-500 hover:text-white ${option.label === selectedOption.label && 'bg-[#3B82F6] text-white'}`}
+                        className={`flex h-[2.875rem] w-[9.375rem] cursor-pointer items-center justify-center rounded-sm border-1 border-solid border-gray-400 py-8 text-body2r text-gray-500 hover:bg-main-500 hover:text-white mobile:w-[48%] mobile:text-caption1r ${option.label === selectedOption.label && 'bg-[#3B82F6] text-white'}`}
                         onClick={() => handleOptionClick(option)}
                       >
                         {option.label}
