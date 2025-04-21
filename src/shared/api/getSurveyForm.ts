@@ -1,5 +1,5 @@
 import axios from 'axios';
-import clientInstance from '@/shared/libs/http/clientInstance';
+import clientInstance from '../libs/http/clientInstance';
 
 export const getSurveyForm = async (expoId: string, userType: string) => {
   try {
