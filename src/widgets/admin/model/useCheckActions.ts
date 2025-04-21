@@ -11,8 +11,8 @@ export const useCheckActions = () => {
       queryClient.invalidateQueries({ queryKey: ['requestSignUp'] });
       toast.success('회원가입 승인 성공');
     },
-    onError: () => {
-      toast.error('회원가입 승인 실패');
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 
@@ -22,8 +22,8 @@ export const useCheckActions = () => {
       queryClient.invalidateQueries({ queryKey: ['requestSignUp'] });
       toast.success('회원가입 거절 성공');
     },
-    onError: () => {
-      toast.error('회원가입 거절 실패');
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 

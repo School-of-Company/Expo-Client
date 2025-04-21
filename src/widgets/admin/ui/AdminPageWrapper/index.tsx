@@ -35,9 +35,9 @@ const AdminPageWrapper = () => {
     DeleteBadge: deleteExpo,
   };
 
-  const expoList = expoListData.data || [];
-  const requestSignUp = requestSignUpData.data || [];
-  const requestAdmin = requestAdminData.data;
+  const expoList = expoListData || [];
+  const requestSignUp = requestSignUpData?.data || [];
+  const requestAdmin = requestAdminData?.data;
 
   const sortedRequestSignUp = useMemo(
     () => getSortedRequestSignUp(requestSignUp, signUpFilter.value),
