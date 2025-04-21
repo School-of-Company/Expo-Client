@@ -49,11 +49,13 @@ const FormTypeSelect = ({
         {selectedOption?.icon && (
           <span className="mr-2">
             {React.cloneElement(selectedOption.icon as React.ReactElement, {
-              fill: '#909090', // 기본 색상
+              fill: '#909090',
             })}
           </span>
         )}
-        <span className="text-h3r text-gray-500">{selectedOption?.label}</span>
+        <span className="text-h3r text-gray-500 mobile:text-caption2r">
+          {selectedOption?.label}
+        </span>
 
         {isOpen ? <ArrowUp fill="#909090" /> : <ArrowDown fill="#909090" />}
       </button>
@@ -68,7 +70,7 @@ const FormTypeSelect = ({
                 setValue(`questions.${index}.formType`, option.value);
                 setIsOpen(false);
               }}
-              className="group flex w-full cursor-pointer items-center gap-18 text-h3r text-gray-500 hover:text-main-600"
+              className="group flex w-full cursor-pointer items-center gap-18 text-h3r text-gray-500 hover:text-main-600 mobile:text-caption2r"
             >
               <span className="mr-2">
                 {React.cloneElement(option.icon as React.ReactElement, {

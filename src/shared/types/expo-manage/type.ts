@@ -10,11 +10,25 @@ export interface Trainee {
   laptopStatus: boolean;
 }
 
-export interface Participant {
+export interface TraineeResponse {
+  info: {
+    totalPage: number;
+    totalElement: number;
+  };
+  participants: Trainee[];
+}
+
+export interface participants {
   id: number;
   name: string;
   phoneNumber: string;
-  affiliation: string;
-  position: string;
-  informationJson: boolean;
+  informationStatus: boolean;
+}
+
+export interface ParticipantResponse {
+  info: {
+    totalPage: number;
+    totalElement: number;
+  };
+  participants: participants[];
 }

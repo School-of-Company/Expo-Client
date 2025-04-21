@@ -1,5 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import { printBadge } from '@/shared/model/printUtils';
 import {
   FormattedApplicationData,
   FormattedSurveyData,
@@ -12,6 +14,7 @@ export const usePostApplication = (
   userType: 'STANDARD' | 'TRAINEE',
   applicationType: 'register' | 'onsite',
 ) => {
+  const router = useRouter();
   const getMessages = () => {
     if (formType === 'survey') {
       return {
@@ -30,8 +33,35 @@ export const usePostApplication = (
   return useMutation({
     mutationFn: (data: FormattedApplicationData | FormattedSurveyData) =>
       postApplication(params, formType, userType, applicationType, data),
-    onSuccess: () => {
+    onSuccess: (response, variables) => {
       toast.success(success);
+
+      if (
+        formType === 'application' &&
+        userType === 'STANDARD' &&
+        applicationType === 'onsite' &&
+        response &&
+        response.participantId &&
+        response.phoneNumber
+      ) {
+        const qrPayload = {
+          participantId: response.participantId,
+          phoneNumber: response.phoneNumber,
+        };
+
+        const name = 'name' in variables ? variables.name : '이름 없음';
+
+        const badgeData = {
+          name,
+          qrCode: JSON.stringify(qrPayload),
+          isTemporary: true,
+        };
+
+        printBadge(badgeData);
+      }
+      router.push(
+        `/application-success/${params}?userType=${userType}?formType=${formType}`,
+      );
     },
     onError: () => {
       toast.error(error);

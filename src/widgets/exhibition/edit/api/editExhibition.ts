@@ -2,7 +2,7 @@ import axios from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { EditExhibitionData } from '@/shared/types/exhibition/edit/type';
 
-export const editExhibition = async (data: EditExhibitionData, id: number) => {
+export const editExhibition = async (data: EditExhibitionData, id: string) => {
   try {
     await clientTokenInstance.patch(`/expo/${id}`, data);
   } catch (error) {

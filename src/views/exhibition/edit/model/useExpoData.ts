@@ -13,7 +13,7 @@ interface ExpoTraining {
   choice: ExpoTrainingDetail[];
 }
 
-export const useExpoData = (id: number) => {
+export const useExpoData = (id: string) => {
   const expoDetailQuery = useQuery<ExpoDetail, Error>({
     queryKey: ['expoDetail', id],
     queryFn: () => getExpoDetail(id),

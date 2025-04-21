@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowDown } from '@/shared/assets/icons';
 
 interface Option {
@@ -12,20 +12,16 @@ interface SelectProps {
   options: Option[];
   value: string;
   onChange?: (value: string) => void;
-  setSearchText: (text: string) => void;
-  setSearchInputText: (text: string) => void;
 }
 
-const SelectUserType = ({
-  options,
-  value,
-  onChange,
-  setSearchText,
-  setSearchInputText,
-}: SelectProps) => {
+const SelectUserType = ({ options, value, onChange }: SelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState<Option | undefined>(
     options.find((option) => option.value === value) || options[0],
+  );
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownWidth, setDropdownWidth] = useState<number | undefined>(
+    undefined,
   );
 
   useEffect(() => {
@@ -35,32 +31,40 @@ const SelectUserType = ({
     }
   }, [value, options]);
 
+  useEffect(() => {
+    if (buttonRef.current) {
+      setDropdownWidth(buttonRef.current.offsetWidth);
+    }
+  }, [selectedOption?.label]);
+
   const toggleOpen = () => setIsOpen((prev) => !prev);
 
   const handleOptionClick = (option: Option) => {
     setSelectedOption(option);
     setIsOpen(false);
     if (onChange) onChange(option.value);
-    setSearchText('');
-    setSearchInputText('');
   };
 
   return (
     <div className="relative inline-block">
       <button
+        ref={buttonRef}
         type="button"
         onClick={toggleOpen}
-        className="text-h4 flex items-center gap-2 text-black"
+        className="flex items-center gap-16 text-h2b text-black"
       >
         {selectedOption?.label}
         <ArrowDown />
       </button>
       {isOpen && (
-        <div className="absolute top-9 z-30 w-[150px] rounded-sm bg-white p-2 shadow-md">
+        <div
+          className="absolute top-9 z-30 space-y-12 rounded-sm bg-white p-8 shadow-md"
+          style={{ width: dropdownWidth }}
+        >
           {options.map((option) => (
             <button
               key={option.value}
-              className="text-caption2 flex w-full cursor-pointer items-center justify-center py-2 text-gray-500 hover:bg-main-100"
+              className="flex w-full cursor-pointer items-center justify-center rounded-sm px-12 py-8 text-body2r text-gray-500 hover:bg-main-100 hover:text-main-600"
               onClick={() => handleOptionClick(option)}
             >
               {option.label}

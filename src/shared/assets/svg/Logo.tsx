@@ -1,10 +1,11 @@
 import React from 'react';
 
-const Logo = () => {
+const Logo = ({ className }: { className?: string }) => {
   return (
     <svg
       width="124"
       height="36"
+      className={className}
       viewBox="0 0 124 36"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

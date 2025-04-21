@@ -6,7 +6,6 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { ImageInput } from '@/entities/exhibition';
 import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
-import WarningMessage from '@/entities/exhibition/ui/WarningMessage';
 import { Location } from '@/shared/assets/icons';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 
@@ -75,7 +74,7 @@ const ExhibitionForm = ({
       onSubmit={handleSubmit(onSubmit, (errors) => {
         handleFormErrors(errors, showError);
       })}
-      className="flex w-full max-w-[816px] flex-1 flex-col overflow-auto"
+      className="flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto"
     >
       <DetailHeader
         headerTitle={isEditMode ? '박람회 수정하기' : '박람회 생성하기'}
@@ -125,7 +124,6 @@ const ExhibitionForm = ({
                 placeholder="마감일"
               />
             </div>
-            <WarningMessage text="시작일과 마감일 입력시 ' yyyy-mm-dd ' 형식으로 입력해주세요" />
           </div>
         </div>
         <TextArea

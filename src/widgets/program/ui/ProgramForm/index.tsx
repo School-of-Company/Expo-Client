@@ -26,7 +26,7 @@ const ProgramForm = ({ id }: { id: string }) => {
   return withLoading({
     isLoading,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-46 overflow-auto">
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-46 overflow-y-auto">
         <ProgramNavigation />
         <TableForm
           categories={requestPrintCategories}

@@ -1,6 +1,11 @@
 export interface DynamicFormItem {
   title: string;
-  formType: 'SENTENCE' | 'CHECKBOX' | 'MULTIPLE' | 'DROPDOWN';
+  formType:
+    | 'SENTENCE'
+    | 'CHECKBOX'
+    | 'MULTIPLE'
+    | 'DROPDOWN'
+    | 'APPLICATIONPHONEOPTION';
   jsonData?: Record<string, string>;
   requiredStatus: boolean;
   otherJson: string | null;
@@ -21,7 +26,7 @@ export type ApplicationFormValues = {
 
 export type FormattedApplicationData = {
   name: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   informationJson: string;
   trainingId?: string;
   personalInformationStatus: boolean;

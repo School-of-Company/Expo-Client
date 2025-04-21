@@ -21,7 +21,7 @@ const ToggleButton = ({ value, onChange }: Props) => {
       }`}
     >
       <span
-        className={`absolute left-2 h-20 w-20 rounded-full transition-transform duration-300 ${
+        className={`absolute left-0 h-20 w-20 rounded-full transition-transform duration-300 ${
           value ? 'translate-x-30 bg-main-600' : 'translate-x-0 bg-gray-500'
         }`}
       />

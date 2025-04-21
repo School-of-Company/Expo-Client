@@ -1,0 +1,37 @@
+name: Expo_Client CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (for local step, optional)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+
+      - name: Deploy to EC2 using SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v22.14.0/bin
+
+            cd Expo-Client
+            git pull origin main
+
+            npm install
+            npm run build
+
+            pm2 restart "expo-client" || pm2 start npm --name "expo-client" -- run start

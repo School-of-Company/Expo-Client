@@ -57,8 +57,8 @@ const NameTagForm = ({ id }: { id: string }) => {
   const printNameTagActions = printActions(userData);
 
   return (
-    <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-auto">
-      <NameTagHeader params={id} />
+    <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-y-auto">
+      <NameTagHeader />
       <TableForm
         categories={requestPrintCategories}
         data={userData}

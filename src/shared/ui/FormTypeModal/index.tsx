@@ -25,7 +25,7 @@ const USER_TYPES = {
 interface Props {
   text: string;
   onClose: () => void;
-  params: number;
+  params: string;
   modalType: string | null;
 }
 
@@ -70,13 +70,15 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
         .catch(() => {
           toast.error('URL 복사에 실패했습니다. 다시 시도해주세요.');
         });
+    } else if (modalType === 'onsite') {
+      router.push(`/onsite-qr/${params}?userType=${type}`);
     }
 
     onClose();
   };
 
   const renderButtons = () => {
-    if (modalType === 'message') {
+    if (modalType === 'message' || modalType === 'onsite') {
       return [
         {
           label: '참가자',
@@ -131,7 +133,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
     <div className="w-[656px] rounded-sm bg-white p-28">
       <div className="flex flex-col gap-[90px]">
         <div className="flex w-full justify-between">
-          <p className="text-h2b">{text}</p>
+          <p className="text-h2b mobile:text-body1b">{text}</p>
           <label className="hover:cursor-pointer" onClick={onClose}>
             <XMark />
           </label>

@@ -15,6 +15,7 @@ import {
 } from '@/shared/types/application/type';
 import { Button, DetailHeader } from '@/shared/ui';
 import { getFormatter } from '../../model/formatterService';
+import { getHeaderTitle } from '../../model/getHeaderTitle';
 import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
 
@@ -60,7 +61,12 @@ const ApplicationLayout = ({ params }: { params: string }) => {
 
     const { privacyConsent, ...dynamicFormValues } = data;
 
-    const formatter = getFormatter(formType, userType, getDynamicFormData());
+    const formatter = getFormatter(
+      formType,
+      userType,
+      getDynamicFormData(),
+      applicationType,
+    );
 
     const formattedData = formatter({
       ...dynamicFormValues,
@@ -77,16 +83,14 @@ const ApplicationLayout = ({ params }: { params: string }) => {
         onSubmit={handleSubmit(onSubmit, (errors) => {
           handleFormErrors(errors, showError);
         })}
-        className="flex w-full max-w-[816px] flex-1 flex-col overflow-auto"
+        className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto"
       >
         <DetailHeader
           textCenter={true}
-          headerTitle={
-            formType === 'application' ? '박람회 신청' : '만족도 조사 신청'
-          }
+          headerTitle={getHeaderTitle(formType, userType, applicationType)}
         />
 
-        <div className="ml-[20px] mt-[48px] flex flex-col gap-[48px]">
+        <div className="flex flex-col gap-[48px]">
           <div className="w-full space-y-[36px]">
             {userType === 'TRAINEE' && formType === 'application' ? (
               <OptionContainer
@@ -99,15 +103,32 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 setValue={setValue}
               />
             ) : null}
-            <OptionContainer
-              title="휴대폰 번호를 입력하세요"
-              formType="SENTENCE"
-              requiredStatus={true}
-              otherJson={null}
-              register={register}
-              watch={watch}
-              setValue={setValue}
-            />
+            {formType === 'application' &&
+            applicationType === 'onsite' &&
+            userType === 'STANDARD' ? (
+              <OptionContainer
+                title="휴대폰 번호를 입력하세요"
+                formType="APPLICATIONPHONEOPTION"
+                requiredStatus={true}
+                otherJson={null}
+                type="number"
+                register={register}
+                watch={watch}
+                setValue={setValue}
+              />
+            ) : (
+              <OptionContainer
+                title="휴대폰 번호를 입력하세요"
+                formType="SENTENCE"
+                requiredStatus={true}
+                otherJson={null}
+                type="number"
+                register={register}
+                watch={watch}
+                setValue={setValue}
+              />
+            )}
+
             {formType === 'application' ? (
               <OptionContainer
                 title="이름을 입력하세요"
