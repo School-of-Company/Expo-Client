@@ -39,7 +39,7 @@ const NavigationBar = ({ totalPage }: { totalPage: number }) => {
 
   return (
     <div className="flex items-center gap-34">
-      <button onClick={handlePrev} disabled={currentPage === 1}>
+      <button type="button" onClick={handlePrev} disabled={currentPage === 1}>
         <ArrowLeft size={24} />
       </button>
       {Array.from({ length: endPage - startPage + 1 }, (_, i) => {
@@ -47,6 +47,7 @@ const NavigationBar = ({ totalPage }: { totalPage: number }) => {
         const isActive = currentPage === page;
         return (
           <button
+            type="button"
             key={page}
             className={`text-body1ㅠ ${
               isActive ? 'text-main-600' : 'text-gray-400'
@@ -57,7 +58,11 @@ const NavigationBar = ({ totalPage }: { totalPage: number }) => {
           </button>
         );
       })}
-      <button onClick={handleNext} disabled={currentPage === totalPage}>
+      <button
+        type="button"
+        onClick={handleNext}
+        disabled={currentPage === totalPage}
+      >
         <ArrowRight />
       </button>
     </div>

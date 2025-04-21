@@ -30,6 +30,7 @@ const FormFilter = ({
   return (
     <div className="relative inline-block text-right">
       <button
+        type="button"
         className="whitespace-nowrap rounded-[10px] bg-main-600 px-[14px] py-3"
         onClick={() => setIsOpen(!isOpen)}
       >

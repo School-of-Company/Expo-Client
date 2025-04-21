@@ -29,6 +29,7 @@ const ContentText = ({ title, content }: Props) => {
         </p>
         {isExpandable && (
           <button
+            type="button"
             className={`text-left text-caption1r ${show ? 'text-main-600' : 'text-gray-300'}`}
             onClick={() => setShow(!show)}
           >

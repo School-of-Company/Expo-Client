@@ -8,6 +8,7 @@ type SmallButtonProps = {
 const SmallButton = ({ text, onClick }: SmallButtonProps) => {
   return (
     <button
+      type="button"
       className="rounded-sm bg-main-600 px-[30px] py-[6px] text-body2r text-white"
       onClick={onClick}
     >

@@ -45,10 +45,9 @@ export default function ApplicationPhoneOption({
 
     let value = e.target.value;
 
-    // ✅ 숫자 타입일 경우 숫자만 허용
     if (type === 'number') {
       value = value.replace(/[^0-9]/g, '');
-      e.target.value = value; // react-hook-form에서 사용하는 값도 업데이트
+      e.target.value = value;
     }
 
     if (onChange) {
