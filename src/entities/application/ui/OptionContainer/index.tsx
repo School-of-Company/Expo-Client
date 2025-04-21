@@ -10,6 +10,20 @@ import DropDownOption from '../DropDownOption';
 import MultipleOption from '../MultipleOption';
 import SentenceOption from '../SentenceOption';
 
+interface OptionContainerProps {
+  title: string;
+  formType: string;
+  jsonData?: string | { [key: string]: string };
+  requiredStatus: boolean;
+  otherJson: string | null;
+  type?: string;
+  register: UseFormRegister<ApplicationFormValues>;
+  watch: UseFormWatch<ApplicationFormValues>;
+  setValue: UseFormSetValue<ApplicationFormValues>;
+  readOnly?: boolean;
+  defaultValue?: string;
+}
+
 const OptionContainer = ({
   title,
   formType,
@@ -20,17 +34,9 @@ const OptionContainer = ({
   register,
   watch,
   setValue,
-}: {
-  title: string;
-  formType: string;
-  jsonData?: string | { [key: string]: string };
-  requiredStatus: boolean;
-  otherJson: string | null;
-  type?: string;
-  register: UseFormRegister<ApplicationFormValues>;
-  watch: UseFormWatch<ApplicationFormValues>;
-  setValue: UseFormSetValue<ApplicationFormValues>;
-}) => {
+  readOnly = false,
+  defaultValue = '',
+}: OptionContainerProps) => {
   const options = jsonData
     ? typeof jsonData === 'string'
       ? Object.entries(JSON.parse(jsonData)).map(([key, value]) => ({
@@ -54,6 +60,8 @@ const OptionContainer = ({
           row={1}
           required={requiredStatus}
           type={type}
+          readOnly={readOnly}
+          defaultValue={defaultValue}
         />
       );
       break;
@@ -105,13 +113,16 @@ const OptionContainer = ({
           type={type}
         />
       );
+      break;
+    default:
+      inputComponent = null;
   }
 
   return (
     <div className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-18">
       <div className="flex items-center gap-2">
         <p className="text-h3b text-black">{title}</p>
-        {requiredStatus ? <p className="text-main-600">*</p> : null}
+        {requiredStatus && <p className="text-main-600">*</p>}
       </div>
       <div className="space-y-10">{inputComponent}</div>
     </div>
