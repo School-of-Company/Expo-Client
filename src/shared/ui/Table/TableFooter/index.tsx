@@ -86,12 +86,12 @@ const TableFooter = ({
       )}
 
       {type === 'check' && (
-        <div className="flex items-center gap-20 mobile:gap-8">
+        <div className="flex items-center gap-20 mobile:gap-16">
           <button
-            className="flex items-center gap-20"
+            className="flex items-center mobile:gap-8"
             onClick={() => handleActionClick('CheckBadge')}
           >
-            <p className="text-body1r text-gray-400 mobile:text-caption2r">
+            <p className="text-body1r text-gray-400 mobile:text-caption1r">
               승인
             </p>
             <Check />
