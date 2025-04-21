@@ -56,7 +56,7 @@ const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
       <div className="flex h-auto w-full max-w-[90vw] flex-col space-y-[24px]">
         <div className="flex items-center justify-between">
           <p className="text-h3b text-black">프로그램 설정</p>
-          <button onClick={() => setModal(false)}>
+          <button type="button" onClick={() => setModal(false)}>
             <XMark />
           </button>
         </div>

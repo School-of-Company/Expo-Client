@@ -21,6 +21,7 @@ const ProgramNavigation = () => {
   return (
     <div className="flex justify-center gap-[18px]">
       <button
+        type="button"
         className={`text-h2 ${
           navigation === 'standard' ? 'text-black' : 'text-gray-500'
         }`}
@@ -29,6 +30,7 @@ const ProgramNavigation = () => {
         일반 프로그램
       </button>
       <button
+        type="button"
         className={`text-h2 ${
           navigation === 'training' ? 'text-black' : 'text-gray-500'
         }`}

@@ -87,10 +87,12 @@ const ApplicationLayout = ({ params }: { params: string }) => {
         })}
         className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto"
       >
-        <DetailHeader
-          textCenter={true}
-          headerTitle={getHeaderTitle(formType, userType, applicationType)}
-        />
+        <div className="mt-30">
+          <DetailHeader
+            textCenter={true}
+            headerTitle={getHeaderTitle(formType, userType, applicationType)}
+          />
+        </div>
 
         <div className="flex flex-col gap-[48px]">
           <div className="w-full space-y-[36px]">
