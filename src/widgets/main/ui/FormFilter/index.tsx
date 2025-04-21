@@ -33,7 +33,7 @@ const FormFilter = ({
         className="whitespace-nowrap rounded-[10px] bg-main-600 px-[14px] py-3"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="flex items-center gap-[24px] text-caption1r text-white">
+        <div className="flex items-center gap-[24px] text-caption1r text-white mobile:gap-2">
           {selectedOption.label || '필터'}
           {isOpen ? <ArrowUp fill="#fff" /> : <ArrowDown fill="#fff" />}
         </div>
