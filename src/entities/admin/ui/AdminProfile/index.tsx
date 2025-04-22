@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Logout } from '@/shared/assets/icons';
-import { AdminData } from '@/shared/types/admin/type';
 import { useDeleteUserAccount } from '../../model/useDeleteUserAccount';
 import { useLogout } from '../../model/useLogout';
+import { AdminData } from '@/shared/types/admin/type';
 
 const ProfileInfo = ({ label, value }: { label: string; value: string }) => (
   <div className="flex items-center gap-16 overflow-hidden">
@@ -35,7 +35,7 @@ const AdminProfile = ({ data }: { data: AdminData }) => {
 
   return (
     <div className="relative flex w-full overflow-hidden mobile:flex-col">
-      <div className="flex">
+      <div className="flex w-full">
         <div className="flex min-w-0 flex-1 items-center gap-[124px] mobile:flex-col mobile:gap-[30px]">
           <div className="w-full space-y-[32px]">
             <ProfileInfo label="이름" value={data.name} />
