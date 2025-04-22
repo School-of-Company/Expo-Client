@@ -80,5 +80,5 @@ export async function retryRequest(
     body: body && typeof body === 'string' ? body : undefined,
   });
 
-  return tokenHandleRequest(newReq, true, body);
+  return tokenHandleRequest(newReq, body);
 }
