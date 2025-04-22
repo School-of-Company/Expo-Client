@@ -38,6 +38,7 @@ export async function tokenHandleRequest(
     return await doRequest(existingToken);
   } catch (err) {
     const axiosErr = err as AxiosError;
+    console.log(axiosErr);
 
     if (axiosErr.response?.status === 401) {
       const newTokens = await performTokenRefresh(refreshToken);
@@ -50,7 +51,12 @@ export async function tokenHandleRequest(
       }
       try {
         return await doRequest(newTokens.accessToken);
-      } catch {
+      } catch (err) {
+        const axiosErr = err as AxiosError;
+        const status = axiosErr.response?.status;
+        if (status && status !== 401) {
+          return createResponse(axiosErr.response!, false);
+        }
         const res = NextResponse.json(
           {
             error: '토큰 재발급 후 재시도 실패',
@@ -63,6 +69,6 @@ export async function tokenHandleRequest(
       }
     }
 
-    return handleError(err, req, false, refreshToken, originalBody);
+    return handleError(err);
   }
 }
