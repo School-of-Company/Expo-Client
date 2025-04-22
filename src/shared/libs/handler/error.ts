@@ -13,6 +13,7 @@ export async function handleError(
   originalBody?: string | FormData,
 ): Promise<NextResponse> {
   const axiosError = error as AxiosError<{ message: string }>;
+  console.log(axiosError);
   const status = axiosError.response?.status || 500;
 
   if (status === 401 && !isRetry && refreshToken) {
