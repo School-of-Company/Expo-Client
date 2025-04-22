@@ -1,59 +1,68 @@
+import { AxiosError } from 'axios';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteAuthCookies } from '../cookie/deleteCookies';
 import { handleError } from './error';
 import { parseRequestData, sendRequest } from './request';
 import { createResponse } from './response';
-import { getRefreshStateForUser, performTokenRefresh } from './token';
+import { performTokenRefresh } from './token';
 
 export async function tokenHandleRequest(
   req: NextRequest,
-  isRetry = false,
   originalBody?: string | FormData,
 ): Promise<NextResponse> {
   const cookieStore = cookies();
-  let accessToken = cookieStore.get('accessToken')?.value;
   const refreshToken = cookieStore.get('refreshToken')?.value;
 
   if (!refreshToken) {
-    const response = NextResponse.json(
+    const res = NextResponse.json(
       { error: 'Refresh token 없음', status: 401, isRefreshError: true },
       { status: 401 },
     );
-    return deleteAuthCookies(response);
+    return deleteAuthCookies(res);
   }
 
-  const refreshState = getRefreshStateForUser(refreshToken);
+  const { requestData, headers } = await parseRequestData(req, originalBody);
+  const isFileDownload =
+    req.headers.get('X-File-Download') === 'true' ||
+    req.nextUrl.pathname.includes('/excel/');
 
-  if (refreshState.isRefreshing && !isRetry) {
-    return new Promise<NextResponse>((resolve, reject) => {
-      refreshState.waitingRequests.push({ resolve, reject, req, originalBody });
-    });
+  async function doRequest(token?: string) {
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const resp = await sendRequest(req, token, requestData, headers);
+    return createResponse(resp, isFileDownload);
   }
 
-  if (!accessToken && !isRetry) {
-    const newTokens = await performTokenRefresh(refreshToken, refreshState);
-    if (newTokens) {
-      accessToken = newTokens.accessToken;
-    } else {
-      const response = NextResponse.json(
-        { error: '토큰 갱신 실패', status: 401, isRefreshError: true },
-        { status: 401 },
-      );
-      return deleteAuthCookies(response);
-    }
-  }
-
+  const existingToken = cookieStore.get('accessToken')?.value;
   try {
-    const { requestData, headers } = await parseRequestData(req, originalBody);
-    const isFileDownload =
-      req.headers.get('X-File-Download') === 'true' ||
-      req.nextUrl.pathname.includes('/excel/');
+    return await doRequest(existingToken);
+  } catch (err) {
+    const axiosErr = err as AxiosError;
 
-    const response = await sendRequest(req, accessToken, requestData, headers);
+    if (axiosErr.response?.status === 401) {
+      const newTokens = await performTokenRefresh(refreshToken);
+      if (!newTokens) {
+        const res = NextResponse.json(
+          { error: '토큰 갱신 실패', status: 401, isRefreshError: true },
+          { status: 401 },
+        );
+        return deleteAuthCookies(res);
+      }
+      try {
+        return await doRequest(newTokens.accessToken);
+      } catch {
+        const res = NextResponse.json(
+          {
+            error: '토큰 재발급 후 재시도 실패',
+            status: 401,
+            isRefreshError: true,
+          },
+          { status: 401 },
+        );
+        return deleteAuthCookies(res);
+      }
+    }
 
-    return createResponse(response, isFileDownload);
-  } catch (error) {
-    return handleError(error, req, isRetry, refreshToken, originalBody);
+    return handleError(err, req, false, refreshToken, originalBody);
   }
 }

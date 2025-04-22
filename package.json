@@ -20,6 +20,7 @@
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",
     "date-fns": "^4.1.0",
+    "ioredis": "^5.6.1",
     "lru-cache": "^11.1.0",
     "next": "^14.2.28",
     "qrcode.react": "^4.1.0",
@@ -30,6 +31,7 @@
     "react-kakao-maps-sdk": "^1.1.27",
     "react-qr-code": "^2.0.15",
     "react-toastify": "^10.0.6",
+    "redlock": "^5.0.0-beta.2",
     "tailwindcss-animate": "^1.0.7",
     "zustand": "^5.0.0"
   },

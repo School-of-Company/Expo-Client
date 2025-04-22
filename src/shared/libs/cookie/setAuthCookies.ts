@@ -12,14 +12,12 @@ export function setAuthCookies({
   refreshTokenExpires: Date;
 }) {
   const cookieStore = cookies();
-
   cookieStore.set('accessToken', accessToken, {
     httpOnly: true,
     secure: true,
     expires: accessTokenExpires,
     sameSite: 'strict',
   });
-
   cookieStore.set('refreshToken', refreshToken, {
     httpOnly: true,
     secure: true,

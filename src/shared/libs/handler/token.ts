@@ -1,105 +1,69 @@
-import { AxiosError } from 'axios';
-import { LRUCache } from 'lru-cache';
-import { NextRequest, NextResponse } from 'next/server';
+import { redlock, RedlockLock } from '@/shared/libs/redis/lock';
+import { redis } from '@/shared/libs/redis/redis';
 import { refreshAccessToken } from './refreshAccessToken';
-import { retryRequest } from './request';
-
-export interface GlobalRefreshState {
-  isRefreshing: boolean;
-  refreshTokenPromise: Promise<RefreshTokenResult | null> | null;
-  lastRefreshTime: number;
-  waitingRequests: {
-    resolve: (res: NextResponse) => void;
-    reject: (err: AxiosError) => void;
-    req: NextRequest;
-    originalBody?: string | FormData;
-  }[];
-}
 
 export interface RefreshTokenResult {
   accessToken: string;
   refreshToken: string;
 }
 
-export const globalForRefresh = new LRUCache<string, GlobalRefreshState>({
-  max: 30000,
-  ttl: 1000 * 5,
-  allowStale: true,
-});
-
-export function getRefreshStateForUser(
-  refreshToken: string,
-): GlobalRefreshState {
-  if (!globalForRefresh.has(refreshToken)) {
-    const newState: GlobalRefreshState = {
-      isRefreshing: false,
-      refreshTokenPromise: null,
-      lastRefreshTime: 0,
-      waitingRequests: [],
-    };
-    globalForRefresh.set(refreshToken, newState);
-    return newState;
-  }
-  return globalForRefresh.get(refreshToken)!;
-}
+const TOKEN_TTL_SEC = 5;
+const POLL_INTERVAL_MS = 100;
+const MAX_POLL_MS = 1000;
 
 export async function performTokenRefresh(
   refreshToken: string,
-  refreshState: GlobalRefreshState,
 ): Promise<RefreshTokenResult | null> {
-  const now = Date.now();
-
-  if (refreshState.isRefreshing && refreshState.refreshTokenPromise) {
-    return await refreshState.refreshTokenPromise;
-  }
+  const lockKey = `lock:refresh:${refreshToken}`;
+  const cacheKey = `rtk:${refreshToken}`;
+  let lock: RedlockLock | undefined;
 
   try {
-    refreshState.isRefreshing = true;
-    refreshState.lastRefreshTime = now;
-    refreshState.refreshTokenPromise = refreshAccessToken(refreshToken);
+    lock = await redlock.acquire([lockKey], TOKEN_TTL_SEC * 1000);
 
-    const result = await refreshState.refreshTokenPromise;
-
-    if (result) {
-      await processWaitingRequests(refreshState, result.accessToken);
+    const [cachedAccess, cachedRefresh] = await redis.hmget(
+      cacheKey,
+      'accessToken',
+      'refreshToken',
+    );
+    if (cachedAccess && cachedRefresh) {
+      return { accessToken: cachedAccess, refreshToken: cachedRefresh };
     }
+
+    const result = await refreshAccessToken(refreshToken);
+    if (!result) return null;
+
+    await redis
+      .multi()
+      .hmset(cacheKey, {
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      })
+      .expire(cacheKey, TOKEN_TTL_SEC)
+      .exec();
 
     return result;
-  } catch (error) {
-    rejectWaitingRequests(refreshState, error as AxiosError);
-    globalForRefresh.delete(refreshToken);
+  } catch (err) {
+    const start = Date.now();
+    while (Date.now() - start < MAX_POLL_MS) {
+      const [polledAccess, polledRefresh] = await redis.hmget(
+        cacheKey,
+        'accessToken',
+        'refreshToken',
+      );
+      if (polledAccess && polledRefresh) {
+        return { accessToken: polledAccess, refreshToken: polledRefresh };
+      }
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+    }
     return null;
   } finally {
-    refreshState.isRefreshing = false;
-    refreshState.refreshTokenPromise = null;
-  }
-}
-
-async function processWaitingRequests(
-  refreshState: GlobalRefreshState,
-  accessToken: string,
-) {
-  const waiting = [...refreshState.waitingRequests];
-  refreshState.waitingRequests = [];
-
-  for (const { resolve, reject, req, originalBody } of waiting) {
-    try {
-      const response = await retryRequest(req, accessToken, originalBody);
-      resolve(response);
-    } catch (err) {
-      reject(err as AxiosError);
+    if (lock) {
+      try {
+        await lock.release();
+      } catch (releaseError) {
+        console.warn('Failed to release lock:', releaseError);
+      }
     }
-  }
-}
-
-function rejectWaitingRequests(
-  refreshState: GlobalRefreshState,
-  error: AxiosError,
-) {
-  const waiting = [...refreshState.waitingRequests];
-  refreshState.waitingRequests = [];
-
-  for (const { reject } of waiting) {
-    reject(error);
   }
 }
