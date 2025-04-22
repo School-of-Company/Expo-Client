@@ -69,6 +69,6 @@ export async function tokenHandleRequest(
       }
     }
 
-    return handleError(err, req, false, refreshToken, originalBody);
+    return handleError(err);
   }
 }
