@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Logout } from '@/shared/assets/icons';
+import { AdminData } from '@/shared/types/admin/type';
 import { useDeleteUserAccount } from '../../model/useDeleteUserAccount';
 import { useLogout } from '../../model/useLogout';
-import { AdminData } from '@/shared/types/admin/type';
 
 const ProfileInfo = ({ label, value }: { label: string; value: string }) => (
   <div className="flex items-center gap-16 overflow-hidden">
