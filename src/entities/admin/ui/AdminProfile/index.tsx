@@ -35,7 +35,7 @@ const AdminProfile = ({ data }: { data: AdminData }) => {
 
   return (
     <div className="relative flex w-full overflow-hidden mobile:flex-col">
-      <div className="flex">
+      <div className="flex w-full">
         <div className="flex min-w-0 flex-1 items-center gap-[124px] mobile:flex-col mobile:gap-[30px]">
           <div className="w-full space-y-[32px]">
             <ProfileInfo label="이름" value={data.name} />
