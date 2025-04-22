@@ -6,7 +6,7 @@ import {
 } from '@/shared/types/program-detail/type';
 
 export const getTrainingProgramDetail = async (
-  id: number,
+  id: string,
 ): Promise<TrainingProgram[]> => {
   try {
     const response = await clientTokenInstance.get(`/training/${id}`);
@@ -22,7 +22,7 @@ export const getTrainingProgramDetail = async (
 };
 
 export const getStandardProgramDetail = async (
-  id: number,
+  id: string,
 ): Promise<StandardProgram[]> => {
   try {
     const response = await clientTokenInstance.get(`/standard/${id}`);

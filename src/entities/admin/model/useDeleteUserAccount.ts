@@ -12,8 +12,8 @@ export const useDeleteUserAccount = () => {
       toast.success('탈퇴가 완료되었습니다.');
       router.push('/signin');
     },
-    onError: () => {
-      toast.error('유저 탈퇴를 실패했습니다.');
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 };

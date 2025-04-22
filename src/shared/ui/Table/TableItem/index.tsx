@@ -32,6 +32,7 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
 
   return (
     <button
+      type="button"
       onClick={() => handleSelectItem(data.id)}
       className={`flex w-full items-center justify-between rounded-sm border-1 border-solid border-gray-200 py-8 ${
         isSelected ? 'bg-main-100' : 'bg-white'

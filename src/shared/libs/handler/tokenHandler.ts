@@ -1,10 +1,10 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { deleteAuthCookies } from '@/shared/libs/cookie/deleteCookies';
+import { deleteAuthCookies } from '../cookie/deleteCookies';
 import { handleError } from './error';
 import { parseRequestData, sendRequest } from './request';
 import { createResponse } from './response';
-import { globalForRefresh, performTokenRefresh } from './token';
+import { getRefreshStateForUser, performTokenRefresh } from './token';
 
 export async function tokenHandleRequest(
   req: NextRequest,
@@ -15,24 +15,29 @@ export async function tokenHandleRequest(
   let accessToken = cookieStore.get('accessToken')?.value;
   const refreshToken = cookieStore.get('refreshToken')?.value;
 
-  if (
-    globalForRefresh.cachedTokens &&
-    globalForRefresh.cachedTokens.expiresAt > Date.now()
-  ) {
-    accessToken = globalForRefresh.cachedTokens.accessToken;
+  if (!refreshToken) {
+    const response = NextResponse.json(
+      { error: 'Refresh token 없음', status: 401, isRefreshError: true },
+      { status: 401 },
+    );
+    return deleteAuthCookies(response);
   }
 
-  if (!accessToken && refreshToken && !isRetry) {
-    const newTokens = await performTokenRefresh(refreshToken);
+  const refreshState = getRefreshStateForUser(refreshToken);
+
+  if (refreshState.isRefreshing && !isRetry) {
+    return new Promise<NextResponse>((resolve, reject) => {
+      refreshState.waitingRequests.push({ resolve, reject, req, originalBody });
+    });
+  }
+
+  if (!accessToken && !isRetry) {
+    const newTokens = await performTokenRefresh(refreshToken, refreshState);
     if (newTokens) {
       accessToken = newTokens.accessToken;
     } else {
       const response = NextResponse.json(
-        {
-          error: '토큰 갱신에 실패했습니다.',
-          status: 401,
-          isRefreshError: true,
-        },
+        { error: '토큰 갱신 실패', status: 401, isRefreshError: true },
         { status: 401 },
       );
       return deleteAuthCookies(response);
@@ -41,7 +46,6 @@ export async function tokenHandleRequest(
 
   try {
     const { requestData, headers } = await parseRequestData(req, originalBody);
-
     const isFileDownload =
       req.headers.get('X-File-Download') === 'true' ||
       req.nextUrl.pathname.includes('/excel/');

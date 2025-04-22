@@ -63,6 +63,7 @@ const SelectUserType = ({ options, value, onChange }: SelectProps) => {
         >
           {options.map((option) => (
             <button
+              type="button"
               key={option.value}
               className="flex w-full cursor-pointer items-center justify-center rounded-sm px-12 py-8 text-body2r text-gray-500 hover:bg-main-100 hover:text-main-600"
               onClick={() => handleOptionClick(option)}

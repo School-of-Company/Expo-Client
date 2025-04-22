@@ -3,16 +3,16 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import withLoading from '@/shared/hocs/withLoading';
-import { fileActions } from '@/shared/model/footerActions';
 import { useQRScanner } from '@/shared/model/useQRScanner';
 import { QrScanData } from '@/shared/types/common/QrScanData';
 import { TableForm } from '@/shared/ui/Table';
+import { getTraineeExcelFile } from '@/widgets/expo-manage/api/getTraineeExcelFile';
 import { programCategories } from '../../model/category';
 import { useProgramDetailQueries } from '../../model/useProgramDetailData';
 import { useStandardAttendance } from '../../model/useStandardAttendance';
 import { useTrainingAttendance } from '../../model/useTrainingAttendance';
 
-const ProgramDetailForm = ({ id }: { id: number }) => {
+const ProgramDetailForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const { mutate: standardAttendance } = useStandardAttendance();
   const { mutate: trainingAttendance } = useTrainingAttendance();
@@ -46,6 +46,10 @@ const ProgramDetailForm = ({ id }: { id: number }) => {
     }
   }, [scannedQR]);
 
+  const filteActions = {
+    exportExcel: () => getTraineeExcelFile(id),
+  };
+
   return withLoading({
     isLoading,
     children: (
@@ -57,7 +61,7 @@ const ProgramDetailForm = ({ id }: { id: number }) => {
           maxHeight="414px"
           footerType="file"
           text="인원 수"
-          actions={fileActions(id, '/excel')}
+          actions={filteActions}
         />
       </div>
     ),

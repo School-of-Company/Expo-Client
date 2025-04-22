@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useMemo } from 'react';
 import { ProgramNavigation } from '@/entities/program';
 import withLoading from '@/shared/hocs/withLoading';
-import { routeActions } from '@/shared/model/footerActions';
 import { TableForm } from '@/shared/ui/Table';
 import { standardCategories, trainingCategories } from '../../model/category';
 import { useProgramQueries } from '../../model/useProgramData';
@@ -23,6 +22,12 @@ const ProgramForm = ({ id }: { id: string }) => {
 
   const programData = programQueries.data || [];
 
+  const routeActions = {
+    RouteActions: (id: number) => {
+      router.push(`/program/detail/${id}?navigation=${navigation}`);
+    },
+  };
+
   return withLoading({
     isLoading,
     children: (
@@ -34,7 +39,7 @@ const ProgramForm = ({ id }: { id: string }) => {
           maxHeight="414px"
           footerType="route"
           text="프로그램 수"
-          actions={routeActions(router, navigation)}
+          actions={routeActions}
         />
       </div>
     ),

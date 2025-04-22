@@ -84,6 +84,7 @@ const DateContainer = ({
     <div className="relative flex items-center">
       {showLeftArrow && (
         <button
+          type="button"
           onClick={scrollLeft}
           aria-label="Scroll left"
           className="absolute left-0 z-10 px-4"
@@ -114,6 +115,7 @@ const DateContainer = ({
 
       {showRightArrow && (
         <button
+          type="button"
           onClick={scrollRight}
           aria-label="Scroll right"
           className="absolute right-0 z-10 px-4"

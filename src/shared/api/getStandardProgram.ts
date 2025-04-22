@@ -1,8 +1,8 @@
 import axios from 'axios';
 import clientTokenInstance from '../libs/http/clientTokenInstance';
-import { ExpoStandard } from '../types/expo-detail/type';
+import { Program } from '../types/program/type';
 
-export const getExpoStandard = async (id: string): Promise<ExpoStandard[]> => {
+export const getStandardProgram = async (id: string): Promise<Program[]> => {
   try {
     const response = await clientTokenInstance.get(`/standard/program/${id}`);
     return response.data;

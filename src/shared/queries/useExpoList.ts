@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { ExpoItem } from '@/shared/types/main/type';
+import { ExpoItem } from '@/shared/types/admin/type';
 import { getExpoList } from '../api/getExpoList';
 
 export const useExpoList = () => {

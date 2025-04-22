@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 import { convertAddressToCoordinates } from '../../api/convertAddressToCoordinates';
 import { uploadImage } from '../../api/uploadImage';
@@ -38,7 +39,9 @@ export const handleCreateExhibitionFormSubmit = async (
     const response = await createExhibition(formattedData);
     return response.expoId;
   } catch (error) {
-    console.error(error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '박람회 생성 실패');
+    }
     throw error;
   }
 };

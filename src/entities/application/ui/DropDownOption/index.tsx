@@ -31,7 +31,7 @@ const CustomDropDown = ({
   const handleOptionClick = (value: string) => {
     setSelectedOption(value);
     setIsOpen(false);
-    setValue(name, value); // ✅ 선택 시 폼 상태 업데이트
+    setValue(name, value);
   };
 
   useEffect(() => {

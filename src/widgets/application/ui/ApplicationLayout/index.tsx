@@ -26,6 +26,8 @@ const ApplicationLayout = ({ params }: { params: string }) => {
   const applicationType = searchParams.get('applicationType') as
     | 'register'
     | 'onsite';
+  const phoneNumber = searchParams.get('phoneNumber');
+
   const { register, handleSubmit, watch, setValue } =
     useForm<ApplicationFormValues>();
 
@@ -85,10 +87,12 @@ const ApplicationLayout = ({ params }: { params: string }) => {
         })}
         className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto"
       >
-        <DetailHeader
-          textCenter={true}
-          headerTitle={getHeaderTitle(formType, userType, applicationType)}
-        />
+        <div className="mt-30">
+          <DetailHeader
+            textCenter={true}
+            headerTitle={getHeaderTitle(formType, userType, applicationType)}
+          />
+        </div>
 
         <div className="flex flex-col gap-[48px]">
           <div className="w-full space-y-[36px]">
@@ -126,6 +130,8 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 register={register}
                 watch={watch}
                 setValue={setValue}
+                readOnly={formType === 'survey' && !!phoneNumber}
+                defaultValue={phoneNumber ?? ''}
               />
             )}
 

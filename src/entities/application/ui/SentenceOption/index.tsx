@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { UseFormRegister } from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 
@@ -9,6 +9,8 @@ interface Props {
   register: UseFormRegister<ApplicationFormValues>;
   name: string;
   type?: string;
+  readOnly?: boolean;
+  defaultValue?: string;
 }
 
 export default function SentenceOption({
@@ -18,17 +20,29 @@ export default function SentenceOption({
   register,
   name,
   type,
+  readOnly = false,
+  defaultValue = '',
 }: Props) {
   const { ref, onChange, ...rest } = register(name, {
     required: required ? '필수 옵션을 작성해주세요' : false,
   });
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  useEffect(() => {
+    if (readOnly && textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      textareaRef.current.value = defaultValue;
+    }
+  }, [readOnly, defaultValue]);
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
+
+    if (readOnly) return;
 
     let value = e.target.value;
 
@@ -55,6 +69,8 @@ export default function SentenceOption({
           maxLength={maxLength}
           onChange={handleChange}
           placeholder={name}
+          readOnly={readOnly}
+          defaultValue={defaultValue}
           {...rest}
         />
       </div>
