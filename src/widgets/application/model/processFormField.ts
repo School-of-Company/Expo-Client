@@ -30,5 +30,5 @@ export const processFormField = (
       .join(', ');
   }
 
-  return String(value || '');
+  return String(value || '').toUpperCase();
 };
