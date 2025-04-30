@@ -57,7 +57,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
                 variant="white"
                 onClick={() => openModal('onsite', '대상을 선택하세요.')}
               >
-                현장 신청 QR
+                현장 등록 QR
               </Button>
               <Button
                 variant="white"

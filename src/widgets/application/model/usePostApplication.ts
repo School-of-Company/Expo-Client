@@ -22,7 +22,7 @@ export const usePostApplication = (
       };
     }
     return {
-      success: '박람회 신청이 완료되었습니다.',
+      success: '박람회 등록이 완료되었습니다.',
     };
   };
 

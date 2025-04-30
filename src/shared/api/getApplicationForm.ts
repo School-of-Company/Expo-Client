@@ -7,7 +7,9 @@ export const getApplicationForm = async (id: string, userType: string) => {
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '신청 폼 불러오기 실패');
+      throw new Error(
+        error.response.data.error || '박람회 등록 폼 불러오기 실패',
+      );
     }
     throw error;
   }

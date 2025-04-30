@@ -171,7 +171,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
             setValue={setValue}
           />
           <Button disabled={isPending} type="submit">
-            신청하기
+            등록하기
           </Button>
         </div>
       </form>

@@ -67,7 +67,7 @@ export const postApplication = async (
     }
 
     if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '폼 신청 실패');
+      throw new Error(error.response.data.error || '폼 등록 실패');
     }
 
     throw error;

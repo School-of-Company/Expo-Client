@@ -8,7 +8,7 @@ export const category = (selectOption: string) => {
 
   if (selectOption === 'trainee') {
     fields.splice(2, 0, '연수번호');
-    fields.push('신청 유형');
+    fields.push('등록 유형');
   } else {
     fields.push('개인정보 동의');
   }
