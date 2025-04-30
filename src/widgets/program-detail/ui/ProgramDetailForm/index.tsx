@@ -6,19 +6,26 @@ import withLoading from '@/shared/hocs/withLoading';
 import { useQRScanner } from '@/shared/model/useQRScanner';
 import { QrScanData } from '@/shared/types/common/QrScanData';
 import { TableForm } from '@/shared/ui/Table';
-import { getTraineeExcelFile } from '@/widgets/expo-manage/api/getTraineeExcelFile';
+import { getStandardProgramExcelFile } from '../../api/getStandardProgramExcelFile';
+import { getTraineeProgramExcelFile } from '../../api/getTraineeProgramExcelFile';
 import { programCategories } from '../../model/category';
 import { useProgramDetailQueries } from '../../model/useProgramDetailData';
 import { useStandardAttendance } from '../../model/useStandardAttendance';
 import { useTrainingAttendance } from '../../model/useTrainingAttendance';
 
-const ProgramDetailForm = ({ id }: { id: string }) => {
+const ProgramDetailForm = ({
+  expoId,
+  programId,
+}: {
+  expoId: string;
+  programId: string;
+}) => {
   const searchParams = useSearchParams();
   const { mutate: standardAttendance } = useStandardAttendance();
   const { mutate: trainingAttendance } = useTrainingAttendance();
   const navigation = searchParams.get('navigation') || 'standard';
   const { programDetailQueries, isLoading } = useProgramDetailQueries(
-    id,
+    programId,
     navigation,
   );
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
@@ -28,13 +35,13 @@ const ProgramDetailForm = ({ id }: { id: string }) => {
   const handleAttendance = (scannedQR: QrScanData) => {
     if (navigation === 'standard') {
       standardAttendance({
-        id,
+        programId,
         participantId: scannedQR.participantId!,
         phoneNumber: scannedQR.phoneNumber!,
       });
     } else {
       trainingAttendance({
-        id,
+        programId,
         traineeId: scannedQR.traineeId!,
       });
     }
@@ -46,9 +53,15 @@ const ProgramDetailForm = ({ id }: { id: string }) => {
     }
   }, [scannedQR]);
 
-  const filteActions = {
-    exportExcel: () => getTraineeExcelFile(id),
+  const TraineeProgramActions = {
+    exportExcel: () => getTraineeProgramExcelFile(expoId),
   };
+  const StandardProgramActions = {
+    exportExcel: () => getStandardProgramExcelFile(expoId, programId),
+  };
+
+  const filteActions =
+    navigation === 'standard' ? StandardProgramActions : TraineeProgramActions;
 
   return withLoading({
     isLoading,
