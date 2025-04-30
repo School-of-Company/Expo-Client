@@ -34,6 +34,12 @@ export const usePostApplication = (
     onSuccess: (response, variables) => {
       toast.success(success);
 
+      const isStandardOnsiteTemporary =
+        formType === 'application' &&
+        userType === 'STANDARD' &&
+        applicationType === 'onsite' &&
+        (!('phoneNumber' in variables) || !variables.phoneNumber);
+
       if (
         formType === 'application' &&
         userType === 'STANDARD' &&
@@ -57,9 +63,12 @@ export const usePostApplication = (
 
         printBadge(badgeData);
       }
-      router.push(
-        `/application-success/${params}?userType=${userType}?formType=${formType}`,
-      );
+
+      if (!isStandardOnsiteTemporary) {
+        router.push(
+          `/application-success/${params}?userType=${userType}&formType=${formType}`,
+        );
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message);

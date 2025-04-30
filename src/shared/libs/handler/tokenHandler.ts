@@ -14,9 +14,16 @@ export async function tokenHandleRequest(
   const cookieStore = cookies();
   const refreshToken = cookieStore.get('refreshToken')?.value;
 
+  const skipAuthRedirect = req.headers.get('x-skip-auth-redirect') === 'true';
+
   if (!refreshToken) {
     const res = NextResponse.json(
-      { error: 'Refresh token 없음', status: 401, isRefreshError: true },
+      {
+        error: 'Refresh token 없음',
+        status: 401,
+        isRefreshError: true,
+        skipAuthRedirect,
+      },
       { status: 401 },
     );
     return deleteAuthCookies(res);
@@ -38,17 +45,22 @@ export async function tokenHandleRequest(
     return await doRequest(existingToken);
   } catch (err) {
     const axiosErr = err as AxiosError;
-    console.log(axiosErr);
 
     if (axiosErr.response?.status === 401) {
       const newTokens = await performTokenRefresh(refreshToken);
       if (!newTokens) {
         const res = NextResponse.json(
-          { error: '토큰 갱신 실패', status: 401, isRefreshError: true },
+          {
+            error: '토큰 갱신 실패',
+            status: 401,
+            isRefreshError: true,
+            skipAuthRedirect,
+          },
           { status: 401 },
         );
         return deleteAuthCookies(res);
       }
+
       try {
         return await doRequest(newTokens.accessToken);
       } catch (err) {
@@ -62,6 +74,7 @@ export async function tokenHandleRequest(
             error: '토큰 재발급 후 재시도 실패',
             status: 401,
             isRefreshError: true,
+            skipAuthRedirect,
           },
           { status: 401 },
         );

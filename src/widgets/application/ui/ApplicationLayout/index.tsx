@@ -28,7 +28,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
     | 'onsite';
   const phoneNumber = searchParams.get('phoneNumber');
 
-  const { register, handleSubmit, watch, setValue } =
+  const { register, handleSubmit, watch, setValue, reset } =
     useForm<ApplicationFormValues>();
 
   const { data: formList, isLoading } = useGetForm(
@@ -75,7 +75,11 @@ const ApplicationLayout = ({ params }: { params: string }) => {
       privacyConsent,
     } as DynamicFormValues & { privacyConsent: boolean });
 
-    PostApplication(formattedData);
+    PostApplication(formattedData, {
+      onSuccess: () => {
+        reset();
+      },
+    });
   };
 
   return withLoading({
