@@ -16,6 +16,7 @@ const TanstackProviders = ({ children }: { children: React.ReactNode }) => {
           queries: {
             staleTime: 60 * 1000,
             gcTime: 60 * 5000,
+            retry: 1,
           },
         },
         queryCache: new QueryCache({

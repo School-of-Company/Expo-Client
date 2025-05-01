@@ -16,11 +16,14 @@ export async function refreshAccessToken(
       refreshTokenExpiresIn,
     } = response.data;
 
+    const accessTokenExpires = new Date(accessTokenExpiresIn + 'Z');
+    const refreshTokenExpires = new Date(refreshTokenExpiresIn + 'Z');
+
     setAuthCookies({
       accessToken,
       refreshToken: newRefreshToken,
-      accessTokenExpires: new Date(accessTokenExpiresIn),
-      refreshTokenExpires: new Date(refreshTokenExpiresIn),
+      accessTokenExpires,
+      refreshTokenExpires,
     });
 
     return { accessToken, refreshToken: newRefreshToken };
