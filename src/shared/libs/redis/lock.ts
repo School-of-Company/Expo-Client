@@ -1,10 +1,11 @@
-import type { Lock, default as RedlockType } from 'redlock';
+import type { Lock } from 'redlock';
 
-let redlock: RedlockType;
-let Redlock: typeof RedlockType;
+let redlock: InstanceType<typeof Redlock>;
+let Redlock: typeof import('redlock').default;
 
 if (typeof window === 'undefined') {
-  Redlock = require('redlock');
+  const redlockModule = require('redlock');
+  Redlock = redlockModule.default;
   const { redis } = require('./redis');
   redlock = new Redlock([redis], {
     driftFactor: 0.01,
