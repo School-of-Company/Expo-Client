@@ -1,6 +1,6 @@
 export const selectOptionCategories = [
-  { value: 'TRAINEE', label: '연수자' },
   { value: 'STANDARD', label: '참가자' },
+  { value: 'TRAINEE', label: '연수자' },
 ];
 
 export const category = (selectOption: string) => {

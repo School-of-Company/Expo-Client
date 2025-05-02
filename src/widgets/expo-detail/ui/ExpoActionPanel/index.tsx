@@ -37,7 +37,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
             <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
               <Button
                 onClick={() =>
-                  router.push(`/expo-manage/${params}?page=1&userType=TRAINEE`)
+                  router.push(`/expo-manage/${params}?page=1&userType=STANDARD`)
                 }
                 variant="white"
               >
