@@ -38,7 +38,6 @@ export async function tokenHandleRequest(
     return await doRequest(existingToken);
   } catch (err) {
     const axiosErr = err as AxiosError;
-    console.log(axiosErr);
 
     if (axiosErr.response?.status === 401) {
       const newTokens = await performTokenRefresh(refreshToken);

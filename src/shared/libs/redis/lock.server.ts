@@ -1,5 +1,5 @@
 import Redlock, { Lock } from 'redlock';
-import { redis } from './redis';
+import { redis } from './redis.server';
 
 export const redlock = new Redlock([redis], {
   driftFactor: 0.01,
