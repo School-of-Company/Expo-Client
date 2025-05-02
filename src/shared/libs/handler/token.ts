@@ -1,5 +1,5 @@
-import { redlock, RedlockLock } from '@/shared/libs/redis/lock';
-import { redis } from '@/shared/libs/redis/redis';
+import { redlock, RedlockLock } from '@/shared/libs/redis/lock.server';
+import { redis } from '@/shared/libs/redis/redis.server';
 import { refreshAccessToken } from './refreshAccessToken';
 
 export interface RefreshTokenResult {
