@@ -42,7 +42,7 @@ const AdminPageWrapper = () => {
               <TableForm
                 categories={requestSignUpCategories}
                 data={requestSignUp}
-                maxHeight="270px"
+                maxHeight="414px"
                 footerType="check"
                 text="요청"
                 actions={checkSignupActions}

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import clientInstance from '@/shared/libs/http/clientInstance';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import {
   FormattedApplicationData,
   FormattedSurveyData,
@@ -32,23 +33,43 @@ export const postApplication = async (
       ? (`${userType}_${applicationType}` as keyof typeof URL_MAP.application)
       : userType;
 
-  if (
+  const isStandardOnsiteTemporary =
     formType === 'application' &&
     userType === 'STANDARD' &&
     applicationType === 'onsite' &&
-    (!('phoneNumber' in data) || !data.phoneNumber)
-  ) {
+    (!('phoneNumber' in data) || !data.phoneNumber);
+
+  if (isStandardOnsiteTemporary) {
     key = 'STANDARD_onsite_temporary';
   }
 
   const url = `${baseUrl[key] || '/api/application/'}${params}`;
+  const instance = isStandardOnsiteTemporary
+    ? clientTokenInstance
+    : clientInstance;
+
   try {
-    const response = await clientInstance.post(url, data);
+    const response = await instance.post(url, data, {
+      ...(isStandardOnsiteTemporary && { skipAuthRedirect: true }),
+      headers: {
+        ...(isStandardOnsiteTemporary && { 'x-skip-auth-redirect': 'true' }),
+      },
+    });
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '폼 신청 실패');
+    if (
+      isStandardOnsiteTemporary &&
+      axios.isAxiosError(error) &&
+      error.response?.status === 401 &&
+      error.response.data?.isRefreshError
+    ) {
+      throw new Error('전화번호가 없다면 관리자에게 문의해주세요.');
     }
+
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || '폼 등록 실패');
+    }
+
     throw error;
   }
 };

@@ -21,12 +21,12 @@ export interface StandardProgram {
 }
 
 export interface PatchStandardProgramData {
-  id: string;
+  programId: string;
   participantId: number;
   phoneNumber: string;
 }
 
 export interface PatchTrainingProgramData {
-  id: string;
+  programId: string;
   traineeId: number;
 }

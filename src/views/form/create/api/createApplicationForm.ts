@@ -14,7 +14,7 @@ export const createApplicationForm = async ({
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '박람회 신청 폼 생성 실패');
+      throw new Error(error.response.data.error || '박람회 등록 폼 생성 실패');
     }
     throw error;
   }

@@ -22,7 +22,7 @@ export const usePostApplication = (
       };
     }
     return {
-      success: '박람회 신청이 완료되었습니다.',
+      success: '박람회 등록이 완료되었습니다.',
     };
   };
 
@@ -33,6 +33,12 @@ export const usePostApplication = (
       postApplication(params, formType, userType, applicationType, data),
     onSuccess: (response, variables) => {
       toast.success(success);
+
+      const isStandardOnsiteTemporary =
+        formType === 'application' &&
+        userType === 'STANDARD' &&
+        applicationType === 'onsite' &&
+        (!('phoneNumber' in variables) || !variables.phoneNumber);
 
       if (
         formType === 'application' &&
@@ -57,9 +63,12 @@ export const usePostApplication = (
 
         printBadge(badgeData);
       }
-      router.push(
-        `/application-success/${params}?userType=${userType}?formType=${formType}`,
-      );
+
+      if (!isStandardOnsiteTemporary) {
+        router.push(
+          `/application-success/${params}?userType=${userType}&formType=${formType}`,
+        );
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message);

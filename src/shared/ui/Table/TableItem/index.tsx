@@ -23,9 +23,9 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
     if (typeof value === 'boolean') {
       return value ? 'O' : 'X';
     } else if (value === 'PRE') {
-      return '사전 신청';
+      return '사전 등록';
     } else if (value === 'FIELD') {
-      return '현장 신청';
+      return '현장 등록';
     }
     return typeof value === 'string' ? value : JSON.stringify(value);
   };

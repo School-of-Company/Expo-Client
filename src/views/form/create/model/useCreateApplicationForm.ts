@@ -16,7 +16,7 @@ export const useCreateApplicationForm = (
     mutationFn: (formattedData: CreateFormRequest) =>
       createApplicationForm({ data: formattedData, id }),
     onSuccess: () => {
-      toast.success('신청 폼이 생성되었습니다.');
+      toast.success('박람회 등록 폼이 생성되었습니다.');
       router.push(`/expo-detail/${id}`);
       queryClient.resetQueries({
         queryKey: ['createApplicationForm', id, type],

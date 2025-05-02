@@ -17,7 +17,7 @@ export const useEditApplicationForm = (
     mutationFn: (formattedData: CreateFormRequest) =>
       editApplicationForm({ data: formattedData, id }),
     onSuccess: () => {
-      toast.success('신청 폼이 수정되었습니다.');
+      toast.success('박람회 등록 폼이 수정되었습니다.');
       queryClient.invalidateQueries({
         queryKey: ['getApplicationForm', id, type],
       });
