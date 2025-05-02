@@ -31,13 +31,14 @@ const ApplicationLayout = ({ params }: { params: string }) => {
   const { register, handleSubmit, watch, setValue, reset } =
     useForm<ApplicationFormValues>();
 
-  const { data: formList, isLoading } = useGetForm(
-    params,
-    userType,
-    formType,
-  ) as {
+  const {
+    data: formList,
+    isLoading,
+    error,
+  } = useGetForm(params, userType, formType) as {
     data: ApplicationForm | undefined;
     isLoading: boolean;
+    error: Error | null;
   };
 
   const { mutate: PostApplication, isPending } = usePostApplication(
@@ -81,6 +82,14 @@ const ApplicationLayout = ({ params }: { params: string }) => {
       },
     });
   };
+
+  if (error) {
+    return (
+      <div className="flex w-full max-w-[816px] flex-1 items-center justify-center text-body1r text-gray-500 mobile:text-body2r">
+        2025년 5월 8일(목)부터 사전등록이 가능합니다
+      </div>
+    );
+  }
 
   return withLoading({
     isLoading,
