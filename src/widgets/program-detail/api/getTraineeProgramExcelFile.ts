@@ -1,9 +1,9 @@
 import { toast } from 'react-toastify';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
-export const getTraineeProgramExcelFile = async (id: string) => {
+export const getTraineeProgramExcelFile = async (expoId: string) => {
   try {
-    const response = await clientTokenInstance.get(`/excel/${id}`, {
+    const response = await clientTokenInstance.get(`/excel/${expoId}`, {
       headers: {
         'X-File-Download': 'true',
       },
