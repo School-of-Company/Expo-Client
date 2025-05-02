@@ -5,6 +5,7 @@ import { ShowLocation } from '@/entities/expo-detail';
 import ContentListText from '@/entities/expo-detail/ui/ContentListText';
 import ContentText from '@/entities/expo-detail/ui/ContentText';
 import KakaoMap from '@/entities/expo-detail/ui/KaKaoMap';
+import TestExpo from '@/shared/assets/png/TestExpo.png';
 import { Share } from '@/shared/assets/svg';
 import {
   ExpoDetail,
@@ -45,7 +46,7 @@ const ExpoDetailLayout = ({
       <div className="w-full space-y-36">
         <div className="relative h-[360px] w-full">
           <Image
-            src={expoDetail.coverImage}
+            src={expoDetail.coverImage || TestExpo}
             alt="expoImage"
             fill
             className="rounded-md object-cover"

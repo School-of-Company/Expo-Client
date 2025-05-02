@@ -3,12 +3,12 @@ import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { PatchTrainingProgramData } from '@/shared/types/program-detail/type';
 
 export const patchTrainingAttendance = async ({
-  id,
+  programId,
   traineeId,
 }: PatchTrainingProgramData) => {
   try {
     const response = await clientTokenInstance.patch(
-      `/attendance/training/${id}`,
+      `/attendance/training/${programId}`,
       {
         traineeId,
       },

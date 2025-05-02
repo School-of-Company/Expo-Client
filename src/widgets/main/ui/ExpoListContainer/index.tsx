@@ -1,4 +1,3 @@
-// src/components/ExpoListContainer.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -42,7 +41,7 @@ const ExpoListContainer = () => {
     children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col overflow-auto">
         <div className="mb-[30px] flex justify-between">
-          <p className="text-h1m text-black">박람회 신청</p>
+          <p className="text-h1m text-black">박람회 조회</p>
           <FormFilter
             options={filterOptions}
             selectedOption={selectedFilter}

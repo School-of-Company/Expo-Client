@@ -10,19 +10,19 @@ export const getHeaderTitle = (
   if (formType === 'application') {
     if (userType === 'STANDARD') {
       return applicationType === 'register'
-        ? '사전 참가자 박람회 신청'
-        : '현장 참가자 박람회 신청';
+        ? '사전 참가자 박람회 등록'
+        : '현장 참가자 박람회 등록';
     }
     if (userType === 'TRAINEE') {
       return applicationType === 'register'
-        ? '사전 연수자 박람회 신청'
-        : '현장 연수자 박람회 신청';
+        ? '사전 연수자 박람회 등록'
+        : '현장 연수자 박람회 등록';
     }
   }
 
   if (formType === 'survey') {
-    if (userType === 'STANDARD') return '참가자 만족도 조사 신청';
-    if (userType === 'TRAINEE') return '연수자 만족도 조사 신청';
+    if (userType === 'STANDARD') return '참가자 만족도 조사 제출';
+    if (userType === 'TRAINEE') return '연수자 만족도 조사 제출';
   }
 
   return '';

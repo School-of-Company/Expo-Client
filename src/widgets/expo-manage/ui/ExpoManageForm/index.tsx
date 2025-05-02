@@ -22,7 +22,7 @@ const ExpoManageForm = ({ id }: { id: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
-  const userType = searchParams.get('userType') || 'TRAINEE';
+  const userType = searchParams.get('userType') || 'STANDARD';
 
   const isTrainee = userType === 'TRAINEE';
 

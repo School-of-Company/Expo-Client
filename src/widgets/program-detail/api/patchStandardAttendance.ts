@@ -3,13 +3,13 @@ import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { PatchStandardProgramData } from '@/shared/types/program-detail/type';
 
 export const patchStandardAttendance = async ({
-  id,
+  programId,
   participantId,
   phoneNumber,
 }: PatchStandardProgramData) => {
   try {
     const response = await clientTokenInstance.patch(
-      `/attendance/standard/${id}`,
+      `/attendance/standard/${programId}`,
       {
         participantId,
         phoneNumber,

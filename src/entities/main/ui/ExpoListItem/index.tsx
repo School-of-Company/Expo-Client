@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
+import TestImg from '@/shared/assets/png/TestExpo.png';
 
 interface Props {
   id: number;
@@ -34,7 +35,7 @@ const ExpoListItem = ({
         style={{ width: 110, height: 110 }}
       >
         <Image
-          src={coverImage}
+          src={coverImage || TestImg}
           alt="이미지 설명"
           width={110}
           height={110}

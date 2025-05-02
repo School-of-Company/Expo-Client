@@ -28,7 +28,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
     | 'onsite';
   const phoneNumber = searchParams.get('phoneNumber');
 
-  const { register, handleSubmit, watch, setValue } =
+  const { register, handleSubmit, watch, setValue, reset } =
     useForm<ApplicationFormValues>();
 
   const {
@@ -76,7 +76,11 @@ const ApplicationLayout = ({ params }: { params: string }) => {
       privacyConsent,
     } as DynamicFormValues & { privacyConsent: boolean });
 
-    PostApplication(formattedData);
+    PostApplication(formattedData, {
+      onSuccess: () => {
+        reset();
+      },
+    });
   };
 
   if (error) {
@@ -176,7 +180,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
             setValue={setValue}
           />
           <Button disabled={isPending} type="submit">
-            신청하기
+            등록하기
           </Button>
         </div>
       </form>

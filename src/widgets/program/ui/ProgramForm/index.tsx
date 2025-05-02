@@ -8,13 +8,13 @@ import { TableForm } from '@/shared/ui/Table';
 import { standardCategories, trainingCategories } from '../../model/category';
 import { useProgramQueries } from '../../model/useProgramData';
 
-const ProgramForm = ({ id }: { id: string }) => {
+const ProgramForm = ({ expoId }: { expoId: string }) => {
   const searchParams = useSearchParams();
   const navigation = searchParams.get('navigation') || 'standard';
 
   const router = useRouter();
 
-  const { programQueries, isLoading } = useProgramQueries(id, navigation);
+  const { programQueries, isLoading } = useProgramQueries(expoId, navigation);
 
   const requestPrintCategories = useMemo(() => {
     return navigation === 'training' ? trainingCategories : standardCategories;
@@ -23,8 +23,10 @@ const ProgramForm = ({ id }: { id: string }) => {
   const programData = programQueries.data || [];
 
   const routeActions = {
-    RouteActions: (id: number) => {
-      router.push(`/program/detail/${id}?navigation=${navigation}`);
+    RouteActions: (programId: number) => {
+      router.push(
+        `/program/${expoId}/detail/${programId}?navigation=${navigation}`,
+      );
     },
   };
 
