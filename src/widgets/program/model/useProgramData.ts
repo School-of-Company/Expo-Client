@@ -1,11 +1,11 @@
 import { useStandardProgram } from '@/shared/queries/useStandardProgram';
 import { useTrainingProgram } from '@/shared/queries/useTrainingProgramQuery';
 
-export const useProgramQueries = (id: string, navigation: string) => {
-  const trainingProgramQueries = useTrainingProgram(id);
+export const useProgramQueries = (expoId: string, navigation: string) => {
+  const trainingProgramQueries = useTrainingProgram(expoId);
 
   const standardProgramQueries = useStandardProgram(
-    id,
+    expoId,
     navigation === 'standard',
   );
 
