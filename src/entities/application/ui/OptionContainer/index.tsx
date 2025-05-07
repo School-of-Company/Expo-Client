@@ -3,6 +3,7 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
+import { slugify } from '@/shared/model/slugify';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import ApplicationPhoneOption from '../ApplicationPhoneOption';
 import CheckBoxOption from '../CheckBoxOption';
@@ -37,6 +38,8 @@ const OptionContainer = ({
   readOnly = false,
   defaultValue = '',
 }: OptionContainerProps) => {
+  const safeName = slugify(title);
+
   const options = jsonData
     ? typeof jsonData === 'string'
       ? Object.entries(JSON.parse(jsonData)).map(([key, value]) => ({
@@ -55,8 +58,8 @@ const OptionContainer = ({
       inputComponent = (
         <SentenceOption
           register={register}
-          name={title}
-          maxLength={20}
+          name={safeName}
+          maxLength={500}
           row={1}
           required={requiredStatus}
           type={type}
@@ -70,10 +73,9 @@ const OptionContainer = ({
         <CheckBoxOption
           options={options}
           register={register}
-          name={title}
+          name={safeName}
           required={requiredStatus}
           otherJson={otherJson}
-          watch={watch}
         />
       );
       break;
@@ -82,10 +84,9 @@ const OptionContainer = ({
         <MultipleOption
           options={options}
           register={register}
-          name={title}
+          name={safeName}
           required={requiredStatus}
           otherJson={otherJson}
-          watch={watch}
         />
       );
       break;
@@ -94,7 +95,7 @@ const OptionContainer = ({
         <DropDownOption
           options={options}
           register={register}
-          name={title}
+          name={safeName}
           required={requiredStatus}
           setValue={setValue}
         />
@@ -104,7 +105,7 @@ const OptionContainer = ({
       inputComponent = (
         <ApplicationPhoneOption
           register={register}
-          name={title}
+          name={safeName}
           maxLength={20}
           row={1}
           required={requiredStatus}

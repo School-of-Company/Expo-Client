@@ -1,3 +1,4 @@
+import { slugify } from '@/shared/model/slugify';
 import {
   DynamicFormItem,
   DynamicFormValues,
@@ -12,14 +13,17 @@ export const createStandardApplicationFormatter = (
   return (
     data: DynamicFormValues & { privacyConsent: boolean },
   ): FormattedApplicationData => {
-    const name = String(data['이름을 입력하세요'] || '');
+    const nameKey = slugify('이름을 입력하세요');
+    const phoneNumberKey = slugify('휴대폰 번호를 입력하세요');
+
+    const name = String(data[nameKey] || '');
 
     const phoneNumberStatus = data['phoneNumberStatus'];
     const includePhoneNumber =
       applicationType !== 'onsite' || phoneNumberStatus === 'true';
 
     const phoneNumber = includePhoneNumber
-      ? String(data['휴대폰 번호를 입력하세요'] || '')
+      ? String(data[phoneNumberKey] || '')
       : '';
 
     const informationJson = JSON.stringify(

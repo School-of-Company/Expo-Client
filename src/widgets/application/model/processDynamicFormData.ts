@@ -1,3 +1,4 @@
+import { slugify } from '@/shared/model/slugify';
 import {
   DynamicFormItem,
   DynamicFormValues,
@@ -9,8 +10,9 @@ export const processDynamicFormData = (
   dynamicFormItems: DynamicFormItem[],
 ): Record<string, string> => {
   return dynamicFormItems.reduce<Record<string, string>>((acc, form) => {
-    const value = data[form.title];
-    acc[form.title] = processFormField(form.title, value, form.formType, data);
+    const slug = slugify(form.title);
+    const value = data[slug];
+    acc[form.title] = processFormField(form.title, value, form.formType);
     return acc;
   }, {});
 };
