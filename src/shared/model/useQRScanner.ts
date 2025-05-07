@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { QrScanData } from '../types/common/QrScanData';
 
 export const useQRScanner = (
   setScannedQR: React.Dispatch<React.SetStateAction<QrScanData | null>>,
 ) => {
-  const [buffer, setBuffer] = useState<string>('');
-  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const bufferRef = useRef<string>('');
+  const isScanningRef = useRef<boolean>(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleQRScan = useCallback(
     (cleanData: string) => {
@@ -22,32 +23,47 @@ export const useQRScanner = (
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!isScanning) {
-        setIsScanning(true);
-        setBuffer('');
+      if (event.key.length !== 1 && event.key !== 'Enter') return;
+
+      if (!isScanningRef.current) {
+        isScanningRef.current = true;
+        bufferRef.current = '';
       }
 
       if (event.key === 'Enter') {
-        const cleanData = buffer.replace(/Shift/g, '');
-
-        if (!/^[a-zA-Z0-9{}":,._[\]\s-]+$/.test(cleanData)) {
-          toast.warn('입력 언어를 영어로 변경해주세요.');
-          setBuffer('');
-          setIsScanning(false);
-          return;
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
         }
 
-        handleQRScan(cleanData);
-        setBuffer('');
-        setIsScanning(false);
-      } else {
-        setBuffer((prev) => prev + event.key);
+        const cleanData = bufferRef.current;
+
+        if (cleanData.length < 5) {
+          toast.warn('QR 코드 인식 실패: 데이터가 너무 짧습니다.');
+        } else if (!/^[a-zA-Z0-9{}":,._[\]\s-]+$/.test(cleanData)) {
+          toast.warn('입력 언어를 영어로 변경해주세요.');
+        } else {
+          handleQRScan(cleanData);
+        }
+
+        bufferRef.current = '';
+        isScanningRef.current = false;
+        return;
       }
+
+      bufferRef.current += event.key;
+
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        bufferRef.current = '';
+        isScanningRef.current = false;
+      }, 300);
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [buffer, isScanning, handleQRScan]);
+  }, [handleQRScan]);
 };
