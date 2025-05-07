@@ -75,6 +75,7 @@ const ProgramDetailForm = ({
           footerType="file"
           text="인원 수"
           actions={filteActions}
+          selectItemBoolean={false}
         />
       </div>
     ),

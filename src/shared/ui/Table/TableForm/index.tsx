@@ -34,7 +34,10 @@ const TableForm = <T extends { id: number }>({
       <div className="space-y-[30px] overflow-x-auto border-b-1 border-solid border-gray-100 pb-6">
         <div className="min-w-[800px]">
           <TableHeader categories={categories} />
-          <div className="space-y-20 overflow-y-auto" style={{ maxHeight }}>
+          <div
+            className="space-y-20 overflow-y-auto pt-6"
+            style={{ maxHeight }}
+          >
             {data.map((item, index) => (
               <TableItem
                 state={selectItem}
