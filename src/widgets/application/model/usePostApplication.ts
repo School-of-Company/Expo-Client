@@ -46,11 +46,13 @@ export const usePostApplication = (
         applicationType === 'onsite' &&
         response &&
         response.participantId &&
-        response.phoneNumber
+        response.phoneNumber &&
+        response.expoId
       ) {
         const qrPayload = {
           participantId: response.participantId,
           phoneNumber: response.phoneNumber,
+          expoId: response.expoId,
         };
 
         const name = 'name' in variables ? variables.name : '이름 없음';
