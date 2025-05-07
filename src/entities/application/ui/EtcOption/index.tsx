@@ -1,11 +1,10 @@
 import React from 'react';
-import { UseFormRegister, UseFormWatch } from 'react-hook-form';
+import { UseFormRegister } from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 
 interface Props {
   type: 'radio' | 'checkbox';
   register: UseFormRegister<ApplicationFormValues>;
-  watch: UseFormWatch<ApplicationFormValues>;
   name: string;
 }
 
