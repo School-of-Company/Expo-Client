@@ -76,7 +76,6 @@ const OptionContainer = ({
           name={safeName}
           required={requiredStatus}
           otherJson={otherJson}
-          watch={watch}
         />
       );
       break;
@@ -88,7 +87,6 @@ const OptionContainer = ({
           name={safeName}
           required={requiredStatus}
           otherJson={otherJson}
-          watch={watch}
         />
       );
       break;
