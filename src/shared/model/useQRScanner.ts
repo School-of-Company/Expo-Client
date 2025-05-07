@@ -7,7 +7,7 @@ export const useQRScanner = (
 ) => {
   const bufferRef = useRef<string>('');
   const isScanningRef = useRef<boolean>(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleQRScan = useCallback(
     (cleanData: string) => {
@@ -31,6 +31,11 @@ export const useQRScanner = (
       }
 
       if (event.key === 'Enter') {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+
         const cleanData = bufferRef.current;
 
         if (cleanData.length < 5) {
