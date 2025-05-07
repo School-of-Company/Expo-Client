@@ -12,7 +12,7 @@ const SuccessCheck = () => {
   return (
     <div className="flex flex-col items-center gap-32">
       <ApplicationSuccessLogo className="mobile:h-[160px] mobile:w-[160px]" />
-      <p className="text-h1m text-main-600 mobile:text-body1b">
+      <p className="text-center text-h1m text-main-600 mobile:text-body1b">
         {getSuccessMessage(userType, formType)}
       </p>
     </div>
