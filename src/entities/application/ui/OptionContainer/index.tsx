@@ -59,7 +59,7 @@ const OptionContainer = ({
         <SentenceOption
           register={register}
           name={safeName}
-          maxLength={20}
+          maxLength={500}
           row={1}
           required={requiredStatus}
           type={type}

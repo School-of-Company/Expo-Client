@@ -1,3 +1,4 @@
+import { slugify } from '@/shared/model/slugify';
 import {
   DynamicFormItem,
   DynamicFormValues,
@@ -11,9 +12,9 @@ export const createTraineeApplicationFormatter = (
   return (
     data: DynamicFormValues & { privacyConsent: boolean },
   ): FormattedApplicationData => ({
-    name: String(data['이름을 입력하세요'] || ''),
-    phoneNumber: String(data['휴대폰 번호를 입력하세요'] || ''),
-    trainingId: String(data['연수원 아이디를 입력하세요'] || ''),
+    name: String(data[slugify('이름을 입력하세요')] || ''),
+    phoneNumber: String(data[slugify('휴대폰 번호를 입력하세요')] || ''),
+    trainingId: String(data[slugify('연수원 아이디를 입력하세요')] || ''),
     informationJson: JSON.stringify(
       processDynamicFormData(data, dynamicFormItems),
     ),
