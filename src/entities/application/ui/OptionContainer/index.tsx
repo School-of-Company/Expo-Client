@@ -23,6 +23,7 @@ interface OptionContainerProps {
   setValue: UseFormSetValue<ApplicationFormValues>;
   readOnly?: boolean;
   defaultValue?: string;
+  warningMessage?: string | null;
 }
 
 const OptionContainer = ({
@@ -37,6 +38,7 @@ const OptionContainer = ({
   setValue,
   readOnly = false,
   defaultValue = '',
+  warningMessage,
 }: OptionContainerProps) => {
   const safeName = slugify(title);
 
@@ -65,6 +67,7 @@ const OptionContainer = ({
           type={type}
           readOnly={readOnly}
           defaultValue={defaultValue}
+          warningMessage={warningMessage}
         />
       );
       break;
@@ -112,6 +115,7 @@ const OptionContainer = ({
           watch={watch}
           setValue={setValue}
           type={type}
+          warningMessage={warningMessage}
         />
       );
       break;

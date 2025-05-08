@@ -11,6 +11,7 @@ interface Props {
   type?: string;
   readOnly?: boolean;
   defaultValue?: string;
+  warningMessage?: string | null;
 }
 
 export default function SentenceOption({
@@ -22,6 +23,7 @@ export default function SentenceOption({
   type,
   readOnly = false,
   defaultValue = '',
+  warningMessage,
 }: Props) {
   const { ref, onChange, ...rest } = register(name, {
     required: required ? '필수 옵션을 작성해주세요' : false,
@@ -75,6 +77,9 @@ export default function SentenceOption({
         />
       </div>
       <hr className="border-gray-100" />
+      <p className="whitespace-pre-line text-body2r text-error mobile:text-caption2r">
+        {warningMessage}
+      </p>
     </div>
   );
 }
