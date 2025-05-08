@@ -16,6 +16,7 @@ import {
 import { Button, DetailHeader } from '@/shared/ui';
 import { getFormatter } from '../../model/formatterService';
 import { getHeaderTitle } from '../../model/getHeaderTitle';
+import { getWarningMessage } from '../../model/getWarningMessage';
 import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
 
@@ -132,6 +133,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 register={register}
                 watch={watch}
                 setValue={setValue}
+                warningMessage={getWarningMessage(formType, applicationType)}
               />
             ) : (
               <OptionContainer
@@ -145,6 +147,7 @@ const ApplicationLayout = ({ params }: { params: string }) => {
                 setValue={setValue}
                 readOnly={formType === 'survey' && !!phoneNumber}
                 defaultValue={phoneNumber ?? ''}
+                warningMessage={getWarningMessage(formType, applicationType)}
               />
             )}
 

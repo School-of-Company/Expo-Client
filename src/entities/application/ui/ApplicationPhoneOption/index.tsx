@@ -15,6 +15,7 @@ interface Props {
   type: string;
   setValue: UseFormSetValue<ApplicationFormValues>;
   watch: UseFormWatch<ApplicationFormValues>;
+  warningMessage?: string | null;
 }
 
 export default function ApplicationPhoneOption({
@@ -26,6 +27,7 @@ export default function ApplicationPhoneOption({
   type,
   setValue,
   watch,
+  warningMessage,
 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const phoneNumberStatus = watch('phoneNumberStatus');
@@ -105,6 +107,9 @@ export default function ApplicationPhoneOption({
           <hr className="border-gray-100" />
         </div>
       )}
+      <p className="whitespace-pre-line text-body2r text-error mobile:text-caption2r">
+        {warningMessage}
+      </p>
     </div>
   );
 }
