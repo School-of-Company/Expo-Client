@@ -30,9 +30,5 @@ export const useCheckActions = () => {
   return {
     approveSignup: approveSignup.mutateAsync,
     rejectSignup: rejectSignup.mutateAsync,
-    isApproving: approveSignup.isPending,
-    isApproved: approveSignup.isSuccess,
-    isRejecting: rejectSignup.isPending,
-    isRejected: rejectSignup.isSuccess,
   };
 };
