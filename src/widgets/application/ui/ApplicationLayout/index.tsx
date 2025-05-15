@@ -7,6 +7,7 @@ import { PrivacyConsent } from '@/entities/application';
 import OptionContainer from '@/entities/application/ui/OptionContainer';
 import withLoading from '@/shared/hocs/withLoading';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
+import { showError } from '@/shared/model/showError';
 import {
   ApplicationForm,
   ApplicationFormValues,
@@ -48,10 +49,6 @@ const ApplicationLayout = ({ params }: { params: string }) => {
     userType,
     applicationType,
   );
-
-  const showError = (message: string) => {
-    toast.error(message);
-  };
 
   const getDynamicFormData = (): DynamicFormItem[] => {
     return formList?.dynamicForm || formList?.dynamicSurveyResponseDto || [];

@@ -3,12 +3,11 @@
 import { format } from 'date-fns';
 import { usePathname } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
 import { ImageInput } from '@/entities/exhibition';
 import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
 import { Location } from '@/shared/assets/icons';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
-
+import { showError } from '@/shared/model/showError';
 import {
   ExhibitionFormData,
   MutationType,
@@ -49,10 +48,6 @@ const ExhibitionForm = ({
   };
 
   const { openAddressSearch } = useAddressSearch(setValue);
-
-  const showError = (message: string) => {
-    toast.error(message);
-  };
 
   const trainingFields = useFieldArray<ExhibitionFormData>({
     control,

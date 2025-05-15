@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import {
-  useDeleteUserAccount,
-  useLogout,
-} from '@/features/admin/account-management';
+import { useDeleteUserAccount } from '@/features/admin/account-management';
+import { useLogout } from '@/features/auth/logout';
 import { Logout } from '@/shared/assets/icons';
 import { AdminData } from '@/shared/types/admin/type';
 
