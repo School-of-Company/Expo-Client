@@ -1,6 +1,6 @@
 import { SignUpForm } from '@/widgets/signup';
 
-const SignUp = () => {
+const SignUpPage = () => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <div className="w-full max-w-[792px] p-16">
@@ -10,4 +10,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default SignUpPage;

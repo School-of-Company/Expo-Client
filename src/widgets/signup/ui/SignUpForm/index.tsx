@@ -9,13 +9,15 @@ import {
   PasswordInput,
   PhoneVerification,
 } from '@/entities/signup';
+import {
+  useCheckSmsCode,
+  useSendSms,
+  useSignup,
+  useTimer,
+} from '@/features/auth/signup';
 import { SignUpData } from '@/shared/types/signup/type';
 import { Button } from '@/shared/ui';
 import DetailHeader from '@/shared/ui/DetailHeader';
-import { useCheckSmsCode } from '../../model/useCheckSmsCode';
-import { useSendSms } from '../../model/useSendSms';
-import { useSignup } from '../../model/useSignup';
-import { useTimer } from '../../model/useTimer';
 
 const SignUpForm = () => {
   const {
@@ -28,16 +30,11 @@ const SignUpForm = () => {
   const [timer, setTimer] = useState(0);
   const [isSmsVerified, setIsSmsVerified] = useState(false);
 
-  const {
-    mutate: signup,
-    isPending: isSignupPending,
-    isSuccess: isSignupSucess,
-  } = useSignup();
+  const { mutate: signup, isPending, isSuccess } = useSignup();
   const { mutate: sendSms, isPending: isSendingSms } = useSendSms(
     setTimer,
     setIsSmsSent,
   );
-
   const { refetch: checkSmsCode, isPending: isCheckingCode } = useCheckSmsCode(
     watch('phoneNumber'),
     watch('code'),
@@ -75,7 +72,7 @@ const SignUpForm = () => {
         />
       </div>
       <div className="mt-[160px]">
-        <Button disabled={isSignupPending || isSignupSucess} type="submit">
+        <Button disabled={isPending || isSuccess} type="submit">
           확인
         </Button>
       </div>
