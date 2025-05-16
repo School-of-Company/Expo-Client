@@ -4,7 +4,7 @@ import {
   DynamicFormValues,
   FormattedApplicationData,
 } from '@/shared/types/application/type';
-import { processDynamicFormData } from './processDynamicFormData';
+import { processDynamicFormData } from '../process/processDynamicFormData';
 
 export const createStandardApplicationFormatter = (
   dynamicFormItems: DynamicFormItem[],

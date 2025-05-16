@@ -1,7 +1,7 @@
 import { DynamicFormItem } from '@/shared/types/application/type';
-import { createStandardApplicationFormatter } from './createStandardApplicationFormatter';
-import { createSurveyFormatter } from './createSurveyFormatter';
-import { createTraineeApplicationFormatter } from './createTraineeApplicationFormatter';
+import { createStandardApplicationFormatter } from './formatter/createStandardApplicationFormatter';
+import { createSurveyFormatter } from './formatter/createSurveyFormatter';
+import { createTraineeApplicationFormatter } from './formatter/createTraineeApplicationFormatter';
 
 export const getFormatter = (
   formType: 'application' | 'survey',

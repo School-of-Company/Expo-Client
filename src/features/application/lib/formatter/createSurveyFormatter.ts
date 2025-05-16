@@ -4,7 +4,7 @@ import {
   DynamicFormValues,
   FormattedSurveyData,
 } from '@/shared/types/application/type';
-import { processDynamicFormData } from './processDynamicFormData';
+import { processDynamicFormData } from '../process/processDynamicFormData';
 
 export const createSurveyFormatter = (
   dynamicFormItems: DynamicFormItem[],
