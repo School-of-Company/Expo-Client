@@ -1,4 +1,4 @@
-import { ApplicationSuccessPage } from '@/views/application-success';
+import { ApplicationSuccessPage } from '@/views/application/success';
 
 const page = () => {
   return <ApplicationSuccessPage />;

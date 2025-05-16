@@ -6,3 +6,4 @@ export { default as OptionContainer } from './ui/OptionContainer';
 export { default as PrivacyConsent } from './ui/PrivacyConsent';
 export { default as SentenceOption } from './ui/SentenceOption';
 export { default as PrivacyConsentModal } from './ui/PrivacyConsentModal';
+export { default as SuccessCheck } from './ui/SuccessCheck';

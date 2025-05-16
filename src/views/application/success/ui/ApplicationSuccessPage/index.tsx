@@ -1,4 +1,4 @@
-import { SuccessCheck } from '@/entities/application-success';
+import { SuccessCheck } from '@/entities/application';
 
 const ApplicationSuccessPage = () => {
   return (

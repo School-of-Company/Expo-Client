@@ -1,8 +1,8 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import { getSuccessMessage } from '@/features/application';
 import { ApplicationSuccessLogo } from '@/shared/assets/svg';
-import { getSuccessMessage } from '../../model/getSuccessMessage';
 
 const SuccessCheck = () => {
   const searchParams = useSearchParams();

@@ -1,4 +1,4 @@
-import { ApplicationPage } from '@/views/application';
+import { ApplicationPage } from '@/views/application/form';
 
 const page = ({ params }: { params: { id: string } }) => {
   return <ApplicationPage params={params.id} />;
