@@ -4,11 +4,10 @@ import { useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { SendSmSData } from '@/shared/types/sms';
 import { Button, DetailHeader } from '@/shared/ui';
-
 import TextArea from '@/shared/ui/TextArea';
-import { useSendSMS } from '../../model/useSendSMS';
+import { useSendSMS } from '../model/useSendSMS';
 
-export default function Write() {
+const WriteSMSForm = () => {
   const { id, authority } = useParams<{
     id: string;
     authority: 'STANDARD' | 'TRAINEE';
@@ -60,4 +59,5 @@ export default function Write() {
       </div>
     </form>
   );
-}
+};
+export default WriteSMSForm;

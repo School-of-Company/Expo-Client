@@ -1,1 +1,1 @@
-export { default as SMSContainer } from './ui/SMSContainer';
+export { default as SMSFormWrapper } from './ui/SMSFormWrapper';
