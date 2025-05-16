@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { CheckBoxIcon, CheckedBoxIcon } from '@/shared/assets/svg';
