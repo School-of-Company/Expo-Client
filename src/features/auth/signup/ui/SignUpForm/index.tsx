@@ -9,15 +9,14 @@ import {
   PasswordInput,
   PhoneVerification,
 } from '@/entities/signup';
-import {
-  useCheckSmsCode,
-  useSendSms,
-  useSignup,
-  useTimer,
-} from '@/features/auth/signup';
+
 import { SignUpData } from '@/shared/types/signup/type';
 import { Button } from '@/shared/ui';
 import DetailHeader from '@/shared/ui/DetailHeader';
+import { useTimer } from '../../lib/useTimer';
+import { useCheckSmsCode } from '../../model/useCheckSmsCode';
+import { useSendSms } from '../../model/useSendSms';
+import { useSignup } from '../../model/useSignup';
 
 const SignUpForm = () => {
   const {

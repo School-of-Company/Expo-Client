@@ -1,4 +1,4 @@
-import { ApplicationFormContainer } from '@/widgets/application/form';
+import { ApplicationFormContainer } from '@/features/application';
 
 const ApplicationPage = ({ params }: { params: string }) => {
   return (

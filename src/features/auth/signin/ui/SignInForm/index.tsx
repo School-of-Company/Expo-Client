@@ -3,9 +3,9 @@
 import React, { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { IdInput, PasswordInput } from '@/entities/signin';
-import { useSignin } from '@/features/auth/signin';
 import { SignInData } from '@/shared/types/signin/type';
 import Button from '@/shared/ui/Button';
+import { useSignin } from '../../model/useSignin';
 
 const SignInForm = () => {
   const {

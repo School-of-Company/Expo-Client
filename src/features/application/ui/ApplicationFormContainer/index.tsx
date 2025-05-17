@@ -5,13 +5,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import OptionContainer from '@/entities/application/ui/OptionContainer';
-import {
-  getFormatter,
-  getHeaderTitle,
-  getWarningMessage,
-  useGetForm,
-  usePostApplication,
-} from '@/features/application';
+
 import withLoading from '@/shared/hocs/withLoading';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { showError } from '@/shared/model/showError';
@@ -22,6 +16,11 @@ import {
   DynamicFormValues,
 } from '@/shared/types/application/type';
 import { Button, DetailHeader } from '@/shared/ui';
+import { getFormatter } from '../../lib/formatterService';
+import { getHeaderTitle } from '../../lib/getHeaderTitle';
+import { getWarningMessage } from '../../lib/getWarningMessage';
+import { useGetForm } from '../../model/useGetForm';
+import { usePostApplication } from '../../model/usePostApplication';
 
 const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();

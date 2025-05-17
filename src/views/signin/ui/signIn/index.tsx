@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { SignupPrompt } from '@/entities/signin';
-import { SignInForm } from '@/widgets/signin';
+import { SignInForm } from '@/features/auth/signin';
 
 const SignIn = () => {
   return (
