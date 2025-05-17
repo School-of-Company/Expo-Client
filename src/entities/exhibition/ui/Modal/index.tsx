@@ -7,7 +7,7 @@ import {
   SelectDateInput,
   SelectTimeInput,
 } from '@/shared/ui';
-import { handleDateChange } from '../../model/handleDateChange';
+import { handleDateChange } from '../../../../features/exhibition/lib/handleDateChange';
 
 const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
   const initialStarted = watch(`${fieldName}.${index}.startedAt`);

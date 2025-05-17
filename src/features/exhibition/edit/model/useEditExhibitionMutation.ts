@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
-import { handleEditExhibitionFormSubmit } from './handleEditExhibitionFormSubmit';
+import { handleEditExhibitionFormSubmit } from '../../lib/handleEditExhibitionFormSubmit';
 
 export const useEditExhibitionMutation = (id: string) => {
   const router = useRouter();

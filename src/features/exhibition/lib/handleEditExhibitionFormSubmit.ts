@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { generateUniqueId } from '@/entities/exhibition/model/generateUniqueId';
+import { generateUniqueId } from '@/features/exhibition/lib/generateUniqueId';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
-import { convertAddressToCoordinates } from '../../api/convertAddressToCoordinates';
-import { uploadImage } from '../../api/uploadImage';
-import { editExhibition } from '../api/editExhibition';
+import { convertAddressToCoordinates } from '../api/convertAddressToCoordinates';
+import { uploadImage } from '../api/uploadImage';
+import { editExhibition } from '../edit/api/editExhibition';
 
 export const handleEditExhibitionFormSubmit = async (
   data: ExhibitionFormData,
