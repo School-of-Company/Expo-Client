@@ -1,19 +1,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ExpoListItem } from '@/entities/main';
+import { EmptyExpoList, ExpoListItem, FormFilter } from '@/entities/exhibition';
 import withLoading from '@/shared/hocs/withLoading';
 import { useExpoList } from '@/shared/queries/useExpoList';
-import { ExpoItem, FilterOption } from '@/shared/types/main/type';
-import { FormStatusData } from '@/widgets/main/model/FormStatusData';
+import { ExpoItem, OptionType } from '@/shared/types/main/type';
 import { filterOptions } from '../../constant/filterOptions';
-import EmptyExpoList from '../EmptyExpoList';
-import FormFilter from '../FormFilter';
+import { FormStatusData } from '../../model/FormStatusData';
 
 const ExpoListContainer = () => {
   const { data: expoList, isLoading: isFetching } = useExpoList();
 
-  const [selectedFilter, setSelectedFilter] = useState<FilterOption>({
+  const [selectedFilter, setSelectedFilter] = useState<OptionType>({
     value: '필터',
     label: '필터',
     status: true,

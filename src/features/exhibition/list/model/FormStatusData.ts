@@ -1,5 +1,5 @@
-import clientTokenInstance from '../../../shared/libs/http/clientTokenInstance';
-import { ExpoItem } from '../../../shared/types/main/type';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
+import { ExpoItem } from '@/shared/types/admin/type';
 
 interface ExpoValidationItem {
   expoId: string;

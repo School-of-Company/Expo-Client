@@ -1,8 +1,7 @@
-import React from 'react';
+import { ExpoListContainer } from '@/features/exhibition/list';
 import { Header } from '@/widgets/layout';
-import { ExpoListContainer } from '@/widgets/main';
 
-const Main = () => {
+const ExhibitionListPage = () => {
   return (
     <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
@@ -13,4 +12,4 @@ const Main = () => {
   );
 };
 
-export default Main;
+export default ExhibitionListPage;

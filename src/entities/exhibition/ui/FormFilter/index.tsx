@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { OptionType } from '@/entities/main/model/types';
+
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
+import { OptionType } from '@/shared/types/main/type';
 
 interface formFilterProps {
   options: { name: string; options: OptionType[] }[];
