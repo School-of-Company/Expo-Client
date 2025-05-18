@@ -8,7 +8,7 @@ import { TableForm } from '@/shared/ui/Table';
 import { standardCategories, trainingCategories } from '../../model/category';
 import { useProgramQueries } from '../../model/useProgramData';
 
-const ProgramForm = ({ expoId }: { expoId: string }) => {
+const ProgramListTable = ({ expoId }: { expoId: string }) => {
   const searchParams = useSearchParams();
   const navigation = searchParams.get('navigation') || 'standard';
 
@@ -48,4 +48,4 @@ const ProgramForm = ({ expoId }: { expoId: string }) => {
   });
 };
 
-export default ProgramForm;
+export default ProgramListTable;
