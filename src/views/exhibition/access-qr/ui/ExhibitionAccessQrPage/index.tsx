@@ -1,11 +1,13 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import {
+  ExhibitionAccessQrContainer,
+  getHeaderTitleByUserType,
+} from '@/features/exhibition/access-qr';
 import { DetailHeader } from '@/shared/ui';
-import OnsiteQrContainer from '@/widgets/onsite-qr/ui/OnsiteQrContainer';
-import { getHeaderTitleByUserType } from '../../model/headerTitle';
 
-const OnsiteQrPage = ({ id }: { id: string }) => {
+const ExhibitionAccessQrPage = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const userType = searchParams.get('userType');
 
@@ -20,10 +22,10 @@ const OnsiteQrPage = ({ id }: { id: string }) => {
           headerTitle={getHeaderTitleByUserType(userType)}
           textCenter={true}
         />
-        <OnsiteQrContainer id={id} userType={userType} />
+        <ExhibitionAccessQrContainer id={id} userType={userType} />
       </div>
     </div>
   );
 };
 
-export default OnsiteQrPage;
+export default ExhibitionAccessQrPage;

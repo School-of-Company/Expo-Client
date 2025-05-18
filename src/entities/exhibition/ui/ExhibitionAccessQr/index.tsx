@@ -1,6 +1,12 @@
 import { QRCodeSVG } from 'qrcode.react';
 
-const OnstieQr = ({ id, userType }: { id: string; userType: string }) => {
+const ExhibitionAccessQr = ({
+  id,
+  userType,
+}: {
+  id: string;
+  userType: string;
+}) => {
   return (
     <QRCodeSVG
       className="h-[420px] w-[420px] tablet:h-[280px] tablet:w-[280px]"
@@ -9,4 +15,4 @@ const OnstieQr = ({ id, userType }: { id: string; userType: string }) => {
   );
 };
 
-export default OnstieQr;
+export default ExhibitionAccessQr;

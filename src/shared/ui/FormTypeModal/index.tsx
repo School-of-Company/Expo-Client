@@ -71,7 +71,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
           toast.error('URL 복사에 실패했습니다. 다시 시도해주세요.');
         });
     } else if (modalType === 'onsite') {
-      router.push(`/onsite-qr/${params}?userType=${type}`);
+      router.push(`/exhibition/access-qr/${params}?userType=${type}`);
     }
 
     onClose();
