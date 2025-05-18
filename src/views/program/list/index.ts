@@ -1,1 +1,1 @@
-export { default as ProgramListPage } from '../list/ui/ProgramListPage';
+export { default as ProgramListPage } from './ui/ProgramListPage';

@@ -13,7 +13,7 @@ import { useProgramDetailQueries } from '../../model/useProgramDetailData';
 import { useStandardAttendance } from '../../model/useStandardAttendance';
 import { useTrainingAttendance } from '../../model/useTrainingAttendance';
 
-const ProgramDetailForm = ({
+const ProgramDetailTable = ({
   expoId,
   programId,
 }: {
@@ -82,4 +82,4 @@ const ProgramDetailForm = ({
   });
 };
 
-export default ProgramDetailForm;
+export default ProgramDetailTable;

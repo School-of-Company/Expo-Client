@@ -1,8 +1,7 @@
-import React from 'react';
+import { ProgramDetailTable } from '@/features/program/detail';
 import { Header } from '@/widgets/layout';
-import { ProgramDetailForm } from '@/widgets/program-detail';
 
-const ProgramDetail = ({
+const ProgramDetailPage = ({
   expoId,
   programId,
 }: {
@@ -13,10 +12,10 @@ const ProgramDetail = ({
     <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
       <div className="flex flex-1 justify-center p-16">
-        <ProgramDetailForm expoId={expoId} programId={programId} />
+        <ProgramDetailTable expoId={expoId} programId={programId} />
       </div>
     </div>
   );
 };
 
-export default ProgramDetail;
+export default ProgramDetailPage;

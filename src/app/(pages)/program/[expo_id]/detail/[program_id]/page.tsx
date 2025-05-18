@@ -1,5 +1,4 @@
-import React from 'react';
-import { ProgramDetail } from '@/views/program-detail';
+import ProgramDetailPage from '@/views/program/detail/ui/ProgramDetailPage';
 
 const page = ({
   params,
@@ -7,7 +6,7 @@ const page = ({
   params: { expo_id: string; program_id: string };
 }) => {
   return (
-    <ProgramDetail expoId={params.expo_id} programId={params.program_id} />
+    <ProgramDetailPage expoId={params.expo_id} programId={params.program_id} />
   );
 };
 
