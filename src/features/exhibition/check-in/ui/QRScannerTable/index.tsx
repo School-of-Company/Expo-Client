@@ -1,23 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import NameTagHeader from '@/entities/name-tag/ui/NameTagHeader';
+
+import { ExhibitionCheckInHeader } from '@/entities/exhibition';
 import { useQRScanner } from '@/shared/model/useQRScanner';
 import { QrScanData } from '@/shared/types/common/QrScanData';
 import { AttendUserResponse } from '@/shared/types/name-tag/type';
 import { TableForm } from '@/shared/ui/Table';
+import { CHECK_IN_PRINT_CATEGORIES } from '../../model/constants';
 import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';
 import { userQrPrint } from '../../model/userQrPrint';
 
-const NameTagForm = ({ id }: { id: string }) => {
-  const requestPrintCategories = [
-    '아이디',
-    '이름',
-    '번호',
-    '개인정보 상태',
-    '참가자 상태',
-  ];
-
+const QRScannerTable = ({ id }: { id: string }) => {
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
   const [userData, setUserData] = useState<AttendUserResponse[]>([]);
   const { mutateAsync: attendUser } = usePatchAttendUserMutation(id);
@@ -48,10 +42,9 @@ const NameTagForm = ({ id }: { id: string }) => {
 
   return (
     <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-y-auto">
-      <NameTagHeader />
-
+      <ExhibitionCheckInHeader />
       <TableForm
-        categories={requestPrintCategories}
+        categories={CHECK_IN_PRINT_CATEGORIES}
         data={userData}
         maxHeight="414px"
         footerType="print"
@@ -62,4 +55,4 @@ const NameTagForm = ({ id }: { id: string }) => {
   );
 };
 
-export default NameTagForm;
+export default QRScannerTable;

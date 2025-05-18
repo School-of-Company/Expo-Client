@@ -63,7 +63,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
               </Button>
               <Button
                 variant="white"
-                onClick={() => router.push(`/name-tag/${params}`)}
+                onClick={() => router.push(`/exhibition/check-in/${params}`)}
               >
                 박람회 입장
               </Button>

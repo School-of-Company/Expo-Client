@@ -9,3 +9,4 @@ export { default as TrainingModule } from './ui/TrainingModule';
 export { default as WarningMessage } from './ui/WarningMessage';
 export { default as DateButton } from './ui/DateButton';
 export { default as FilterTab } from './ui/FilterTab';
+export { default as ExhibitionCheckInHeader } from './ui/ExhibitionCheckInHeader';

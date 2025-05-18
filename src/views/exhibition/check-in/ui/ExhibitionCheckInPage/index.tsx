@@ -1,15 +1,15 @@
+import { QRScannerTable } from '@/features/exhibition/check-in';
 import { Header } from '@/widgets/layout';
-import { NameTagForm } from '@/widgets/name-tag';
 
-const NameTag = ({ id }: { id: string }) => {
+const ExhibitionCheckInPage = ({ id }: { id: string }) => {
   return (
     <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
       <div className="flex flex-1 justify-center p-16">
-        <NameTagForm id={id} />
+        <QRScannerTable id={id} />
       </div>
     </div>
   );
 };
 
-export default NameTag;
+export default ExhibitionCheckInPage;
