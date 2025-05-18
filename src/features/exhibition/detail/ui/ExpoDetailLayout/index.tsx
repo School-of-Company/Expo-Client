@@ -1,10 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import { ShowLocation } from '@/entities/expo-detail';
-import ContentListText from '@/entities/expo-detail/ui/ContentListText';
-import ContentText from '@/entities/expo-detail/ui/ContentText';
-import KakaoMap from '@/entities/expo-detail/ui/KaKaoMap';
+import {
+  ContentListText,
+  ContentText,
+  KaKaoMap,
+  ShowLocation,
+} from '@/entities/exhibition';
 import TestExpo from '@/shared/assets/png/TestExpo.png';
 import { Share } from '@/shared/assets/svg';
 import {
@@ -90,7 +92,7 @@ const ExpoDetailLayout = ({
               longitude={expoDetail?.x}
               detailAddress={expoDetail.location}
             />
-            <KakaoMap latitude={expoDetail?.y} longitude={expoDetail?.x} />
+            <KaKaoMap latitude={expoDetail?.y} longitude={expoDetail?.x} />
           </div>
         </div>
       </div>

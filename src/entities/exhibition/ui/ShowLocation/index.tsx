@@ -1,4 +1,4 @@
-import { useAddressQuery } from '../../model/useAddressQuery';
+import { useAddressQuery } from '@/features/exhibition/detail';
 
 interface Props {
   latitude: number;

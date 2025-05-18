@@ -1,15 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useExpoQueries } from '@/features/exhibition/detail';
 import withLoading from '@/shared/hocs/withLoading';
 import { FormTypeModal } from '@/shared/ui';
-import ExpoActionPanel from '@/widgets/expo-detail/ui/ExpoActionPanel';
-import ExpoDetailLayout from '@/widgets/expo-detail/ui/ExpoDetailLayout';
+import ExhibitionDetailContent from '@/widgets/exhibition/detail/ui/ExhibitionDetailContent';
 import { Header } from '@/widgets/layout';
 import { ModalLayout } from '@/widgets/layout';
-import { useExpoQueries } from '../../model/useExpoDetail';
 
-const ExpoDetail = ({ params }: { params: string }) => {
+const ExhibitionDetailPage = ({ params }: { params: string }) => {
   const { expoDetailQuery, expoStandardQuery, expoTrainingQuery, isLoading } =
     useExpoQueries(params);
   const expoDetail = expoDetailQuery.data!;
@@ -43,21 +42,13 @@ const ExpoDetail = ({ params }: { params: string }) => {
       {withLoading({
         isLoading,
         children: (
-          <div className="flex flex-1 justify-center p-16">
-            <div className="flex w-full max-w-[1000px] flex-1 gap-40 tablet:w-full tablet:max-w-none tablet:flex-col">
-              <div className="w-full max-w-[750px] tablet:w-full tablet:max-w-none">
-                <ExpoDetailLayout
-                  expoDetail={expoDetail}
-                  expoStandard={expoStandard}
-                  expoTraining={expoTraining}
-                  openModal={openModal}
-                />
-              </div>
-              <div className="w-full max-w-[210px] tablet:w-full tablet:max-w-none">
-                <ExpoActionPanel params={params} openModal={openModal} />
-              </div>
-            </div>
-          </div>
+          <ExhibitionDetailContent
+            expoDetail={expoDetail}
+            expoStandard={expoStandard}
+            expoTraining={expoTraining}
+            params={params}
+            openModal={openModal}
+          />
         ),
       })}
       {isModalOpen && (
@@ -74,4 +65,4 @@ const ExpoDetail = ({ params }: { params: string }) => {
   );
 };
 
-export default ExpoDetail;
+export default ExhibitionDetailPage;

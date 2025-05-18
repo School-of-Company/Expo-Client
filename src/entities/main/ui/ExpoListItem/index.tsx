@@ -27,7 +27,7 @@ const ExpoListItem = ({
 
   return (
     <Link
-      href={`/expo-detail/${id}`}
+      href={`/exhibition/detail/${id}`}
       className="flex h-[150px] gap-22 rounded-sm border-1 border-solid border-gray-200 bg-white p-18"
     >
       <div
