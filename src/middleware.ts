@@ -34,9 +34,6 @@ export const config = {
   matcher: [
     '/admin',
     '/exhibition/:path*',
-    '/expo-created/:path*',
-    '/expo-detail/:path*',
-    '/expo-manage/:path*',
     '/form/:path*',
     '/name-tag/:path*',
     '/program/:path*',

@@ -2,7 +2,7 @@
 
 import { eachDayOfInterval, parseISO, format } from 'date-fns';
 import React, { useState, useRef, useEffect } from 'react';
-import { DateButton } from '@/entities/expo-manage';
+import { DateButton } from '@/entities/exhibition';
 import { ArrowLeft, ArrowRight } from '@/shared/assets/icons';
 
 const DateContainer = ({

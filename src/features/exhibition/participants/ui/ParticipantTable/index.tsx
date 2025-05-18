@@ -18,7 +18,7 @@ import { category, selectOptionCategories } from '../../model/category';
 import { useExpoManageQueries } from '../../model/useExpoData';
 import DateContainer from '../DateContainer';
 
-const ExpoManageForm = ({ id }: { id: string }) => {
+const ParticipantTable = ({ id }: { id: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
@@ -116,4 +116,4 @@ const ExpoManageForm = ({ id }: { id: string }) => {
   });
 };
 
-export default ExpoManageForm;
+export default ParticipantTable;

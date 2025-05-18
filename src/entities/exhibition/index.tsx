@@ -7,3 +7,5 @@ export { default as Modal } from './ui/Modal';
 export { default as ShowLocation } from './ui/ShowLocation';
 export { default as TrainingModule } from './ui/TrainingModule';
 export { default as WarningMessage } from './ui/WarningMessage';
+export { default as DateButton } from './ui/DateButton';
+export { default as FilterTab } from './ui/FilterTab';
