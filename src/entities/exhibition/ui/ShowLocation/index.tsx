@@ -1,3 +1,5 @@
+'use client';
+
 import { useAddressQuery } from '@/features/exhibition/detail';
 
 interface Props {
