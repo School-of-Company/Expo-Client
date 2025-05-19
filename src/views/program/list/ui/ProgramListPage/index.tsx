@@ -1,4 +1,3 @@
-import React from 'react';
 import { ProgramListTable } from '@/features/program/list';
 import { Header } from '@/widgets/layout';
 

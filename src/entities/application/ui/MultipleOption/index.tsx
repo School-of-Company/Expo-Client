@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { UseFormRegister } from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import EtcOption from '../EtcOption';

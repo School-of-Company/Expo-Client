@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { handleDateChange } from '@/features/exhibition/common/lib/handleDateChange';
 import { XMark } from '@/shared/assets/icons';
 import { ModalProps } from '@/shared/types/exhibition/type';
 import {
@@ -7,7 +8,6 @@ import {
   SelectDateInput,
   SelectTimeInput,
 } from '@/shared/ui';
-import { handleDateChange } from '../../../../features/exhibition/lib/handleDateChange';
 
 const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
   const initialStarted = watch(`${fieldName}.${index}.startedAt`);
@@ -18,7 +18,6 @@ const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
   const [endedDate, setEndedDate] = useState<Date | null>(null);
   const [endedTime, setEndedTime] = useState<Date | null>(null);
 
-  // 초기값 설정
   useEffect(() => {
     if (initialStarted) {
       const date = new Date(initialStarted);
@@ -32,7 +31,6 @@ const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
     }
   }, []);
 
-  // 날짜 + 시간이 모두 선택되었을 때만 setValue 호출
   useEffect(() => {
     if (startedDate && startedTime) {
       const combined = new Date(startedDate);

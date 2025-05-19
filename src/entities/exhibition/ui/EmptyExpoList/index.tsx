@@ -1,4 +1,3 @@
-import React from 'react';
 import { Museum } from '@/shared/assets/icons';
 
 const EmptyExpoList = () => {

@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { ExhibitionForm } from '@/features/exhibition';
+import { ExhibitionForm } from '@/features/exhibition/common';
 import { useCreateExhibitionMutation } from '@/features/exhibition/create/model/useCreateExhibitionMutation';
 import { Header } from '@/widgets/layout';
 

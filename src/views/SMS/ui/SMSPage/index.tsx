@@ -1,4 +1,3 @@
-import React from 'react';
 import { WriteSMSForm } from '@/features/sms/send-message';
 import { Header } from '@/widgets/layout';
 

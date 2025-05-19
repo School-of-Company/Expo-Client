@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
-import { convertAddressToCoordinates } from '../api/convertAddressToCoordinates';
-import { uploadImage } from '../api/uploadImage';
-import { createExhibition } from '../create/api/createExhibition';
+import { convertAddressToCoordinates } from '../../common/api/convertAddressToCoordinates';
+import { uploadImage } from '../../common/api/uploadImage';
+import { createExhibition } from '../api/createExhibition';
 
 export const handleCreateExhibitionFormSubmit = async (
   data: ExhibitionFormData,

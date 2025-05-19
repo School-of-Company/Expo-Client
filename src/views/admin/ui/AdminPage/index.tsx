@@ -1,8 +1,7 @@
-import React from 'react';
 import { AdminPageWrapper } from '@/widgets/admin';
 import { Header } from '@/widgets/layout';
 
-const CreateExhibition = () => {
+const AdminPage = () => {
   return (
     <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
@@ -13,4 +12,4 @@ const CreateExhibition = () => {
   );
 };
 
-export default CreateExhibition;
+export default AdminPage;

@@ -1,4 +1,3 @@
-import React from 'react';
 import { SMSPage } from '@/views/SMS';
 
 const page = () => {

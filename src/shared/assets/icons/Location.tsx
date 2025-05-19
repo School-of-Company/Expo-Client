@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Location = ({ fill = '#909090' }) => {
   return (
     <svg

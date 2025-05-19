@@ -1,4 +1,3 @@
-import React from 'react';
 import { FieldArrayProps } from '@/shared/types/exhibition/type';
 import ExpoInput from '../ExpoInput';
 

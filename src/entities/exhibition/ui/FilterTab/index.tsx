@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowDown, FilterIcon } from '@/shared/assets/icons';
 
 const FilterTab = () => {

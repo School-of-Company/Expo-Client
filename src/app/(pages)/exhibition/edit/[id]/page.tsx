@@ -1,4 +1,3 @@
-import React from 'react';
 import EditExhibition from '@/views/exhibition/edit/ui/editExhibition';
 
 const page = ({ params }: { params: { id: string } }) => {

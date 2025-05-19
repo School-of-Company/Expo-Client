@@ -1,4 +1,3 @@
-import React from 'react';
 import EditForm from '@/views/form/edit/ui/EditForm';
 
 const page = ({ params }: { params: { expo_id: string } }) => {

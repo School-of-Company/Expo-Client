@@ -1,6 +1,6 @@
 'use client';
 
-import { ExhibitionForm } from '@/features/exhibition';
+import { ExhibitionForm } from '@/features/exhibition/common';
 import {
   formatDateTime,
   useEditExhibitionMutation,

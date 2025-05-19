@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Trash = ({ color = '#FF3434' }) => {
   return (
     <svg

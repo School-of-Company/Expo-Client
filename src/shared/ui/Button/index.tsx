@@ -1,7 +1,6 @@
 'use client';
 
 import { cva } from 'class-variance-authority';
-import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'white' | 'gray';

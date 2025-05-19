@@ -1,4 +1,3 @@
-import React from 'react';
 import { Control, useController } from 'react-hook-form';
 import { FormValues } from '@/shared/types/form/create/type';
 import ToggleButton from '@/shared/ui/ToggleButton';

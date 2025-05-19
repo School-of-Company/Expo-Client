@@ -1,4 +1,3 @@
-import React from 'react';
 import { preventEvent } from '@/shared/model/preventEvent';
 
 interface Props {

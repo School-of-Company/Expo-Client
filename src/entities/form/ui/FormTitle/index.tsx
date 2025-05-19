@@ -1,4 +1,3 @@
-import React from 'react';
 import { UseFormRegister } from 'react-hook-form';
 import { FormValues } from '@/shared/types/form/create/type';
 

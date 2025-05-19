@@ -1,4 +1,4 @@
-let lastGeneratedId = 1000; // 초기값 설정
+let lastGeneratedId = 1000;
 
 export const generateUniqueId = () => {
   lastGeneratedId += 1;

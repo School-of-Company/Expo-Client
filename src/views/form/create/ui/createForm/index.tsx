@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import React from 'react';
+
 import FormEditor from '@/features/form/common/ui/FormEditor';
 import { useCreateFormMutation } from '@/features/form/create';
 import { Header } from '@/widgets/layout';

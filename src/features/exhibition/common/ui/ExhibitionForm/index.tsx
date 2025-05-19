@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { ImageInput } from '@/entities/exhibition';
 import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
-import { useAddressSearch } from '@/features/exhibition/hooks/useAddressSearch';
+import { useAddressSearch } from '@/features/exhibition/common/hooks/useAddressSearch';
 import { Location } from '@/shared/assets/icons';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { showError } from '@/shared/model/showError';

@@ -1,4 +1,3 @@
-import React from 'react';
 import CreateForm from '@/views/form/create/ui/createForm';
 
 const page = ({ params }: { params: { expo_id: string } }) => {

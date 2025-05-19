@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import React from 'react';
 import SignIn from '@/views/signin/ui/signIn';
 
 export const metadata: Metadata = {

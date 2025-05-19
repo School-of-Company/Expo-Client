@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface ExpoStandard {
   title: string;
   startedAt: string;
