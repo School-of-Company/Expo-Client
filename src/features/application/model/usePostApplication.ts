@@ -68,7 +68,7 @@ export const usePostApplication = (
 
       if (!isStandardOnsiteTemporary) {
         router.push(
-          `/application-success/${params}?userType=${userType}&formType=${formType}`,
+          `/application/success/${params}?userType=${userType}&formType=${formType}`,
         );
       }
     },
