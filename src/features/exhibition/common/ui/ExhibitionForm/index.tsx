@@ -7,8 +7,8 @@ import { ImageInput } from '@/entities/exhibition';
 import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
 import { useAddressSearch } from '@/features/exhibition/common/hooks/useAddressSearch';
 import { Location } from '@/shared/assets/icons';
-import { handleFormErrors } from '@/shared/model/formErrorUtils';
-import { showError } from '@/shared/model/showError';
+import { handleFormErrors } from '@/shared/model';
+import { showError } from '@/shared/model';
 import {
   ExhibitionFormData,
   MutationType,

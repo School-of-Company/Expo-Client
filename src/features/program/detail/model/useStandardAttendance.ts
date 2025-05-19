@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { PatchStandardProgramData } from '@/shared/types/program-detail/type';
+import { PatchStandardProgramData } from '@/shared/types/program/detail/type';
 import { patchStandardAttendance } from '../api/patchStandardAttendance';
 
 export const useStandardAttendance = () => {

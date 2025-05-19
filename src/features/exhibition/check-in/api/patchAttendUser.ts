@@ -3,7 +3,7 @@ import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import {
   AttendUserQrRequest,
   AttendUserResponse,
-} from '@/shared/types/name-tag/type';
+} from '@/shared/types/exhibition/check-in/type';
 
 export const patchAttendUser = async (
   id: string,

@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 
 import { ExhibitionCheckInHeader } from '@/entities/exhibition';
-import { useQRScanner } from '@/shared/model/useQRScanner';
+import { useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
-import { AttendUserResponse } from '@/shared/types/name-tag/type';
+import { AttendUserResponse } from '@/shared/types/exhibition/check-in/type';
 import { TableForm } from '@/shared/ui/Table';
 import { CHECK_IN_PRINT_CATEGORIES } from '../../model/constants';
 import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';

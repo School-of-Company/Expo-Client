@@ -1,5 +1,5 @@
-import { printBadge } from '@/shared/model/printUtils';
-import { AttendUserResponse } from '@/shared/types/name-tag/type';
+import { printBadge } from '@/shared/model';
+import { AttendUserResponse } from '@/shared/types/exhibition/check-in/type';
 
 export const userQrPrint = (data: AttendUserResponse[], selectItem: number) => {
   const selectedData = data.find((item) => item.id === selectItem);

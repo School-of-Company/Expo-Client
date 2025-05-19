@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { AttendUserQrRequest } from '@/shared/types/name-tag/type';
+import { AttendUserQrRequest } from '@/shared/types/exhibition/check-in/type';
 import { patchAttendUser } from '../api/patchAttendUser';
 
 export const usePatchAttendUserMutation = (id: string) => {

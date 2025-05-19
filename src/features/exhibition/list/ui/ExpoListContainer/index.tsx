@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { EmptyExpoList, ExpoListItem, FormFilter } from '@/entities/exhibition';
-import withLoading from '@/shared/hocs/withLoading';
-import { useExpoList } from '@/shared/queries/useExpoList';
+import { withLoading } from '@/shared/hocs';
+import { useExpoList } from '@/shared/queries';
 import { ExpoItem, OptionType } from '@/shared/types/main/type';
 import { filterOptions } from '../../constant/filterOptions';
 import { FormStatusData } from '../../model/FormStatusData';

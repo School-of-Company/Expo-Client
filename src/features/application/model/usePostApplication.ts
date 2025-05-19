@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { printBadge } from '@/shared/model/printUtils';
+import { printBadge } from '@/shared/model';
 import {
   FormattedApplicationData,
   FormattedSurveyData,

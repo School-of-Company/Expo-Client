@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useExpoList } from '@/shared/queries/useExpoList';
+import { useExpoList } from '@/shared/queries';
 import { getAdminData } from '../api/getAdminData';
 import { getRequestSignUp } from '../api/getRequestSignUp';
 

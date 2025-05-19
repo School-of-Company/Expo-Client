@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   StandardProgram,
   TrainingProgram,
-} from '@/shared/types/program-detail/type';
+} from '@/shared/types/program/detail/type';
 import {
   getStandardProgramDetail,
   getTrainingProgramDetail,

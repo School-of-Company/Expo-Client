@@ -5,10 +5,10 @@ import {
   expoListCategories,
   requestSignUpCategories,
   useAdminData,
-} from '@/features/admin/dashboard-data';
-import { useDeleteActions } from '@/features/admin/expo-management';
-import { useCheckActions } from '@/features/admin/signup-management';
-import withLoading from '@/shared/hocs/withLoading';
+  useCheckActions,
+  useDeleteActions,
+} from '@/features/admin';
+import { withLoading } from '@/shared/hocs';
 import { TableForm } from '@/shared/ui/Table';
 
 const AdminPageWrapper = () => {

@@ -13,7 +13,7 @@ import {
   ExpoDetail,
   ExpoStandard,
   ExpoTrainingDetail,
-} from '@/shared/types/expo-detail/type';
+} from '@/shared/types/exhibition/detail/type';
 import DetailHeader from '@/shared/ui/DetailHeader';
 
 const ExpoDetailLayout = ({

@@ -7,7 +7,7 @@ import {
   PrivacyConsentForm,
   selectOptionData,
 } from '@/entities/form';
-import { handleFormErrors } from '@/shared/model/formErrorUtils';
+import { handleFormErrors } from '@/shared/model';
 import { FormValues } from '@/shared/types/form/create/type';
 import { Button, DetailHeader } from '@/shared/ui';
 import { getFormTitle } from '../../constants/getFormTitle';

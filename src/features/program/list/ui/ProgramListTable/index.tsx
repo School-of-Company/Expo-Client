@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useMemo } from 'react';
 import { ProgramNavigation } from '@/entities/program';
-import withLoading from '@/shared/hocs/withLoading';
+import { withLoading } from '@/shared/hocs';
 import { TableForm } from '@/shared/ui/Table';
 import { standardCategories, trainingCategories } from '../../model/category';
 import { useProgramQueries } from '../../model/useProgramData';

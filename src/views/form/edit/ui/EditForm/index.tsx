@@ -7,7 +7,7 @@ import {
   useEditFormMutation,
   useGetEditForm,
 } from '@/features/form/edit';
-import withLoading from '@/shared/hocs/withLoading';
+import { withLoading } from '@/shared/hocs';
 import { Header } from '@/widgets/layout';
 
 const EditForm = ({ id }: { id: string }) => {

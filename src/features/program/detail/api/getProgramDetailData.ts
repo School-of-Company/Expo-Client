@@ -3,7 +3,7 @@ import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import {
   StandardProgram,
   TrainingProgram,
-} from '@/shared/types/program-detail/type';
+} from '@/shared/types/program/detail/type';
 
 export const getTrainingProgramDetail = async (
   id: string,

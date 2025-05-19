@@ -3,7 +3,7 @@ import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import {
   ParticipantResponse,
   TraineeResponse,
-} from '@/shared/types/expo-manage/type';
+} from '@/shared/types/exhibition/participants/type';
 
 export const getTraineeExpoManageData = async (
   id: string,

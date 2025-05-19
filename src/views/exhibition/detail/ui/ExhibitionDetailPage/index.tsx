@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { useExpoQueries } from '@/features/exhibition/detail';
-import withLoading from '@/shared/hocs/withLoading';
+import { withLoading } from '@/shared/hocs';
 import { FormTypeModal } from '@/shared/ui';
-import ExhibitionDetailContent from '@/widgets/exhibition/detail/ui/ExhibitionDetailContent';
+import { ExhibitionDetailContent } from '@/widgets/exhibition/detail';
 import { Header } from '@/widgets/layout';
 import { ModalLayout } from '@/widgets/layout';
 

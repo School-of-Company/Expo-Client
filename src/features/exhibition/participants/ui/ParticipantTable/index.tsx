@@ -2,14 +2,14 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useMemo, useEffect, useState } from 'react';
-import withLoading from '@/shared/hocs/withLoading';
-import { useExpoDetail } from '@/shared/queries/useExpoDetail';
+import { withLoading } from '@/shared/hocs';
+import { useExpoDetail } from '@/shared/queries';
 import {
   participants,
   ParticipantResponse,
   Trainee,
   TraineeResponse,
-} from '@/shared/types/expo-manage/type';
+} from '@/shared/types/exhibition/participants/type';
 import SelectUserType from '@/shared/ui/SelectUserType';
 import { TableForm } from '@/shared/ui/Table';
 import { getStandardExcelFile } from '../../api/getStandardExcelFile';

@@ -5,10 +5,9 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import OptionContainer from '@/entities/application/ui/OptionContainer';
-
-import withLoading from '@/shared/hocs/withLoading';
-import { handleFormErrors } from '@/shared/model/formErrorUtils';
-import { showError } from '@/shared/model/showError';
+import { withLoading } from '@/shared/hocs';
+import { handleFormErrors } from '@/shared/model';
+import { showError } from '@/shared/model';
 import {
   ApplicationForm,
   ApplicationFormValues,

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
-import { PatchStandardProgramData } from '@/shared/types/program-detail/type';
+import { PatchStandardProgramData } from '@/shared/types/program/detail/type';
 
 export const patchStandardAttendance = async ({
   programId,

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { PatchTrainingProgramData } from '@/shared/types/program-detail/type';
+import { PatchTrainingProgramData } from '@/shared/types/program/detail/type';
 import { patchTrainingAttendance } from '../api/patchTrainingAttendance';
 
 export const useTrainingAttendance = () => {

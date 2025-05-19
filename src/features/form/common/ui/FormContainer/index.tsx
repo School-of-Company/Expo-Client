@@ -17,7 +17,7 @@ import {
   MultipleChoiceOption,
   RequiredToggle,
 } from '@/entities/form';
-import { preventEvent } from '@/shared/model/preventEvent';
+import { preventEvent } from '@/shared/model';
 import { FormValues, Option } from '@/shared/types/form/create/type';
 import { AddItemButton } from '@/shared/ui';
 

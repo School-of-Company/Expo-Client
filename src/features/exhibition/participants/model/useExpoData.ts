@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   ParticipantResponse,
   TraineeResponse,
-} from '@/shared/types/expo-manage/type';
+} from '@/shared/types/exhibition/participants/type';
 import {
   getTraineeExpoManageData,
   getParticipantExpoManageData,

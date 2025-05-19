@@ -1,5 +1,4 @@
-import { useGetApplicationForm } from '@/shared/queries/useGetApplicationForm';
-import { useGetSurveyForm } from '@/shared/queries/useGetSurveyForm';
+import { useGetApplicationForm, useGetSurveyForm } from '@/shared/queries';
 
 export const useGetForm = (
   id: string,

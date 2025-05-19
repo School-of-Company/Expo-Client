@@ -6,7 +6,7 @@ import {
   useEditExhibitionMutation,
   useExpoData,
 } from '@/features/exhibition/edit';
-import withLoading from '@/shared/hocs/withLoading';
+import { withLoading } from '@/shared/hocs';
 import { Header } from '@/widgets/layout';
 
 const EditExhibition = ({ id }: { id: string }) => {

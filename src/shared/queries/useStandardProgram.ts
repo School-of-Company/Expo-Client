@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getStandardProgram } from '../api';
-import { Program } from '../types/program/type';
+import { Program } from '../types/program/list/type';
 
 export const useStandardProgram = (id: string, enabled = true) => {
   return useQuery<Program[], Error>({

@@ -1,5 +1,4 @@
-import { useStandardProgram } from '@/shared/queries/useStandardProgram';
-import { useTrainingProgram } from '@/shared/queries/useTrainingProgramQuery';
+import { useStandardProgram, useTrainingProgram } from '@/shared/queries';
 
 export const useProgramQueries = (expoId: string, navigation: string) => {
   const trainingProgramQueries = useTrainingProgram(expoId);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useDeleteUserAccount } from '@/features/admin/account-management';
+import { useDeleteUserAccount } from '@/features/admin';
 import { useLogout } from '@/features/auth/logout';
 import { Logout } from '@/shared/assets/icons';
 import { AdminData } from '@/shared/types/admin/type';

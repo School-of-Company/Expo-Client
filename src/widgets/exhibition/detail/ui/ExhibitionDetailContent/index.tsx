@@ -6,7 +6,7 @@ import {
   ExpoDetail,
   ExpoStandard,
   ExpoTrainingDetail,
-} from '@/shared/types/expo-detail/type';
+} from '@/shared/types/exhibition/detail/type';
 
 interface ExhibitionDetailContentProps {
   expoDetail: ExpoDetail;

@@ -2,8 +2,8 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import withLoading from '@/shared/hocs/withLoading';
-import { useQRScanner } from '@/shared/model/useQRScanner';
+import { withLoading } from '@/shared/hocs';
+import { useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
 import { TableForm } from '@/shared/ui/Table';
 import { getStandardProgramExcelFile } from '../../api/getStandardProgramExcelFile';
