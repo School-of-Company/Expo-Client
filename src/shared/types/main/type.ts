@@ -7,7 +7,7 @@ export interface ExpoItem extends Record<string, unknown> {
   finishedDay: string;
 }
 
-export interface FilterOption {
+export interface OptionType {
   value: string;
   label: string;
   status: boolean;

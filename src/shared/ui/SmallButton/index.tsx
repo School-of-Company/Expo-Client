@@ -1,5 +1,3 @@
-import React from 'react';
-
 type SmallButtonProps = {
   text: string;
   onClick?: () => void;

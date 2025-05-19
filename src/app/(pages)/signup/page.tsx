@@ -1,7 +1,7 @@
-import SignUp from '@/views/signup/ui/signUp';
+import { SignUpPage } from '@/views/signup';
 
-const page = () => {
-  return <SignUp />;
+const Page = () => {
+  return <SignUpPage />;
 };
 
-export default page;
+export default Page;

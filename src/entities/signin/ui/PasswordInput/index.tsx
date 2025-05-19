@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import React from 'react';
+
 import { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { Eye, SelectedEye } from '@/shared/assets/icons';
 import { SignInData } from '@/shared/types/signin/type';

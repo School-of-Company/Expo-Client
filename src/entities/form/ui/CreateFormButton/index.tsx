@@ -1,4 +1,3 @@
-import React from 'react';
 import { Plus } from '@/shared/assets/icons';
 
 interface Props {

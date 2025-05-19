@@ -1,6 +1,6 @@
 import axios from 'axios';
 import clientTokenInstance from '../libs/http/clientTokenInstance';
-import { ExpoDetail } from '../types/expo-detail/type';
+import { ExpoDetail } from '../types/exhibition/detail/type';
 
 export const getExpoDetail = async (id: string): Promise<ExpoDetail> => {
   try {

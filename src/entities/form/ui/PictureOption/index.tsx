@@ -1,4 +1,3 @@
-import React from 'react';
 import { FormPicture } from '@/shared/assets/icons';
 import { OptionProps } from '@/shared/types/form/create/type';
 import OptionItem from '../OptionItem';

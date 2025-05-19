@@ -1,4 +1,3 @@
-import React from 'react';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { SignInData } from '@/shared/types/signin/type';
 import { Input } from '@/shared/ui';

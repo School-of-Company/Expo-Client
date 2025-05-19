@@ -1,4 +1,3 @@
-import React from 'react';
 import { Control, useController } from 'react-hook-form';
 import { CheckBoxIcon, CheckedBoxIcon } from '@/shared/assets/svg';
 import { FormValues } from '@/shared/types/form/create/type';

@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
-import withLoading from '@/shared/hocs/withLoading';
-import { formatDateTime } from '@/widgets/exhibition/edit/model/formatDateTime';
-import { useEditExhibitionMutation } from '@/widgets/exhibition/edit/model/useEditExhibitionMutation';
-import ExhibitionForm from '@/widgets/exhibition/ui/ExhibitionForm';
+import { ExhibitionForm } from '@/features/exhibition/common';
+import {
+  formatDateTime,
+  useEditExhibitionMutation,
+  useExpoData,
+} from '@/features/exhibition/edit';
+import { withLoading } from '@/shared/hocs';
 import { Header } from '@/widgets/layout';
-import { useExpoData } from '../../model/useExpoData';
 
 const EditExhibition = ({ id }: { id: string }) => {
   const {

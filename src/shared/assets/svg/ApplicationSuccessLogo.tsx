@@ -1,5 +1,3 @@
-import React from 'react';
-
 const ApplicationSuccessLogo = ({ className }: { className?: string }) => {
   return (
     <svg

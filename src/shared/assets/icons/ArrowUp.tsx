@@ -1,5 +1,3 @@
-import React from 'react';
-
 const ArrowUp = ({ fill = '#121212' }) => {
   return (
     <svg

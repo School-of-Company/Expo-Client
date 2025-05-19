@@ -1,8 +1,7 @@
-import React from 'react';
-import Application from '@/views/application/ui/application';
+import { ApplicationPage } from '@/views/application/form';
 
 const page = ({ params }: { params: { id: string } }) => {
-  return <Application params={params.id} />;
+  return <ApplicationPage params={params.id} />;
 };
 
 export default page;

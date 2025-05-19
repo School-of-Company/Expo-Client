@@ -1,5 +1,5 @@
 import { cva, VariantProps } from 'class-variance-authority';
-import React from 'react';
+
 import { Check, Trash } from '@/shared/assets/icons';
 import SmallButton from '@/shared/ui/SmallButton';
 

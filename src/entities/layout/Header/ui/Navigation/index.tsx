@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import React from 'react';
 import { NavItem } from '../../model/types';
 import { useNavigation } from '../../model/useNavigation';
 
