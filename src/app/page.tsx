@@ -1,5 +1,5 @@
-import Main from '@/views/main/ui/main';
+import { ExhibitionListPage } from '@/views/exhibition/list';
 
 export default function Home() {
-  return <Main />;
+  return <ExhibitionListPage />;
 }

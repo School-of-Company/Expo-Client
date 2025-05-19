@@ -1,5 +1,3 @@
-import React from 'react';
-
 const ArrowLeft = ({ size = 32 }: { size?: number }) => {
   return (
     <svg

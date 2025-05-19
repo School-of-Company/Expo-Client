@@ -1,4 +1,3 @@
-import React from 'react';
 import { Trash } from '@/shared/assets/icons';
 
 interface Props {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { Check } from '@/shared/assets/icons';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';

@@ -1,10 +1,10 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import React from 'react';
-import FormEditor from '@/views/form/ui/FormEditor';
+
+import FormEditor from '@/features/form/common/ui/FormEditor';
+import { useCreateFormMutation } from '@/features/form/create';
 import { Header } from '@/widgets/layout';
-import { useCreateFormMutation } from '../../model/useCreateFormMutation';
 
 const CreateForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();

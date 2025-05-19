@@ -1,1 +1,1 @@
-export { default as SMS } from './ui/SMS';
+export { default as SMSPage } from './ui/SMSPage';

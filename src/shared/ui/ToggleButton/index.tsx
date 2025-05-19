@@ -1,5 +1,4 @@
-import React from 'react';
-import { preventEvent } from '@/shared/model/preventEvent';
+import { preventEvent } from '@/shared/model';
 
 interface Props {
   value: boolean;

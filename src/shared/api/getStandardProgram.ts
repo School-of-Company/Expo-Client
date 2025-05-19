@@ -1,6 +1,6 @@
 import axios from 'axios';
 import clientTokenInstance from '../libs/http/clientTokenInstance';
-import { Program } from '../types/program/type';
+import { Program } from '../types/program/list/type';
 
 export const getStandardProgram = async (id: string): Promise<Program[]> => {
   try {

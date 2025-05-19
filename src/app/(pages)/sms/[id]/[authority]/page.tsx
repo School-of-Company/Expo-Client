@@ -1,8 +1,7 @@
-import React from 'react';
-import { SMS } from '@/views/SMS';
+import { SMSPage } from '@/views/SMS';
 
 const page = () => {
-  return <SMS />;
+  return <SMSPage />;
 };
 
 export default page;

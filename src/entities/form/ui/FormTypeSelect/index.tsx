@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
-import { preventEvent } from '@/shared/model/preventEvent';
+import { preventEvent } from '@/shared/model';
 import { FormValues, Option } from '@/shared/types/form/create/type';
 
 interface Props {

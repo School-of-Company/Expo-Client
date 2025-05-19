@@ -1,8 +1,7 @@
-import React from 'react';
-import { Admin } from '@/views/admin';
+import { AdminPage } from '@/views/admin';
 
 const page = () => {
-  return <Admin />;
+  return <AdminPage />;
 };
 
 export default page;

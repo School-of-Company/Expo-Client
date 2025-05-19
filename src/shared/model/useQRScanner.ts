@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { QrScanData } from '../types/common/QrScanData';

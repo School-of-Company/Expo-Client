@@ -1,5 +1,4 @@
 import type { Preview } from '@storybook/react';
-import React from 'react';
 import { pretendard } from '../src/shared/styles/fonts';
 import '../src/shared/styles/globals.css';
 

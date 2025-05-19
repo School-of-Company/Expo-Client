@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
-import { useCreateExhibitionMutation } from '@/widgets/exhibition/create/model/useCreateExhibitionMutation';
-import ExhibitionForm from '@/widgets/exhibition/ui/ExhibitionForm';
+import { ExhibitionForm } from '@/features/exhibition/common';
+import { useCreateExhibitionMutation } from '@/features/exhibition/create/model/useCreateExhibitionMutation';
 import { Header } from '@/widgets/layout';
 
 const CreateExhibition = () => {

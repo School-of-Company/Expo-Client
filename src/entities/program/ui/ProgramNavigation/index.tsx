@@ -22,7 +22,7 @@ const ProgramNavigation = () => {
     <div className="flex justify-center gap-[18px]">
       <button
         type="button"
-        className={`text-h2 ${
+        className={`text-h2b ${
           navigation === 'standard' ? 'text-black' : 'text-gray-500'
         }`}
         onClick={() => handleNavigationChange('standard')}
@@ -31,7 +31,7 @@ const ProgramNavigation = () => {
       </button>
       <button
         type="button"
-        className={`text-h2 ${
+        className={`text-h2b ${
           navigation === 'training' ? 'text-black' : 'text-gray-500'
         }`}
         onClick={() => handleNavigationChange('training')}

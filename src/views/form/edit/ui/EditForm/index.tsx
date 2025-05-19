@@ -1,13 +1,14 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import React from 'react';
-import withLoading from '@/shared/hocs/withLoading';
-import FormEditor from '@/views/form/ui/FormEditor';
+import { FormEditor } from '@/features/form/common';
+import {
+  transformServerData,
+  useEditFormMutation,
+  useGetEditForm,
+} from '@/features/form/edit';
+import { withLoading } from '@/shared/hocs';
 import { Header } from '@/widgets/layout';
-import { transformServerData } from '../../model/transformServerData';
-import { useEditFormMutation } from '../../model/useEditFormMutation';
-import { useGetEditForm } from '../../model/useGetEditForm';
 
 const EditForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();

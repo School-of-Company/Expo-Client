@@ -1,4 +1,3 @@
-import React from 'react';
 import { Warning } from '@/shared/assets/icons';
 
 const WarningMessage = ({ text }: { text: string }) => {

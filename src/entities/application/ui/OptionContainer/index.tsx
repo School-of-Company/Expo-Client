@@ -3,7 +3,7 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
-import { slugify } from '@/shared/model/slugify';
+import { slugify } from '@/shared/model';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import ApplicationPhoneOption from '../ApplicationPhoneOption';
 import CheckBoxOption from '../CheckBoxOption';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Square } from '@/shared/assets/svg';
 import { OptionProps } from '@/shared/types/form/create/type';
 import OptionItem from '../OptionItem';
