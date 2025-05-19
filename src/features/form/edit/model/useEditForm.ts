@@ -24,7 +24,7 @@ export const useEditApplicationForm = (
       queryClient.invalidateQueries({
         queryKey: ['getEditApplicationForm', id, type],
       });
-      router.push(`/expo-detail/${id}`);
+      router.push(`/exhibition/detail/${id}`);
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -50,7 +50,7 @@ export const useEditSurveyForm = (
       queryClient.invalidateQueries({
         queryKey: ['getEditSurveyForm', id, type],
       });
-      router.push(`/expo-detail/${id}`);
+      router.push(`/exhibition/detail//${id}`);
     },
     onError: (error: Error) => {
       toast.error(error.message);

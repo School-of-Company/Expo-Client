@@ -2,13 +2,16 @@
 
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { CreateFormButton, PrivacyConsentForm } from '@/entities/form';
+import {
+  CreateFormButton,
+  PrivacyConsentForm,
+  selectOptionData,
+} from '@/entities/form';
 import { handleFormErrors } from '@/shared/model/formErrorUtils';
 import { FormValues } from '@/shared/types/form/create/type';
 import { Button, DetailHeader } from '@/shared/ui';
-import FormContainer from '@/widgets/form/ui/FormContainer';
-import { getFormTitle } from '../../model/getFormTitle';
-import { selectOptionData } from '../../model/selectOptionData';
+import { getFormTitle } from '../../constants/getFormTitle';
+import FormContainer from '../FormContainer';
 
 const FormEditor = ({
   type,

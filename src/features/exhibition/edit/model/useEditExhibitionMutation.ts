@@ -25,7 +25,7 @@ export const useEditExhibitionMutation = (id: string) => {
         queryKey: ['trainingProgram', id],
       });
 
-      router.push(`/expo-detail/${id}`);
+      router.push(`/exhibition/detail//${id}`);
       toast.success('박람회가 수정되었습니다.');
     },
     onError: (error: Error) => {

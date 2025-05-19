@@ -1,28 +1,31 @@
+import { useRouter } from 'next/navigation';
 import { FormValues } from '@/shared/types/form/create/type';
-import { transformFormData } from '../../model/formUtils';
-import { useCreateApplicationForm } from './useCreateApplicationForm';
-import { useCreateSurveyForm } from './useCreateSurveyForm';
+import { transformFormData } from '../../common/model/formUtils';
+import { useEditApplicationForm, useEditSurveyForm } from './useEditForm';
 
-export const useCreateFormMutation = (
+export const useEditFormMutation = (
   id: string,
   type: 'STANDARD' | 'TRAINEE',
   mode: 'application' | 'survey',
 ) => {
+  const router = useRouter();
+
   const {
-    mutate: createApplicationForm,
+    mutate: editApplicationForm,
     isPending: isApplicationPending,
     isSuccess: isApplicationSuccess,
-  } = useCreateApplicationForm(id, type);
+  } = useEditApplicationForm(id, type, router);
+
   const {
-    mutate: createSurveyForm,
+    mutate: editSurveyForm,
     isPending: isSurveyPending,
     isSuccess: isSurveySuccess,
-  } = useCreateSurveyForm(id, type);
+  } = useEditSurveyForm(id, type, router);
 
   const handleSubmitForm = (data: FormValues) => {
     const formattedData = transformFormData(data, type, mode);
     const submitFunction =
-      mode === 'survey' ? createSurveyForm : createApplicationForm;
+      mode === 'survey' ? editSurveyForm : editApplicationForm;
     submitFunction(formattedData);
   };
 
