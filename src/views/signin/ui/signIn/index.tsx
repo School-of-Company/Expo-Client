@@ -1,5 +1,3 @@
-'use client';
-
 import { SignupPrompt } from '@/entities/signin';
 import { SignInForm } from '@/features/auth/signin';
 
