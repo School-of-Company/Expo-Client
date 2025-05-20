@@ -2,12 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { handleDateChange } from '@/features/exhibition/common/lib/handleDateChange';
 import { XMark } from '@/shared/assets/icons';
 import { ModalProps } from '@/shared/types/exhibition/type';
-import {
-  Button,
-  CheckBox,
-  SelectDateInput,
-  SelectTimeInput,
-} from '@/shared/ui';
+import { Button, CheckBox } from '@/shared/ui';
+import SelectDateInput from '@/shared/ui/SelectDateInput';
+import SelectTimeInput from '@/shared/ui/SelectTimeInput';
 
 const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
   const initialStarted = watch(`${fieldName}.${index}.startedAt`);
