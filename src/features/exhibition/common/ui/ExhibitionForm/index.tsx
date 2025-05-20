@@ -13,8 +13,9 @@ import {
   ExhibitionFormData,
   MutationType,
 } from '@/shared/types/exhibition/type';
-import { Button, Input, SelectDateInput } from '@/shared/ui';
+import { Button, Input } from '@/shared/ui';
 import DetailHeader from '@/shared/ui/DetailHeader';
+import SelectDateInput from '@/shared/ui/SelectDateInput';
 import TextArea from '@/shared/ui/TextArea';
 
 const ExhibitionForm = ({
