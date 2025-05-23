@@ -76,8 +76,8 @@ export const printBadge = (selectedData: {
                   const decodedQRText = decodeURIComponent("${encodedQRCode}");
                   new QRCode("qrcode", {
                     text: decodedQRText,
-                    width: 150,
-                    height: 150
+                    width: 130,
+                    height: 130
                   });
                 `
                 : ''
