@@ -18,6 +18,14 @@ export interface FormValues {
   }[];
   informationText: string;
 }
+
+export interface ConditionalSettings {
+  hasEtc: boolean;
+  conditional?: {
+    parentIndex: number;
+    triggerValue: string;
+  };
+}
 export interface OptionProps {
   fields: { id: string; value: string }[];
   remove: (index: number) => void;
