@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { UseFormRegisterReturn, UseFormSetValue } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { Picture } from '@/shared/assets/icons';
+import { isValidSrc } from '@/shared/model';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 import WarningMessage from '../WarningMessage';
 
@@ -49,12 +50,12 @@ const ImageInput = ({ register, setValue, defaultImage }: ImageInputProps) => {
       <label
         htmlFor="imageUpload"
         className={`relative flex h-[360px] w-full cursor-pointer items-center justify-center rounded-sm px-[30px] py-6 ${
-          img ? '' : 'border-2 border-dashed border-main-300'
+          isValidSrc(img) ? '' : 'border-2 border-dashed border-main-300'
         }`}
       >
-        {img ? (
+        {isValidSrc(img) ? (
           <Image
-            src={img}
+            src={img!}
             alt="미리보기 이미지"
             layout="fill"
             objectFit="cover"

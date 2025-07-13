@@ -9,6 +9,7 @@ import {
 } from '@/entities/exhibition';
 import TestExpo from '@/shared/assets/png/TestExpo.png';
 import { Share } from '@/shared/assets/svg';
+import { isValidSrc } from '@/shared/model';
 import {
   ExpoDetail,
   ExpoStandard,
@@ -32,6 +33,10 @@ const ExpoDetailLayout = ({
 }) => {
   const date = `${expoDetail?.startedDay} ~ ${expoDetail?.finishedDay}`;
 
+  const safeSrc = isValidSrc(expoDetail.coverImage)
+    ? expoDetail.coverImage
+    : TestExpo;
+
   return (
     <div className="flex w-full flex-col space-y-48">
       <div className="relative">
@@ -48,7 +53,7 @@ const ExpoDetailLayout = ({
       <div className="w-full space-y-36">
         <div className="relative h-[360px] w-full">
           <Image
-            src={expoDetail.coverImage || TestExpo}
+            src={safeSrc}
             alt="expoImage"
             fill
             className="rounded-md object-cover"
