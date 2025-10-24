@@ -26,7 +26,8 @@ const AdminPageWrapper = () => {
     DeleteBadge: deleteExpo,
   };
 
-  const expoList = expoListData || [];
+  const expoList =
+    expoListData?.map(({ coverImage: _coverImage, ...rest }) => rest) || [];
   const requestSignUp = requestSignUpData?.data || [];
   const requestAdmin = requestAdminData?.data;
 
