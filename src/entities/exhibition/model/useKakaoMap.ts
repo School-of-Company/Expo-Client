@@ -29,7 +29,7 @@ export const useKakaoMap = ({ latitude, longitude }: KakaoMapOptions) => {
 
   useEffect(() => {
     const initializeMap = () => {
-      if (typeof window.kakao !== 'undefined') {
+      if (typeof window.kakao !== 'undefined' && window.kakao.maps) {
         window.kakao.maps.load(() => {
           loadKakaoMap();
         });
