@@ -133,7 +133,7 @@ const ExhibitionForm = ({
           value={watch('introduction')}
         />
         <div className="space-y-8">
-          <p className="text-h3b text-black">연수자 프로그램</p>
+          <p className="text-h3b text-black">연수 프로그램</p>
           <TrainingModule
             fields={trainingFields.fields}
             append={trainingFields.append}
