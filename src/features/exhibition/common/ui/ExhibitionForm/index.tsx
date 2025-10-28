@@ -70,6 +70,7 @@ const ExhibitionForm = ({
       onSubmit={handleSubmit(onSubmit, (errors) => {
         handleFormErrors(errors, showError);
       })}
+      method="POST"
       className="flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto"
     >
       <DetailHeader
@@ -123,11 +124,11 @@ const ExhibitionForm = ({
           </div>
         </div>
         <TextArea
-          title="초대글"
-          placeholder="초대글을 작성해주세요."
+          title="초대의 글"
+          placeholder="초대의 글을 작성해주세요."
           maxLength={1000}
           registration={register('introduction', {
-            required: '초대글을 입력해주세요.',
+            required: '초대의 글을 입력해주세요.',
           })}
           row={1}
           value={watch('introduction')}
