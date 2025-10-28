@@ -55,7 +55,8 @@ export const usePostApplication = (
           expoId: response.expoId,
         };
 
-        const name = 'name' in variables ? variables.name : '이름 없음';
+        const name =
+          'name' in variables && variables.name ? variables.name : '이름 없음';
 
         const badgeData = {
           name,
