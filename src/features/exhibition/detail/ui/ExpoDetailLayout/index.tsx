@@ -62,7 +62,7 @@ const ExpoDetailLayout = ({
 
         <div className="w-full space-y-32">
           <div className="space-y-16">
-            <ContentText title="소개 글" content={expoDetail?.description} />
+            <ContentText title="초대글" content={expoDetail?.description} />
             <div className="text-caption1r text-gray-700">
               박람회 기간 &nbsp; {date}
             </div>
