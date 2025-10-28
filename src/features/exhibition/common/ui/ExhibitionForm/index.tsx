@@ -124,11 +124,11 @@ const ExhibitionForm = ({
           </div>
         </div>
         <TextArea
-          title="초대글"
-          placeholder="초대글을 작성해주세요."
+          title="초대의 글"
+          placeholder="초대의 글을 작성해주세요."
           maxLength={1000}
           registration={register('introduction', {
-            required: '초대글을 입력해주세요.',
+            required: '초대의 글을 입력해주세요.',
           })}
           row={1}
           value={watch('introduction')}
