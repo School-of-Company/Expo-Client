@@ -84,7 +84,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
   if (error) {
     return (
       <div className="flex w-full max-w-[816px] flex-1 items-center justify-center text-body1r text-gray-500 mobile:text-body2r">
-        {error.message ?? '박람회 폼 조회를 실패 했습니다'}
+        {error.message ?? '박람회 폼 조회를 실패했습니다'}
       </div>
     );
   }
