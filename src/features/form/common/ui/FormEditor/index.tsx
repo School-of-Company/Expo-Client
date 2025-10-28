@@ -52,7 +52,6 @@ const FormEditor = ({
         handleFormErrors(errors, toast.error),
       )}
       method="POST"
-      action="#"
       className="flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto"
     >
       <div className="space-y-80">

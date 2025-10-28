@@ -92,7 +92,6 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
           handleFormErrors(errors, showError);
         })}
         method="POST"
-        action="#"
         className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto"
       >
         <div className="mt-30">

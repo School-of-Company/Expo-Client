@@ -26,7 +26,6 @@ const WriteSMSForm = () => {
     <form
       onSubmit={handleSubmit(onSubmit)}
       method="POST"
-      action="#"
       className="flex w-full max-w-[792px] flex-1 flex-col overflow-y-auto"
     >
       <div className="flex flex-1 flex-col gap-[62px]">

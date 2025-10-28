@@ -71,7 +71,6 @@ const ExhibitionForm = ({
         handleFormErrors(errors, showError);
       })}
       method="POST"
-      action="#"
       className="flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto"
     >
       <DetailHeader
