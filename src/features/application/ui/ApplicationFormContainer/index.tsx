@@ -62,12 +62,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
 
     const { privacyConsent, ...dynamicFormValues } = data;
 
-    const formatter = getFormatter(
-      formType,
-      userType,
-      getDynamicFormData(),
-      applicationType,
-    );
+    const formatter = getFormatter(formType, userType, getDynamicFormData());
 
     const formattedData = formatter({
       ...dynamicFormValues,
