@@ -13,33 +13,22 @@ export const createStandardApplicationFormatter = (
   return (
     data: DynamicFormValues & { privacyConsent: boolean },
   ): FormattedApplicationData => {
-    const nameKey = slugify('이름을 입력하세요');
-    const phoneNumberKey = slugify('휴대폰 번호를 입력하세요');
-
-    const name = String(data[nameKey] || '');
-
+    const name = data[slugify('이름을 입력하세요')];
+    const phoneNumber = data[slugify('휴대폰 번호를 입력하세요')];
     const phoneNumberStatus = data['phoneNumberStatus'];
     const includePhoneNumber =
       applicationType !== 'onsite' || phoneNumberStatus === 'true';
 
-    const phoneNumber = includePhoneNumber
-      ? String(data[phoneNumberKey] || '')
-      : '';
-
-    const informationJson = JSON.stringify(
-      processDynamicFormData(data, dynamicFormItems),
-    );
-
-    const formattedData: FormattedApplicationData = {
-      name,
-      informationJson,
-      personalInformationStatus: data.privacyConsent,
+    return {
+      ...(name && { name: String(name) }),
+      ...(includePhoneNumber &&
+        phoneNumber && { phoneNumber: String(phoneNumber) }),
+      informationJson: JSON.stringify(
+        processDynamicFormData(data, dynamicFormItems),
+      ),
+      ...(data.privacyConsent !== undefined && {
+        personalInformationStatus: data.privacyConsent,
+      }),
     };
-
-    if (includePhoneNumber) {
-      formattedData.phoneNumber = phoneNumber;
-    }
-
-    return formattedData;
   };
 };
