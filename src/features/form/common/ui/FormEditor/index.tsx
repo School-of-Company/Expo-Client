@@ -38,6 +38,10 @@ const FormEditor = ({
     name: 'questions',
   });
 
+  const hasPrivacyConsent = fields.some(
+    (_, index) => watch(`questions.${index}.formType`) === 'PRIVACYCONSENT',
+  );
+
   const handleFormSubmit = (data: FormValues) => {
     onSubmit(data);
   };
@@ -57,8 +61,17 @@ const FormEditor = ({
           />
           <div className="space-y-12">
             <div className="w-full space-y-12">
-              {fields.map((field, index) =>
-                watch(`questions.${index}.formType`) === 'PRIVACYCONSENT' ? (
+              {fields.map((field, index) => {
+                const isCurrentPrivacyConsent =
+                  watch(`questions.${index}.formType`) === 'PRIVACYCONSENT';
+                const filteredOptions = selectOptionData.filter(
+                  (option) =>
+                    option.value !== 'PRIVACYCONSENT' ||
+                    isCurrentPrivacyConsent ||
+                    !hasPrivacyConsent,
+                );
+
+                return isCurrentPrivacyConsent ? (
                   <PrivacyConsentForm
                     key={field.id}
                     placeholder="개인정보 동의 안내문을 입력해주세요"
@@ -72,7 +85,7 @@ const FormEditor = ({
                   <FormContainer
                     key={field.id}
                     {...{
-                      options: selectOptionData,
+                      options: filteredOptions,
                       formRemove: remove,
                       index,
                       register,
@@ -80,8 +93,8 @@ const FormEditor = ({
                       control,
                     }}
                   />
-                ),
-              )}
+                );
+              })}
             </div>
             <CreateFormButton
               onClick={() =>
