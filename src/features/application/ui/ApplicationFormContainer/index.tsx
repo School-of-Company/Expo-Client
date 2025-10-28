@@ -91,6 +91,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         onSubmit={handleSubmit(onSubmit, (errors) => {
           handleFormErrors(errors, showError);
         })}
+        method="POST"
         className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto"
       >
         <div className="mt-30">
