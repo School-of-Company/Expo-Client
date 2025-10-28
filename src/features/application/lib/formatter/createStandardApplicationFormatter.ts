@@ -19,12 +19,18 @@ export const createStandardApplicationFormatter = (
     const includePhoneNumber =
       applicationType !== 'onsite' || phoneNumberStatus === 'true';
 
+    const filteredItems = dynamicFormItems.filter(
+      (item) =>
+        item.title !== '이름을 입력하세요' &&
+        item.title !== '휴대폰 번호를 입력하세요',
+    );
+
     return {
       ...(name && { name: String(name) }),
       ...(includePhoneNumber &&
         phoneNumber && { phoneNumber: String(phoneNumber) }),
       informationJson: JSON.stringify(
-        processDynamicFormData(data, dynamicFormItems),
+        processDynamicFormData(data, filteredItems),
       ),
       ...(data.privacyConsent !== undefined && {
         personalInformationStatus: data.privacyConsent,
