@@ -10,8 +10,8 @@ export const getHeaderTitle = (
   if (formType === 'application') {
     if (userType === 'STANDARD') {
       return applicationType === 'register'
-        ? '제2회 Dev Fest 사전등록'
-        : '제2회 Dev Fest 현장등록';
+        ? '참가자 사전등록'
+        : '참가자 현장등록';
     }
     if (userType === 'TRAINEE') {
       return applicationType === 'register'
@@ -21,7 +21,7 @@ export const getHeaderTitle = (
   }
 
   if (formType === 'survey') {
-    if (userType === 'STANDARD') return '제2회 Dev Fest 만족도 조사 등록';
+    if (userType === 'STANDARD') return '참가자 만족도 조사 등록';
     if (userType === 'TRAINEE') return '연수자 만족도 조사 제출';
   }
 
