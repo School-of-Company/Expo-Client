@@ -9,6 +9,7 @@ import {
 } from '@/entities/exhibition';
 import TestExpo from '@/shared/assets/png/TestExpo.png';
 import { Share } from '@/shared/assets/svg';
+import { isValidSrc } from '@/shared/model';
 import {
   ExpoDetail,
   ExpoStandard,
@@ -32,6 +33,10 @@ const ExpoDetailLayout = ({
 }) => {
   const date = `${expoDetail?.startedDay} ~ ${expoDetail?.finishedDay}`;
 
+  const safeSrc = isValidSrc(expoDetail.coverImage)
+    ? expoDetail.coverImage
+    : TestExpo;
+
   return (
     <div className="flex w-full flex-col space-y-48">
       <div className="relative">
@@ -48,7 +53,7 @@ const ExpoDetailLayout = ({
       <div className="w-full space-y-36">
         <div className="relative h-[360px] w-full">
           <Image
-            src={expoDetail.coverImage || TestExpo}
+            src={safeSrc}
             alt="expoImage"
             fill
             className="rounded-md object-cover"
@@ -57,7 +62,7 @@ const ExpoDetailLayout = ({
 
         <div className="w-full space-y-32">
           <div className="space-y-16">
-            <ContentText title="소개 글" content={expoDetail?.description} />
+            <ContentText title="초대글" content={expoDetail?.description} />
             <div className="text-caption1r text-gray-700">
               박람회 기간 &nbsp; {date}
             </div>

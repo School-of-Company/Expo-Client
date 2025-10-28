@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import TestImg from '@/shared/assets/png/TestExpo.png';
+import { isValidSrc } from '@/shared/model';
 
 interface Props {
   id: number;
@@ -24,6 +25,8 @@ const ExpoListItem = ({
     return `${month}.${day}`;
   };
 
+  const safeSrc = isValidSrc(coverImage) ? coverImage : TestImg;
+
   return (
     <Link
       href={`/exhibition/detail/${id}`}
@@ -34,7 +37,7 @@ const ExpoListItem = ({
         style={{ width: 110, height: 110 }}
       >
         <Image
-          src={coverImage || TestImg}
+          src={safeSrc}
           alt="이미지 설명"
           width={110}
           height={110}

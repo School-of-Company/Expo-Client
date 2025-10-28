@@ -23,7 +23,7 @@ const PrivacyConsent = ({ content, watch, setValue }: PrivacyConsentProps) => {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-4">
         <p
           className="cursor-pointer text-body1b text-main-600"
           onClick={() => setIsModalOpen(true)}
