@@ -31,14 +31,8 @@ export const usePostApplication = (
   return useMutation({
     mutationFn: (data: FormattedApplicationData | FormattedSurveyData) =>
       postApplication(params, formType, userType, applicationType, data),
-    onSuccess: (response, variables) => {
+    onSuccess: (response) => {
       toast.success(success);
-
-      const isStandardOnsiteTemporary =
-        formType === 'application' &&
-        userType === 'STANDARD' &&
-        applicationType === 'onsite' &&
-        (!('phoneNumber' in variables) || !variables.phoneNumber);
 
       if (
         formType === 'application' &&
@@ -55,18 +49,17 @@ export const usePostApplication = (
           expoId: response.expoId,
         };
 
-        const name = 'name' in variables ? variables.name : '이름 없음';
-
         const badgeData = {
-          name,
+          name: response.name || '이름 없음',
           qrCode: JSON.stringify(qrPayload),
           isTemporary: true,
         };
 
         printBadge(badgeData);
+        return;
       }
 
-      if (!isStandardOnsiteTemporary) {
+      if (formType === 'application') {
         router.push(
           `/application/success/${params}?userType=${userType}&formType=${formType}`,
         );

@@ -38,6 +38,10 @@ const FormEditor = ({
     name: 'questions',
   });
 
+  const hasPrivacyConsent = fields.some(
+    (_, index) => watch(`questions.${index}.formType`) === 'PRIVACYCONSENT',
+  );
+
   const handleFormSubmit = (data: FormValues) => {
     onSubmit(data);
   };
@@ -57,28 +61,41 @@ const FormEditor = ({
           />
           <div className="space-y-12">
             <div className="w-full space-y-12">
-              {fields.map((field, index) => (
-                <FormContainer
-                  key={field.id}
-                  {...{
-                    options: selectOptionData,
-                    formRemove: remove,
-                    index,
-                    register,
-                    setValue,
-                    control,
-                  }}
-                />
-              ))}
-            </div>
-            <PrivacyConsentForm
-              placeholder="개인정보 동의 안내문을 입력해주세요"
-              registration={register('informationText', {
-                required: '개인정보 동의 안내문을 입력해주세요.',
+              {fields.map((field, index) => {
+                const isCurrentPrivacyConsent =
+                  watch(`questions.${index}.formType`) === 'PRIVACYCONSENT';
+                const filteredOptions = selectOptionData.filter(
+                  (option) =>
+                    option.value !== 'PRIVACYCONSENT' ||
+                    isCurrentPrivacyConsent ||
+                    !hasPrivacyConsent,
+                );
+
+                return isCurrentPrivacyConsent ? (
+                  <PrivacyConsentForm
+                    key={field.id}
+                    placeholder="개인정보 동의 안내문을 입력해주세요"
+                    registration={register('informationText', {
+                      required: '개인정보 동의 안내문을 입력해주세요.',
+                    })}
+                    row={1}
+                    value={watch('informationText')}
+                  />
+                ) : (
+                  <FormContainer
+                    key={field.id}
+                    {...{
+                      options: filteredOptions,
+                      formRemove: remove,
+                      index,
+                      register,
+                      setValue,
+                      control,
+                    }}
+                  />
+                );
               })}
-              row={1}
-              value={watch('informationText')}
-            />
+            </div>
             <CreateFormButton
               onClick={() =>
                 append({
