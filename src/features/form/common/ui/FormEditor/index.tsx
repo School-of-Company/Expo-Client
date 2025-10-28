@@ -57,28 +57,32 @@ const FormEditor = ({
           />
           <div className="space-y-12">
             <div className="w-full space-y-12">
-              {fields.map((field, index) => (
-                <FormContainer
-                  key={field.id}
-                  {...{
-                    options: selectOptionData,
-                    formRemove: remove,
-                    index,
-                    register,
-                    setValue,
-                    control,
-                  }}
-                />
-              ))}
+              {fields.map((field, index) =>
+                watch(`questions.${index}.formType`) === 'PRIVACYCONSENT' ? (
+                  <PrivacyConsentForm
+                    key={field.id}
+                    placeholder="개인정보 동의 안내문을 입력해주세요"
+                    registration={register('informationText', {
+                      required: '개인정보 동의 안내문을 입력해주세요.',
+                    })}
+                    row={1}
+                    value={watch('informationText')}
+                  />
+                ) : (
+                  <FormContainer
+                    key={field.id}
+                    {...{
+                      options: selectOptionData,
+                      formRemove: remove,
+                      index,
+                      register,
+                      setValue,
+                      control,
+                    }}
+                  />
+                ),
+              )}
             </div>
-            <PrivacyConsentForm
-              placeholder="개인정보 동의 안내문을 입력해주세요"
-              registration={register('informationText', {
-                required: '개인정보 동의 안내문을 입력해주세요.',
-              })}
-              row={1}
-              value={watch('informationText')}
-            />
             <CreateFormButton
               onClick={() =>
                 append({
