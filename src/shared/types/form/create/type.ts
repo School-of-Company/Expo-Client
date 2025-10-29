@@ -27,10 +27,13 @@ export interface OptionProps {
 
 export interface ApplicationFormRequest {
   participantType: 'STANDARD' | 'TRAINEE';
+  registrationType: 'PRE' | 'SITE';
   dynamicForm: {
     title: string;
     formType: string;
     jsonData: string;
+    requiredStatus: boolean;
+    otherJson: string | null;
   }[];
   informationText: string;
 }
