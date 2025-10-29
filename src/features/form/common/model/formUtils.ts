@@ -12,6 +12,12 @@ const convertOptionsToJson = (options: { value: string }[]): string => {
   );
 };
 
+const mapRegistrationType = (
+  applicationType: 'register' | 'onsite',
+): 'PRE' | 'SITE' => {
+  return applicationType === 'register' ? 'PRE' : 'SITE';
+};
+
 const getSurveyRequestData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
@@ -32,10 +38,12 @@ const getSurveyRequestData = (
 const getApplicationRequestData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
+  registrationType: 'PRE' | 'SITE',
 ) => {
   return {
     informationText: data.informationText,
     participantType: type,
+    registrationType,
     dynamicForm: data.questions.map((question) => ({
       title: question.title,
       formType: question.formType,
@@ -50,8 +58,15 @@ export const transformFormData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
   mode: 'application' | 'survey',
+  applicationType?: 'register' | 'onsite',
 ): CreateFormRequest => {
-  return mode === 'survey'
-    ? getSurveyRequestData(data, type)
-    : getApplicationRequestData(data, type);
+  if (mode === 'survey') {
+    return getSurveyRequestData(data, type);
+  }
+
+  const registrationType = applicationType
+    ? mapRegistrationType(applicationType)
+    : 'PRE';
+
+  return getApplicationRequestData(data, type, registrationType);
 };
