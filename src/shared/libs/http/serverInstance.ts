@@ -12,9 +12,7 @@ const createHttpsAgent = () => {
       rejectUnauthorized: true,
     });
   } catch (error) {
-    return new https.Agent({
-      rejectUnauthorized: process.env.NODE_ENV === 'production',
-    });
+    console.error(error);
   }
 };
 
