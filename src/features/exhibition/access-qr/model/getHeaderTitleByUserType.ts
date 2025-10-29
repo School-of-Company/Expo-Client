@@ -1,6 +1,6 @@
 export const getHeaderTitleByUserType = (
   userType: string | null,
-  applicationType: string = 'onsite',
+  applicationType: string = 'register',
 ): string => {
   const prefix = applicationType === 'register' ? '사전' : '현장';
 
