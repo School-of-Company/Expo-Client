@@ -7,6 +7,7 @@ export const useCreateFormMutation = (
   id: string,
   type: 'STANDARD' | 'TRAINEE',
   mode: 'application' | 'survey',
+  applicationType: 'register' | 'onsite' = 'register',
 ) => {
   const {
     mutate: createApplicationForm,
@@ -20,7 +21,7 @@ export const useCreateFormMutation = (
   } = useCreateSurveyForm(id, type);
 
   const handleSubmitForm = (data: FormValues) => {
-    const formattedData = transformFormData(data, type, mode);
+    const formattedData = transformFormData(data, type, mode, applicationType);
     const submitFunction =
       mode === 'survey' ? createSurveyForm : createApplicationForm;
     submitFunction(formattedData);
