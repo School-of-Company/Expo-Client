@@ -3,6 +3,7 @@ export const isValidSrc = (src: string | null): boolean => {
   return (
     src.startsWith('/') ||
     src.startsWith('http://') ||
-    src.startsWith('https://')
+    src.startsWith('https://') ||
+    src.startsWith('blob:')
   );
 };
