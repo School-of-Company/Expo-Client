@@ -33,6 +33,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedFormType, setSelectedFormType] = useState<string | null>(null);
+  const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
 
   const handleCategorySelect = (category: string) => {
     if (category === CATEGORIES.EXHIBITION) {
@@ -49,19 +50,42 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
     }
   };
 
-  const handleFinalSelection = (type: string) => {
+  const handleUserTypeSelect = (type: string) => {
+    setSelectedUserType(type);
+
+    if (
+      type === USER_TYPES.TRAINEE ||
+      selectedCategory === CATEGORIES.SURVEY ||
+      modalType === 'message'
+    ) {
+      handleFinalSelection(type, 'register');
+    }
+  };
+
+  const handleRegistrationTypeSelect = (type: 'register' | 'onsite') => {
+    if (selectedUserType) {
+      handleFinalSelection(selectedUserType, type);
+    }
+  };
+
+  const handleFinalSelection = (
+    userType: string,
+    appType: 'register' | 'onsite',
+  ) => {
     const baseURL = window.location.origin;
 
     if (modalType === 'message') {
-      router.push(`/sms/${params}/${type}`);
+      router.push(`/sms/${params}/${userType}`);
     } else if (modalType === 'edit' && selectedFormType) {
-      router.push(`/form/edit/${params}?type=${type}&mode=${selectedFormType}`);
+      router.push(
+        `/form/edit/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}`,
+      );
     } else if (modalType === 'formcreate' && selectedFormType) {
       router.push(
-        `/form/create/${params}?type=${type}&mode=${selectedFormType}`,
+        `/form/create/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}`,
       );
     } else if (modalType === 'share' && selectedFormType) {
-      const url = `${baseURL}/application/${params}?formType=${selectedFormType}&userType=${type}&applicationType=register`;
+      const url = `${baseURL}/application/${params}?formType=${selectedFormType}&userType=${userType}&applicationType=${appType}`;
       navigator.clipboard
         .writeText(url)
         .then(() => {
@@ -71,22 +95,40 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
           toast.error('URL 복사에 실패했습니다. 다시 시도해주세요.');
         });
     } else if (modalType === 'onsite') {
-      router.push(`/exhibition/access-qr/${params}?userType=${type}`);
+      router.push(
+        `/exhibition/access-qr/${params}?userType=${userType}&applicationType=${appType}`,
+      );
     }
 
     onClose();
   };
 
   const renderButtons = () => {
-    if (modalType === 'message' || modalType === 'onsite') {
+    if (
+      (modalType === 'message' || modalType === 'onsite') &&
+      !selectedUserType
+    ) {
       return [
         {
           label: '참가자',
-          onClick: () => handleFinalSelection(USER_TYPES.STANDARD),
+          onClick: () => handleUserTypeSelect(USER_TYPES.STANDARD),
         },
         {
           label: '연수자',
-          onClick: () => handleFinalSelection(USER_TYPES.TRAINEE),
+          onClick: () => handleUserTypeSelect(USER_TYPES.TRAINEE),
+        },
+      ];
+    }
+
+    if (modalType === 'onsite' && selectedUserType === USER_TYPES.STANDARD) {
+      return [
+        {
+          label: '사전 등록',
+          onClick: () => handleRegistrationTypeSelect('register'),
+        },
+        {
+          label: '현장 등록',
+          onClick: () => handleRegistrationTypeSelect('onsite'),
         },
       ];
     }
@@ -112,16 +154,36 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       (modalType === 'edit' ||
         modalType === 'formcreate' ||
         modalType === 'share') &&
-      selectedCategory
+      selectedCategory &&
+      !selectedUserType
     ) {
       return [
         {
           label: '참가자',
-          onClick: () => handleFinalSelection(USER_TYPES.STANDARD),
+          onClick: () => handleUserTypeSelect(USER_TYPES.STANDARD),
         },
         {
           label: '연수자',
-          onClick: () => handleFinalSelection(USER_TYPES.TRAINEE),
+          onClick: () => handleUserTypeSelect(USER_TYPES.TRAINEE),
+        },
+      ];
+    }
+
+    if (
+      (modalType === 'edit' ||
+        modalType === 'formcreate' ||
+        modalType === 'share') &&
+      selectedCategory === CATEGORIES.FORM &&
+      selectedUserType === USER_TYPES.STANDARD
+    ) {
+      return [
+        {
+          label: '사전 등록',
+          onClick: () => handleRegistrationTypeSelect('register'),
+        },
+        {
+          label: '현장 등록',
+          onClick: () => handleRegistrationTypeSelect('onsite'),
         },
       ];
     }
