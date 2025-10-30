@@ -1,9 +1,16 @@
 import axios from 'axios';
 import clientInstance from '@/shared/libs/http/clientInstance';
+import { ApplicationType } from '../types/exhibition/type';
 
-export const getApplicationForm = async (id: string, userType: string) => {
+export const getApplicationForm = async (
+  id: string,
+  userType: string,
+  application: ApplicationType,
+) => {
   try {
-    const response = await clientInstance.get(`/form/${id}?type=${userType}`);
+    const response = await clientInstance.get(
+      `/form/${id}?type=${userType}&applicationType=${application}`,
+    );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
