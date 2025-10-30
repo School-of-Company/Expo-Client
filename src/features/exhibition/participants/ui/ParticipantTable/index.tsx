@@ -10,6 +10,7 @@ import {
   Trainee,
   TraineeResponse,
 } from '@/shared/types/exhibition/participants/type';
+import { SearchInput } from '@/shared/ui/SearchInput';
 import SelectUserType from '@/shared/ui/SelectUserType';
 import { TableForm } from '@/shared/ui/Table';
 import { getStandardExcelFile } from '../../api/getStandardExcelFile';
@@ -32,6 +33,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
   const [selectedDate, setSelectedDate] = useState<string | undefined>(
     undefined,
   );
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (expoDetailQuery?.startedDay && selectedDate === undefined) {
@@ -53,7 +55,42 @@ const ParticipantTable = ({ id }: { id: string }) => {
   }, [userType]);
 
   const expoData = expoManageQueries.data;
-  const totalPage = expoData?.info?.totalPage ?? 1;
+
+  const participantsData = Array.isArray(expoData)
+    ? expoData
+    : ((isTrainee
+        ? (expoData as TraineeResponse)?.participants
+        : (expoData as ParticipantResponse)?.participants) ?? []);
+
+  const totalPage = Array.isArray(expoData)
+    ? 1
+    : (expoData?.info?.totalPage ?? 1);
+
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) return participantsData;
+
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+
+    return participantsData.filter((participant) => {
+      const name = (participant.name || '').toLowerCase();
+      const phoneNumber = (participant.phoneNumber || '').replace(/-/g, '');
+      const searchPhone = normalizedQuery.replace(/-/g, '');
+
+      if (isTrainee) {
+        const trainee = participant as Trainee;
+        const trainingId = (trainee.trainingId || '').toLowerCase();
+        return (
+          name.includes(normalizedQuery) ||
+          phoneNumber.includes(searchPhone) ||
+          trainingId.includes(normalizedQuery)
+        );
+      } else {
+        return (
+          name.includes(normalizedQuery) || phoneNumber.includes(searchPhone)
+        );
+      }
+    });
+  }, [participantsData, searchQuery, isTrainee]);
 
   const handleSlectUserChange = (newValue: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -86,10 +123,16 @@ const ParticipantTable = ({ id }: { id: string }) => {
           selectedDate={selectedDate || ''}
         />
 
+        <SearchInput
+          placeholder="이름, 연락처, 연수번호로 검색"
+          value={searchQuery}
+          onChange={setSearchQuery}
+        />
+
         {isTrainee ? (
           <TableForm<Trainee>
             categories={requestPrintCategories}
-            data={(expoData as TraineeResponse)?.participants ?? []}
+            data={filteredData as Trainee[]}
             maxHeight="414px"
             footerType="file"
             text="참가자 전체 인원"
@@ -101,7 +144,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
         ) : (
           <TableForm<participants>
             categories={requestPrintCategories}
-            data={(expoData as ParticipantResponse)?.participants ?? []}
+            data={filteredData as participants[]}
             maxHeight="414px"
             footerType="file"
             text="참가자 전체 인원"

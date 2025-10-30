@@ -6,3 +6,5 @@ export { default as Share } from './Share';
 export { default as CheckedBoxIcon } from './CheckedBoxIcon';
 export { default as CheckBoxIcon } from './CheckBoxIcon';
 export { default as ApplicationSuccessLogo } from './ApplicationSuccessLogo';
+export { default as SearchIcon } from './SearchIcon';
+export { default as XMark } from './XMark';
