@@ -4,7 +4,7 @@ export const getHeaderTitleByUserType = (
   userType: string | null,
   applicationType: ApplicationType,
 ): string => {
-  const prefix = applicationType === 'REGISTER' ? '사전' : '현장';
+  const prefix = applicationType === 'PRE' ? '사전' : '현장';
 
   switch (userType) {
     case 'STANDARD':

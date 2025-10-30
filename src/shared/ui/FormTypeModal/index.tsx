@@ -59,7 +59,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       selectedCategory === CATEGORIES.SURVEY ||
       modalType === 'message'
     ) {
-      handleFinalSelection(type, 'REGISTER');
+      handleFinalSelection(type, 'PRE');
     }
   };
 
@@ -92,7 +92,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
         .catch(() => {
           toast.error('URL 복사에 실패했습니다. 다시 시도해주세요.');
         });
-    } else if (modalType === 'ONSITE') {
+    } else if (modalType === 'FIELD') {
       router.push(
         `/exhibition/access-qr/${params}?userType=${userType}&applicationType=${appType}`,
       );
@@ -103,7 +103,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
 
   const renderButtons = () => {
     if (
-      (modalType === 'message' || modalType === 'ONSITE') &&
+      (modalType === 'message' || modalType === 'FIELD') &&
       !selectedUserType
     ) {
       return [
@@ -118,15 +118,15 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       ];
     }
 
-    if (modalType === 'ONSITE' && selectedUserType === USER_TYPES.STANDARD) {
+    if (modalType === 'FIELD' && selectedUserType === USER_TYPES.STANDARD) {
       return [
         {
           label: '사전 등록',
-          onClick: () => handleRegistrationTypeSelect('REGISTER'),
+          onClick: () => handleRegistrationTypeSelect('PRE'),
         },
         {
           label: '현장 등록',
-          onClick: () => handleRegistrationTypeSelect('ONSITE'),
+          onClick: () => handleRegistrationTypeSelect('FIELD'),
         },
       ];
     }
@@ -177,11 +177,11 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       return [
         {
           label: '사전 등록',
-          onClick: () => handleRegistrationTypeSelect('REGISTER'),
+          onClick: () => handleRegistrationTypeSelect('PRE'),
         },
         {
           label: '현장 등록',
-          onClick: () => handleRegistrationTypeSelect('ONSITE'),
+          onClick: () => handleRegistrationTypeSelect('FIELD'),
         },
       ];
     }

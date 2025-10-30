@@ -37,7 +37,7 @@ export const postApplication = async (
   const isStandardOnsiteTemporary =
     formType === 'application' &&
     userType === 'STANDARD' &&
-    applicationType === 'ONSITE' &&
+    applicationType === 'FIELD' &&
     (!('phoneNumber' in data) || !data.phoneNumber);
 
   if (isStandardOnsiteTemporary) {

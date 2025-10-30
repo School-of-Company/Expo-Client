@@ -116,7 +116,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
               />
             ) : null}
             {formType === 'application' &&
-            applicationType === 'ONSITE' &&
+            applicationType === 'FIELD' &&
             userType === 'STANDARD' ? (
               <OptionContainer
                 title="휴대폰 번호를 입력하세요"

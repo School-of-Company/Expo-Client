@@ -10,12 +10,10 @@ export const getHeaderTitle = (
 ): string => {
   if (formType === 'application') {
     if (userType === 'STANDARD') {
-      return applicationType === 'REGISTER'
-        ? '참가자 사전등록'
-        : '참가자 현장등록';
+      return applicationType === 'PRE' ? '참가자 사전등록' : '참가자 현장등록';
     }
     if (userType === 'TRAINEE') {
-      return applicationType === 'REGISTER'
+      return applicationType === 'PRE'
         ? '사전 연수자 박람회 등록'
         : '현장 연수자 박람회 등록';
     }

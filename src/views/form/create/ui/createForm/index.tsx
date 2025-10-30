@@ -20,7 +20,7 @@ const CreateForm = ({ id }: { id: string }) => {
     isSurveyPending,
     isApplicationSuccess,
     isSurveySuccess,
-  } = useCreateFormMutation(id, type, mode, applicationType || 'REGISTER');
+  } = useCreateFormMutation(id, type, mode, applicationType || 'PRE');
   return (
     <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />

@@ -9,6 +9,7 @@ const ExhibitionAccessQrContainer = ({
   id: string;
   userType: string;
   applicationType: string;
+  registrationType: string;
 }) => {
   return (
     <div className="flex w-full flex-1 flex-col items-center justify-center gap-24">
