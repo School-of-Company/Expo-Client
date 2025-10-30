@@ -17,10 +17,14 @@ const getSurveyRequestData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
 ) => {
+  const filteredQuestions = data.questions.filter(
+    (question) => question.formType !== 'PRIVACYCONSENT',
+  );
+
   return {
-    informationText: data.informationText,
+    informationText: data.informationText || '',
     participationType: type,
-    dynamicSurveyRequestDto: data.questions.map((question) => ({
+    dynamicSurveyRequestDto: filteredQuestions.map((question) => ({
       title: question.title,
       formType: question.formType,
       jsonData: convertOptionsToJson(question.options),
@@ -35,11 +39,15 @@ const getApplicationRequestData = (
   type: 'STANDARD' | 'TRAINEE',
   registrationType: ApplicationType,
 ) => {
+  const filteredQuestions = data.questions.filter(
+    (question) => question.formType !== 'PRIVACYCONSENT',
+  );
+
   return {
-    informationText: data.informationText,
+    informationText: data.informationText || '',
     participantType: type,
     registrationType,
-    dynamicForm: data.questions.map((question) => ({
+    dynamicForm: filteredQuestions.map((question) => ({
       title: question.title,
       formType: question.formType,
       jsonData: convertOptionsToJson(question.options),

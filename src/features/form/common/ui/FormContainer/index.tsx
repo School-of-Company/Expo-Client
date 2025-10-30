@@ -86,17 +86,13 @@ const FormContainer = ({
   };
 
   useEffect(() => {
-    if (
-      selectedOption?.value === 'SENTENCE' ||
-      selectedOption?.value === 'PRIVACYCONSENT'
-    ) {
+    if (selectedOption?.value === 'SENTENCE') {
       setValue(`questions.${index}.options`, []);
     }
 
     if (
       selectedOption?.value === 'SENTENCE' ||
-      selectedOption?.value === 'IMAGE' ||
-      selectedOption?.value === 'PRIVACYCONSENT'
+      selectedOption?.value === 'IMAGE'
     ) {
       setIsCheckBox(false);
     }
@@ -117,8 +113,7 @@ const FormContainer = ({
       </div>
       {renderOptionComponent()}
       <div className="border-b-1 border-solid border-gray-100">
-        {selectedOption?.value !== 'SENTENCE' &&
-        selectedOption?.value !== 'PRIVACYCONSENT' ? (
+        {selectedOption?.value !== 'SENTENCE' ? (
           <AddItemButton
             onClick={(e: React.MouseEvent) => {
               preventEvent(e);
@@ -130,8 +125,7 @@ const FormContainer = ({
       <div className="flex w-full items-center justify-end gap-20">
         {selectedOption?.value !== 'IMAGE' &&
         selectedOption?.value !== 'SENTENCE' &&
-        selectedOption?.value !== 'DROPDOWN' &&
-        selectedOption?.value !== 'PRIVACYCONSENT' ? (
+        selectedOption?.value !== 'DROPDOWN' ? (
           <CheckBox control={control} index={index} text="기타" />
         ) : null}
         <DeleteButton

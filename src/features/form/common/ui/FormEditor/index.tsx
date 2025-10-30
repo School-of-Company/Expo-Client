@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import {
@@ -30,7 +31,7 @@ const FormEditor = ({
 }) => {
   const { control, handleSubmit, register, setValue, watch } =
     useForm<FormValues>({
-      defaultValues: defaultValues || { questions: [] },
+      defaultValues: defaultValues || { questions: [], informationText: '' },
     });
 
   const { fields, append, remove } = useFieldArray({
@@ -38,13 +39,31 @@ const FormEditor = ({
     name: 'questions',
   });
 
-  const hasPrivacyConsent = fields.some(
-    (_, index) => watch(`questions.${index}.formType`) === 'PRIVACYCONSENT',
+  const [hasPrivacyConsent, setHasPrivacyConsent] = useState(
+    !!defaultValues?.informationText,
   );
 
   const handleFormSubmit = (data: FormValues) => {
-    onSubmit(data);
+    const submitData = {
+      ...data,
+      informationText: hasPrivacyConsent ? data.informationText : '',
+    };
+    onSubmit(submitData);
   };
+
+  const handleAddPrivacyConsent = () => {
+    setHasPrivacyConsent(true);
+    setValue('informationText', '');
+  };
+
+  const handleRemovePrivacyConsent = () => {
+    setHasPrivacyConsent(false);
+    setValue('informationText', '');
+  };
+
+  const filteredSelectOptions = selectOptionData.filter(
+    (option) => option.value !== 'PRIVACYCONSENT',
+  );
 
   return (
     <form
@@ -62,52 +81,50 @@ const FormEditor = ({
           />
           <div className="space-y-12">
             <div className="w-full space-y-12">
-              {fields.map((field, index) => {
-                const isCurrentPrivacyConsent =
-                  watch(`questions.${index}.formType`) === 'PRIVACYCONSENT';
-                const filteredOptions = selectOptionData.filter(
-                  (option) =>
-                    option.value !== 'PRIVACYCONSENT' ||
-                    isCurrentPrivacyConsent ||
-                    !hasPrivacyConsent,
-                );
-
-                return isCurrentPrivacyConsent ? (
-                  <PrivacyConsentForm
-                    key={field.id}
-                    placeholder="개인정보 동의 안내문을 입력해주세요"
-                    registration={register('informationText', {
-                      required: '개인정보 동의 안내문을 입력해주세요.',
-                    })}
-                    row={1}
-                    value={watch('informationText')}
-                  />
-                ) : (
-                  <FormContainer
-                    key={field.id}
-                    {...{
-                      options: filteredOptions,
-                      formRemove: remove,
-                      index,
-                      register,
-                      setValue,
-                      control,
-                    }}
-                  />
-                );
-              })}
+              {fields.map((field, index) => (
+                <FormContainer
+                  key={field.id}
+                  {...{
+                    options: filteredSelectOptions,
+                    formRemove: remove,
+                    index,
+                    register,
+                    setValue,
+                    control,
+                  }}
+                />
+              ))}
+              {hasPrivacyConsent && (
+                <PrivacyConsentForm
+                  placeholder="개인정보 동의 안내문을 입력해주세요"
+                  registration={register('informationText', {
+                    required: '개인정보 동의 안내문을 입력해주세요.',
+                  })}
+                  row={1}
+                  value={watch('informationText')}
+                  onRemove={handleRemovePrivacyConsent}
+                />
+              )}
             </div>
-            <CreateFormButton
-              onClick={() =>
-                append({
-                  title: '',
-                  formType: 'SENTENCE',
-                  options: [],
-                  requiredStatus: false,
-                  otherJson: null,
-                })
-              }
-            />
+            <div className="flex gap-12">
+              <CreateFormButton
+                onClick={() =>
+                  append({
+                    title: '',
+                    formType: 'SENTENCE',
+                    options: [],
+                    requiredStatus: false,
+                    otherJson: null,
+                  })
+                }
+              />
+              {!hasPrivacyConsent && (
+                <CreateFormButton
+                  onClick={handleAddPrivacyConsent}
+                  text="개인정보 동의 안내문"
+                />
+              )}
+            </div>
           </div>
         </div>
         <Button type="submit" disabled={isLoading || isSuccess}>
