@@ -39,7 +39,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     data: formList,
     isLoading,
     error,
-  } = useGetForm(params, userType, formType) as {
+  } = useGetForm(params, userType, formType, applicationType) as {
     data: ApplicationForm | undefined;
     isLoading: boolean;
     error: Error | null;
