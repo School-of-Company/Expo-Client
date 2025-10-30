@@ -11,9 +11,9 @@ const CreateForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const type = searchParams.get('type') as 'STANDARD' | 'TRAINEE';
   const mode = searchParams.get('mode') as 'application' | 'survey';
-  const applicationType = searchParams.get(
-    'applicationType',
-  ) as ApplicationType | null;
+  const applicationType = searchParams
+    .get('applicationType')
+    ?.toUpperCase() as ApplicationType | null;
   const {
     handleSubmitForm,
     isApplicationPending,
