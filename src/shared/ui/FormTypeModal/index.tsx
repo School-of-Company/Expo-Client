@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { XMark } from '@/shared/assets/icons';
+import { ApplicationType } from '@/shared/types/exhibition/type';
 import Button from '../Button';
 
 const CATEGORIES = {
@@ -58,20 +59,17 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       selectedCategory === CATEGORIES.SURVEY ||
       modalType === 'message'
     ) {
-      handleFinalSelection(type, 'register');
+      handleFinalSelection(type, 'REGISTER');
     }
   };
 
-  const handleRegistrationTypeSelect = (type: 'register' | 'onsite') => {
+  const handleRegistrationTypeSelect = (type: ApplicationType) => {
     if (selectedUserType) {
       handleFinalSelection(selectedUserType, type);
     }
   };
 
-  const handleFinalSelection = (
-    userType: string,
-    appType: 'register' | 'onsite',
-  ) => {
+  const handleFinalSelection = (userType: string, appType: ApplicationType) => {
     const baseURL = window.location.origin;
 
     if (modalType === 'message') {
@@ -105,7 +103,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
 
   const renderButtons = () => {
     if (
-      (modalType === 'message' || modalType === 'onsite') &&
+      (modalType === 'message' || modalType === 'ONSITE') &&
       !selectedUserType
     ) {
       return [
@@ -124,11 +122,11 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       return [
         {
           label: '사전 등록',
-          onClick: () => handleRegistrationTypeSelect('register'),
+          onClick: () => handleRegistrationTypeSelect('REGISTER'),
         },
         {
           label: '현장 등록',
-          onClick: () => handleRegistrationTypeSelect('onsite'),
+          onClick: () => handleRegistrationTypeSelect('ONSITE'),
         },
       ];
     }
@@ -179,11 +177,11 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       return [
         {
           label: '사전 등록',
-          onClick: () => handleRegistrationTypeSelect('register'),
+          onClick: () => handleRegistrationTypeSelect('REGISTER'),
         },
         {
           label: '현장 등록',
-          onClick: () => handleRegistrationTypeSelect('onsite'),
+          onClick: () => handleRegistrationTypeSelect('ONSITE'),
         },
       ];
     }

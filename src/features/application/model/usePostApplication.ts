@@ -6,13 +6,14 @@ import {
   FormattedApplicationData,
   FormattedSurveyData,
 } from '@/shared/types/application/type';
+import { ApplicationType } from '@/shared/types/exhibition/type';
 import { postApplication } from '../api/postApplication';
 
 export const usePostApplication = (
   params: string,
   formType: 'application' | 'survey',
   userType: 'STANDARD' | 'TRAINEE',
-  applicationType: 'register' | 'onsite',
+  applicationType: ApplicationType,
 ) => {
   const router = useRouter();
   const getMessages = () => {
@@ -37,7 +38,7 @@ export const usePostApplication = (
       if (
         formType === 'application' &&
         userType === 'STANDARD' &&
-        applicationType === 'onsite' &&
+        applicationType === 'ONSITE' &&
         response &&
         response.participantId &&
         response.phoneNumber &&

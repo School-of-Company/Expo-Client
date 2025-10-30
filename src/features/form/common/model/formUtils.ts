@@ -1,3 +1,4 @@
+import { ApplicationType } from '@/shared/types/exhibition/type';
 import { FormValues, CreateFormRequest } from '@/shared/types/form/create/type';
 
 const convertOptionsToJson = (options: { value: string }[]): string => {
@@ -10,12 +11,6 @@ const convertOptionsToJson = (options: { value: string }[]): string => {
       {} as Record<string, string>,
     ),
   );
-};
-
-const mapRegistrationType = (
-  applicationType: 'register' | 'onsite',
-): 'PRE' | 'SITE' => {
-  return applicationType === 'register' ? 'PRE' : 'SITE';
 };
 
 const getSurveyRequestData = (
@@ -38,7 +33,7 @@ const getSurveyRequestData = (
 const getApplicationRequestData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
-  registrationType: 'PRE' | 'SITE',
+  registrationType: ApplicationType,
 ) => {
   return {
     informationText: data.informationText,
@@ -58,15 +53,11 @@ export const transformFormData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
   mode: 'application' | 'survey',
-  applicationType?: 'register' | 'onsite',
+  applicationType: ApplicationType,
 ): CreateFormRequest => {
   if (mode === 'survey') {
     return getSurveyRequestData(data, type);
   }
 
-  const registrationType = applicationType
-    ? mapRegistrationType(applicationType)
-    : 'PRE';
-
-  return getApplicationRequestData(data, type, registrationType);
+  return getApplicationRequestData(data, type, applicationType);
 };

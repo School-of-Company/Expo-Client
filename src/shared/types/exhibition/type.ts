@@ -69,4 +69,4 @@ export const Application = {
   ONSITE: '현장',
 } as const;
 
-export type ApplicationType = (typeof Application)[keyof typeof Application];
+export type ApplicationType = keyof typeof Application;

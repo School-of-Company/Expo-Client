@@ -1,3 +1,4 @@
+import { ApplicationType } from '@/shared/types/exhibition/type';
 import { FormValues } from '@/shared/types/form/create/type';
 import { transformFormData } from '../../common/model/formUtils';
 import { useCreateApplicationForm } from './useCreateApplicationForm';
@@ -7,7 +8,7 @@ export const useCreateFormMutation = (
   id: string,
   type: 'STANDARD' | 'TRAINEE',
   mode: 'application' | 'survey',
-  applicationType: 'register' | 'onsite' = 'register',
+  applicationType: ApplicationType,
 ) => {
   const {
     mutate: createApplicationForm,
