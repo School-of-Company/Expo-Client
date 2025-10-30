@@ -17,6 +17,7 @@ import {
   MultipleChoiceOption,
   RequiredToggle,
 } from '@/entities/form';
+import ConditionalSettings from '@/entities/form/ui/ConditionalSettings';
 import { preventEvent } from '@/shared/model';
 import { FormValues, Option } from '@/shared/types/form/create/type';
 import { AddItemButton } from '@/shared/ui';
@@ -99,7 +100,9 @@ const FormContainer = ({
   }, [selectedOption, index, setValue]);
 
   return (
-    <div className="flex w-full flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 px-32 py-18">
+    <div
+      className={`flex w-full flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 px-32 py-18`}
+    >
       <div className="flex w-full items-center justify-between gap-16">
         <FormTitle register={register} index={index} />
         <FormTypeSelect
@@ -136,6 +139,15 @@ const FormContainer = ({
         />
         <RequiredToggle control={control} index={index} />
       </div>
+
+      {(selectedOption?.value === 'MULTIPLE' ||
+        selectedOption?.value === 'CHECKBOX') && (
+        <ConditionalSettings
+          currentIndex={index}
+          control={control}
+          setValue={setValue}
+        />
+      )}
     </div>
   );
 };
