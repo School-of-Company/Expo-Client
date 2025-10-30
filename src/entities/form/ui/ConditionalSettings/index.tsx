@@ -57,7 +57,7 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
 
   const updateOtherJson = (
     hasEtc: boolean,
-    conditional: { parentIndex: number; triggerValue: string } | null,
+    conditional: { parentIndex: number; triggerValue: string | null } | null,
   ) => {
     const newValue = JSON.stringify({
       hasEtc,
@@ -80,6 +80,10 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
   const handleParentChange = (index: number) => {
     setParentIndex(index);
     setTriggerValue(null);
+    updateOtherJson(currentSettings.hasEtc, {
+      parentIndex: index,
+      triggerValue: null,
+    });
   };
 
   const handleTriggerChange = (value: string) => {
