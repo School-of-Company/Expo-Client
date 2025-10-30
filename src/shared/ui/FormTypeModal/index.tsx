@@ -92,7 +92,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
         .catch(() => {
           toast.error('URL 복사에 실패했습니다. 다시 시도해주세요.');
         });
-    } else if (modalType === 'onsite') {
+    } else if (modalType === 'ONSITE') {
       router.push(
         `/exhibition/access-qr/${params}?userType=${userType}&applicationType=${appType}`,
       );
@@ -118,7 +118,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       ];
     }
 
-    if (modalType === 'onsite' && selectedUserType === USER_TYPES.STANDARD) {
+    if (modalType === 'ONSITE' && selectedUserType === USER_TYPES.STANDARD) {
       return [
         {
           label: '사전 등록',
