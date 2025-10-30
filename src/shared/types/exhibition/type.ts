@@ -64,10 +64,9 @@ export interface ModalProps {
   fieldName: 'trainings' | 'standard';
 }
 
-export const ApplicationType = {
+export const Application = {
   REGISTER: '사전',
   ONSITE: '현장',
 } as const;
 
-export type ApplicationType =
-  (typeof ApplicationType)[keyof typeof ApplicationType];
+export type ApplicationType = (typeof Application)[keyof typeof Application];
