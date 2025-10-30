@@ -140,14 +140,11 @@ const FormContainer = ({
         <RequiredToggle control={control} index={index} />
       </div>
 
-      {(selectedOption?.value === 'MULTIPLE' ||
-        selectedOption?.value === 'CHECKBOX') && (
-        <ConditionalSettings
-          currentIndex={index}
-          control={control}
-          setValue={setValue}
-        />
-      )}
+      <ConditionalSettings
+        currentIndex={index}
+        control={control}
+        setValue={setValue}
+      />
     </div>
   );
 };
