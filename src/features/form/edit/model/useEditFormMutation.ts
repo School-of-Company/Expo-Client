@@ -25,7 +25,7 @@ export const useEditFormMutation = (
   } = useEditSurveyForm(id, type, router);
 
   const handleSubmitForm = (data: FormValues) => {
-    const formattedData = transformFormData(data, type, mode, apllication);
+    const formattedData = transformFormData(data, type, mode, apllication, id);
     const submitFunction =
       mode === 'survey' ? editSurveyForm : editApplicationForm;
     submitFunction(formattedData);
