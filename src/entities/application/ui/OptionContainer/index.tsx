@@ -5,6 +5,7 @@ import {
 } from 'react-hook-form';
 import { slugify } from '@/shared/model';
 import { ApplicationFormValues } from '@/shared/types/application/type';
+import { ConditionalSettings } from '@/shared/types/form/create/type';
 import ApplicationPhoneOption from '../ApplicationPhoneOption';
 import CheckBoxOption from '../CheckBoxOption';
 import DropDownOption from '../DropDownOption';
@@ -25,6 +26,17 @@ interface OptionContainerProps {
   defaultValue?: string;
   warningMessage?: string | null;
 }
+
+const parseOtherJson = (otherJson: string | null): boolean => {
+  if (!otherJson) return false;
+
+  try {
+    const parsed: ConditionalSettings = JSON.parse(otherJson);
+    return parsed.hasEtc || false;
+  } catch {
+    return otherJson === 'etc';
+  }
+};
 
 const OptionContainer = ({
   title,
@@ -54,6 +66,8 @@ const OptionContainer = ({
         }))
     : [];
 
+  const hasEtc = parseOtherJson(otherJson);
+
   let inputComponent;
   switch (formType) {
     case 'SENTENCE':
@@ -78,7 +92,7 @@ const OptionContainer = ({
           register={register}
           name={safeName}
           required={requiredStatus}
-          otherJson={otherJson}
+          otherJson={hasEtc ? 'etc' : null}
         />
       );
       break;
@@ -89,7 +103,7 @@ const OptionContainer = ({
           register={register}
           name={safeName}
           required={requiredStatus}
-          otherJson={otherJson}
+          otherJson={hasEtc ? 'etc' : null}
         />
       );
       break;
