@@ -38,12 +38,14 @@ const getApplicationRequestData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
   applicationType: ApplicationType,
+  applicationId: string,
 ) => {
   const filteredQuestions = data.questions.filter(
     (question) => question.formType !== 'PRIVACYCONSENT',
   );
 
   return {
+    applicationId,
     informationText: data.informationText || '',
     participantType: type,
     applicationType,
@@ -62,10 +64,11 @@ export const transformFormData = (
   type: 'STANDARD' | 'TRAINEE',
   mode: 'application' | 'survey',
   applicationType: ApplicationType,
+  applicationId: string,
 ): CreateFormRequest => {
   if (mode === 'survey') {
     return getSurveyRequestData(data, type);
   }
 
-  return getApplicationRequestData(data, type, applicationType);
+  return getApplicationRequestData(data, type, applicationType, applicationId);
 };

@@ -22,7 +22,13 @@ export const useCreateFormMutation = (
   } = useCreateSurveyForm(id, type);
 
   const handleSubmitForm = (data: FormValues) => {
-    const formattedData = transformFormData(data, type, mode, applicationType);
+    const formattedData = transformFormData(
+      data,
+      type,
+      mode,
+      applicationType,
+      id,
+    );
     const submitFunction =
       mode === 'survey' ? createSurveyForm : createApplicationForm;
     submitFunction(formattedData);
