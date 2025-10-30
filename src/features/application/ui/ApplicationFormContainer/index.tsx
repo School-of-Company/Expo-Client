@@ -19,7 +19,6 @@ import { Button, DetailHeader } from '@/shared/ui';
 import { filterConditionalQuestions } from '../../lib/filterConditionalQuestions';
 import { getFormatter } from '../../lib/formatterService';
 import { getHeaderTitle } from '../../lib/getHeaderTitle';
-import { getWarningMessage } from '../../lib/getWarningMessage';
 import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
 
@@ -27,10 +26,8 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
   const formType = searchParams.get('formType') as 'application' | 'survey';
   const userType = searchParams.get('userType') as 'STANDARD' | 'TRAINEE';
-  const applicationType = searchParams.get(
-    'applicationType',
-  ) as ApplicationType;
-  const phoneNumber = searchParams.get('phoneNumber');
+  const applicationType = (searchParams.get('applicationType') ||
+    'PRE') as ApplicationType;
 
   const { register, handleSubmit, watch, setValue, reset } =
     useForm<ApplicationFormValues>();
@@ -113,59 +110,6 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
 
         <div className="flex flex-col gap-[48px]">
           <div className="w-full space-y-[36px]">
-            {userType === 'TRAINEE' && formType === 'application' ? (
-              <OptionContainer
-                title="연수원 아이디를 입력하세요"
-                formType="SENTENCE"
-                requiredStatus={true}
-                otherJson={null}
-                register={register}
-                watch={watch}
-                setValue={setValue}
-              />
-            ) : null}
-            {formType === 'application' &&
-            applicationType === 'FIELD' &&
-            userType === 'STANDARD' ? (
-              <OptionContainer
-                title="휴대폰 번호를 입력하세요"
-                formType="APPLICATIONPHONEOPTION"
-                requiredStatus={true}
-                otherJson={null}
-                type="number"
-                register={register}
-                watch={watch}
-                setValue={setValue}
-                warningMessage={getWarningMessage(formType, applicationType)}
-              />
-            ) : (
-              <OptionContainer
-                title="휴대폰 번호를 입력하세요"
-                formType="SENTENCE"
-                requiredStatus={true}
-                otherJson={null}
-                type="number"
-                register={register}
-                watch={watch}
-                setValue={setValue}
-                readOnly={formType === 'survey' && !!phoneNumber}
-                defaultValue={phoneNumber ?? ''}
-                warningMessage={getWarningMessage(formType, applicationType)}
-              />
-            )}
-
-            {formType === 'application' ? (
-              <OptionContainer
-                title="이름을 입력하세요"
-                formType="SENTENCE"
-                requiredStatus={true}
-                otherJson={null}
-                register={register}
-                watch={watch}
-                setValue={setValue}
-              />
-            ) : null}
-
             {getDynamicFormData().map((form, index) => (
               <OptionContainer
                 key={`${form.title}-${index}`}

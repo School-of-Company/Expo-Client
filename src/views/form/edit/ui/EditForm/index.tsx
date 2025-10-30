@@ -15,9 +15,8 @@ const EditForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const type = searchParams.get('type') as 'STANDARD' | 'TRAINEE';
   const mode = searchParams.get('mode') as 'application' | 'survey';
-  const application = searchParams
-    .get('application')
-    ?.toUpperCase() as ApplicationType;
+  const application = (searchParams.get('applicationType') ||
+    'PRE') as ApplicationType;
   const { data, isLoading } = useGetEditForm(id, type, mode, application);
   const {
     handleSubmitForm,
