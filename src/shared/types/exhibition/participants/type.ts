@@ -1,3 +1,5 @@
+import { ApplicationType } from '@/shared/types/exhibition/type';
+
 interface TrainingProgram {
   programName: string;
 }
@@ -5,9 +7,10 @@ interface TrainingProgram {
 export interface Trainee {
   id: number;
   name: string;
-  trainingProgram: TrainingProgram[];
+  trainingProgram?: TrainingProgram;
   trainingId: string;
-  laptopStatus: boolean;
+  phoneNumber: string;
+  applicationType: ApplicationType;
 }
 
 export interface TraineeResponse {
