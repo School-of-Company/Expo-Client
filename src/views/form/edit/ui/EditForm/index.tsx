@@ -18,7 +18,7 @@ const EditForm = ({ id }: { id: string }) => {
   const application = searchParams
     .get('application')
     ?.toUpperCase() as ApplicationType;
-  const { data, isLoading } = useGetEditForm(id, type, mode);
+  const { data, isLoading } = useGetEditForm(id, type, mode, application);
   const {
     handleSubmitForm,
     isApplicationPending,
