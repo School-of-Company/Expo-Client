@@ -1,3 +1,4 @@
+import { ApplicationType } from '@/shared/types/exhibition/type';
 import { FormValues, CreateFormRequest } from '@/shared/types/form/create/type';
 
 const convertOptionsToJson = (options: { value: string }[]): string => {
@@ -12,20 +13,18 @@ const convertOptionsToJson = (options: { value: string }[]): string => {
   );
 };
 
-const mapRegistrationType = (
-  applicationType: 'register' | 'onsite',
-): 'PRE' | 'SITE' => {
-  return applicationType === 'register' ? 'PRE' : 'SITE';
-};
-
 const getSurveyRequestData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
 ) => {
+  const filteredQuestions = data.questions.filter(
+    (question) => question.formType !== 'PRIVACYCONSENT',
+  );
+
   return {
-    informationText: data.informationText,
+    informationText: data.informationText || '',
     participationType: type,
-    dynamicSurveyRequestDto: data.questions.map((question) => ({
+    dynamicSurveyRequestDto: filteredQuestions.map((question) => ({
       title: question.title,
       formType: question.formType,
       jsonData: convertOptionsToJson(question.options),
@@ -38,13 +37,17 @@ const getSurveyRequestData = (
 const getApplicationRequestData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
-  registrationType: 'PRE' | 'SITE',
+  registrationType: ApplicationType,
 ) => {
+  const filteredQuestions = data.questions.filter(
+    (question) => question.formType !== 'PRIVACYCONSENT',
+  );
+
   return {
-    informationText: data.informationText,
+    informationText: data.informationText || '',
     participantType: type,
     registrationType,
-    dynamicForm: data.questions.map((question) => ({
+    dynamicForm: filteredQuestions.map((question) => ({
       title: question.title,
       formType: question.formType,
       jsonData: convertOptionsToJson(question.options),
@@ -58,15 +61,11 @@ export const transformFormData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
   mode: 'application' | 'survey',
-  applicationType?: 'register' | 'onsite',
+  applicationType: ApplicationType,
 ): CreateFormRequest => {
   if (mode === 'survey') {
     return getSurveyRequestData(data, type);
   }
 
-  const registrationType = applicationType
-    ? mapRegistrationType(applicationType)
-    : 'PRE';
-
-  return getApplicationRequestData(data, type, registrationType);
+  return getApplicationRequestData(data, type, applicationType);
 };

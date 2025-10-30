@@ -8,15 +8,19 @@ export const transformServerData = (
   const formItems =
     mode === 'application' ? data.dynamicForm : data.dynamicSurveyResponseDto;
 
-  const informationText = data.informationText;
+  const informationText = data.informationText || '';
 
   if (!formItems) {
     return { informationText, questions: [] };
   }
 
+  const filteredFormItems = formItems.filter(
+    (item) => (item.formType as unknown as string) !== 'PRIVACYCONSENT',
+  );
+
   return {
     informationText,
-    questions: formItems.map((item) => {
+    questions: filteredFormItems.map((item) => {
       let parsedJsonData: Record<string, string> = {};
       try {
         if (typeof item.jsonData === 'string') {

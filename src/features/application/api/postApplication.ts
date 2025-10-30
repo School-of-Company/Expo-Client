@@ -5,6 +5,7 @@ import {
   FormattedApplicationData,
   FormattedSurveyData,
 } from '@/shared/types/application/type';
+import { ApplicationType } from '@/shared/types/exhibition/type';
 
 const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
   application: {
@@ -24,7 +25,7 @@ export const postApplication = async (
   params: string,
   formType: 'application' | 'survey',
   userType: 'STANDARD' | 'TRAINEE',
-  applicationType: 'register' | 'onsite',
+  applicationType: ApplicationType,
   data: FormattedApplicationData | FormattedSurveyData,
 ) => {
   const baseUrl = URL_MAP[formType] || {};
@@ -36,7 +37,7 @@ export const postApplication = async (
   const isStandardOnsiteTemporary =
     formType === 'application' &&
     userType === 'STANDARD' &&
-    applicationType === 'onsite' &&
+    applicationType === 'ONSITE' &&
     (!('phoneNumber' in data) || !data.phoneNumber);
 
   if (isStandardOnsiteTemporary) {

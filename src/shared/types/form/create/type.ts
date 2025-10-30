@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { UseFormRegister } from 'react-hook-form';
+import { ApplicationType } from '../../exhibition/type';
 
 export interface Option {
   value: string;
@@ -27,7 +28,7 @@ export interface OptionProps {
 
 export interface ApplicationFormRequest {
   participantType: 'STANDARD' | 'TRAINEE';
-  registrationType: 'PRE' | 'SITE';
+  registrationType: ApplicationType;
   dynamicForm: {
     title: string;
     formType: string;

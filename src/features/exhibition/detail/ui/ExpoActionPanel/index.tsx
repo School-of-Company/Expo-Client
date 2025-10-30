@@ -57,7 +57,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
             <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
               <Button
                 variant="white"
-                onClick={() => openModal('onsite', '대상을 선택하세요.')}
+                onClick={() => openModal('ONSITE', '대상을 선택하세요.')}
               >
                 현장 등록 QR
               </Button>

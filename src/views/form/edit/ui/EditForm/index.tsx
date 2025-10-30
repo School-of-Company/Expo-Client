@@ -8,12 +8,16 @@ import {
   useGetEditForm,
 } from '@/features/form/edit';
 import { withLoading } from '@/shared/hocs';
+import { ApplicationType } from '@/shared/types/exhibition/type';
 import { Header } from '@/widgets/layout';
 
 const EditForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const type = searchParams.get('type') as 'STANDARD' | 'TRAINEE';
   const mode = searchParams.get('mode') as 'application' | 'survey';
+  const application = searchParams
+    .get('application')
+    ?.toUpperCase() as ApplicationType;
   const { data, isLoading } = useGetEditForm(id, type, mode);
   const {
     handleSubmitForm,
@@ -21,7 +25,7 @@ const EditForm = ({ id }: { id: string }) => {
     isSurveyPending,
     isApplicationSuccess,
     isSurveySuccess,
-  } = useEditFormMutation(id, type, mode);
+  } = useEditFormMutation(id, type, mode, application);
 
   const defaultValues = data ? transformServerData(data, mode) : undefined;
 
