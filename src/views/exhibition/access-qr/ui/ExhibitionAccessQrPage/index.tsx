@@ -11,7 +11,7 @@ import { DetailHeader } from '@/shared/ui';
 const ExhibitionAccessQrPage = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const userType = searchParams.get('userType');
-  const applicationType = searchParams.get('applicationType') || 'REGISTER';
+  const applicationType = searchParams.get('applicationType') || 'PRE';
 
   if (!userType) {
     return <div>유저 타입이 없습니다.</div>;
@@ -31,6 +31,7 @@ const ExhibitionAccessQrPage = ({ id }: { id: string }) => {
           id={id}
           userType={userType}
           applicationType={applicationType}
+          registrationType={applicationType}
         />
       </div>
     </div>

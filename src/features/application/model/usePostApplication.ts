@@ -38,7 +38,7 @@ export const usePostApplication = (
       if (
         formType === 'application' &&
         userType === 'STANDARD' &&
-        applicationType === 'ONSITE' &&
+        applicationType === 'FIELD' &&
         response &&
         response.participantId &&
         response.phoneNumber &&

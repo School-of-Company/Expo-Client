@@ -65,8 +65,8 @@ export interface ModalProps {
 }
 
 export const Application = {
-  REGISTER: '사전',
-  ONSITE: '현장',
+  PRE: '사전',
+  FIELD: '현장',
 } as const;
 
 export type ApplicationType = keyof typeof Application;
