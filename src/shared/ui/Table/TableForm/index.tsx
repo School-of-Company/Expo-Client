@@ -45,6 +45,7 @@ const TableForm = <T extends { id: number }>({
                 key={index}
                 data={item}
                 selectItemBoolean={selectItemBoolean}
+                categories={categories}
               />
             ))}
           </div>

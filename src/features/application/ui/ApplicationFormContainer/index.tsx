@@ -14,6 +14,7 @@ import {
   DynamicFormItem,
   DynamicFormValues,
 } from '@/shared/types/application/type';
+import { ApplicationType } from '@/shared/types/exhibition/type';
 import { Button, DetailHeader } from '@/shared/ui';
 import { getFormatter } from '../../lib/formatterService';
 import { getHeaderTitle } from '../../lib/getHeaderTitle';
@@ -25,9 +26,9 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
   const formType = searchParams.get('formType') as 'application' | 'survey';
   const userType = searchParams.get('userType') as 'STANDARD' | 'TRAINEE';
-  const applicationType = searchParams.get('applicationType') as
-    | 'register'
-    | 'onsite';
+  const applicationType = searchParams.get(
+    'applicationType',
+  ) as ApplicationType;
   const phoneNumber = searchParams.get('phoneNumber');
 
   const { register, handleSubmit, watch, setValue, reset } =
@@ -115,7 +116,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
               />
             ) : null}
             {formType === 'application' &&
-            applicationType === 'onsite' &&
+            applicationType === 'FIELD' &&
             userType === 'STANDARD' ? (
               <OptionContainer
                 title="휴대폰 번호를 입력하세요"

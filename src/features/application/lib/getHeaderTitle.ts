@@ -1,6 +1,7 @@
+import { ApplicationType } from '@/shared/types/exhibition/type';
+
 export type FormType = 'application' | 'survey';
 export type UserType = 'STANDARD' | 'TRAINEE';
-export type ApplicationType = 'register' | 'onsite';
 
 export const getHeaderTitle = (
   formType: FormType,
@@ -9,12 +10,10 @@ export const getHeaderTitle = (
 ): string => {
   if (formType === 'application') {
     if (userType === 'STANDARD') {
-      return applicationType === 'register'
-        ? '참가자 사전등록'
-        : '참가자 현장등록';
+      return applicationType === 'PRE' ? '참가자 사전등록' : '참가자 현장등록';
     }
     if (userType === 'TRAINEE') {
-      return applicationType === 'register'
+      return applicationType === 'PRE'
         ? '사전 연수자 박람회 등록'
         : '현장 연수자 박람회 등록';
     }

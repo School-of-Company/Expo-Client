@@ -1,8 +1,10 @@
+import { ApplicationType } from '@/shared/types/exhibition/type';
+
 export const getHeaderTitleByUserType = (
   userType: string | null,
-  applicationType: string = 'register',
+  applicationType: ApplicationType,
 ): string => {
-  const prefix = applicationType === 'register' ? '사전' : '현장';
+  const prefix = applicationType === 'PRE' ? '사전' : '현장';
 
   switch (userType) {
     case 'STANDARD':

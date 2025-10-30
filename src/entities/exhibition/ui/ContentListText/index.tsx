@@ -1,3 +1,5 @@
+import { formatKoreanDateRange } from '../../lib/formatKoreanDateRange';
+
 interface ExpoStandard {
   title: string;
   startedAt: string;
@@ -17,7 +19,7 @@ const ContentListText = ({ data, title }: Props) => {
       <p className="text-body2r text-gray-400">{title}</p>
       {validData.map((item, index) => (
         <p className="text-body2r text-gray-400" key={index}>
-          · {item.title}
+          · {item.title} {formatKoreanDateRange(item.startedAt, item.endedAt)}
         </p>
       ))}
     </div>
