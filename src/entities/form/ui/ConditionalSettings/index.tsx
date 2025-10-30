@@ -138,7 +138,7 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
                 >
                   <option value="">선택 시 표시될 값</option>
                   {parentOptions.map((opt, idx) => (
-                    <option key={idx} value={String(idx + 1)}>
+                    <option key={idx} value={opt.value}>
                       {opt.value}
                     </option>
                   ))}
