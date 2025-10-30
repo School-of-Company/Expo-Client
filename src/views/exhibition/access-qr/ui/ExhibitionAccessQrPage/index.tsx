@@ -31,7 +31,6 @@ const ExhibitionAccessQrPage = ({ id }: { id: string }) => {
           id={id}
           userType={userType}
           applicationType={applicationType}
-          registrationType={applicationType}
         />
       </div>
     </div>

@@ -36,7 +36,7 @@ export interface OptionProps {
 
 export interface ApplicationFormRequest {
   participantType: 'STANDARD' | 'TRAINEE';
-  registrationType: ApplicationType;
+  applicationType: ApplicationType;
   dynamicForm: {
     title: string;
     formType: string;

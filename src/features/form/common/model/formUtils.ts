@@ -37,7 +37,7 @@ const getSurveyRequestData = (
 const getApplicationRequestData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
-  registrationType: ApplicationType,
+  applicationType: ApplicationType,
 ) => {
   const filteredQuestions = data.questions.filter(
     (question) => question.formType !== 'PRIVACYCONSENT',
@@ -46,7 +46,7 @@ const getApplicationRequestData = (
   return {
     informationText: data.informationText || '',
     participantType: type,
-    registrationType,
+    applicationType,
     dynamicForm: filteredQuestions.map((question) => ({
       title: question.title,
       formType: question.formType,
