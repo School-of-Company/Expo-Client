@@ -1,11 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { UseFormRegisterReturn } from 'react-hook-form';
+import { DeleteButton } from '@/entities/form';
+import { preventEvent } from '@/shared/model';
 
 interface PrivacyConsentFormProps {
   placeholder: string;
   registration: UseFormRegisterReturn;
   row: number;
   value?: string;
+  onRemove?: () => void;
 }
 
 const PrivacyConsentForm = ({
@@ -13,6 +16,7 @@ const PrivacyConsentForm = ({
   registration,
   row,
   value = '',
+  onRemove,
 }: PrivacyConsentFormProps) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   useEffect(() => {
@@ -31,9 +35,19 @@ const PrivacyConsentForm = ({
   };
   return (
     <div className="space-y-20 rounded-sm border-1 border-solid border-gray-200 px-32 py-18">
-      <p className="border-b-1 border-solid border-gray-100 py-14 text-h3b text-black mobile:text-body2b">
-        개인정보 동의 안내 문장을 입력하세요
-      </p>
+      <div className="flex items-center justify-between border-b-1 border-solid border-gray-100 py-14">
+        <p className="text-h3b text-black mobile:text-body2b">
+          개인정보 동의 안내 문장을 입력하세요
+        </p>
+        {onRemove && (
+          <DeleteButton
+            onClick={(e: React.MouseEvent) => {
+              preventEvent(e);
+              onRemove();
+            }}
+          />
+        )}
+      </div>
       <textarea
         ref={(e) => {
           registration.ref(e);
