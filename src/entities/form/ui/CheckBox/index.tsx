@@ -1,6 +1,9 @@
 import { Control, useController } from 'react-hook-form';
 import { CheckBoxIcon, CheckedBoxIcon } from '@/shared/assets/svg';
-import { FormValues } from '@/shared/types/form/create/type';
+import {
+  FormValues,
+  ConditionalSettings,
+} from '@/shared/types/form/create/type';
 
 interface Props {
   control: Control<FormValues>;
@@ -15,8 +18,33 @@ const CheckBox = ({ control, index, text }: Props) => {
     defaultValue: null,
   });
 
+  const parseOtherJson = (value: string | null): ConditionalSettings => {
+    if (!value) return { hasEtc: false };
+    try {
+      const parsed = JSON.parse(value);
+      return {
+        hasEtc: parsed.hasEtc || false,
+        conditional: parsed.conditional,
+      };
+    } catch {
+      return { hasEtc: value === 'etc' };
+    }
+  };
+
+  const settings = parseOtherJson(field.value);
+
   const toggleCheck = () => {
-    field.onChange(field.value ? null : 'etc');
+    const newSettings: ConditionalSettings = {
+      hasEtc: !settings.hasEtc,
+      conditional: settings.conditional,
+    };
+
+    const newValue =
+      !newSettings.hasEtc && !newSettings.conditional
+        ? null
+        : JSON.stringify(newSettings);
+
+    field.onChange(newValue);
   };
 
   return (
@@ -25,9 +53,11 @@ const CheckBox = ({ control, index, text }: Props) => {
       onClick={toggleCheck}
       className="flex items-center gap-8"
     >
-      {field.value ? <CheckedBoxIcon /> : <CheckBoxIcon />}
+      {settings.hasEtc ? <CheckedBoxIcon /> : <CheckBoxIcon />}
       <p
-        className={`text-caption1r mobile:text-caption2r ${field.value ? 'text-main-600' : 'text-gray-500'}`}
+        className={`text-caption1r mobile:text-caption2r ${
+          settings.hasEtc ? 'text-main-600' : 'text-gray-500'
+        }`}
       >
         {text}
       </p>

@@ -9,4 +9,5 @@ export { default as RequiredToggle } from './ui/RequiredToggle';
 export { default as CreateFormButton } from './ui/CreateFormButton';
 export { default as CheckBox } from './ui/CheckBox';
 export { default as PrivacyConsentForm } from './ui/PrivacyConsentForm';
+export { default as ConditionalSettings } from './ui/ConditionalSettings';
 export { selectOptionData } from './constants/selectOptionData';
