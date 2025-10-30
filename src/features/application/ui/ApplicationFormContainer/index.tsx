@@ -16,6 +16,7 @@ import {
 } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { Button, DetailHeader } from '@/shared/ui';
+import { filterConditionalQuestions } from '../../lib/filterConditionalQuestions';
 import { getFormatter } from '../../lib/formatterService';
 import { getHeaderTitle } from '../../lib/getHeaderTitle';
 import { getWarningMessage } from '../../lib/getWarningMessage';
@@ -51,8 +52,16 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     applicationType,
   );
 
+  const formValues = watch();
+
   const getDynamicFormData = (): DynamicFormItem[] => {
-    return formList?.dynamicForm || formList?.dynamicSurveyResponseDto || [];
+    const allQuestions =
+      formList?.dynamicForm || formList?.dynamicSurveyResponseDto || [];
+
+    return filterConditionalQuestions(
+      allQuestions,
+      formValues as Record<string, string | string[]>,
+    );
   };
 
   const onSubmit = (data: ApplicationFormValues): void => {
@@ -159,7 +168,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
 
             {getDynamicFormData().map((form, index) => (
               <OptionContainer
-                key={index}
+                key={`${form.title}-${index}`}
                 title={form.title}
                 formType={form.formType}
                 jsonData={form.jsonData}
