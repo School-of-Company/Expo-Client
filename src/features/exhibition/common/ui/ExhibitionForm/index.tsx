@@ -1,7 +1,6 @@
 'use client';
 
 import { format } from 'date-fns';
-import { usePathname } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { ImageInput } from '@/entities/exhibition';
 import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
@@ -13,8 +12,7 @@ import {
   ExhibitionFormData,
   MutationType,
 } from '@/shared/types/exhibition/type';
-import { Button, Input } from '@/shared/ui';
-import DetailHeader from '@/shared/ui/DetailHeader';
+import { Button, DetailHeaderEditable, Input } from '@/shared/ui';
 import SelectDateInput from '@/shared/ui/SelectDateInput';
 import TextArea from '@/shared/ui/TextArea';
 
@@ -25,9 +23,6 @@ const ExhibitionForm = ({
   defaultValues?: Partial<ExhibitionFormData>;
   mutation: MutationType;
 }) => {
-  const pathname = usePathname();
-  const isEditMode = pathname.includes('/edit');
-
   const { register, control, handleSubmit, setValue, watch } =
     useForm<ExhibitionFormData>({
       defaultValues: {
@@ -73,8 +68,10 @@ const ExhibitionForm = ({
       method="POST"
       className="flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto"
     >
-      <DetailHeader
-        headerTitle={isEditMode ? '박람회 수정하기' : '박람회 생성하기'}
+      <DetailHeaderEditable
+        registration={register('title', {
+          required: '제목을 입력해주세요.',
+        })}
         textCenter={true}
       />
       <div className="mt-44 space-y-28">

@@ -11,7 +11,7 @@ export const transformServerData = (
   const informationText = data.informationText || '';
 
   if (!formItems) {
-    return { informationText, questions: [] };
+    return { informationText, questions: [], title: '' };
   }
 
   const filteredFormItems = formItems.filter(
@@ -20,6 +20,7 @@ export const transformServerData = (
 
   return {
     informationText,
+    title: '',
     questions: filteredFormItems.map((item) => {
       let parsedJsonData: Record<string, string> = {};
       try {
