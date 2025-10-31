@@ -17,6 +17,7 @@ export interface FormValues {
     otherJson: string | null;
   }[];
   informationText: string;
+  title: string;
 }
 
 export interface ConditionalSettings {
