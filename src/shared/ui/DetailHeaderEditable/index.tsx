@@ -3,13 +3,13 @@
 import { useRouter } from 'next/navigation';
 
 import { ArrowLeft } from '@/shared/assets/icons';
+import Input from '../Input';
 
 interface Props {
   textCenter?: boolean;
-  headerTitle: string;
 }
 
-const DetailHeader = ({ textCenter = false, headerTitle }: Props) => {
+const DetailHeaderEditable = ({ textCenter = false }: Props) => {
   const router = useRouter();
 
   return (
@@ -17,15 +17,14 @@ const DetailHeader = ({ textCenter = false, headerTitle }: Props) => {
       <label className="hover:cursor-pointer" onClick={() => router.back()}>
         <ArrowLeft size={32} />
       </label>
-      <p
-        className={`flex-grow text-h2r text-black mobile:text-body1r ${
-          textCenter ? 'text-center' : ''
-        }`}
-      >
-        {headerTitle}
-      </p>
+      <Input
+        placeholder="폼의 제목을 입력해주세요"
+        className={`${textCenter ? 'text-center' : ''} flex-grow`}
+        name="title"
+        aria-hidden={false}
+      />
     </div>
   );
 };
 
-export default DetailHeader;
+export default DetailHeaderEditable;
