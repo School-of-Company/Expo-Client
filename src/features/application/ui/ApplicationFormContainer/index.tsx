@@ -104,7 +104,12 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto"
       >
         <div className="mt-30">
-          <DetailHeaderEditable textCenter={true} />
+          <DetailHeaderEditable
+            registration={register('title', {
+              required: '제목을 입력해주세요.',
+            })}
+            textCenter={true}
+          />
         </div>
 
         <div className="flex flex-col gap-[48px]">

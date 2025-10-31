@@ -72,7 +72,12 @@ const FormEditor = ({
     >
       <div className="space-y-80">
         <div className="space-y-40">
-          <DetailHeaderEditable textCenter={true} />
+          <DetailHeaderEditable
+            registration={register('title', {
+              required: '제목을 입력해주세요.',
+            })}
+            textCenter={true}
+          />
           <div className="space-y-12">
             <div className="w-full space-y-12">
               {fields.map((field, index) => (

@@ -68,7 +68,12 @@ const ExhibitionForm = ({
       method="POST"
       className="flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto"
     >
-      <DetailHeaderEditable textCenter={true} />
+      <DetailHeaderEditable
+        registration={register('title', {
+          required: '제목을 입력해주세요.',
+        })}
+        textCenter={true}
+      />
       <div className="mt-44 space-y-28">
         <div className="space-y-8">
           <p className="text-h3b text-black">사진 등록</p>
