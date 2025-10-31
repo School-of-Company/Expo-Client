@@ -6,4 +6,6 @@ export { default as Loading } from './Loading';
 export { default as ToggleButton } from './ToggleButton';
 export { default as AddItemButton } from './AddItemButton';
 export { default as DetailHeader } from './DetailHeader';
+export { default as DetailHeaderEditable } from './DetailHeaderEditable';
+export { default as DetailHeaderStatic } from './DetailHeaderStatic';
 export { default as NavigationBar } from './NavigationBar';
