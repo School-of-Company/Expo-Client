@@ -12,8 +12,7 @@ import {
   ExhibitionFormData,
   MutationType,
 } from '@/shared/types/exhibition/type';
-import { Button, Input } from '@/shared/ui';
-import DetailHeader from '@/shared/ui/DetailHeader';
+import { Button, DetailHeaderEditable, Input } from '@/shared/ui';
 import SelectDateInput from '@/shared/ui/SelectDateInput';
 import TextArea from '@/shared/ui/TextArea';
 
@@ -69,7 +68,7 @@ const ExhibitionForm = ({
       method="POST"
       className="flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto"
     >
-      <DetailHeader textCenter={true} />
+      <DetailHeaderEditable textCenter={true} />
       <div className="mt-44 space-y-28">
         <div className="space-y-8">
           <p className="text-h3b text-black">사진 등록</p>

@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { ExhibitionAccessQrContainer } from '@/features/exhibition/access-qr';
-import { DetailHeader } from '@/shared/ui';
+import { DetailHeaderEditable } from '@/shared/ui';
 
 const ExhibitionAccessQrPage = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
@@ -16,7 +16,7 @@ const ExhibitionAccessQrPage = ({ id }: { id: string }) => {
   return (
     <div className="flex min-h-screen flex-col items-center px-16">
       <div className="mt-30 flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto">
-        <DetailHeader textCenter={true} />
+        <DetailHeaderEditable textCenter={true} />
         <ExhibitionAccessQrContainer
           id={id}
           userType={userType}
