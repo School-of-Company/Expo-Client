@@ -22,6 +22,7 @@ const getSurveyRequestData = (
   );
 
   return {
+    title: data.title,
     informationText: data.informationText || '',
     participationType: type,
     dynamicSurveyRequestDto: filteredQuestions.map((question) => ({
@@ -44,6 +45,7 @@ const getApplicationRequestData = (
   );
 
   return {
+    title: data.title,
     informationText: data.informationText || '',
     participantType: type,
     registrationType,
