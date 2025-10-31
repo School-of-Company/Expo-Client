@@ -1,7 +1,6 @@
 'use client';
 
 import { format } from 'date-fns';
-import { usePathname } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { ImageInput } from '@/entities/exhibition';
 import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
@@ -25,9 +24,6 @@ const ExhibitionForm = ({
   defaultValues?: Partial<ExhibitionFormData>;
   mutation: MutationType;
 }) => {
-  const pathname = usePathname();
-  const isEditMode = pathname.includes('/edit');
-
   const { register, control, handleSubmit, setValue, watch } =
     useForm<ExhibitionFormData>({
       defaultValues: {
@@ -73,10 +69,7 @@ const ExhibitionForm = ({
       method="POST"
       className="flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto"
     >
-      <DetailHeader
-        headerTitle={isEditMode ? '박람회 수정하기' : '박람회 생성하기'}
-        textCenter={true}
-      />
+      <DetailHeader textCenter={true} />
       <div className="mt-44 space-y-28">
         <div className="space-y-8">
           <p className="text-h3b text-black">사진 등록</p>

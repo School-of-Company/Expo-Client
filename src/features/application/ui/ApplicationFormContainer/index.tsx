@@ -18,7 +18,6 @@ import { ApplicationType } from '@/shared/types/exhibition/type';
 import { Button, DetailHeader } from '@/shared/ui';
 import { filterConditionalQuestions } from '../../lib/filterConditionalQuestions';
 import { getFormatter } from '../../lib/formatterService';
-import { getHeaderTitle } from '../../lib/getHeaderTitle';
 import { getWarningMessage } from '../../lib/getWarningMessage';
 import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
@@ -105,10 +104,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto"
       >
         <div className="mt-30">
-          <DetailHeader
-            textCenter={true}
-            headerTitle={getHeaderTitle(formType, userType, applicationType)}
-          />
+          <DetailHeader textCenter={true} />
         </div>
 
         <div className="flex flex-col gap-[48px]">
