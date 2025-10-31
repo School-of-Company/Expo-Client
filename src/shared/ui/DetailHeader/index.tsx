@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft } from '@/shared/assets/icons';
 
 interface Props {
-  headerTitle: string;
   textCenter?: boolean;
+  headerTitle: string;
 }
 
-const DetailHeader = ({ headerTitle, textCenter = false }: Props) => {
+const DetailHeader = ({ textCenter = false, headerTitle }: Props) => {
   const router = useRouter();
 
   return (

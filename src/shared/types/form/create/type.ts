@@ -17,6 +17,7 @@ export interface FormValues {
     otherJson: string | null;
   }[];
   informationText: string;
+  title: string;
 }
 
 export interface ConditionalSettings {
@@ -45,6 +46,7 @@ export interface ApplicationFormRequest {
     otherJson: string | null;
   }[];
   informationText: string;
+  title: string;
 }
 
 export interface SurveyFormRequest {
@@ -57,6 +59,7 @@ export interface SurveyFormRequest {
     otherJson: string | null;
   }[];
   informationText: string;
+  title: string;
 }
 
 export type CreateFormRequest = ApplicationFormRequest | SurveyFormRequest;

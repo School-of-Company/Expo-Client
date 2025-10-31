@@ -11,8 +11,7 @@ import {
 } from '@/entities/signup';
 
 import { SignUpData } from '@/shared/types/signup/type';
-import { Button } from '@/shared/ui';
-import DetailHeader from '@/shared/ui/DetailHeader';
+import { Button, DetailHeader } from '@/shared/ui';
 import { useTimer } from '../../lib/useTimer';
 import { useCheckSmsCode } from '../../model/useCheckSmsCode';
 import { useSendSms } from '../../model/useSendSms';

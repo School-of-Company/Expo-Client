@@ -10,13 +10,10 @@ import {
 } from '@/entities/form';
 import { handleFormErrors } from '@/shared/model';
 import { FormValues } from '@/shared/types/form/create/type';
-import { Button, DetailHeader } from '@/shared/ui';
-import { getFormTitle } from '../../constants/getFormTitle';
+import { Button, DetailHeaderEditable } from '@/shared/ui';
 import FormContainer from '../FormContainer';
 
 const FormEditor = ({
-  type,
-  mode,
   defaultValues,
   onSubmit,
   isLoading,
@@ -75,9 +72,11 @@ const FormEditor = ({
     >
       <div className="space-y-80">
         <div className="space-y-40">
-          <DetailHeader
+          <DetailHeaderEditable
+            registration={register('title', {
+              required: '제목을 입력해주세요.',
+            })}
             textCenter={true}
-            headerTitle={getFormTitle(type, mode)}
           />
           <div className="space-y-12">
             <div className="w-full space-y-12">

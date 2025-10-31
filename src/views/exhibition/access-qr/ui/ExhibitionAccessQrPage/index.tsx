@@ -1,12 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import {
-  ExhibitionAccessQrContainer,
-  getHeaderTitleByUserType,
-} from '@/features/exhibition/access-qr';
-import { ApplicationType } from '@/shared/types/exhibition/type';
-import { DetailHeader } from '@/shared/ui';
+import { ExhibitionAccessQrContainer } from '@/features/exhibition/access-qr';
 
 const ExhibitionAccessQrPage = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
@@ -20,13 +15,6 @@ const ExhibitionAccessQrPage = ({ id }: { id: string }) => {
   return (
     <div className="flex min-h-screen flex-col items-center px-16">
       <div className="mt-30 flex w-full max-w-[816px] flex-1 flex-col overflow-y-auto">
-        <DetailHeader
-          headerTitle={getHeaderTitleByUserType(
-            userType,
-            applicationType as ApplicationType,
-          )}
-          textCenter={true}
-        />
         <ExhibitionAccessQrContainer
           id={id}
           userType={userType}
