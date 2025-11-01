@@ -9,11 +9,11 @@ import { ApplicationType } from '@/shared/types/exhibition/type';
 
 const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
   application: {
-    STANDARD_register: '/application/pre-standard/',
-    TRAINEE_register: '/application/',
-    STANDARD_onsite: '/application/field/standard/',
-    TRAINEE_onsite: '/application/field/',
-    STANDARD_onsite_temporary: '/application/field/temporary/',
+    STANDARD_PRE: '/application/pre-standard/',
+    TRAINEE_PRE: '/application/',
+    STANDARD_FIELD: '/application/field/standard/',
+    TRAINEE_FIELD: '/application/field/',
+    STANDARD_FIELD_TEMPORARY: '/application/field/temporary/',
   },
   survey: {
     STANDARD: '/survey/answer/standard/',
@@ -41,7 +41,7 @@ export const postApplication = async (
     (!('phoneNumber' in data) || !data.phoneNumber);
 
   if (isStandardOnsiteTemporary) {
-    key = 'STANDARD_onsite_temporary';
+    key = 'STANDARD_FIELD_TEMPORARY';
   }
 
   const url = `${baseUrl[key] || '/api/application/'}${params}`;
