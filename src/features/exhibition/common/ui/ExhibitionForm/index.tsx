@@ -40,7 +40,7 @@ const ExhibitionForm = ({
       },
     });
   const pathname = usePathname();
-  const isEditMode = pathname.includes('/edit');
+  const isEditMode = pathname.split('/').includes('edit');
 
   const onSubmit = (data: ExhibitionFormData) => {
     mutation.mutate(data);
