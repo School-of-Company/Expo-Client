@@ -9,9 +9,10 @@ export const transformServerData = (
     mode === 'application' ? data.dynamicForm : data.dynamicSurveyResponseDto;
 
   const informationText = data.informationText || '';
+  const title = data.title || '';
 
   if (!formItems) {
-    return { informationText, questions: [], title: '' };
+    return { informationText, questions: [], title };
   }
 
   const filteredFormItems = formItems.filter(
@@ -20,7 +21,7 @@ export const transformServerData = (
 
   return {
     informationText,
-    title: '',
+    title,
     questions: filteredFormItems.map((item) => {
       let parsedJsonData: Record<string, string> = {};
       try {

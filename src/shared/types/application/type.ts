@@ -12,6 +12,7 @@ export interface DynamicFormItem {
 }
 
 export interface ApplicationForm {
+  title: string;
   informationText: string;
   participantType: 'STANDARD' | 'TRAINEE';
   dynamicForm?: DynamicFormItem[];
