@@ -5,8 +5,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'api.startup-expo.kr/image',
-        hostname: 'expo-image-bucket-9881.s3.ap-northeast-2.amazonaws.com',
+        hostname: 's3.startup-expo.kr/image',
       },
       {
         protocol: 'https',
