@@ -1,6 +1,6 @@
 'use client';
 
-import { UseFormRegister } from 'react-hook-form';
+import { RegisterOptions, UseFormRegister } from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import EtcOption from '../EtcOption';
 
@@ -15,6 +15,7 @@ interface Props {
   name: string;
   required: boolean;
   otherJson: string | null;
+  maxSelection?: number | null;
 }
 const CheckBoxOption = ({
   options,
@@ -22,7 +23,29 @@ const CheckBoxOption = ({
   name,
   required,
   otherJson,
+  maxSelection,
 }: Props) => {
+  const getValidationRules = (): RegisterOptions<
+    ApplicationFormValues,
+    string
+  > => {
+    const rules: RegisterOptions<ApplicationFormValues, string> = {};
+
+    if (required) rules.required = '필수 옵션을 선택해주세요';
+
+    if (maxSelection) {
+      rules.validate = (value) => {
+        const selectedCount = Array.isArray(value) ? value.length : 0;
+        if (selectedCount > maxSelection) {
+          return `최대 ${maxSelection}개까지만 선택할 수 있습니다`;
+        }
+        return true;
+      };
+    }
+
+    return rules;
+  };
+
   return (
     <>
       {options.map((option) => {
@@ -35,9 +58,7 @@ const CheckBoxOption = ({
               type="checkbox"
               value={option.label}
               className="h-16 w-16 accent-blue-500"
-              {...register(name, {
-                required: required ? '필수 옵션을 선택해주세요' : false,
-              })}
+              {...register(name, getValidationRules())}
             />
             <label
               htmlFor={inputId}
@@ -50,6 +71,11 @@ const CheckBoxOption = ({
       })}
       {otherJson !== null && (
         <EtcOption register={register} name={name} type="checkbox" />
+      )}
+      {maxSelection && (
+        <p className="text-caption1r text-gray-500">
+          * 최대 {maxSelection}개까지 선택 가능합니다
+        </p>
       )}
     </>
   );

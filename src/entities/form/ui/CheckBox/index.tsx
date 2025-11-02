@@ -24,6 +24,7 @@ const CheckBox = ({ control, index, text }: Props) => {
       const parsed = JSON.parse(value);
       return {
         hasEtc: parsed.hasEtc || false,
+        maxSelection: parsed.maxSelection || null,
         conditional: parsed.conditional,
       };
     } catch {
@@ -36,11 +37,14 @@ const CheckBox = ({ control, index, text }: Props) => {
   const toggleCheck = () => {
     const newSettings: ConditionalSettings = {
       hasEtc: !settings.hasEtc,
+      maxSelection: settings.maxSelection,
       conditional: settings.conditional,
     };
 
     const newValue =
-      !newSettings.hasEtc && !newSettings.conditional
+      !newSettings.hasEtc &&
+      !newSettings.conditional &&
+      newSettings.maxSelection === null
         ? null
         : JSON.stringify(newSettings);
 

@@ -27,14 +27,19 @@ interface OptionContainerProps {
   warningMessage?: string | null;
 }
 
-const parseOtherJson = (otherJson: string | null): boolean => {
-  if (!otherJson) return false;
+const parseOtherJson = (
+  otherJson: string | null,
+): { hasEtc: boolean; maxSelection: number | null } => {
+  if (!otherJson) return { hasEtc: false, maxSelection: null };
 
   try {
     const parsed: ConditionalSettings = JSON.parse(otherJson);
-    return parsed.hasEtc || false;
+    return {
+      hasEtc: parsed.hasEtc || false,
+      maxSelection: parsed.maxSelection || null,
+    };
   } catch {
-    return otherJson === 'etc';
+    return { hasEtc: otherJson === 'etc', maxSelection: null };
   }
 };
 
@@ -66,7 +71,7 @@ const OptionContainer = ({
         }))
     : [];
 
-  const hasEtc = parseOtherJson(otherJson);
+  const { hasEtc, maxSelection } = parseOtherJson(otherJson);
 
   let inputComponent;
   switch (formType) {
@@ -93,6 +98,7 @@ const OptionContainer = ({
           name={safeName}
           required={requiredStatus}
           otherJson={hasEtc ? 'etc' : null}
+          maxSelection={maxSelection}
         />
       );
       break;
@@ -104,6 +110,7 @@ const OptionContainer = ({
           name={safeName}
           required={requiredStatus}
           otherJson={hasEtc ? 'etc' : null}
+          maxSelection={maxSelection}
         />
       );
       break;
