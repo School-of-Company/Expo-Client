@@ -7,6 +7,7 @@ import EtcOption from '../EtcOption';
 interface Option {
   value: string;
   label: string;
+  isAlwaysSelected?: boolean;
 }
 
 interface Props {
@@ -50,6 +51,7 @@ const CheckBoxOption = ({
     <>
       {options.map((option) => {
         const inputId = `${name}-${option.value}`;
+        const isAlwaysSelected = option.isAlwaysSelected || false;
 
         return (
           <div key={option.value} className="flex items-center gap-20">
@@ -57,14 +59,21 @@ const CheckBoxOption = ({
               id={inputId}
               type="checkbox"
               value={option.label}
-              className="h-16 w-16 accent-blue-500"
+              defaultChecked={isAlwaysSelected}
+              disabled={isAlwaysSelected}
+              className="h-16 w-16 accent-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
               {...register(name, getValidationRules())}
             />
             <label
               htmlFor={inputId}
-              className="cursor-pointer text-body2r text-black"
+              className={`text-body2r ${isAlwaysSelected ? 'text-gray-700' : 'cursor-pointer text-black'}`}
             >
               {option.label}
+              {isAlwaysSelected && (
+                <span className="ml-8 text-caption2r text-gray-500">
+                  (기본값)
+                </span>
+              )}
             </label>
           </div>
         );
