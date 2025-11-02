@@ -26,6 +26,7 @@ const CreateForm = ({ id }: { id: string }) => {
       <Header />
       <div className="flex flex-1 justify-center p-16">
         <FormEditor
+          expoId={id}
           type={type}
           mode={mode}
           onSubmit={handleSubmitForm}

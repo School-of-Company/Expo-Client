@@ -15,6 +15,7 @@ interface Props {
   name: string;
   required: boolean;
   otherJson: string | null;
+  maxSelection?: number | null;
 }
 
 const MultipleOption = ({

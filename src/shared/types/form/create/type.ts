@@ -6,6 +6,7 @@ export interface Option {
   value: string;
   label?: string;
   icon?: ReactNode;
+  isAlwaysSelected?: boolean;
 }
 
 export interface FormValues {
@@ -22,13 +23,14 @@ export interface FormValues {
 
 export interface ConditionalSettings {
   hasEtc: boolean;
+  maxSelection?: number | null;
   conditional?: {
     parentIndex: number;
     triggerValue: string;
   };
 }
 export interface OptionProps {
-  fields: { id: string; value: string }[];
+  fields: { id: string; value: string; isAlwaysSelected?: boolean }[];
   remove: (index: number) => void;
   register: UseFormRegister<FormValues>;
   index: number;

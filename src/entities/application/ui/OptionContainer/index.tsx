@@ -27,14 +27,19 @@ interface OptionContainerProps {
   warningMessage?: string | null;
 }
 
-const parseOtherJson = (otherJson: string | null): boolean => {
-  if (!otherJson) return false;
+const parseOtherJson = (
+  otherJson: string | null,
+): { hasEtc: boolean; maxSelection: number | null } => {
+  if (!otherJson) return { hasEtc: false, maxSelection: null };
 
   try {
     const parsed: ConditionalSettings = JSON.parse(otherJson);
-    return parsed.hasEtc || false;
+    return {
+      hasEtc: parsed.hasEtc || false,
+      maxSelection: parsed.maxSelection || null,
+    };
   } catch {
-    return otherJson === 'etc';
+    return { hasEtc: otherJson === 'etc', maxSelection: null };
   }
 };
 
@@ -56,17 +61,37 @@ const OptionContainer = ({
 
   const options = jsonData
     ? typeof jsonData === 'string'
-      ? Object.entries(JSON.parse(jsonData)).map(([key, value]) => ({
-          value: key,
-          label: value as string,
-        }))
-      : Object.entries(jsonData).map(([key, value]) => ({
-          value: key,
-          label: value as string,
-        }))
+      ? Object.entries(JSON.parse(jsonData)).map(([key, value]) => {
+          if (typeof value === 'object' && value !== null) {
+            return {
+              value: key,
+              label: (value as { value: string }).value,
+              isAlwaysSelected: (value as { isAlwaysSelected?: boolean })
+                .isAlwaysSelected,
+            };
+          }
+          return {
+            value: key,
+            label: value as string,
+          };
+        })
+      : Object.entries(jsonData).map(([key, value]) => {
+          if (typeof value === 'object' && value !== null) {
+            return {
+              value: key,
+              label: (value as { value: string }).value,
+              isAlwaysSelected: (value as { isAlwaysSelected?: boolean })
+                .isAlwaysSelected,
+            };
+          }
+          return {
+            value: key,
+            label: value as string,
+          };
+        })
     : [];
 
-  const hasEtc = parseOtherJson(otherJson);
+  const { hasEtc, maxSelection } = parseOtherJson(otherJson);
 
   let inputComponent;
   switch (formType) {
@@ -93,6 +118,7 @@ const OptionContainer = ({
           name={safeName}
           required={requiredStatus}
           otherJson={hasEtc ? 'etc' : null}
+          maxSelection={maxSelection}
         />
       );
       break;
@@ -104,6 +130,7 @@ const OptionContainer = ({
           name={safeName}
           required={requiredStatus}
           otherJson={hasEtc ? 'etc' : null}
+          maxSelection={maxSelection}
         />
       );
       break;

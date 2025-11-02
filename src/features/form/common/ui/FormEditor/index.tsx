@@ -14,11 +14,13 @@ import { Button, DetailHeaderEditable } from '@/shared/ui';
 import FormContainer from '../FormContainer';
 
 const FormEditor = ({
+  expoId,
   defaultValues,
   onSubmit,
   isLoading,
   isSuccess,
 }: {
+  expoId: string;
   type: 'STANDARD' | 'TRAINEE';
   mode: 'application' | 'survey';
   defaultValues?: FormValues;
@@ -84,6 +86,7 @@ const FormEditor = ({
                 <FormContainer
                   key={field.id}
                   {...{
+                    expoId,
                     options: filteredSelectOptions,
                     formRemove: remove,
                     index,

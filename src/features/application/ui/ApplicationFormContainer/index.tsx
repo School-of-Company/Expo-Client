@@ -16,6 +16,8 @@ import {
 } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { Button, DetailHeader } from '@/shared/ui';
+import { postTrainingProgramSelection } from '../../api/postTrainingProgramSelection';
+import { extractTrainingProgramData } from '../../lib/extractTrainingProgramData';
 import { filterConditionalQuestions } from '../../lib/filterConditionalQuestions';
 import { getFormatter } from '../../lib/formatterService';
 import { useGetForm } from '../../model/useGetForm';
@@ -60,13 +62,38 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     );
   };
 
-  const onSubmit = (data: ApplicationFormValues): void => {
+  const onSubmit = async (data: ApplicationFormValues): Promise<void> => {
     if (!data.privacyConsent) {
       toast.error('개인정보 제공 동의 여부를 체크해주세요');
       return;
     }
 
-    const { privacyConsent, ...dynamicFormValues } = data;
+    const { privacyConsent, ...rest } = data;
+    const dynamicFormValues = rest as DynamicFormValues;
+
+    if (
+      formType === 'application' &&
+      userType === 'TRAINEE' &&
+      applicationType === 'PRE'
+    ) {
+      const trainingProgramData = extractTrainingProgramData(
+        dynamicFormValues,
+        getDynamicFormData(),
+      );
+
+      if (trainingProgramData) {
+        try {
+          await postTrainingProgramSelection(trainingProgramData);
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : '연수 프로그램 선택 등록 실패',
+          );
+          return;
+        }
+      }
+    }
 
     const formatter = getFormatter(formType, userType, getDynamicFormData());
 
