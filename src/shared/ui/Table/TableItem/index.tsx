@@ -52,6 +52,14 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
         return data['applicationType' as keyof T];
       case '개인정보 동의':
         return data['informationStatus' as keyof T];
+      case '프로그램':
+        return data['title' as keyof T];
+      case '시작시간':
+        return data['startedAt' as keyof T];
+      case '종료시간':
+        return data['endedAt' as keyof T];
+      case '상태':
+        return data['category' as keyof T];
       default:
         return '';
     }

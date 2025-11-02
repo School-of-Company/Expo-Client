@@ -1,14 +1,21 @@
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { FormValues, CreateFormRequest } from '@/shared/types/form/create/type';
 
-const convertOptionsToJson = (options: { value: string }[]): string => {
+const convertOptionsToJson = (
+  options: { value: string; isAlwaysSelected?: boolean }[],
+): string => {
   return JSON.stringify(
     options.reduce(
       (acc, option, index) => {
-        acc[(index + 1).toString()] = option.value;
+        acc[(index + 1).toString()] = option.isAlwaysSelected
+          ? { value: option.value, isAlwaysSelected: true }
+          : option.value;
         return acc;
       },
-      {} as Record<string, string>,
+      {} as Record<
+        string,
+        string | { value: string; isAlwaysSelected: boolean }
+      >,
     ),
   );
 };

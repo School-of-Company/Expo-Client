@@ -6,7 +6,9 @@ import {
   useFieldArray,
   UseFormRegister,
   UseFormSetValue,
+  useWatch,
 } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import {
   CheckBox,
   CheckBoxOption,
@@ -18,11 +20,13 @@ import {
   RequiredToggle,
 } from '@/entities/form';
 import ConditionalSettings from '@/entities/form/ui/ConditionalSettings';
+import { getTrainingProgram } from '@/shared/api';
 import { preventEvent } from '@/shared/model';
 import { FormValues, Option } from '@/shared/types/form/create/type';
 import { AddItemButton } from '@/shared/ui';
 
 interface Props {
+  expoId: string;
   options: Option[];
   formRemove: (index: number) => void;
   index: number;
@@ -32,6 +36,7 @@ interface Props {
 }
 
 const FormContainer = ({
+  expoId,
   options,
   formRemove,
   index,
@@ -40,15 +45,24 @@ const FormContainer = ({
   control,
 }: Props) => {
   const [isCheckBox, setIsCheckBox] = useState(false);
+  const [isLoadingPrograms, setIsLoadingPrograms] = useState(false);
   const [selectedOption, setSelectedOption] = useState<Option | null>(() => {
     const formType = control._formValues.questions[index].formType;
     return options.find((option) => option.value === formType) || null;
+  });
+
+  const questionTitle = useWatch({
+    control,
+    name: `questions.${index}.title`,
   });
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: `questions.${index}.options`,
   });
+
+  const isTrainingProgramQuestion =
+    questionTitle?.includes('연수 프로그램을 선택해주세요');
 
   const componentMap: Record<string, JSX.Element | null> = {
     CHECKBOX: (
@@ -58,6 +72,8 @@ const FormContainer = ({
         register={register}
         index={index}
         isCheckBox={isCheckBox}
+        setValue={setValue}
+        control={control}
       />
     ),
     DROPDOWN: (
@@ -84,6 +100,34 @@ const FormContainer = ({
     return selectedOption?.value
       ? componentMap[selectedOption.value] || null
       : null;
+  };
+
+  const handleLoadTrainingPrograms = async () => {
+    if (!expoId) return;
+
+    setIsLoadingPrograms(true);
+    try {
+      const programs = await getTrainingProgram(expoId);
+      const currentOptions = control._formValues.questions[index].options || [];
+
+      const newOptions = programs.map((program) => ({
+        value: `${program.title} (${program.startedAt} ~ ${program.endedAt})`,
+        label: program.id,
+      }));
+
+      setValue(`questions.${index}.options`, [
+        ...currentOptions,
+        ...newOptions,
+      ]);
+
+      toast.success(`${programs.length}개의 연수 프로그램을 불러왔습니다`);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : '연수 프로그램 불러오기 실패',
+      );
+    } finally {
+      setIsLoadingPrograms(false);
+    }
   };
 
   useEffect(() => {
@@ -115,14 +159,31 @@ const FormContainer = ({
         />
       </div>
       {renderOptionComponent()}
-      <div className="border-b-1 border-solid border-gray-100">
+      <div className="flex items-center gap-12 border-b-1 border-solid border-gray-100">
         {selectedOption?.value !== 'SENTENCE' ? (
-          <AddItemButton
-            onClick={(e: React.MouseEvent) => {
-              preventEvent(e);
-              append({ value: '' });
-            }}
-          />
+          <>
+            <AddItemButton
+              onClick={(e: React.MouseEvent) => {
+                preventEvent(e);
+                append({ value: '' });
+              }}
+            />
+            {isTrainingProgramQuestion && (
+              <button
+                type="button"
+                onClick={(e: React.MouseEvent) => {
+                  preventEvent(e);
+                  handleLoadTrainingPrograms();
+                }}
+                disabled={isLoadingPrograms}
+                className="flex h-40 items-center gap-8 px-16 py-8 text-body2r text-gray-500 underline transition-colors hover:text-main-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isLoadingPrograms
+                  ? '불러오는 중...'
+                  : '연수 프로그램 불러오기'}
+              </button>
+            )}
+          </>
         ) : null}
       </div>
       <div className="flex w-full items-center justify-end gap-20">

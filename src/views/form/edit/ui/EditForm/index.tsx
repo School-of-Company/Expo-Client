@@ -36,6 +36,7 @@ const EditForm = ({ id }: { id: string }) => {
         children: (
           <div className="flex flex-1 justify-center overflow-hidden p-16">
             <FormEditor
+              expoId={id}
               type={type}
               mode={mode}
               defaultValues={defaultValues}

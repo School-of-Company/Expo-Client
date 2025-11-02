@@ -20,6 +20,10 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
     control,
     name: `questions.${currentIndex}.otherJson`,
   });
+  const currentFormType = useWatch({
+    control,
+    name: `questions.${currentIndex}.formType`,
+  });
 
   const parseConditional = (
     otherJson: string | null,
@@ -29,6 +33,7 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
       const parsed = JSON.parse(otherJson);
       return {
         hasEtc: parsed.hasEtc || false,
+        maxSelection: parsed.maxSelection || null,
         conditional: parsed.conditional || undefined,
       };
     } catch {
@@ -46,6 +51,9 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
   const [triggerValue, setTriggerValue] = useState<string | null>(
     currentSettings.conditional?.triggerValue ?? null,
   );
+  const [maxSelection, setMaxSelection] = useState<number | null>(
+    currentSettings.maxSelection ?? null,
+  );
 
   const availableParents =
     questions
@@ -58,9 +66,11 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
   const updateOtherJson = (
     hasEtc: boolean,
     conditional: { parentIndex: number; triggerValue: string | null } | null,
+    maxSelectionValue: number | null = maxSelection,
   ) => {
     const newValue = JSON.stringify({
       hasEtc,
+      maxSelection: maxSelectionValue || undefined,
       conditional: conditional || undefined,
     });
     setValue(`questions.${currentIndex}.otherJson`, newValue);
@@ -96,11 +106,47 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
     }
   };
 
+  const handleMaxSelectionChange = (value: string) => {
+    const numValue = value ? Number(value) : null;
+    setMaxSelection(numValue);
+    updateOtherJson(
+      currentSettings.hasEtc,
+      currentSettings.conditional
+        ? {
+            parentIndex: parentIndex!,
+            triggerValue: triggerValue!,
+          }
+        : null,
+      numValue,
+    );
+  };
+
   const parentOptions =
     (parentIndex !== null && questions?.[parentIndex]?.options) || [];
 
   return (
     <div className="space-y-12 border-t border-gray-100 pt-16">
+      {currentFormType === 'CHECKBOX' && (
+        <div className="space-y-8">
+          <label className="flex items-center gap-8">
+            <p className="text-caption1r text-black mobile:text-caption2r">
+              최대 선택 개수
+            </p>
+          </label>
+          <div className="ml-24">
+            <input
+              type="number"
+              min="1"
+              placeholder="제한 없음"
+              value={maxSelection || ''}
+              onChange={(e) => handleMaxSelectionChange(e.target.value)}
+              className="w-[120px] rounded-sm border border-gray-300 px-12 py-6 text-body2r"
+            />
+            <span className="ml-8 text-caption1r text-gray-500"> 개 </span>
+          </div>
+        </div>
+      )}
+
       <label className="flex items-center gap-8">
         <p className="text-caption1r text-black mobile:text-caption2r">
           조건부 질문
