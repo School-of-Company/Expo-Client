@@ -1,6 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
@@ -23,6 +24,13 @@ import { getFormatter } from '../../lib/formatterService';
 import { useGetForm } from '../../model/useGetForm';
 import { usePostApplication } from '../../model/usePostApplication';
 
+const slugify = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
 const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
   const formType = searchParams.get('formType') as 'application' | 'survey';
@@ -30,7 +38,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
   const applicationType = (searchParams.get('applicationType') ||
     'PRE') as ApplicationType;
 
-  const { register, handleSubmit, watch, setValue, reset } =
+  const { register, handleSubmit, watch, setValue, reset, unregister } =
     useForm<ApplicationFormValues>();
 
   const {
@@ -51,6 +59,26 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
   );
 
   const formValues = watch();
+  const prevVisibleQuestionsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const allQuestions =
+      formList?.dynamicForm || formList?.dynamicSurveyResponseDto || [];
+    const visibleQuestions = filterConditionalQuestions(
+      allQuestions,
+      formValues as Record<string, string | string[]>,
+    );
+
+    const currentVisibleSet = new Set(
+      visibleQuestions.map((q) => slugify(q.title)),
+    );
+
+    prevVisibleQuestionsRef.current.forEach((prevFieldName) => {
+      if (!currentVisibleSet.has(prevFieldName)) unregister(prevFieldName);
+    });
+
+    prevVisibleQuestionsRef.current = currentVisibleSet;
+  }, [formValues, formList, unregister]);
 
   const getDynamicFormData = (): DynamicFormItem[] => {
     const allQuestions =
