@@ -45,7 +45,7 @@ const SelectTimeInput = ({
         onChange={onChange}
         showTimeSelect
         showTimeSelectOnly
-        timeIntervals={15}
+        timeIntervals={10}
         timeCaption="시간"
         dateFormat="HH:mm"
         placeholderText={placeholder}
