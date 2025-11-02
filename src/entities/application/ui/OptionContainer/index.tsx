@@ -61,14 +61,34 @@ const OptionContainer = ({
 
   const options = jsonData
     ? typeof jsonData === 'string'
-      ? Object.entries(JSON.parse(jsonData)).map(([key, value]) => ({
-          value: key,
-          label: value as string,
-        }))
-      : Object.entries(jsonData).map(([key, value]) => ({
-          value: key,
-          label: value as string,
-        }))
+      ? Object.entries(JSON.parse(jsonData)).map(([key, value]) => {
+          if (typeof value === 'object' && value !== null) {
+            return {
+              value: key,
+              label: (value as { value: string }).value,
+              isAlwaysSelected: (value as { isAlwaysSelected?: boolean })
+                .isAlwaysSelected,
+            };
+          }
+          return {
+            value: key,
+            label: value as string,
+          };
+        })
+      : Object.entries(jsonData).map(([key, value]) => {
+          if (typeof value === 'object' && value !== null) {
+            return {
+              value: key,
+              label: (value as { value: string }).value,
+              isAlwaysSelected: (value as { isAlwaysSelected?: boolean })
+                .isAlwaysSelected,
+            };
+          }
+          return {
+            value: key,
+            label: value as string,
+          };
+        })
     : [];
 
   const { hasEtc, maxSelection } = parseOtherJson(otherJson);

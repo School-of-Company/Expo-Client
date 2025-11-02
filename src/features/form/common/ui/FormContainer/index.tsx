@@ -72,6 +72,8 @@ const FormContainer = ({
         register={register}
         index={index}
         isCheckBox={isCheckBox}
+        setValue={setValue}
+        control={control}
       />
     ),
     DROPDOWN: (
