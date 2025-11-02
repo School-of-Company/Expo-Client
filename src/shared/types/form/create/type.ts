@@ -22,6 +22,7 @@ export interface FormValues {
 
 export interface ConditionalSettings {
   hasEtc: boolean;
+  maxSelection?: number | null;
   conditional?: {
     parentIndex: number;
     triggerValue: string;
