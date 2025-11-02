@@ -3,7 +3,7 @@ import clientInstance from '@/shared/libs/http/clientInstance';
 
 export interface TrainingProgramSelectionRequest {
   trainingId: string;
-  trainingProId: number[];
+  trainingProIds: number[];
 }
 
 export const postTrainingProgramSelection = async (
