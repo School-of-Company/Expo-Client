@@ -1,13 +1,13 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import OptionContainer from '@/entities/application/ui/OptionContainer';
 import { withLoading } from '@/shared/hocs';
-import { handleFormErrors } from '@/shared/model';
+import { handleFormErrors, printBadge } from '@/shared/model';
 import { showError } from '@/shared/model';
 import {
   ApplicationForm,
@@ -17,12 +17,12 @@ import {
 } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { Button, DetailHeader } from '@/shared/ui';
+import { postApplication } from '../../api/postApplication';
 import { postTrainingProgramSelection } from '../../api/postTrainingProgramSelection';
 import { extractTrainingProgramData } from '../../lib/extractTrainingProgramData';
 import { filterConditionalQuestions } from '../../lib/filterConditionalQuestions';
 import { getFormatter } from '../../lib/formatterService';
 import { useGetForm } from '../../model/useGetForm';
-import { usePostApplication } from '../../model/usePostApplication';
 
 const slugify = (text: string): string => {
   return text
@@ -33,13 +33,21 @@ const slugify = (text: string): string => {
 
 const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const formType = searchParams.get('formType') as 'application' | 'survey';
   const userType = searchParams.get('userType') as 'STANDARD' | 'TRAINEE';
   const applicationType = (searchParams.get('applicationType') ||
     'PRE') as ApplicationType;
 
-  const { register, handleSubmit, watch, setValue, reset, unregister } =
-    useForm<ApplicationFormValues>();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    unregister,
+    control,
+  } = useForm<ApplicationFormValues>();
 
   const {
     data: formList,
@@ -51,12 +59,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     error: Error | null;
   };
 
-  const { mutate: PostApplication, isPending } = usePostApplication(
-    params,
-    formType,
-    userType,
-    applicationType,
-  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formValues = watch();
   const prevVisibleQuestionsRef = useRef<Set<string>>(new Set());
@@ -74,19 +77,31 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     );
 
     prevVisibleQuestionsRef.current.forEach((prevFieldName) => {
-      if (!currentVisibleSet.has(prevFieldName)) unregister(prevFieldName);
+      if (!currentVisibleSet.has(prevFieldName)) {
+        const question = allQuestions.find(
+          (q) => slugify(q.title) === prevFieldName,
+        );
+        const shouldPreserve =
+          question &&
+          (question.title.includes('연수 프로그램') ||
+            question.title.includes('연수원 아이디'));
+
+        if (!shouldPreserve) unregister(prevFieldName);
+      }
     });
 
     prevVisibleQuestionsRef.current = currentVisibleSet;
   }, [formValues, formList, unregister]);
 
-  const getDynamicFormData = (): DynamicFormItem[] => {
+  const getDynamicFormData = (
+    values?: Record<string, string | string[] | boolean>,
+  ): DynamicFormItem[] => {
     const allQuestions =
       formList?.dynamicForm || formList?.dynamicSurveyResponseDto || [];
 
     return filterConditionalQuestions(
       allQuestions,
-      formValues as Record<string, string | string[]>,
+      (values || formValues) as Record<string, string | string[]>,
     );
   };
 
@@ -96,45 +111,94 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
       return;
     }
 
-    const { privacyConsent, ...rest } = data;
-    const dynamicFormValues = rest as DynamicFormValues;
+    setIsSubmitting(true);
 
-    if (
-      formType === 'application' &&
-      userType === 'TRAINEE' &&
-      applicationType === 'PRE'
-    ) {
-      const trainingProgramData = extractTrainingProgramData(
-        dynamicFormValues,
-        getDynamicFormData(),
+    try {
+      const { privacyConsent, ...rest } = data;
+      const dynamicFormValues = rest as DynamicFormValues;
+
+      const formatter = getFormatter(
+        formType,
+        userType,
+        getDynamicFormData(data),
       );
 
-      if (trainingProgramData) {
-        try {
+      const formattedData = formatter({
+        ...dynamicFormValues,
+        privacyConsent,
+      } as DynamicFormValues & { privacyConsent: boolean });
+
+      const response = await postApplication(
+        params,
+        formType,
+        userType,
+        applicationType,
+        formattedData,
+      );
+
+      if (
+        formType === 'application' &&
+        userType === 'TRAINEE' &&
+        applicationType === 'PRE'
+      ) {
+        const allQuestions =
+          formList?.dynamicForm || formList?.dynamicSurveyResponseDto || [];
+
+        const trainingProgramData = await extractTrainingProgramData(
+          dynamicFormValues,
+          allQuestions,
+          params,
+        );
+
+        if (trainingProgramData)
           await postTrainingProgramSelection(trainingProgramData);
-        } catch (error) {
-          toast.error(
-            error instanceof Error
-              ? error.message
-              : '연수 프로그램 선택 등록 실패',
-          );
-          return;
-        }
       }
+
+      const successMessage =
+        formType === 'survey'
+          ? '만족도 조사 제출이 완료되었습니다.'
+          : '박람회 등록이 완료되었습니다.';
+
+      toast.success(successMessage);
+      reset();
+
+      if (
+        formType === 'application' &&
+        userType === 'STANDARD' &&
+        applicationType === 'FIELD' &&
+        response &&
+        response.participantId &&
+        response.phoneNumber &&
+        response.expoId
+      ) {
+        const qrPayload = {
+          participantId: response.participantId,
+          phoneNumber: response.phoneNumber,
+          expoId: response.expoId,
+        };
+
+        const badgeData = {
+          name: response.name || '이름 없음',
+          qrCode: JSON.stringify(qrPayload),
+          isTemporary: true,
+        };
+
+        printBadge(badgeData);
+        return;
+      }
+
+      if (formType === 'application') {
+        router.push(
+          `/application/success/${params}?userType=${userType}&formType=${formType}`,
+        );
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : '폼 등록에 실패했습니다',
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const formatter = getFormatter(formType, userType, getDynamicFormData());
-
-    const formattedData = formatter({
-      ...dynamicFormValues,
-      privacyConsent,
-    } as DynamicFormValues & { privacyConsent: boolean });
-
-    PostApplication(formattedData, {
-      onSuccess: () => {
-        reset();
-      },
-    });
   };
 
   if (error) {
@@ -172,6 +236,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
                 register={register}
                 watch={watch}
                 setValue={setValue}
+                control={control}
               />
             ))}
           </div>
@@ -180,8 +245,8 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
             watch={watch}
             setValue={setValue}
           />
-          <Button disabled={isPending} type="submit">
-            등록하기
+          <Button disabled={isSubmitting} type="submit">
+            {isSubmitting ? '등록 중...' : '등록하기'}
           </Button>
         </div>
       </form>

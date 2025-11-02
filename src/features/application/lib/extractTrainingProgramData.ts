@@ -1,3 +1,4 @@
+import { getTrainingProgram } from '@/shared/api';
 import { slugify } from '@/shared/model';
 import {
   DynamicFormItem,
@@ -5,12 +6,13 @@ import {
 } from '@/shared/types/application/type';
 import { TrainingProgramSelectionRequest } from '../api/postTrainingProgramSelection';
 
-export const extractTrainingProgramData = (
+export const extractTrainingProgramData = async (
   data: DynamicFormValues,
   dynamicFormItems: DynamicFormItem[],
-): TrainingProgramSelectionRequest | null => {
+  exhibitionId: string,
+): Promise<TrainingProgramSelectionRequest | null> => {
   let trainingId: string | null = null;
-  let trainingProId: number[] = [];
+  const trainingProIds: number[] = [];
 
   const trainingIdForm = dynamicFormItems.find((form) =>
     form.title.includes('연수원 아이디'),
@@ -22,26 +24,34 @@ export const extractTrainingProgramData = (
     trainingId = String(value || '');
   }
 
-  const trainingProgramForm = dynamicFormItems.find((form) =>
-    form.title.includes('연수 프로그램을 선택해주세요'),
+  const programs = await getTrainingProgram(exhibitionId);
+
+  const trainingProgramForms = dynamicFormItems.filter((form) =>
+    form.title.includes('연수 프로그램을 선택해'),
   );
 
-  if (trainingProgramForm) {
-    const slug = slugify(trainingProgramForm.title);
+  for (const form of trainingProgramForms) {
+    const slug = slugify(form.title);
     const value = data[slug];
 
-    if (Array.isArray(value)) {
-      trainingProId = value.map((v) => Number(v)).filter((n) => !isNaN(n));
-    } else if (value) {
-      const num = Number(value);
-      if (!isNaN(num)) {
-        trainingProId = [num];
+    if (value && Array.isArray(value)) {
+      for (const programTitle of value) {
+        const program = programs.find(
+          (p) =>
+            p.title === programTitle ||
+            programTitle.includes(p.title) ||
+            p.title.includes(programTitle),
+        );
+
+        if (program) {
+          trainingProIds.push(program.id);
+        }
       }
     }
   }
 
-  if (trainingId && trainingProId.length > 0) {
-    return { trainingId, trainingProId };
+  if (trainingId && trainingProIds.length > 0) {
+    return { trainingId, trainingProIds };
   }
 
   return null;

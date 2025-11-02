@@ -1,4 +1,5 @@
 import {
+  Control,
   UseFormRegister,
   UseFormSetValue,
   UseFormWatch,
@@ -22,6 +23,7 @@ interface OptionContainerProps {
   register: UseFormRegister<ApplicationFormValues>;
   watch: UseFormWatch<ApplicationFormValues>;
   setValue: UseFormSetValue<ApplicationFormValues>;
+  control: Control<ApplicationFormValues>;
   readOnly?: boolean;
   defaultValue?: string;
   warningMessage?: string | null;
@@ -53,6 +55,7 @@ const OptionContainer = ({
   register,
   watch,
   setValue,
+  control,
   readOnly = false,
   defaultValue = '',
   warningMessage,
@@ -119,6 +122,7 @@ const OptionContainer = ({
           required={requiredStatus}
           otherJson={hasEtc ? 'etc' : null}
           maxSelection={maxSelection}
+          control={control}
         />
       );
       break;
