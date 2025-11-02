@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { RegisterOptions, UseFormRegister } from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import EtcOption from '../EtcOption';
@@ -26,6 +27,16 @@ const CheckBoxOption = ({
   otherJson,
   maxSelection,
 }: Props) => {
+  const [selectedValues, setSelectedValues] = useState<Set<string>>(() => {
+    const initialSelected = new Set<string>();
+    options.forEach((option) => {
+      if (option.isAlwaysSelected) {
+        initialSelected.add(option.label);
+      }
+    });
+    return initialSelected;
+  });
+
   const getValidationRules = (): RegisterOptions<
     ApplicationFormValues,
     string
@@ -47,11 +58,45 @@ const CheckBoxOption = ({
     return rules;
   };
 
+  const handleCheckboxChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    optionLabel: string,
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
+  ) => {
+    const isChecked = e.target.checked;
+
+    setSelectedValues((prev) => {
+      const newSet = new Set(prev);
+      if (isChecked) {
+        newSet.add(optionLabel);
+      } else {
+        newSet.delete(optionLabel);
+      }
+      return newSet;
+    });
+
+    onChange(e);
+  };
+
+  const isMaxReached =
+    maxSelection !== null &&
+    maxSelection !== undefined &&
+    selectedValues.size >= maxSelection;
+
   return (
     <>
       {options.map((option) => {
         const inputId = `${name}-${option.value}`;
         const isAlwaysSelected = option.isAlwaysSelected || false;
+
+        const shouldDisable =
+          isAlwaysSelected ||
+          (isMaxReached && !selectedValues.has(option.label));
+
+        const { onChange, ...registerRest } = register(
+          name,
+          getValidationRules(),
+        );
 
         return (
           <div key={option.value} className="flex items-center gap-20">
@@ -60,13 +105,14 @@ const CheckBoxOption = ({
               type="checkbox"
               value={option.label}
               defaultChecked={isAlwaysSelected}
-              disabled={isAlwaysSelected}
+              disabled={shouldDisable}
               className="h-16 w-16 accent-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
-              {...register(name, getValidationRules())}
+              {...registerRest}
+              onChange={(e) => handleCheckboxChange(e, option.label, onChange)}
             />
             <label
               htmlFor={inputId}
-              className={`text-body2r ${isAlwaysSelected ? 'text-gray-700' : 'cursor-pointer text-black'}`}
+              className={`text-body2r ${shouldDisable ? 'text-gray-700' : 'cursor-pointer text-black'}`}
             >
               {option.label}
               {isAlwaysSelected && (
