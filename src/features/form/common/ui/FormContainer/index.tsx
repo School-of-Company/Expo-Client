@@ -20,6 +20,7 @@ import {
   RequiredToggle,
 } from '@/entities/form';
 import ConditionalSettings from '@/entities/form/ui/ConditionalSettings';
+import { formatTime } from '@/features/exhibition/edit/model/formatDateTime';
 import { getTrainingProgram } from '@/shared/api';
 import { preventEvent } from '@/shared/model';
 import { FormValues, Option } from '@/shared/types/form/create/type';
@@ -111,7 +112,7 @@ const FormContainer = ({
       const currentOptions = control._formValues.questions[index].options || [];
 
       const newOptions = programs.map((program) => ({
-        value: `${program.title} (${program.startedAt} ~ ${program.endedAt})`,
+        value: `[${formatTime(program.startedAt)} ~ ${formatTime(program.endedAt)}] ${program.title}`,
         label: program.id,
       }));
 
