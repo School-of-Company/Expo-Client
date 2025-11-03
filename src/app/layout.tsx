@@ -1,5 +1,6 @@
 import '../shared/styles/globals.css';
 import 'react-toastify/dist/ReactToastify.css';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import ChannelTalkProvider from '@/shared/libs/ChannelTalkProvider';
 import TanstackProviders from '@/shared/libs/TanstackProviders';
 import ToastProvider from '@/shared/libs/ToastProvider';
@@ -19,6 +20,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+
   return (
     <html lang="ko" className={pretendard.variable}>
       <body className="font-Pretendard">
@@ -29,6 +32,7 @@ export default function RootLayout({
           </ToastProvider>
         </TanstackProviders>
       </body>
+      {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
     </html>
   );
 }
