@@ -2,16 +2,18 @@ import axios from 'axios';
 import clientInstance from '@/shared/libs/http/clientInstance';
 
 export interface TrainingProgramSelectionRequest {
-  trainingId: string;
+  informationJson: string;
+  personalInformationStatus: boolean;
   trainingProIds: number[];
 }
 
 export const postTrainingProgramSelection = async (
+  expoId: string,
   data: TrainingProgramSelectionRequest,
 ) => {
   try {
     const response = await clientInstance.post(
-      '/training/application/list',
+      `/training/application/list/trainee/${expoId}`,
       data,
     );
     return response.data;

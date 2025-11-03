@@ -14,6 +14,7 @@ import {
   ApplicationFormValues,
   DynamicFormItem,
   DynamicFormValues,
+  FormattedApplicationData,
 } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { Button, DetailHeader } from '@/shared/ui';
@@ -148,10 +149,11 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
           dynamicFormValues,
           allQuestions,
           params,
+          formattedData as FormattedApplicationData,
         );
 
         if (trainingProgramData)
-          await postTrainingProgramSelection(trainingProgramData);
+          await postTrainingProgramSelection(params, trainingProgramData);
       }
 
       const successMessage =
