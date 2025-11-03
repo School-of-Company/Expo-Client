@@ -4,15 +4,16 @@ import clientInstance from '@/shared/libs/http/clientInstance';
 export interface TrainingProgramSelectionRequest {
   informationJson: string;
   personalInformationStatus: boolean;
-  trainingProId: number[];
+  trainingProIds: number[];
 }
 
 export const postTrainingProgramSelection = async (
+  expoId: string,
   data: TrainingProgramSelectionRequest,
 ) => {
   try {
     const response = await clientInstance.post(
-      '/training/application/trainee/list',
+      `/training/application/list/trainee/${expoId}`,
       data,
     );
     return response.data;

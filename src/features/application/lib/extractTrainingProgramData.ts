@@ -13,7 +13,7 @@ export const extractTrainingProgramData = async (
   exhibitionId: string,
   formattedData: FormattedApplicationData,
 ): Promise<TrainingProgramSelectionRequest | null> => {
-  const trainingProId: number[] = [];
+  const trainingProIds: number[] = [];
 
   const programs = await getTrainingProgram(exhibitionId);
 
@@ -35,18 +35,18 @@ export const extractTrainingProgramData = async (
         );
 
         if (program) {
-          trainingProId.push(program.id);
+          trainingProIds.push(program.id);
         }
       }
     }
   }
 
-  if (trainingProId.length > 0) {
+  if (trainingProIds.length > 0) {
     return {
       informationJson: formattedData.informationJson,
       personalInformationStatus:
         formattedData.personalInformationStatus ?? false,
-      trainingProId,
+      trainingProIds,
     };
   }
 

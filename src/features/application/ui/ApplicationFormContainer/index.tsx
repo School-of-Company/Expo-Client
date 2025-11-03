@@ -153,7 +153,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         );
 
         if (trainingProgramData)
-          await postTrainingProgramSelection(trainingProgramData);
+          await postTrainingProgramSelection(params, trainingProgramData);
       }
 
       const successMessage =
