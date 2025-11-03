@@ -2,8 +2,9 @@ import axios from 'axios';
 import clientInstance from '@/shared/libs/http/clientInstance';
 
 export interface TrainingProgramSelectionRequest {
-  trainingId: string;
-  trainingProIds: number[];
+  informationJson: string;
+  personalInformationStatus: boolean;
+  trainingProId: number[];
 }
 
 export const postTrainingProgramSelection = async (
@@ -11,7 +12,7 @@ export const postTrainingProgramSelection = async (
 ) => {
   try {
     const response = await clientInstance.post(
-      '/training/application/list',
+      '/training/application/trainee/list',
       data,
     );
     return response.data;
