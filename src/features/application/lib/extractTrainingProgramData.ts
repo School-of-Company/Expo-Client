@@ -3,6 +3,7 @@ import { slugify } from '@/shared/model';
 import {
   DynamicFormItem,
   DynamicFormValues,
+  FormattedApplicationData,
 } from '@/shared/types/application/type';
 import { TrainingProgramSelectionRequest } from '../api/postTrainingProgramSelection';
 
@@ -10,19 +11,9 @@ export const extractTrainingProgramData = async (
   data: DynamicFormValues,
   dynamicFormItems: DynamicFormItem[],
   exhibitionId: string,
+  formattedData: FormattedApplicationData,
 ): Promise<TrainingProgramSelectionRequest | null> => {
-  let trainingId: string | null = null;
-  const trainingProIds: number[] = [];
-
-  const trainingIdForm = dynamicFormItems.find((form) =>
-    form.title.includes('연수원 아이디'),
-  );
-
-  if (trainingIdForm) {
-    const slug = slugify(trainingIdForm.title);
-    const value = data[slug];
-    trainingId = String(value || '');
-  }
+  const trainingProId: number[] = [];
 
   const programs = await getTrainingProgram(exhibitionId);
 
@@ -44,14 +35,19 @@ export const extractTrainingProgramData = async (
         );
 
         if (program) {
-          trainingProIds.push(program.id);
+          trainingProId.push(program.id);
         }
       }
     }
   }
 
-  if (trainingId && trainingProIds.length > 0) {
-    return { trainingId, trainingProIds };
+  if (trainingProId.length > 0) {
+    return {
+      informationJson: formattedData.informationJson,
+      personalInformationStatus:
+        formattedData.personalInformationStatus ?? false,
+      trainingProId,
+    };
   }
 
   return null;
