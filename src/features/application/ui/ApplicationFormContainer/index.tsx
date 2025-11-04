@@ -129,13 +129,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         privacyConsent,
       } as DynamicFormValues & { privacyConsent: boolean });
 
-      const response = await postApplication(
-        params,
-        formType,
-        userType,
-        applicationType,
-        formattedData,
-      );
+      let response;
 
       if (
         formType === 'application' &&
@@ -154,6 +148,14 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
 
         if (trainingProgramData)
           await postTrainingProgramSelection(params, trainingProgramData);
+      } else {
+        response = await postApplication(
+          params,
+          formType,
+          userType,
+          applicationType,
+          formattedData,
+        );
       }
 
       const successMessage =
