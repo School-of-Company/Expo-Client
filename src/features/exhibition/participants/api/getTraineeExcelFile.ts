@@ -3,7 +3,7 @@ import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
 export const getTraineeExcelFile = async (id: string) => {
   try {
-    const response = await clientTokenInstance.get(`/trainee/class/${id}`, {
+    const response = await clientTokenInstance.get(`/trainee/${id}`, {
       headers: {
         'X-File-Download': 'true',
       },
