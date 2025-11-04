@@ -7,6 +7,10 @@ import {
 } from '@/shared/types/application/type';
 import { TrainingProgramSelectionRequest } from '../api/postTrainingProgramSelection';
 
+const extractProgramTitle = (fullTitle: string): string => {
+  return fullTitle.replace(/^\[[\d:~\s]+\]\s*/, '');
+};
+
 export const extractTrainingProgramData = async (
   data: DynamicFormValues,
   dynamicFormItems: DynamicFormItem[],
@@ -27,12 +31,8 @@ export const extractTrainingProgramData = async (
 
     if (value && Array.isArray(value)) {
       for (const programTitle of value) {
-        const program = programs.find(
-          (p) =>
-            p.title === programTitle ||
-            programTitle.includes(p.title) ||
-            p.title.includes(programTitle),
-        );
+        const extractedTitle = extractProgramTitle(programTitle);
+        const program = programs.find((p) => p.title === extractedTitle);
 
         if (program) {
           trainingProIds.push(program.id);
