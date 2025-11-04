@@ -43,6 +43,7 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
       case '번호':
         return data.id;
       case '이름':
+      case '성명':
         return data['name' as keyof T];
       case '연수번호':
         return data['trainingId' as keyof T];
@@ -53,13 +54,20 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
       case '개인정보 동의':
         return data['informationStatus' as keyof T];
       case '프로그램':
-        return data['title' as keyof T];
+      case '프로그램 이름':
+        return data['programName' as keyof T] || data['title' as keyof T];
       case '시작시간':
         return data['startedAt' as keyof T];
       case '종료시간':
         return data['endedAt' as keyof T];
       case '상태':
         return data['category' as keyof T];
+      case '출석 여부':
+        return data['status' as keyof T];
+      case '입실 시간':
+        return data['entryTime' as keyof T];
+      case '퇴실 시간':
+        return data['leaveTime' as keyof T];
       default:
         return '';
     }
