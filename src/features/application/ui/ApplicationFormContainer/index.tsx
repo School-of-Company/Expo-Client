@@ -14,6 +14,7 @@ import {
   ApplicationFormValues,
   DynamicFormItem,
   DynamicFormValues,
+  FormattedApplicationData,
 } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { Button, DetailHeader } from '@/shared/ui';
@@ -128,13 +129,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         privacyConsent,
       } as DynamicFormValues & { privacyConsent: boolean });
 
-      const response = await postApplication(
-        params,
-        formType,
-        userType,
-        applicationType,
-        formattedData,
-      );
+      let response;
 
       if (
         formType === 'application' &&
@@ -148,10 +143,19 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
           dynamicFormValues,
           allQuestions,
           params,
+          formattedData as FormattedApplicationData,
         );
 
         if (trainingProgramData)
-          await postTrainingProgramSelection(trainingProgramData);
+          await postTrainingProgramSelection(params, trainingProgramData);
+      } else {
+        response = await postApplication(
+          params,
+          formType,
+          userType,
+          applicationType,
+          formattedData,
+        );
       }
 
       const successMessage =
