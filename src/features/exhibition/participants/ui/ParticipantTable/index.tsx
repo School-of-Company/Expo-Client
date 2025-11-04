@@ -33,6 +33,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
   const [selectedDate, setSelectedDate] = useState<string | undefined>(
     undefined,
   );
+  const [selectItem, setSelectItem] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -140,6 +141,8 @@ const ParticipantTable = ({ id }: { id: string }) => {
             totalPage={totalPage}
             id={id}
             selectItemBoolean={false}
+            setSelectItem={setSelectItem}
+            selectItem={selectItem}
           />
         ) : (
           <TableForm<participants>
