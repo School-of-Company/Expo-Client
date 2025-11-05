@@ -8,7 +8,7 @@ import {
 import { TrainingProgramSelectionRequest } from '../api/postTrainingProgramSelection';
 
 const extractProgramTitle = (fullTitle: string): string => {
-  return fullTitle.replace(/^\[[\d:~\s]+\]\s*/, '');
+  return fullTitle.replace(/^\[[\d:~\s]+\]\s*/, '').trim();
 };
 
 export const extractTrainingProgramData = async (
