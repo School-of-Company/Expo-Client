@@ -182,7 +182,9 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         };
 
         const badgeData = {
-          name: response.name || '이름 없음',
+          name:
+            ('name' in formattedData ? formattedData.name : undefined) ||
+            '이름 없음',
           qrCode: JSON.stringify(qrPayload),
           isTemporary: true,
         };
