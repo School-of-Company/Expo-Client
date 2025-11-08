@@ -29,7 +29,7 @@ export default function RootLayout({
         <TanstackProviders>
           <ToastProvider>
             <ChannelTalkProvider />
-            {Number(process.env.NEXT_PUBLIC_STOP) && <StopModal />}
+            {process.env.NEXT_PUBLIC_STOP === '1' ? <StopModal /> : null}
             {children}
           </ToastProvider>
         </TanstackProviders>
