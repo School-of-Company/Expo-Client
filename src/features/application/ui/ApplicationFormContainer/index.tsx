@@ -94,6 +94,10 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     prevVisibleQuestionsRef.current = currentVisibleSet;
   }, [formValues, formList, unregister]);
 
+  useEffect(() => {
+    if (userType === 'TRAINEE') toast.error('현직 교원만 신청 가능합니다.');
+  }, [userType]);
+
   const getDynamicFormData = (
     values?: Record<string, string | string[] | boolean>,
   ): DynamicFormItem[] => {
