@@ -1,3 +1,4 @@
+import { slugify } from '@/shared/model';
 import {
   DynamicFormItem,
   DynamicFormValues,
@@ -11,6 +12,13 @@ export const createStandardApplicationFormatter = (
   return (
     data: DynamicFormValues & { privacyConsent: boolean },
   ): FormattedApplicationData => {
+    const nameField = dynamicFormItems.find((item) =>
+      item.title.includes('이름'),
+    );
+    const nameValue = nameField
+      ? (data[slugify(nameField.title)] as string | undefined)
+      : undefined;
+
     return {
       informationJson: JSON.stringify(
         processDynamicFormData(data, dynamicFormItems),
@@ -18,6 +26,7 @@ export const createStandardApplicationFormatter = (
       ...(data.privacyConsent !== undefined && {
         personalInformationStatus: data.privacyConsent,
       }),
+      ...(nameValue && { name: nameValue }),
     };
   };
 };

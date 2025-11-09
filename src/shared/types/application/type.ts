@@ -28,6 +28,7 @@ export type ApplicationFormValues = {
 export type FormattedApplicationData = {
   informationJson: string;
   personalInformationStatus?: boolean;
+  name?: string;
 };
 
 export interface FormattedSurveyData {
