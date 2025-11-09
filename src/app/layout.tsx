@@ -5,6 +5,7 @@ import ChannelTalkProvider from '@/shared/libs/ChannelTalkProvider';
 import TanstackProviders from '@/shared/libs/TanstackProviders';
 import ToastProvider from '@/shared/libs/ToastProvider';
 import { pretendard } from '@/shared/styles/fonts';
+import StopModal from '@/shared/ui/StopModal';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({
         <TanstackProviders>
           <ToastProvider>
             <ChannelTalkProvider />
+            {process.env.NEXT_PUBLIC_STOP === '1' ? <StopModal /> : null}
             {children}
           </ToastProvider>
         </TanstackProviders>
