@@ -41,7 +41,9 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
 
   const handleCategorySelect = (category: string) => {
     if (category === CATEGORIES.EXHIBITION) {
-      router.push(`/exhibition/edit/${params}`);
+      router.push(
+        `/exhibition/edit/${params}?startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
+      );
       return;
     }
 
@@ -79,11 +81,11 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       router.push(`/sms/${params}/${userType}`);
     } else if (modalType === 'edit' && selectedFormType) {
       router.push(
-        `/form/edit/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}`,
+        `/form/edit/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
       );
     } else if (modalType === 'formcreate' && selectedFormType) {
       router.push(
-        `/form/create/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}`,
+        `/form/create/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
       );
     } else if (modalType === 'share' && selectedFormType) {
       const url = `${baseURL}/application/${params}?formType=${selectedFormType}&userType=${userType}&applicationType=${appType}`;
