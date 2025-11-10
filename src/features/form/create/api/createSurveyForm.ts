@@ -8,6 +8,8 @@ export const createSurveyForm = async ({
 }: {
   data: CreateFormRequest;
   id: string;
+  startDate: string;
+  endDate: string;
 }) => {
   try {
     const response = await clientTokenInstance.post(`/survey/${id}`, data);

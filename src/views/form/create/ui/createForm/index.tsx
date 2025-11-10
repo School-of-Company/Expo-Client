@@ -11,6 +11,8 @@ const CreateForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const type = searchParams.get('type') as 'STANDARD' | 'TRAINEE';
   const mode = searchParams.get('mode') as 'application' | 'survey';
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
   const applicationType = searchParams
     .get('applicationType')
     ?.toUpperCase() as ApplicationType | null;
@@ -20,7 +22,14 @@ const CreateForm = ({ id }: { id: string }) => {
     isSurveyPending,
     isApplicationSuccess,
     isSurveySuccess,
-  } = useCreateFormMutation(id, type, mode, applicationType || 'PRE');
+  } = useCreateFormMutation(
+    id,
+    type,
+    mode,
+    applicationType || 'PRE',
+    startDate || '',
+    endDate || '',
+  );
   return (
     <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
