@@ -34,6 +34,10 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
       return '사전 등록';
     } else if (value === 'FIELD') {
       return '현장 등록';
+    } else if (value === 'STANDARD') {
+      return '일반';
+    } else if (value === 'TRAINEE') {
+      return '연수자';
     }
     return typeof value === 'string' ? value : JSON.stringify(value);
   };
@@ -41,6 +45,7 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
   const getFieldValue = (category: string): RenderValueType => {
     switch (category) {
       case '번호':
+      case '아이디':
         return data.id;
       case '이름':
       case '성명':
@@ -53,6 +58,10 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
         return data['applicationType' as keyof T];
       case '개인정보 동의':
         return data['informationStatus' as keyof T];
+      case '개인정보 상태':
+        return data['personalInformationStatus' as keyof T];
+      case '참가자 상태':
+        return data['participationType' as keyof T];
       case '프로그램':
       case '프로그램 이름':
         return data['programName' as keyof T] || data['title' as keyof T];
