@@ -38,6 +38,8 @@ export interface OptionProps {
 }
 
 export interface ApplicationFormRequest {
+  startDate: string;
+  endDate: string;
   applicationId: string;
   participantType: 'STANDARD' | 'TRAINEE';
   applicationType: ApplicationType;
@@ -53,6 +55,8 @@ export interface ApplicationFormRequest {
 }
 
 export interface SurveyFormRequest {
+  startDate: string;
+  endDate: string;
   participationType: 'STANDARD' | 'TRAINEE';
   dynamicSurveyRequestDto: {
     title: string;
