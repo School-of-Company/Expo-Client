@@ -15,6 +15,8 @@ const EditForm = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const type = searchParams.get('type') as 'STANDARD' | 'TRAINEE';
   const mode = searchParams.get('mode') as 'application' | 'survey';
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
   const application = (searchParams.get('applicationType') ||
     'PRE') as ApplicationType;
   const { data, isLoading } = useGetEditForm(id, type, mode, application);
@@ -24,7 +26,14 @@ const EditForm = ({ id }: { id: string }) => {
     isSurveyPending,
     isApplicationSuccess,
     isSurveySuccess,
-  } = useEditFormMutation(id, type, mode, application);
+  } = useEditFormMutation(
+    id,
+    type,
+    mode,
+    application,
+    startDate || '',
+    endDate || '',
+  );
 
   const defaultValues = data ? transformServerData(data, mode) : undefined;
 

@@ -23,6 +23,8 @@ const convertOptionsToJson = (
 const getSurveyRequestData = (
   data: FormValues,
   type: 'STANDARD' | 'TRAINEE',
+  startDate: string,
+  endDate: string,
 ) => {
   const filteredQuestions = data.questions.filter(
     (question) => question.formType !== 'PRIVACYCONSENT',
@@ -32,6 +34,8 @@ const getSurveyRequestData = (
     title: data.title,
     informationText: data.informationText || '',
     participationType: type,
+    startDate,
+    endDate,
     dynamicSurveyRequestDto: filteredQuestions.map((question) => ({
       title: question.title,
       formType: question.formType,
@@ -47,6 +51,8 @@ const getApplicationRequestData = (
   type: 'STANDARD' | 'TRAINEE',
   applicationType: ApplicationType,
   applicationId: string,
+  startDate: string,
+  endDate: string,
 ) => {
   const filteredQuestions = data.questions.filter(
     (question) => question.formType !== 'PRIVACYCONSENT',
@@ -58,6 +64,8 @@ const getApplicationRequestData = (
     informationText: data.informationText || '',
     participantType: type,
     applicationType,
+    startDate,
+    endDate,
     dynamicForm: filteredQuestions.map((question) => ({
       title: question.title,
       formType: question.formType,
@@ -74,10 +82,19 @@ export const transformFormData = (
   mode: 'application' | 'survey',
   applicationType: ApplicationType,
   applicationId: string,
+  startDate: string,
+  endDate: string,
 ): CreateFormRequest => {
   if (mode === 'survey') {
-    return getSurveyRequestData(data, type);
+    return getSurveyRequestData(data, type, startDate, endDate);
   }
 
-  return getApplicationRequestData(data, type, applicationType, applicationId);
+  return getApplicationRequestData(
+    data,
+    type,
+    applicationType,
+    applicationId,
+    startDate,
+    endDate,
+  );
 };
