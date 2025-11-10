@@ -30,6 +30,8 @@ export const useCreateFormMutation = (
       mode,
       applicationType,
       id,
+      startDate,
+      endDate,
     );
     const submitFunction =
       mode === 'survey' ? createSurveyForm : createApplicationForm;
