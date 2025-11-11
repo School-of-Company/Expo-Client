@@ -41,6 +41,10 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
 
   const handleCategorySelect = (category: string) => {
     if (category === CATEGORIES.EXHIBITION) {
+      if (!startDate || !endDate) {
+        toast.error('시작 날짜와 마감 날짜를 먼저 선택해주세요.');
+        return;
+      }
       router.push(
         `/exhibition/edit/${params}?startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
       );
