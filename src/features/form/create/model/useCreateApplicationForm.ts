@@ -16,10 +16,11 @@ export const useCreateApplicationForm = (
   return useMutation({
     mutationKey: ['createApplicationForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
-      createApplicationForm({
-        data: { ...formattedData, startDate, endDate },
-        id,
-      }),
+     mutationFn: (formattedData: CreateFormRequest) =>
+       createApplicationForm({
+        data: formattedData,
+         id,
+       }),
     onSuccess: () => {
       toast.success('박람회 등록 폼이 생성되었습니다.');
       router.push(`/exhibition/detail/${id}`);
