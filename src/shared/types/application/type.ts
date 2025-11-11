@@ -14,6 +14,8 @@ export interface DynamicFormItem {
 export interface ApplicationForm {
   title: string;
   informationText: string;
+  startDate: string;
+  endDate: string;
   participantType: 'STANDARD' | 'TRAINEE';
   dynamicForm?: DynamicFormItem[];
   dynamicSurveyResponseDto?: DynamicFormItem[];

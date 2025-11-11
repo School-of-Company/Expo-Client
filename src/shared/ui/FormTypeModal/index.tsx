@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { XMark } from '@/shared/assets/icons';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import Button from '../Button';
+import SelectDateInput from '../SelectDateInput';
 
 const CATEGORIES = {
   EXHIBITION: '박람회',
@@ -35,10 +36,18 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedFormType, setSelectedFormType] = useState<string | null>(null);
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   const handleCategorySelect = (category: string) => {
     if (category === CATEGORIES.EXHIBITION) {
-      router.push(`/exhibition/edit/${params}`);
+      if (!startDate || !endDate) {
+        toast.error('시작 날짜와 마감 날짜를 먼저 선택해주세요.');
+        return;
+      }
+      router.push(
+        `/exhibition/edit/${params}?startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
+      );
       return;
     }
 
@@ -76,11 +85,11 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       router.push(`/sms/${params}/${userType}`);
     } else if (modalType === 'edit' && selectedFormType) {
       router.push(
-        `/form/edit/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}`,
+        `/form/edit/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
       );
     } else if (modalType === 'formcreate' && selectedFormType) {
       router.push(
-        `/form/create/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}`,
+        `/form/create/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
       );
     } else if (modalType === 'share' && selectedFormType) {
       const url = `${baseURL}/application/${params}?formType=${selectedFormType}&userType=${userType}&applicationType=${appType}`;
@@ -198,12 +207,29 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
             <XMark />
           </label>
         </div>
-        <div className="flex gap-12">
-          {renderButtons().map((button, index) => (
-            <Button key={index} variant="white" onClick={button.onClick}>
-              {button.label}
-            </Button>
-          ))}
+        <div className="flex items-center gap-12">
+          {!(startDate && endDate) && (
+            <>
+              <SelectDateInput
+                placeholder="시작 날짜"
+                onChange={setStartDate}
+                value={startDate}
+              />
+              <SelectDateInput
+                placeholder="마감 날짜"
+                onChange={setEndDate}
+                value={endDate}
+              />
+            </>
+          )}
+
+          {startDate &&
+            endDate &&
+            renderButtons().map((button, index) => (
+              <Button key={index} variant="white" onClick={button.onClick}>
+                {button.label}
+              </Button>
+            ))}
         </div>
       </div>
     </div>

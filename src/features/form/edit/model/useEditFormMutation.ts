@@ -9,6 +9,8 @@ export const useEditFormMutation = (
   type: 'STANDARD' | 'TRAINEE',
   mode: 'application' | 'survey',
   apllication: ApplicationType,
+  startDate: string,
+  endDate: string,
 ) => {
   const router = useRouter();
 
@@ -16,16 +18,24 @@ export const useEditFormMutation = (
     mutate: editApplicationForm,
     isPending: isApplicationPending,
     isSuccess: isApplicationSuccess,
-  } = useEditApplicationForm(id, type, router);
+  } = useEditApplicationForm(id, type, router, startDate, endDate);
 
   const {
     mutate: editSurveyForm,
     isPending: isSurveyPending,
     isSuccess: isSurveySuccess,
-  } = useEditSurveyForm(id, type, router);
+  } = useEditSurveyForm(id, type, router, startDate, endDate);
 
   const handleSubmitForm = (data: FormValues) => {
-    const formattedData = transformFormData(data, type, mode, apllication, id);
+    const formattedData = transformFormData(
+      data,
+      type,
+      mode,
+      apllication,
+      id,
+      startDate,
+      endDate,
+    );
     const submitFunction =
       mode === 'survey' ? editSurveyForm : editApplicationForm;
     submitFunction(formattedData);
