@@ -9,17 +9,19 @@ export const useCreateFormMutation = (
   type: 'STANDARD' | 'TRAINEE',
   mode: 'application' | 'survey',
   applicationType: ApplicationType,
+  startDate: string,
+  endDate: string,
 ) => {
   const {
     mutate: createApplicationForm,
     isPending: isApplicationPending,
     isSuccess: isApplicationSuccess,
-  } = useCreateApplicationForm(id, type);
+  } = useCreateApplicationForm(id, type, startDate, endDate);
   const {
     mutate: createSurveyForm,
     isPending: isSurveyPending,
     isSuccess: isSurveySuccess,
-  } = useCreateSurveyForm(id, type);
+  } = useCreateSurveyForm(id, type, startDate, endDate);
 
   const handleSubmitForm = (data: FormValues) => {
     const formattedData = transformFormData(
@@ -28,6 +30,8 @@ export const useCreateFormMutation = (
       mode,
       applicationType,
       id,
+      startDate,
+      endDate,
     );
     const submitFunction =
       mode === 'survey' ? createSurveyForm : createApplicationForm;

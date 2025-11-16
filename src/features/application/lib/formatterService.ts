@@ -7,6 +7,7 @@ export const getFormatter = (
   formType: 'application' | 'survey',
   userType: 'STANDARD' | 'TRAINEE',
   dynamicFormItems: DynamicFormItem[],
+  queryPhoneNumber?: string | null,
 ) => {
   const formatters = {
     application: {
@@ -14,8 +15,8 @@ export const getFormatter = (
       STANDARD: createStandardApplicationFormatter(dynamicFormItems),
     },
     survey: {
-      TRAINEE: createSurveyFormatter(dynamicFormItems),
-      STANDARD: createSurveyFormatter(dynamicFormItems),
+      TRAINEE: createSurveyFormatter(dynamicFormItems, queryPhoneNumber),
+      STANDARD: createSurveyFormatter(dynamicFormItems, queryPhoneNumber),
     },
   };
 

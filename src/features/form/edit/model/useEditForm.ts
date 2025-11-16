@@ -9,13 +9,18 @@ export const useEditApplicationForm = (
   id: string,
   type: 'STANDARD' | 'TRAINEE',
   router: AppRouterInstance,
+  startDate: string,
+  endDate: string,
 ) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: ['editApplicationForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
-      editApplicationForm({ data: formattedData, id }),
+      editApplicationForm({
+        data: { ...formattedData, startDate, endDate },
+        id,
+      }),
     onSuccess: () => {
       toast.success('박람회 등록 폼이 수정되었습니다.');
       queryClient.invalidateQueries({
@@ -36,12 +41,17 @@ export const useEditSurveyForm = (
   id: string,
   type: 'STANDARD' | 'TRAINEE',
   router: AppRouterInstance,
+  startDate: string,
+  endDate: string,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ['editSurveyForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
-      editSurveyForm({ data: formattedData, id }),
+      editSurveyForm({
+        data: { ...formattedData, startDate, endDate },
+        id,
+      }),
     onSuccess: () => {
       toast.success('만족도 조사 폼이 수정되었습니다.');
       queryClient.invalidateQueries({

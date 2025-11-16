@@ -14,6 +14,8 @@ export interface DynamicFormItem {
 export interface ApplicationForm {
   title: string;
   informationText: string;
+  startDate: string;
+  endDate: string;
   participantType: 'STANDARD' | 'TRAINEE';
   dynamicForm?: DynamicFormItem[];
   dynamicSurveyResponseDto?: DynamicFormItem[];
@@ -28,6 +30,7 @@ export type ApplicationFormValues = {
 export type FormattedApplicationData = {
   informationJson: string;
   personalInformationStatus?: boolean;
+  name?: string;
 };
 
 export interface FormattedSurveyData {
