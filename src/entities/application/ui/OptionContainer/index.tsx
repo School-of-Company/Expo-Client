@@ -123,6 +123,8 @@ const OptionContainer = ({
           otherJson={hasEtc ? 'etc' : null}
           maxSelection={maxSelection}
           control={control}
+          watch={watch}
+          setValue={setValue}
         />
       );
       break;
@@ -135,6 +137,8 @@ const OptionContainer = ({
           required={requiredStatus}
           otherJson={hasEtc ? 'etc' : null}
           maxSelection={maxSelection}
+          watch={watch}
+          setValue={setValue}
         />
       );
       break;

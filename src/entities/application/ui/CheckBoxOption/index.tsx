@@ -1,7 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Control, Controller, UseFormRegister } from 'react-hook-form';
+import {
+  Control,
+  Controller,
+  UseFormRegister,
+  UseFormWatch,
+  UseFormSetValue,
+} from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import EtcOption from '../EtcOption';
 
@@ -19,6 +25,8 @@ interface Props {
   otherJson: string | null;
   maxSelection?: number | null;
   control: Control<ApplicationFormValues>;
+  watch: UseFormWatch<ApplicationFormValues>;
+  setValue: UseFormSetValue<ApplicationFormValues>;
 }
 const CheckBoxOption = ({
   options,
@@ -28,6 +36,8 @@ const CheckBoxOption = ({
   otherJson,
   maxSelection,
   control,
+  watch,
+  setValue,
 }: Props) => {
   const defaultValues = options
     .filter((opt) => opt.isAlwaysSelected)
@@ -102,7 +112,17 @@ const CheckBoxOption = ({
               );
             })}
             {otherJson !== null && (
-              <EtcOption register={register} name={name} type="checkbox" />
+              <EtcOption
+                register={register}
+                name={name}
+                type="checkbox"
+                watch={watch}
+                setValue={setValue}
+                onCheckboxChange={(isChecked) =>
+                  handleCheckboxChange('기타', isChecked)
+                }
+                selectedValues={selectedValues}
+              />
             )}
             {maxSelection && (
               <p className="text-caption1r text-gray-500">
