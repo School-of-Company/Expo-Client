@@ -1,6 +1,10 @@
 'use client';
 
-import { UseFormRegister } from 'react-hook-form';
+import {
+  UseFormRegister,
+  UseFormWatch,
+  UseFormSetValue,
+} from 'react-hook-form';
 import { ApplicationFormValues } from '@/shared/types/application/type';
 import EtcOption from '../EtcOption';
 
@@ -16,6 +20,8 @@ interface Props {
   required: boolean;
   otherJson: string | null;
   maxSelection?: number | null;
+  watch: UseFormWatch<ApplicationFormValues>;
+  setValue: UseFormSetValue<ApplicationFormValues>;
 }
 
 const MultipleOption = ({
@@ -24,6 +30,8 @@ const MultipleOption = ({
   name,
   required,
   otherJson,
+  watch,
+  setValue,
 }: Props) => {
   return (
     <>
@@ -51,7 +59,13 @@ const MultipleOption = ({
         );
       })}
       {otherJson !== null && (
-        <EtcOption register={register} name={name} type="radio" />
+        <EtcOption
+          register={register}
+          name={name}
+          type="radio"
+          watch={watch}
+          setValue={setValue}
+        />
       )}
     </>
   );
