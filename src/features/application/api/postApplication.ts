@@ -1,6 +1,5 @@
 import axios from 'axios';
 import clientInstance from '@/shared/libs/http/clientInstance';
-import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import {
   FormattedApplicationData,
   FormattedSurveyData,
@@ -45,17 +44,10 @@ export const postApplication = async (
   }
 
   const url = `${baseUrl[key] || '/api/application/'}${params}`;
-  const instance = isStandardOnsiteTemporary
-    ? clientTokenInstance
-    : clientInstance;
+  const instance = clientInstance;
 
   try {
-    const response = await instance.post(url, data, {
-      ...(isStandardOnsiteTemporary && { skipAuthRedirect: true }),
-      headers: {
-        ...(isStandardOnsiteTemporary && { 'x-skip-auth-redirect': 'true' }),
-      },
-    });
+    const response = await instance.post(url, data);
     return response.data;
   } catch (error) {
     if (
