@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { TableFooter, TableHeader, TableItem } from '@/shared/ui/Table';
 import NavigationBar from '../../NavigationBar';
 
@@ -14,6 +14,8 @@ interface Props<T> {
   totalPage?: number;
   id?: string;
   selectItemBoolean?: boolean;
+  setSelectItem?: React.Dispatch<React.SetStateAction<number | null>>;
+  selectItem?: number | null;
 }
 
 const TableForm = <T extends { id: number }>({
@@ -26,9 +28,10 @@ const TableForm = <T extends { id: number }>({
   totalPage,
   id,
   selectItemBoolean = true,
+  setSelectItem,
+  selectItem,
 }: Props<T>) => {
-  const [selectItem, setSelectItem] = useState<number | null>(null);
-
+  const [selectItemState, setSelectItemState] = useState<number | null>(null);
   return (
     <div className="space-y-[34px] rounded-sm border-1 border-solid border-gray-200 px-30 py-20">
       <div className="space-y-[30px] overflow-x-auto border-b-1 border-solid border-gray-100 pb-6">
@@ -40,8 +43,8 @@ const TableForm = <T extends { id: number }>({
           >
             {data.map((item, index) => (
               <TableItem
-                state={selectItem}
-                setState={setSelectItem}
+                state={selectItem ?? selectItemState}
+                setState={setSelectItem ?? setSelectItemState}
                 key={index}
                 data={item}
                 selectItemBoolean={selectItemBoolean}
@@ -62,8 +65,8 @@ const TableForm = <T extends { id: number }>({
         text={text}
         num={data.length}
         actions={actions}
-        selectItem={selectItem}
-        setSelectItem={setSelectItem}
+        selectItem={selectItem ?? selectItemState}
+        setSelectItem={setSelectItem ?? setSelectItemState}
         selectItemBoolean={selectItemBoolean}
       />
     </div>
