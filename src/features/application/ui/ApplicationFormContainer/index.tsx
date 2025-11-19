@@ -123,6 +123,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         userType,
         getDynamicFormData(data),
         searchParams.get('phoneNumber'),
+        applicationType,
       );
 
       const formattedData = formatter({
