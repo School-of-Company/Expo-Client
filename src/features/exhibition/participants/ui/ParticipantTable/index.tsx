@@ -13,6 +13,7 @@ import {
 import { SearchInput } from '@/shared/ui/SearchInput';
 import SelectUserType from '@/shared/ui/SelectUserType';
 import { TableForm } from '@/shared/ui/Table';
+import { getClassExcelFile } from '../../api/getClassExcelFile';
 import { getStandardExcelFile } from '../../api/getStandardExcelFile';
 import { getTraineeExcelFile } from '../../api/getTraineeExcelFile';
 import { category, selectOptionCategories } from '../../model/category';
@@ -24,6 +25,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
   const userType = searchParams.get('userType') || 'STANDARD';
+  const isProgram = searchParams.get('navigation') || false;
 
   const isTrainee = userType === 'TRAINEE';
 
@@ -33,6 +35,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
   const [selectedDate, setSelectedDate] = useState<string | undefined>(
     undefined,
   );
+  const [selectItem, setSelectItem] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -100,7 +103,8 @@ const ParticipantTable = ({ id }: { id: string }) => {
   };
 
   const traineeExcelFile = {
-    exportExcel: () => getTraineeExcelFile(id),
+    exportExcel: () =>
+      isProgram ? getClassExcelFile(id) : getTraineeExcelFile(id),
   };
   const standardExcelFile = {
     exportExcel: () => getStandardExcelFile(id),
@@ -140,6 +144,8 @@ const ParticipantTable = ({ id }: { id: string }) => {
             totalPage={totalPage}
             id={id}
             selectItemBoolean={false}
+            setSelectItem={setSelectItem}
+            selectItem={selectItem}
           />
         ) : (
           <TableForm<participants>
