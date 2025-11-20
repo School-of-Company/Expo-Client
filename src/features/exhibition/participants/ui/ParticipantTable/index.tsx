@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useMemo, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import { withLoading } from '@/shared/hocs';
 import { useExpoDetail } from '@/shared/queries';
 import {
@@ -25,7 +26,8 @@ const ParticipantTable = ({ id }: { id: string }) => {
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
   const userType = searchParams.get('userType') || 'STANDARD';
-  const isProgram = searchParams.get('navigation') || false;
+  const navigation = searchParams.get('navigation') || 'standard';
+  const isProgram = navigation === 'program';
 
   const isTrainee = userType === 'TRAINEE';
 
@@ -103,8 +105,19 @@ const ParticipantTable = ({ id }: { id: string }) => {
   };
 
   const traineeExcelFile = {
-    exportExcel: () =>
-      isProgram ? getClassExcelFile(id) : getTraineeExcelFile(id),
+    exportExcel: (selectedRowId: number) => {
+      if (isProgram) {
+        void getClassExcelFile(id);
+        return;
+      }
+
+      if (!isTrainee) {
+        toast.error('연수자 정보를 확인할 수 없습니다.');
+        return;
+      }
+
+      void getTraineeExcelFile(String(selectedRowId));
+    },
   };
   const standardExcelFile = {
     exportExcel: () => getStandardExcelFile(id),
@@ -143,7 +156,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
             actions={traineeExcelFile}
             totalPage={totalPage}
             id={id}
-            selectItemBoolean={false}
+            selectItemBoolean={!isProgram}
             setSelectItem={setSelectItem}
             selectItem={selectItem}
           />

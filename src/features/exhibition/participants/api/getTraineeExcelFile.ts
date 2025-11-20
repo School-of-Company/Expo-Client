@@ -1,14 +1,17 @@
 import { toast } from 'react-toastify';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
-export const getTraineeExcelFile = async (id: string) => {
+export const getTraineeExcelFile = async (traineeId: string) => {
   try {
-    const response = await clientTokenInstance.get(`/trainee/${id}`, {
-      headers: {
-        'X-File-Download': 'true',
+    const response = await clientTokenInstance.get(
+      `/excel/trainee/${traineeId}`,
+      {
+        headers: {
+          'X-File-Download': 'true',
+        },
+        responseType: 'blob',
       },
-      responseType: 'blob',
-    });
+    );
 
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
