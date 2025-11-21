@@ -161,7 +161,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
       }
 
       router.push(
-        `/application/success/${params}?formType=survey&userType=STANDARD`,
+        `/application/success/${params}?formType=${formType}&userType=${userType}`,
       );
       reset();
 
