@@ -160,12 +160,9 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         );
       }
 
-      const successMessage =
-        formType === 'survey'
-          ? '만족도 조사 제출이 완료되었습니다.'
-          : '박람회 등록이 완료되었습니다.';
-
-      toast.success(successMessage);
+      router.push(
+        `/application/success/${params}?formType=survey&userType=STANDARD`,
+      );
       reset();
 
       if (
