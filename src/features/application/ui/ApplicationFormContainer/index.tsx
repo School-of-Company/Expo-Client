@@ -159,10 +159,11 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
           formattedData,
         );
       }
-
-      router.push(
-        `/application/success/${params}?formType=${formType}&userType=${userType}`,
-      );
+      if (formType === 'survey') {
+        router.push(
+          `/application/success/${params}?formType=survey&userType=${userType}`,
+        );
+      }
       reset();
 
       if (
