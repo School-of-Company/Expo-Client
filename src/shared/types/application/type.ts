@@ -9,6 +9,7 @@ export interface DynamicFormItem {
   jsonData?: Record<string, string>;
   requiredStatus: boolean;
   otherJson: string | null;
+  dynamicFormType?: string;
 }
 
 export interface ApplicationForm {

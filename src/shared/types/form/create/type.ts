@@ -16,6 +16,7 @@ export interface FormValues {
     options: Option[];
     requiredStatus: boolean;
     otherJson: string | null;
+    dynamicFormType?: 'NAME' | 'PHONE_NUMBER' | 'TRAINEE_ID' | 'DEFAULT';
   }[];
   informationText: string;
   title: string;
@@ -49,6 +50,7 @@ export interface ApplicationFormRequest {
     jsonData: string;
     requiredStatus: boolean;
     otherJson: string | null;
+    dynamicFormType: string;
   }[];
   informationText: string;
   title: string;
@@ -64,6 +66,7 @@ export interface SurveyFormRequest {
     jsonData: string;
     requiredStatus: boolean;
     otherJson: string | null;
+    dynamicFormType: string;
   }[];
   informationText: string;
   title: string;
