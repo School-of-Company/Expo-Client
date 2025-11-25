@@ -42,6 +42,7 @@ const getSurveyRequestData = (
       jsonData: convertOptionsToJson(question.options),
       requiredStatus: question.requiredStatus,
       otherJson: question.otherJson,
+      dynamicFormType: question.dynamicFormType || 'DEFAULT',
     })),
   };
 };
@@ -72,6 +73,7 @@ const getApplicationRequestData = (
       jsonData: convertOptionsToJson(question.options),
       requiredStatus: question.requiredStatus,
       otherJson: question.otherJson,
+      dynamicFormType: question.dynamicFormType || 'DEFAULT',
     })),
   };
 };

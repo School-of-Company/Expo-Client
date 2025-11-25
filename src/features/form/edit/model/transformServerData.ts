@@ -56,6 +56,11 @@ export const transformServerData = (
         }),
         requiredStatus: item.requiredStatus,
         otherJson: item.otherJson,
+        dynamicFormType: (item.dynamicFormType || 'DEFAULT') as
+          | 'NAME'
+          | 'PHONE_NUMBER'
+          | 'TRAINEE_ID'
+          | 'DEFAULT',
       };
     }),
   };
