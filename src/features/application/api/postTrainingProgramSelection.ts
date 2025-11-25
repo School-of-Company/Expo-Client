@@ -2,9 +2,12 @@ import axios from 'axios';
 import clientInstance from '@/shared/libs/http/clientInstance';
 
 export interface TrainingProgramSelectionRequest {
+  name: string;
+  phoneNumber: string;
+  trainingId: string;
   informationJson: string;
   personalInformationStatus: boolean;
-  trainingProIds: number[];
+  trainingProId: number[];
 }
 
 export const postTrainingProgramSelection = async (
