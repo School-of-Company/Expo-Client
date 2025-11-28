@@ -1,9 +1,5 @@
 import { ApplicationForm } from '@/shared/types/application/type';
-import {
-  DynamicFormType,
-  FormValues,
-  Option,
-} from '@/shared/types/form/create/type';
+import { FormValues, Option } from '@/shared/types/form/create/type';
 
 export const transformServerData = (
   data: ApplicationForm,
@@ -60,9 +56,7 @@ export const transformServerData = (
         }),
         requiredStatus: item.requiredStatus,
         otherJson: item.otherJson,
-        dynamicFormType: (item.dynamicFormType || 'DEFAULT') as
-          | DynamicFormType
-          | 'DEFAULT',
+        dynamicFormType: item.dynamicFormType || 'DEFAULT',
       };
     }),
   };
