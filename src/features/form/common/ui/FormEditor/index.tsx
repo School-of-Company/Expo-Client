@@ -43,7 +43,7 @@ const FormEditor = ({
     !!defaultValues?.informationText,
   );
 
-  const questions = watch('questions');
+  const questions = watch('questions') ?? [];
 
   const handleFormSubmit = (data: FormValues) => {
     const submitData = {
@@ -92,7 +92,7 @@ const FormEditor = ({
 
   const usedSpecialFieldTypes = new Set(
     questions
-      ?.filter(
+      .filter(
         (q) =>
           q.dynamicFormType === 'NAME' ||
           q.dynamicFormType === 'PHONE_NUMBER' ||
@@ -102,7 +102,7 @@ const FormEditor = ({
       .filter(
         (type): type is DynamicFormType =>
           type !== undefined && type !== 'DEFAULT',
-      ) || [],
+      ),
   );
 
   const filteredSelectOptions = selectOptionData.filter(
