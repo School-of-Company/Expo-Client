@@ -10,11 +10,9 @@ import {
   SplitButton,
 } from '@/entities/form';
 import { handleFormErrors } from '@/shared/model';
-import { FormValues } from '@/shared/types/form/create/type';
+import { DynamicFormType, FormValues } from '@/shared/types/form/create/type';
 import { Button, DetailHeaderEditable } from '@/shared/ui';
 import FormContainer from '../FormContainer';
-
-type DynamicFormType = 'NAME' | 'PHONE_NUMBER' | 'TRAINEE_ID';
 
 const FormEditor = ({
   expoId,
@@ -102,8 +100,8 @@ const FormEditor = ({
       )
       .map((q) => q.dynamicFormType)
       .filter(
-        (type): type is 'NAME' | 'PHONE_NUMBER' | 'TRAINEE_ID' =>
-          type !== undefined,
+        (type): type is DynamicFormType =>
+          type !== undefined && type !== 'DEFAULT',
       ) || [],
   );
 

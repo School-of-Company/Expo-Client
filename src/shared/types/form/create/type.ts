@@ -9,6 +9,8 @@ export interface Option {
   isAlwaysSelected?: boolean;
 }
 
+export type DynamicFormType = 'NAME' | 'PHONE_NUMBER' | 'TRAINEE_ID';
+
 export interface FormValues {
   questions: {
     title: string;
@@ -16,7 +18,7 @@ export interface FormValues {
     options: Option[];
     requiredStatus: boolean;
     otherJson: string | null;
-    dynamicFormType?: 'NAME' | 'PHONE_NUMBER' | 'TRAINEE_ID' | 'DEFAULT';
+    dynamicFormType?: DynamicFormType | 'DEFAULT';
   }[];
   informationText: string;
   title: string;

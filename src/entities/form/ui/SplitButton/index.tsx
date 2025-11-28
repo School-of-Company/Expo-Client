@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Plus, ArrowDown } from '@/shared/assets/icons';
-
-export type DynamicFormType = 'NAME' | 'PHONE_NUMBER' | 'TRAINEE_ID';
+import { DynamicFormType } from '@/shared/types/form/create/type';
 
 interface SplitButtonProps {
   onDefaultClick: () => void;

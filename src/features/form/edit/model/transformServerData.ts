@@ -1,5 +1,9 @@
 import { ApplicationForm } from '@/shared/types/application/type';
-import { FormValues, Option } from '@/shared/types/form/create/type';
+import {
+  DynamicFormType,
+  FormValues,
+  Option,
+} from '@/shared/types/form/create/type';
 
 export const transformServerData = (
   data: ApplicationForm,
@@ -57,9 +61,7 @@ export const transformServerData = (
         requiredStatus: item.requiredStatus,
         otherJson: item.otherJson,
         dynamicFormType: (item.dynamicFormType || 'DEFAULT') as
-          | 'NAME'
-          | 'PHONE_NUMBER'
-          | 'TRAINEE_ID'
+          | DynamicFormType
           | 'DEFAULT',
       };
     }),
