@@ -10,7 +10,6 @@
     "plugin:react/recommended",
     "plugin:prettier/recommended",
     "prettier",
-    "plugin:@next/next/recommended",
     "plugin:storybook/recommended",
     "plugin:@tanstack/eslint-plugin-query/recommended"
   ],
@@ -44,6 +43,7 @@
     "@typescript-eslint/no-empty-interface": "off",
     "@typescript-eslint/no-var-requires": "off",
     "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-unused-expressions": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
