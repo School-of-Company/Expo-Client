@@ -13,7 +13,7 @@ export type FormFieldType = z.infer<typeof FormFieldType>;
 
 export const OptionSchema = z.object({
   id: z.string().uuid(),
-  label: z.string().min(1, 'Option label is required'),
+  label: z.string().min(1, '선택지 제목을 입력해주세요'),
   value: z.string(),
 });
 
@@ -24,13 +24,21 @@ export const FieldConfigSchema = z.object({
   description: z.string().optional(),
   maxSelection: z.number().min(1).optional(),
   minSelection: z.number().min(0).optional(),
-  allowEtc: z.boolean().default(false),
-  etcLabel: z.string().default('기타'),
+  allowEtc: z.boolean().optional(),
+  etcLabel: z.string().optional(),
 });
 
 export type FieldConfig = z.infer<typeof FieldConfigSchema>;
 
-export const ConditionOperator = z.enum(['eq', 'neq', 'in', 'nin', 'gt', 'lt']);
+export const ConditionOperator = z.enum([
+  'eq',
+  'neq',
+  'in',
+  'nin',
+  'gt',
+  'lt',
+  'contains',
+]);
 
 export const ConditionSchema = z.object({
   fieldId: z.string().uuid(),
@@ -52,7 +60,7 @@ export type FormLogic = z.infer<typeof LogicSchema>;
 export const FormItemSchema = z.object({
   id: z.string().uuid(),
   type: FormFieldType,
-  label: z.string().min(1, 'Question title is required'),
+  label: z.string().min(1, '질문 제목을 입력해주세요'),
   required: z.boolean().default(false),
 
   options: z.array(OptionSchema).optional(),
@@ -64,7 +72,7 @@ export type FormItem = z.infer<typeof FormItemSchema>;
 
 export const FormSchema = z.object({
   id: z.string().uuid(),
-  title: z.string().min(1, 'Form title is required'),
+  title: z.string().min(1, '폼 제목을 입력해주세요'),
   description: z.string().optional(),
   items: z.array(FormItemSchema),
 
