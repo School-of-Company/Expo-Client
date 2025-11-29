@@ -9,6 +9,7 @@ import {
   useWatch,
 } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import { v4 as uuidv4 } from 'uuid';
 import {
   CheckBox,
   CheckBoxOption,
@@ -112,6 +113,7 @@ const FormContainer = ({
       const currentOptions = control._formValues.questions[index].options || [];
 
       const newOptions = programs.map((program) => ({
+        id: uuidv4(),
         value: `[${formatTime(program.startedAt)} ~ ${formatTime(program.endedAt)}] ${program.title}`,
         label: program.id,
       }));
@@ -166,7 +168,7 @@ const FormContainer = ({
             <AddItemButton
               onClick={(e: React.MouseEvent) => {
                 preventEvent(e);
-                append({ value: '' });
+                append({ id: uuidv4(), value: '' });
               }}
             />
             {isTrainingProgramQuestion && (

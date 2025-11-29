@@ -2,22 +2,20 @@ import { ApplicationType } from '@/shared/types/exhibition/type';
 import { FormValues, CreateFormRequest } from '@/shared/types/form/create/type';
 
 const convertOptionsToJson = (
-  options: { value: string; isAlwaysSelected?: boolean }[],
+  options: { id?: string; value: string; isAlwaysSelected?: boolean }[],
+  questionId: string,
 ): string => {
-  return JSON.stringify(
-    options.reduce(
-      (acc, option, index) => {
-        acc[(index + 1).toString()] = option.isAlwaysSelected
-          ? { value: option.value, isAlwaysSelected: true }
-          : option.value;
-        return acc;
-      },
-      {} as Record<
-        string,
-        string | { value: string; isAlwaysSelected: boolean }
-      >,
-    ),
-  );
+  const optionsData = options.map((option, index) => ({
+    id: option.id!,
+    label: option.value,
+    value: (index + 1).toString(),
+    ...(option.isAlwaysSelected && { isAlwaysSelected: true }),
+  }));
+
+  return JSON.stringify({
+    id: questionId,
+    options: optionsData,
+  });
 };
 
 const getSurveyRequestData = (
@@ -39,7 +37,11 @@ const getSurveyRequestData = (
     dynamicSurveyRequestDto: filteredQuestions.map((question) => ({
       title: question.title,
       formType: question.formType,
-      jsonData: convertOptionsToJson(question.options),
+      jsonData:
+        question.formType === 'SENTENCE' ||
+        question.formType === 'APPLICATIONPHONEOPTION'
+          ? JSON.stringify({ id: question.id! })
+          : convertOptionsToJson(question.options, question.id!),
       requiredStatus: question.requiredStatus,
       otherJson: question.otherJson,
     })),
@@ -69,7 +71,11 @@ const getApplicationRequestData = (
     dynamicForm: filteredQuestions.map((question) => ({
       title: question.title,
       formType: question.formType,
-      jsonData: convertOptionsToJson(question.options),
+      jsonData:
+        question.formType === 'SENTENCE' ||
+        question.formType === 'APPLICATIONPHONEOPTION'
+          ? JSON.stringify({ id: question.id! })
+          : convertOptionsToJson(question.options, question.id!),
       requiredStatus: question.requiredStatus,
       otherJson: question.otherJson,
     })),

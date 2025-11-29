@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import { v4 as uuidv4 } from 'uuid';
 import {
   CreateFormButton,
   PrivacyConsentForm,
@@ -112,6 +113,7 @@ const FormEditor = ({
               <CreateFormButton
                 onClick={() =>
                   append({
+                    id: uuidv4(),
                     title: '',
                     formType: 'SENTENCE',
                     options: [],
