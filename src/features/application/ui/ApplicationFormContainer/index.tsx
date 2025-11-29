@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useMemo } from 'react';
-import { UseFormReturn } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
@@ -12,7 +11,6 @@ import { withLoading } from '@/shared/hocs';
 import { printBadge } from '@/shared/model';
 import {
   ApplicationForm,
-  ApplicationFormValues,
   DynamicFormValues,
   FormattedApplicationData,
 } from '@/shared/types/application/type';
@@ -51,7 +49,9 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     return adaptDynamicFormToSchema(questions, formList.title);
   }, [formList]);
 
-  const onSubmit = async (data: ApplicationFormValues): Promise<void> => {
+  const onSubmit = async (
+    data: RendererFormValues & { privacyConsent?: boolean },
+  ): Promise<void> => {
     if (!data.privacyConsent) {
       toast.error('개인정보 제공 동의 여부를 체크해주세요');
       return;
@@ -170,11 +170,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
           <FormRenderer
             schema={formSchema}
             onSubmit={onSubmit}
-            renderFooter={(
-              methods: UseFormReturn<
-                RendererFormValues & ApplicationFormValues
-              >,
-            ) => (
+            renderFooter={(methods) => (
               <div className="mt-48 flex flex-col gap-30">
                 <PrivacyConsent
                   content={formList?.informationText ?? ''}
