@@ -1,3 +1,5 @@
+import { DynamicFormType } from '../form/create/type';
+
 export interface DynamicFormItem {
   title: string;
   formType:
@@ -9,6 +11,7 @@ export interface DynamicFormItem {
   jsonData?: Record<string, string>;
   requiredStatus: boolean;
   otherJson: string | null;
+  dynamicFormType?: DynamicFormType | 'DEFAULT';
 }
 
 export interface ApplicationForm {
@@ -31,6 +34,8 @@ export type FormattedApplicationData = {
   informationJson: string;
   personalInformationStatus?: boolean;
   name?: string;
+  phoneNumber?: string;
+  trainingId?: string;
 };
 
 export interface FormattedSurveyData {

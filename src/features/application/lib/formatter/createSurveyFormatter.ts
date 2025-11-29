@@ -13,9 +13,13 @@ export const createSurveyFormatter = (
   data: DynamicFormValues & { privacyConsent: boolean },
 ) => FormattedSurveyData) => {
   return (data) => {
-    const phoneNumberKey = slugify('휴대폰 번호를 입력하세요');
+    const phoneField = dynamicFormItems.find(
+      (item) => item.dynamicFormType === 'PHONE_NUMBER',
+    );
 
-    const phoneNumber = queryPhoneNumber || String(data[phoneNumberKey] || '');
+    const phoneNumber =
+      queryPhoneNumber ||
+      (phoneField ? String(data[slugify(phoneField.title)] || '') : '');
 
     return {
       phoneNumber,

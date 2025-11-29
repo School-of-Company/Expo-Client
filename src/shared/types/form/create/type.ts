@@ -9,6 +9,8 @@ export interface Option {
   isAlwaysSelected?: boolean;
 }
 
+export type DynamicFormType = 'NAME' | 'PHONE_NUMBER' | 'TRAINEE_ID';
+
 export interface FormValues {
   questions: {
     title: string;
@@ -16,6 +18,7 @@ export interface FormValues {
     options: Option[];
     requiredStatus: boolean;
     otherJson: string | null;
+    dynamicFormType?: DynamicFormType | 'DEFAULT';
   }[];
   informationText: string;
   title: string;
@@ -49,6 +52,7 @@ export interface ApplicationFormRequest {
     jsonData: string;
     requiredStatus: boolean;
     otherJson: string | null;
+    dynamicFormType: string;
   }[];
   informationText: string;
   title: string;
@@ -64,6 +68,7 @@ export interface SurveyFormRequest {
     jsonData: string;
     requiredStatus: boolean;
     otherJson: string | null;
+    dynamicFormType: string;
   }[];
   informationText: string;
   title: string;

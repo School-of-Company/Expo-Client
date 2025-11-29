@@ -56,6 +56,7 @@ export const transformServerData = (
         }),
         requiredStatus: item.requiredStatus,
         otherJson: item.otherJson,
+        dynamicFormType: item.dynamicFormType || 'DEFAULT',
       };
     }),
   };
