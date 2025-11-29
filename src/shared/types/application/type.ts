@@ -6,7 +6,7 @@ export interface DynamicFormItem {
     | 'MULTIPLE'
     | 'DROPDOWN'
     | 'APPLICATIONPHONEOPTION';
-  jsonData?: Record<string, string>;
+  jsonData?: string;
   requiredStatus: boolean;
   otherJson: string | null;
 }

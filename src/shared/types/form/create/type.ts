@@ -3,6 +3,7 @@ import { UseFormRegister } from 'react-hook-form';
 import { ApplicationType } from '../../exhibition/type';
 
 export interface Option {
+  id?: string;
   value: string;
   label?: string;
   icon?: ReactNode;
@@ -11,6 +12,7 @@ export interface Option {
 
 export interface FormValues {
   questions: {
+    id?: string;
     title: string;
     formType: string;
     options: Option[];
@@ -25,7 +27,7 @@ export interface ConditionalSettings {
   hasEtc: boolean;
   maxSelection?: number | null;
   conditional?: {
-    parentIndex: number;
+    parentId: string;
     triggerValue: string;
   };
 }
