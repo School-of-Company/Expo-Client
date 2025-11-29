@@ -58,6 +58,11 @@ const FormContainer = ({
     name: `questions.${index}.title`,
   });
 
+  const dynamicFormType = useWatch({
+    control,
+    name: `questions.${index}.dynamicFormType`,
+  });
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: `questions.${index}.options`,
@@ -65,6 +70,11 @@ const FormContainer = ({
 
   const isTrainingProgramQuestion =
     questionTitle?.includes('연수 프로그램을 선택해주세요');
+
+  const isSpecialField =
+    dynamicFormType === 'NAME' ||
+    dynamicFormType === 'PHONE_NUMBER' ||
+    dynamicFormType === 'TRAINEE_ID';
 
   const componentMap: Record<string, JSX.Element | null> = {
     CHECKBOX: (
@@ -146,6 +156,13 @@ const FormContainer = ({
     }
   }, [selectedOption, index, setValue]);
 
+  // Set required status to true for special fields
+  useEffect(() => {
+    if (isSpecialField) {
+      setValue(`questions.${index}.requiredStatus`, true);
+    }
+  }, [isSpecialField, index, setValue]);
+
   return (
     <div
       className={`flex w-full flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 px-32 py-18`}
@@ -201,14 +218,20 @@ const FormContainer = ({
             formRemove(index);
           }}
         />
-        <RequiredToggle control={control} index={index} />
+        <RequiredToggle
+          control={control}
+          index={index}
+          isLocked={isSpecialField}
+        />
       </div>
 
-      <ConditionalSettings
-        currentIndex={index}
-        control={control}
-        setValue={setValue}
-      />
+      {!isSpecialField && (
+        <ConditionalSettings
+          currentIndex={index}
+          control={control}
+          setValue={setValue}
+        />
+      )}
     </div>
   );
 };

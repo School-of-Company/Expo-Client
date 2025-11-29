@@ -43,10 +43,13 @@ export const extractTrainingProgramData = async (
 
   if (trainingProIds.length > 0) {
     return {
+      name: formattedData.name || '',
+      phoneNumber: formattedData.phoneNumber || '',
+      trainingId: formattedData.trainingId || '',
       informationJson: formattedData.informationJson,
       personalInformationStatus:
         formattedData.personalInformationStatus ?? false,
-      trainingProIds,
+      trainingProId: trainingProIds,
     };
   }
 

@@ -5,9 +5,10 @@ import ToggleButton from '@/shared/ui/ToggleButton';
 interface Props {
   control: Control<FormValues>;
   index: number;
+  isLocked?: boolean;
 }
 
-const RequiredToggle = ({ control, index }: Props) => {
+const RequiredToggle = ({ control, index, isLocked = false }: Props) => {
   const { field } = useController({
     name: `questions.${index}.requiredStatus`,
     control,
@@ -17,7 +18,11 @@ const RequiredToggle = ({ control, index }: Props) => {
   return (
     <label className="flex items-center gap-8">
       <p className="text-caption1r text-black mobile:text-caption2r">필수</p>
-      <ToggleButton value={field.value ?? false} onChange={field.onChange} />
+      <ToggleButton
+        value={isLocked ? true : (field.value ?? false)}
+        onChange={isLocked ? () => {} : field.onChange}
+        disabled={isLocked}
+      />
     </label>
   );
 };

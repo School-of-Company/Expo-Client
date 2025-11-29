@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { v4 as uuidv4 } from 'uuid';
 import {
   CreateFormButton,
   PrivacyConsentForm,
   selectOptionData,
+  SplitButton,
 } from '@/entities/form';
 import { handleFormErrors } from '@/shared/model';
-import { FormValues } from '@/shared/types/form/create/type';
+import { DynamicFormType, FormValues } from '@/shared/types/form/create/type';
 import { Button, DetailHeaderEditable } from '@/shared/ui';
 import FormContainer from '../FormContainer';
 
@@ -43,6 +43,8 @@ const FormEditor = ({
     !!defaultValues?.informationText,
   );
 
+  const questions = watch('questions') ?? [];
+
   const handleFormSubmit = (data: FormValues) => {
     const submitData = {
       ...data,
@@ -60,6 +62,48 @@ const FormEditor = ({
     setHasPrivacyConsent(false);
     setValue('informationText', '');
   };
+
+  const handleAddDefaultField = () => {
+    append({
+      title: '',
+      formType: 'SENTENCE',
+      options: [],
+      requiredStatus: false,
+      otherJson: null,
+      dynamicFormType: 'DEFAULT',
+    });
+  };
+
+  const handleAddSpecialField = (type: DynamicFormType) => {
+    const fieldConfig = {
+      NAME: { title: '이름', formType: 'SENTENCE' },
+      PHONE_NUMBER: { title: '전화번호', formType: 'SENTENCE' },
+      TRAINEE_ID: { title: '연수자아이디', formType: 'SENTENCE' },
+    };
+
+    append({
+      ...fieldConfig[type],
+      options: [],
+      requiredStatus: false,
+      otherJson: null,
+      dynamicFormType: type,
+    });
+  };
+
+  const usedSpecialFieldTypes = new Set(
+    questions
+      .filter(
+        (q) =>
+          q.dynamicFormType === 'NAME' ||
+          q.dynamicFormType === 'PHONE_NUMBER' ||
+          q.dynamicFormType === 'TRAINEE_ID',
+      )
+      .map((q) => q.dynamicFormType)
+      .filter(
+        (type): type is DynamicFormType =>
+          type !== undefined && type !== 'DEFAULT',
+      ),
+  );
 
   const filteredSelectOptions = selectOptionData.filter(
     (option) => option.value !== 'PRIVACYCONSENT',
@@ -110,17 +154,10 @@ const FormEditor = ({
               )}
             </div>
             <div className="flex gap-12">
-              <CreateFormButton
-                onClick={() =>
-                  append({
-                    id: uuidv4(),
-                    title: '',
-                    formType: 'SENTENCE',
-                    options: [],
-                    requiredStatus: false,
-                    otherJson: null,
-                  })
-                }
+              <SplitButton
+                onDefaultClick={handleAddDefaultField}
+                onSpecialFieldClick={handleAddSpecialField}
+                disabledOptions={usedSpecialFieldTypes}
               />
               {!hasPrivacyConsent && (
                 <CreateFormButton
