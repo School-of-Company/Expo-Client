@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
 import {
   FormSchema,
   FormItem,
@@ -43,7 +42,7 @@ function parseJsonData(jsonDataStr?: string): ParsedJsonData | null {
       options: parsed.options || undefined,
     };
   } catch (error) {
-    console.error('Failed to parse jsonData:', error);
+    console.error(error);
     return null;
   }
 }
@@ -60,7 +59,7 @@ function parseOtherJson(otherJsonStr: string | null): ParsedOtherJson {
       conditional: parsed.conditional,
     };
   } catch (error) {
-    console.error('Failed to parse otherJson:', error);
+    console.error(error);
     return {};
   }
 }
@@ -163,7 +162,7 @@ export function adaptDynamicFormToSchema(
   formTitle: string = 'form-title',
   formDescription?: string,
 ): FormSchema {
-  const formId = uuidv4();
+  const formId = crypto.randomUUID();
 
   return {
     id: formId,
