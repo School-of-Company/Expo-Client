@@ -77,8 +77,8 @@ export const FormSchema = z.object({
   items: z.array(FormItemSchema),
 
   version: z.number().default(1),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
 });
 
 export type FormSchema = z.infer<typeof FormSchema>;
