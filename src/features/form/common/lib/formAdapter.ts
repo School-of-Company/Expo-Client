@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import {
   FormSchema,
   FormItem,
@@ -162,7 +163,7 @@ export function adaptDynamicFormToSchema(
   formTitle: string = 'form-title',
   formDescription?: string,
 ): FormSchema {
-  const formId = `form-${Date.now()}`;
+  const formId = uuidv4();
 
   return {
     id: formId,
