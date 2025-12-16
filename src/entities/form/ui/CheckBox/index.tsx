@@ -32,7 +32,7 @@ const CheckBox = ({ control, index, text }: Props) => {
     }
   };
 
-  const settings = parseOtherJson(field.value);
+  const settings = parseOtherJson(field.value as string);
 
   const toggleCheck = () => {
     const newSettings: ConditionalSettings = {

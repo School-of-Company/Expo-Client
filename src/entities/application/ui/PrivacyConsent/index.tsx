@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import { UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { FormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { CheckBoxIcon, CheckedBoxIcon } from '@/shared/assets/svg';
-import { ApplicationFormValues } from '@/shared/types/application/type';
 import { ModalLayout } from '@/widgets/layout';
 import PrivacyConsentModal from '../PrivacyConsentModal';
 
 interface PrivacyConsentProps {
   content: string;
-  watch: UseFormWatch<ApplicationFormValues>;
-  setValue: UseFormSetValue<ApplicationFormValues>;
+  watch: UseFormWatch<FormValues & { privacyConsent?: boolean }>;
+  setValue: UseFormSetValue<FormValues & { privacyConsent?: boolean }>;
 }
 
 const PrivacyConsent = ({ content, watch, setValue }: PrivacyConsentProps) => {
