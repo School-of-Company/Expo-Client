@@ -7,7 +7,11 @@ import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import OptionContainer from '@/entities/application/ui/OptionContainer';
 import { withLoading } from '@/shared/hocs';
-import { handleFormErrors, printBadge } from '@/shared/model';
+import {
+  handleFormErrors,
+  isTrainingProgramQuestion,
+  printBadge,
+} from '@/shared/model';
 import { showError } from '@/shared/model';
 import {
   ApplicationForm,
@@ -84,8 +88,8 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         );
         const shouldPreserve =
           question &&
-          (question.title.includes('연수 프로그램') ||
-            question.title.includes('연수원 아이디'));
+          (isTrainingProgramQuestion(question.title) ||
+            question.dynamicFormType === 'TRAINEE_ID');
 
         if (!shouldPreserve) unregister(prevFieldName);
       }
