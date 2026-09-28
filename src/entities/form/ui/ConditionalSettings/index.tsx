@@ -45,8 +45,8 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
   const [isConditional, setIsConditional] = useState(
     !!currentSettings.conditional,
   );
-  const [parentIndex, setParentIndex] = useState<number | null>(
-    currentSettings.conditional?.parentIndex ?? null,
+  const [parentId, setParentId] = useState<string | null>(
+    currentSettings.conditional?.parentId ?? null,
   );
   const [triggerValue, setTriggerValue] = useState<string | null>(
     currentSettings.conditional?.triggerValue ?? null,
@@ -58,14 +58,11 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
   const availableParents =
     questions
       ?.slice(0, currentIndex)
-      .map((q, idx) => ({ question: q, index: idx }))
-      .filter(({ question }) =>
-        ['MULTIPLE', 'CHECKBOX'].includes(question.formType),
-      ) || [];
+      .filter((q) => ['MULTIPLE', 'CHECKBOX'].includes(q.formType)) || [];
 
   const updateOtherJson = (
     hasEtc: boolean,
-    conditional: { parentIndex: number; triggerValue: string | null } | null,
+    conditional: { parentId: string; triggerValue: string | null } | null,
     maxSelectionValue: number | null = maxSelection,
   ) => {
     const newValue = JSON.stringify({
@@ -79,7 +76,7 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
   const handleConditionalToggle = (enabled: boolean) => {
     setIsConditional(enabled);
     if (!enabled) {
-      setParentIndex(null);
+      setParentId(null);
       setTriggerValue(null);
       updateOtherJson(currentSettings.hasEtc, null);
     } else {
@@ -87,20 +84,20 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
     }
   };
 
-  const handleParentChange = (index: number) => {
-    setParentIndex(index);
+  const handleParentChange = (questionId: string) => {
+    setParentId(questionId);
     setTriggerValue(null);
     updateOtherJson(currentSettings.hasEtc, {
-      parentIndex: index,
+      parentId: questionId,
       triggerValue: null,
     });
   };
 
   const handleTriggerChange = (value: string) => {
     setTriggerValue(value);
-    if (parentIndex !== null) {
+    if (parentId !== null) {
       updateOtherJson(currentSettings.hasEtc, {
-        parentIndex,
+        parentId,
         triggerValue: value,
       });
     }
@@ -113,7 +110,7 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
       currentSettings.hasEtc,
       currentSettings.conditional
         ? {
-            parentIndex: parentIndex!,
+            parentId: parentId!,
             triggerValue: triggerValue!,
           }
         : null,
@@ -121,8 +118,8 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
     );
   };
 
-  const parentOptions =
-    (parentIndex !== null && questions?.[parentIndex]?.options) || [];
+  const selectedParent = questions?.find((q) => q.id === parentId);
+  const parentOptions = selectedParent?.options || [];
 
   return (
     <div className="space-y-12 border-t border-gray-100 pt-16">
@@ -161,21 +158,21 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
         <div className="ml-24 rounded-sm bg-gray-50 p-16">
           <div className="flex flex-wrap items-center gap-8 text-body2r text-gray-700">
             <select
-              value={parentIndex ?? ''}
-              onChange={(e) => handleParentChange(Number(e.target.value))}
+              value={parentId ?? ''}
+              onChange={(e) => handleParentChange(e.target.value)}
               className="inline-flex rounded-sm border border-gray-300 px-12 py-6 text-body2r"
             >
               <option value="">연결할 질문 선택</option>
-              {availableParents.map(({ question, index }) => (
-                <option key={index} value={index}>
-                  {index + 1}. {question.title || '(제목 없음)'}
+              {availableParents.map((question, idx) => (
+                <option key={question.id} value={question.id}>
+                  {idx + 1}. {question.title || '(제목 없음)'}
                 </option>
               ))}
             </select>
 
             <span>에서</span>
 
-            {parentIndex !== null && parentOptions.length > 0 && (
+            {parentId !== null && parentOptions.length > 0 && (
               <>
                 <select
                   value={triggerValue ?? ''}
@@ -183,8 +180,8 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
                   className="inline-flex rounded-sm border border-gray-300 px-12 py-6 text-body2r"
                 >
                   <option value="">선택 시 표시될 값</option>
-                  {parentOptions.map((opt, idx) => (
-                    <option key={idx} value={opt.value}>
+                  {parentOptions.map((opt) => (
+                    <option key={opt.id || opt.value} value={opt.id}>
                       {opt.value}
                     </option>
                   ))}
