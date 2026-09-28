@@ -1,17 +1,18 @@
 import axios from 'axios';
+import { toRoleAuthority, UserAuthority } from '@/shared/config';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { SendSmSData } from '@/shared/types/sms';
 
 export const sendSMS = async (
   id: string,
-  authority: string,
+  authority: UserAuthority,
   data: SendSmSData,
 ) => {
   try {
     const response = await clientTokenInstance.post(`/sms/message/${id}`, {
       title: data.title,
       content: data.content,
-      authority: 'ROLE_' + authority,
+      authority: toRoleAuthority(authority),
     });
 
     return response.data;

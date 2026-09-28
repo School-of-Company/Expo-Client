@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
+import { COLORS } from '@/shared/config';
 import { navItems } from './navigationItems';
 
 export const useNavigation = () => {
@@ -13,7 +14,7 @@ export const useNavigation = () => {
   );
 
   const getColor = useMemo(
-    () => (path: string) => (isActive(path) ? '#448FFF' : '#121212'),
+    () => (path: string) => (isActive(path) ? COLORS.main600 : COLORS.black),
     [isActive],
   );
 

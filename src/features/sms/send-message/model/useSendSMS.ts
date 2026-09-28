@@ -2,10 +2,11 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
+import { UserAuthority } from '@/shared/config';
 import { SendSmSData } from '@/shared/types/sms';
 import { sendSMS } from '../api/sendSMS';
 
-export const useSendSMS = (id: string, authority: 'STANDARD' | 'TRAINEE') => {
+export const useSendSMS = (id: string, authority: UserAuthority) => {
   return useMutation({
     mutationFn: (data: SendSmSData) => sendSMS(id, authority, data),
     onSuccess: () => {

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
+import { COLORS } from '@/shared/config';
 import { preventEvent } from '@/shared/model';
 import { FormValues, Option } from '@/shared/types/form/create/type';
 
@@ -49,7 +50,7 @@ const FormTypeSelect = ({
         {selectedOption?.icon && (
           <span className="mr-2">
             {React.cloneElement(selectedOption.icon as React.ReactElement, {
-              fill: '#909090',
+              fill: COLORS.gray500,
             })}
           </span>
         )}
@@ -57,7 +58,11 @@ const FormTypeSelect = ({
           {selectedOption?.label}
         </span>
 
-        {isOpen ? <ArrowUp fill="#909090" /> : <ArrowDown fill="#909090" />}
+        {isOpen ? (
+          <ArrowUp fill={COLORS.gray500} />
+        ) : (
+          <ArrowDown fill={COLORS.gray500} />
+        )}
       </button>
       {isOpen && (
         <ul className="absolute z-30 mt-1 flex w-full flex-col items-center gap-22 rounded-md border-1 border-solid border-gray-100 bg-white px-16 py-30 shadow-lg">
