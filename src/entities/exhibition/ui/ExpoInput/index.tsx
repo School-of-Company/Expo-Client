@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { XMark } from '@/shared/assets/icons';
+import { DATE_TIME_PATTERN } from '@/shared/config/validation';
 import { FieldArrayProps } from '@/shared/types/exhibition/type';
 import { AddItemButton } from '@/shared/ui';
 import Modal from '../Modal';
@@ -68,22 +69,14 @@ const ExpoInput = ({
                   type="hidden"
                   {...register(`${fieldName}.${index}.startedAt`, {
                     required: '연수 시작 일과 시간을 입력해주세요.',
-                    pattern: {
-                      value:
-                        /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) ([01]\d|2[0-3]):([0-5]\d)$/,
-                      message: 'yyyy-mm-dd HH:mm 형식으로 입력해주세요',
-                    },
+                    pattern: DATE_TIME_PATTERN,
                   })}
                 />
                 <input
                   type="hidden"
                   {...register(`${fieldName}.${index}.endedAt`, {
                     required: '연수 종료 일과 시간을 입력해주세요.',
-                    pattern: {
-                      value:
-                        /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) ([01]\d|2[0-3]):([0-5]\d)$/,
-                      message: 'yyyy-mm-dd HH:mm 형식으로 입력해주세요',
-                    },
+                    pattern: DATE_TIME_PATTERN,
                   })}
                 />
               </div>
