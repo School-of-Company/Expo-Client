@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { ExhibitionCheckInHeader } from '@/entities/exhibition';
+import { toRoleAuthority, USER_AUTHORITY } from '@/shared/config';
 import { useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
 import { AttendUserResponse } from '@/shared/types/exhibition/check-in/type';
@@ -19,7 +20,9 @@ const QRScannerTable = ({ id }: { id: string }) => {
   useQRScanner(setScannedQR);
 
   const fetchUserData = async (scannedQR: QrScanData) => {
-    const authority = scannedQR.traineeId ? 'ROLE_TRAINEE' : 'ROLE_STANDARD';
+    const authority = toRoleAuthority(
+      scannedQR.traineeId ? USER_AUTHORITY.TRAINEE : USER_AUTHORITY.STANDARD,
+    );
     const newUser: AttendUserResponse = await attendUser({
       authority,
       phoneNumber: scannedQR.phoneNumber,

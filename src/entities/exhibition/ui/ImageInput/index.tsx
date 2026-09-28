@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { UseFormRegisterReturn, UseFormSetValue } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { Picture } from '@/shared/assets/icons';
+import { COLORS } from '@/shared/config';
 import { isValidSrc } from '@/shared/model';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 import WarningMessage from '../WarningMessage';
@@ -63,7 +64,7 @@ const ImageInput = ({ register, setValue, defaultImage }: ImageInputProps) => {
           />
         ) : (
           <div className="text-h1 flex items-center justify-center gap-2 text-gray-300">
-            <Picture fill="#BDBDBD" />
+            <Picture fill={COLORS.gray300} />
             사진 가져오기
           </div>
         )}

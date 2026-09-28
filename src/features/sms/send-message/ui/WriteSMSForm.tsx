@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { UserAuthority } from '@/shared/config';
 import { SendSmSData } from '@/shared/types/sms';
 import { Button, DetailHeader } from '@/shared/ui';
 import TextArea from '@/shared/ui/TextArea';
@@ -10,7 +11,7 @@ import { useSendSMS } from '../model/useSendSMS';
 const WriteSMSForm = () => {
   const { id, authority } = useParams<{
     id: string;
-    authority: 'STANDARD' | 'TRAINEE';
+    authority: UserAuthority;
   }>();
 
   const { register, handleSubmit, watch, reset } = useForm<SendSmSData>();

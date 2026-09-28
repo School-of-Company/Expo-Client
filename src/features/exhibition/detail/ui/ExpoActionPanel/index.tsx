@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
 import { Share } from '@/shared/assets/svg';
+import { COLORS } from '@/shared/config';
 import { Button } from '@/shared/ui';
 
 interface ExpoActionPanelProps {
@@ -105,7 +106,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
                     onClick={() => setIsMore(false)}
                   >
                     <span>접기</span>
-                    <ArrowUp fill="#448FFF" />
+                    <ArrowUp fill={COLORS.main600} />
                   </div>
                 ) : (
                   <div
@@ -113,7 +114,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
                     className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-gray-400"
                   >
                     <span>더보기</span>
-                    <ArrowDown fill="#A7A7A7" />
+                    <ArrowDown fill={COLORS.gray400} />
                   </div>
                 )}
               </>

@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import TestImg from '@/shared/assets/png/TestExpo.png';
+import DefaultExpo from '@/shared/assets/png/DefaultExpo.png';
 import { isValidSrc } from '@/shared/model';
 
 interface Props {
@@ -25,7 +25,7 @@ const ExpoListItem = ({
     return `${month}.${day}`;
   };
 
-  const safeSrc = isValidSrc(coverImage) ? coverImage : TestImg;
+  const safeSrc = isValidSrc(coverImage) ? coverImage : DefaultExpo;
 
   return (
     <Link

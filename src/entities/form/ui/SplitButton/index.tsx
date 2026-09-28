@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Plus, ArrowDown } from '@/shared/assets/icons';
+import { COLORS } from '@/shared/config';
 import { DynamicFormType } from '@/shared/types/form/create/type';
 
 interface SplitButtonProps {
@@ -57,7 +58,7 @@ const SplitButton = ({
           onClick={onDefaultClick}
           className="flex items-center gap-12 rounded-l-sm bg-main-100 px-16 py-12"
         >
-          <Plus fill="#448FFF" />
+          <Plus fill={COLORS.main600} />
           <p className="text-body2r text-main-600">{text}</p>
         </button>
 
@@ -66,7 +67,7 @@ const SplitButton = ({
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center rounded-r-sm bg-main-100 px-8 py-12"
         >
-          <ArrowDown fill="#448FFF" />
+          <ArrowDown fill={COLORS.main600} />
         </button>
       </div>
 

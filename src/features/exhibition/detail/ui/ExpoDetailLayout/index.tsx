@@ -7,7 +7,7 @@ import {
   KaKaoMap,
   ShowLocation,
 } from '@/entities/exhibition';
-import TestExpo from '@/shared/assets/png/TestExpo.png';
+import DefaultExpo from '@/shared/assets/png/DefaultExpo.png';
 import { Share } from '@/shared/assets/svg';
 import { isValidSrc } from '@/shared/model';
 import {
@@ -35,7 +35,7 @@ const ExpoDetailLayout = ({
 
   const safeSrc = isValidSrc(expoDetail.coverImage)
     ? expoDetail.coverImage
-    : TestExpo;
+    : DefaultExpo;
 
   return (
     <div className="flex w-full flex-col space-y-48">
