@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import OptionContainer from '@/entities/application/ui/OptionContainer';
 import { withLoading } from '@/shared/hocs';
-import { handleFormErrors, printBadge } from '@/shared/model';
+import { handleFormErrors, printBadge, slugify } from '@/shared/model';
 import { showError } from '@/shared/model';
 import {
   ApplicationForm,
@@ -24,13 +24,6 @@ import { extractTrainingProgramData } from '../../lib/extractTrainingProgramData
 import { filterConditionalQuestions } from '../../lib/filterConditionalQuestions';
 import { getFormatter } from '../../lib/formatterService';
 import { useGetForm } from '../../model/useGetForm';
-
-const slugify = (text: string): string => {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9가-힣]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-};
 
 const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();

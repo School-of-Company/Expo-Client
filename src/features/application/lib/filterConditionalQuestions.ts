@@ -1,3 +1,4 @@
+import { slugify } from '@/shared/model';
 import { DynamicFormItem } from '@/shared/types/application/type';
 import { ConditionalSettings } from '@/shared/types/form/create/type';
 
@@ -13,13 +14,6 @@ const parseOtherJson = (otherJson: string | null): ConditionalSettings => {
   } catch {
     return { hasEtc: otherJson === 'etc' };
   }
-};
-
-const slugify = (text: string): string => {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9가-힣]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 };
 
 export const filterConditionalQuestions = (
