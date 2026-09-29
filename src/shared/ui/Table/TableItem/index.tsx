@@ -1,19 +1,23 @@
-interface TableItemProps<T extends { id: number } & Record<string, unknown>> {
+interface TableItemProps<
+  T extends { id: string | number } & Record<string, unknown>,
+> {
   data: T;
-  state: number | null;
-  setState: React.Dispatch<React.SetStateAction<number | null>>;
+  state: T['id'] | null;
+  setState: React.Dispatch<React.SetStateAction<T['id'] | null>>;
   selectItemBoolean: boolean;
   categories: string[];
 }
 
-const TableItem = <T extends { id: number } & Record<string, unknown>>({
+const TableItem = <
+  T extends { id: string | number } & Record<string, unknown>,
+>({
   data,
   state,
   setState,
   selectItemBoolean,
   categories,
 }: TableItemProps<T>) => {
-  const handleSelectItem = (id: number) => {
+  const handleSelectItem = (id: T['id']) => {
     if (!selectItemBoolean) return;
     setState((prev) => (prev === id ? null : id));
   };

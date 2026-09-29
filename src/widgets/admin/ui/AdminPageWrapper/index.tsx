@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { AdminProfile } from '@/entities/admin';
 import {
   expoListCategories,
@@ -9,11 +10,18 @@ import {
   useDeleteActions,
 } from '@/features/admin';
 import { withLoading } from '@/shared/hocs';
+import ExpoPageControls from '@/shared/ui/ExpoPageControls';
 import { TableForm } from '@/shared/ui/Table';
 
 const AdminPageWrapper = () => {
-  const { expoListData, requestSignUpData, requestAdminData, isLoading } =
-    useAdminData();
+  const [page, setPage] = useState(0);
+  const {
+    expoListData,
+    expoListError,
+    requestSignUpData,
+    requestAdminData,
+    isLoading,
+  } = useAdminData(page);
   const { approveSignup, rejectSignup } = useCheckActions();
   const { deleteExpo } = useDeleteActions();
 
@@ -26,8 +34,15 @@ const AdminPageWrapper = () => {
     DeleteBadge: deleteExpo,
   };
 
+  useEffect(() => {
+    if (expoListData && page > 0 && page >= expoListData.totalPages) {
+      setPage(Math.max(0, expoListData.totalPages - 1));
+    }
+  }, [expoListData, page]);
+
   const expoList =
-    expoListData?.map(({ coverImage: _coverImage, ...rest }) => rest) || [];
+    expoListData?.content.map(({ coverImage: _coverImage, ...rest }) => rest) ||
+    [];
   const requestSignUp = requestSignUpData?.data || [];
   const requestAdmin = requestAdminData?.data;
 
@@ -52,6 +67,7 @@ const AdminPageWrapper = () => {
           <div className="space-y-[26px]">
             <p className="text-h2b text-black">등록된 박람회</p>
             <TableForm
+              key={page}
               categories={expoListCategories}
               data={expoList}
               maxHeight="414px"
@@ -59,6 +75,16 @@ const AdminPageWrapper = () => {
               text="등록된 박람회"
               actions={deleteExpoActions}
             />
+            {expoListError && (
+              <p role="alert">박람회 목록을 불러오지 못했습니다.</p>
+            )}
+            {expoListData && (
+              <ExpoPageControls
+                page={page}
+                totalPages={expoListData.totalPages}
+                onPageChange={setPage}
+              />
+            )}
           </div>
         </div>
       </div>

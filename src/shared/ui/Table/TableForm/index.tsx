@@ -4,21 +4,21 @@ import { useState } from 'react';
 import { TableFooter, TableHeader, TableItem } from '@/shared/ui/Table';
 import NavigationBar from '../../NavigationBar';
 
-interface Props<T> {
+interface Props<T extends { id: string | number }> {
   data: T[];
   footerType: 'default' | 'file' | 'print' | 'check' | 'delete' | 'route';
   maxHeight?: string;
   categories: string[];
   text?: string;
-  actions?: { [key: string]: (selectItem: number) => void };
+  actions?: { [key: string]: (selectItem: T['id']) => void };
   totalPage?: number;
   id?: string;
   selectItemBoolean?: boolean;
-  setSelectItem?: React.Dispatch<React.SetStateAction<number | null>>;
-  selectItem?: number | null;
+  setSelectItem?: React.Dispatch<React.SetStateAction<T['id'] | null>>;
+  selectItem?: T['id'] | null;
 }
 
-const TableForm = <T extends { id: number }>({
+const TableForm = <T extends { id: string | number }>({
   footerType,
   maxHeight = '500px',
   data,
@@ -31,7 +31,7 @@ const TableForm = <T extends { id: number }>({
   setSelectItem,
   selectItem,
 }: Props<T>) => {
-  const [selectItemState, setSelectItemState] = useState<number | null>(null);
+  const [selectItemState, setSelectItemState] = useState<T['id'] | null>(null);
   return (
     <div className="space-y-[34px] rounded-sm border-1 border-solid border-gray-200 px-30 py-20">
       <div className="space-y-[30px] overflow-x-auto border-b-1 border-solid border-gray-100 pb-6">

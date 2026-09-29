@@ -13,3 +13,22 @@ export const getExpoList = async (): Promise<ExpoItem[]> => {
     throw error;
   }
 };
+
+export interface ExpoPageResponse {
+  content: ExpoItem[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  hasNext: boolean;
+}
+
+export const getExpoPage = async (
+  page: number,
+  size = 20,
+): Promise<ExpoPageResponse> => {
+  const response = await clientTokenInstance.get<ExpoPageResponse>('/expo', {
+    params: { page, size },
+  });
+  return response.data;
+};

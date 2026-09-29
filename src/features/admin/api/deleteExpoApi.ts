@@ -1,7 +1,7 @@
 import axios from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
-export const deleteExpoApi = async (id: number): Promise<void> => {
+export const deleteExpoApi = async (id: string): Promise<void> => {
   try {
     await clientTokenInstance.delete(`/expo/${id}`);
   } catch (error) {

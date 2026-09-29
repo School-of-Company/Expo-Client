@@ -4,8 +4,8 @@ import TestImg from '@/shared/assets/png/TestExpo.png';
 import { isValidSrc } from '@/shared/model';
 
 interface Props {
-  id: number;
-  coverImage: string;
+  id: string;
+  coverImage: string | null;
   title: string;
   description: string;
   startedDay: string;
@@ -25,7 +25,7 @@ const ExpoListItem = ({
     return `${month}.${day}`;
   };
 
-  const safeSrc = isValidSrc(coverImage) ? coverImage : TestImg;
+  const safeSrc = coverImage && isValidSrc(coverImage) ? coverImage : TestImg;
 
   return (
     <Link
