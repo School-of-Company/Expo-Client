@@ -1,11 +1,11 @@
 import { getTrainingProgram } from '@/shared/api';
-import { slugify } from '@/shared/model';
 import {
   DynamicFormItem,
   DynamicFormValues,
   FormattedApplicationData,
 } from '@/shared/types/application/type';
 import { TrainingProgramSelectionRequest } from '../api/postTrainingProgramSelection';
+import { resolveFieldValue } from './process/resolveFieldValue';
 
 const extractProgramTitle = (fullTitle: string): string => {
   return fullTitle.replace(/^\[[\d:~\s]+\]\s*/, '').trim();
@@ -26,8 +26,7 @@ export const extractTrainingProgramData = async (
   );
 
   for (const form of trainingProgramForms) {
-    const slug = slugify(form.title);
-    const value = data[slug];
+    const value = resolveFieldValue(data, form);
 
     if (value && Array.isArray(value)) {
       for (const programTitle of value) {
