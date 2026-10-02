@@ -23,7 +23,11 @@ import {
 import ConditionalSettings from '@/entities/form/ui/ConditionalSettings';
 import { formatTime } from '@/features/exhibition/edit/model/formatDateTime';
 import { getTrainingProgram } from '@/shared/api';
-import { preventEvent } from '@/shared/model';
+import {
+  formatTrainingProgramOption,
+  isTrainingProgramQuestion,
+  preventEvent,
+} from '@/shared/model';
 import { FormValues, Option } from '@/shared/types/form/create/type';
 import { AddItemButton } from '@/shared/ui';
 
@@ -68,8 +72,7 @@ const FormContainer = ({
     name: `questions.${index}.options`,
   });
 
-  const isTrainingProgramQuestion =
-    questionTitle?.includes('연수 프로그램을 선택해주세요');
+  const isTrainingProgram = isTrainingProgramQuestion(questionTitle);
 
   const isSpecialField =
     dynamicFormType === 'NAME' ||
@@ -124,7 +127,11 @@ const FormContainer = ({
 
       const newOptions = programs.map((program) => ({
         id: uuidv4(),
-        value: `[${formatTime(program.startedAt)} ~ ${formatTime(program.endedAt)}] ${program.title}`,
+        value: formatTrainingProgramOption(
+          formatTime(program.startedAt),
+          formatTime(program.endedAt),
+          program.title,
+        ),
         label: program.id,
       }));
 
@@ -188,7 +195,7 @@ const FormContainer = ({
                 append({ id: uuidv4(), value: '' });
               }}
             />
-            {isTrainingProgramQuestion && (
+            {isTrainingProgram && (
               <button
                 type="button"
                 onClick={(e: React.MouseEvent) => {

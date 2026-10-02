@@ -1,3 +1,4 @@
+import { isTrainingProgramQuestion } from '@/shared/model';
 import {
   DynamicFormItem,
   DynamicFormValues,
@@ -5,10 +6,6 @@ import {
 } from '@/shared/types/application/type';
 import { processDynamicFormData } from '../process/processDynamicFormData';
 import { resolveFieldValue } from '../process/resolveFieldValue';
-
-const shouldExcludeTrainingProgramQuestion = (title: string): boolean => {
-  return title.includes('연수 프로그램을 선택해주세요');
-};
 
 export const createTraineeApplicationFormatter = (
   dynamicFormItems: DynamicFormItem[],
@@ -39,7 +36,7 @@ export const createTraineeApplicationFormatter = (
 
     const filteredFormItems = dynamicFormItems.filter(
       (item) =>
-        !shouldExcludeTrainingProgramQuestion(item.title) &&
+        !isTrainingProgramQuestion(item.title) &&
         item.dynamicFormType !== 'NAME' &&
         item.dynamicFormType !== 'PHONE_NUMBER' &&
         item.dynamicFormType !== 'TRAINEE_ID',

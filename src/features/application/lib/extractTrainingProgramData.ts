@@ -1,15 +1,15 @@
 import { getTrainingProgram } from '@/shared/api';
 import {
+  extractTrainingProgramTitle,
+  isTrainingProgramQuestion,
+} from '@/shared/model';
+import {
   DynamicFormItem,
   DynamicFormValues,
   FormattedApplicationData,
 } from '@/shared/types/application/type';
 import { TrainingProgramSelectionRequest } from '../api/postTrainingProgramSelection';
 import { resolveFieldValue } from './process/resolveFieldValue';
-
-const extractProgramTitle = (fullTitle: string): string => {
-  return fullTitle.replace(/^\[[\d:~\s]+\]\s*/, '').trim();
-};
 
 export const extractTrainingProgramData = async (
   data: DynamicFormValues,
@@ -22,7 +22,7 @@ export const extractTrainingProgramData = async (
   const programs = await getTrainingProgram(exhibitionId);
 
   const trainingProgramForms = dynamicFormItems.filter((form) =>
-    form.title.includes('연수 프로그램을 선택해'),
+    isTrainingProgramQuestion(form.title),
   );
 
   for (const form of trainingProgramForms) {
@@ -30,7 +30,7 @@ export const extractTrainingProgramData = async (
 
     if (value && Array.isArray(value)) {
       for (const programTitle of value) {
-        const extractedTitle = extractProgramTitle(programTitle);
+        const extractedTitle = extractTrainingProgramTitle(programTitle);
         const program = programs.find((p) => p.title === extractedTitle);
 
         if (program) {

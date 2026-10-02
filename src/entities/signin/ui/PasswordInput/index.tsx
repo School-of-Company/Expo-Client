@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { Eye, SelectedEye } from '@/shared/assets/icons';
+import { PASSWORD_PATTERN } from '@/shared/config/validation';
 import { SignInData } from '@/shared/types/signin/type';
 import { Input } from '@/shared/ui';
 
@@ -23,11 +24,7 @@ const PasswordInput = ({
     <Input
       {...register('password', {
         required: '비밀번호를 입력해주세요.',
-        pattern: {
-          value: /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/,
-          message:
-            '비밀번호는 8자리 이상, 대문자 1개, 특수문자 1개 이상을 포함해야 합니다.',
-        },
+        pattern: PASSWORD_PATTERN,
       })}
       placeholder="비밀번호를 입력해주세요."
       type={passwordVisible ? 'text' : 'password'}

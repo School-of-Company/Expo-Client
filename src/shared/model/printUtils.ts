@@ -1,3 +1,24 @@
+'use client';
+
+import { QRCodeSVG } from 'qrcode.react';
+import { createElement } from 'react';
+import { flushSync } from 'react-dom';
+import { createRoot } from 'react-dom/client';
+
+const renderQRCodeSVG = (value: string): string => {
+  const host = document.createElement('div');
+  const root = createRoot(host);
+
+  flushSync(() => {
+    root.render(createElement(QRCodeSVG, { value, size: 130 }));
+  });
+
+  const markup = host.innerHTML;
+  root.unmount();
+
+  return markup;
+};
+
 export const printBadge = (selectedData: {
   name: string;
   qrCode: string;
@@ -5,19 +26,17 @@ export const printBadge = (selectedData: {
 }) => {
   const printWindow = window.open('', '_blank');
 
-  if (printWindow) {
-    const isBase64 =
-      selectedData.qrCode &&
-      (selectedData.qrCode.startsWith('/9j/') ||
-        selectedData.qrCode.includes('base64'));
+  if (!printWindow) return;
 
-    const encodedQRCode = encodeURIComponent(selectedData.qrCode);
+  const isBase64 =
+    selectedData.qrCode &&
+    (selectedData.qrCode.startsWith('/9j/') ||
+      selectedData.qrCode.includes('base64'));
 
-    printWindow.document.write(`
+  printWindow.document.write(`
       <html>
         <head>
           <title>Badge</title>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
           <style>
             body {
               font-family: 'Arial', sans-serif;
@@ -59,29 +78,11 @@ export const printBadge = (selectedData: {
         </head>
         <body>
           <div class="badge">
-            <h1>${selectedData.name}</h1>
+            <h1 id="badge-name"></h1>
             ${selectedData.isTemporary ? `<p style="font-size:14px;">(임시 QR)</p>` : ''}
-            <div class="qr-container">
-              ${
-                isBase64
-                  ? `<img src="data:image/png;base64,${selectedData.qrCode}" alt="QR Code" width="100" height="100" />`
-                  : `<div id="qrcode"></div>`
-              }
-            </div>
+            <div class="qr-container" id="badge-qr"></div>
           </div>
           <script>
-            ${
-              !isBase64
-                ? `
-                  const decodedQRText = decodeURIComponent("${encodedQRCode}");
-                  new QRCode("qrcode", {
-                    text: decodedQRText,
-                    width: 130,
-                    height: 130
-                  });
-                `
-                : ''
-            }
             window.onload = function() {
               window.print();
               window.close();
@@ -90,6 +91,26 @@ export const printBadge = (selectedData: {
         </body>
       </html>
     `);
-    printWindow.document.close();
+
+  const doc = printWindow.document;
+
+  // 외부 입력값이므로 HTML 파싱 없이 textContent / 프로퍼티로만 주입한다.
+  const nameElement = doc.getElementById('badge-name');
+  if (nameElement) nameElement.textContent = selectedData.name;
+
+  const qrContainer = doc.getElementById('badge-qr');
+  if (qrContainer) {
+    if (isBase64) {
+      const image = doc.createElement('img');
+      image.src = `data:image/png;base64,${selectedData.qrCode}`;
+      image.alt = 'QR Code';
+      image.width = 100;
+      image.height = 100;
+      qrContainer.appendChild(image);
+    } else {
+      qrContainer.innerHTML = renderQRCodeSVG(selectedData.qrCode);
+    }
   }
+
+  doc.close();
 };
