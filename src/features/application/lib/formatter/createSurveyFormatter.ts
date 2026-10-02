@@ -1,10 +1,10 @@
-import { slugify } from '@/shared/model';
 import {
   DynamicFormItem,
   DynamicFormValues,
   FormattedSurveyData,
 } from '@/shared/types/application/type';
 import { processDynamicFormData } from '../process/processDynamicFormData';
+import { resolveFieldValue } from '../process/resolveFieldValue';
 
 export const createSurveyFormatter = (
   dynamicFormItems: DynamicFormItem[],
@@ -19,7 +19,7 @@ export const createSurveyFormatter = (
 
     const phoneNumber =
       queryPhoneNumber ||
-      (phoneField ? String(data[slugify(phoneField.title)] || '') : '');
+      (phoneField ? String(resolveFieldValue(data, phoneField) || '') : '');
 
     return {
       phoneNumber,

@@ -1,4 +1,3 @@
-import { slugify } from '@/shared/model';
 import {
   DynamicFormItem,
   DynamicFormValues,
@@ -6,6 +5,7 @@ import {
 } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { processDynamicFormData } from '../process/processDynamicFormData';
+import { resolveFieldValue } from '../process/resolveFieldValue';
 
 export const createStandardApplicationFormatter = (
   dynamicFormItems: DynamicFormItem[],
@@ -24,7 +24,7 @@ export const createStandardApplicationFormatter = (
     let informationJsonData = processedData;
 
     if (nameField) {
-      nameValue = data[slugify(nameField.title)] as string | undefined;
+      nameValue = resolveFieldValue(data, nameField) as string | undefined;
 
       if (applicationType === 'FIELD') {
         const { [nameField.title]: _, ...rest } = processedData;
