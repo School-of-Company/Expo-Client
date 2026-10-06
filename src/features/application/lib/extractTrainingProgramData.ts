@@ -2,7 +2,6 @@ import { getTrainingProgram } from '@/shared/api';
 import {
   extractTrainingProgramTitle,
   isTrainingProgramQuestion,
-  slugify,
 } from '@/shared/model';
 import {
   DynamicFormItem,
@@ -10,6 +9,7 @@ import {
   FormattedApplicationData,
 } from '@/shared/types/application/type';
 import { TrainingProgramSelectionRequest } from '../api/postTrainingProgramSelection';
+import { resolveFieldValue } from './process/resolveFieldValue';
 
 export const extractTrainingProgramData = async (
   data: DynamicFormValues,
@@ -26,8 +26,7 @@ export const extractTrainingProgramData = async (
   );
 
   for (const form of trainingProgramForms) {
-    const slug = slugify(form.title);
-    const value = data[slug];
+    const value = resolveFieldValue(data, form);
 
     if (value && Array.isArray(value)) {
       for (const programTitle of value) {
