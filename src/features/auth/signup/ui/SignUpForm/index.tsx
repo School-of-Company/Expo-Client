@@ -10,9 +10,9 @@ import {
   PhoneVerification,
 } from '@/entities/signup';
 
+import { useTimer } from '@/shared/model';
 import { SignUpData } from '@/shared/types/signup/type';
 import { Button, DetailHeader } from '@/shared/ui';
-import { useTimer } from '../../lib/useTimer';
 import { useCheckSmsCode } from '../../model/useCheckSmsCode';
 import { useSendSms } from '../../model/useSendSms';
 import { useSignup } from '../../model/useSignup';
