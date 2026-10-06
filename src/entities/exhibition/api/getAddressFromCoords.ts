@@ -5,11 +5,10 @@ export const getAddressFromCoords = async (
   longitude: number,
 ): Promise<string> => {
   try {
-    const url = `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${longitude}&y=${latitude}`;
-
-    const { data } = await axios.get(url, {
-      headers: {
-        Authorization: `KakaoAK ${process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY}`,
+    const { data } = await axios.get('/api/map/change-geo', {
+      params: {
+        x: longitude,
+        y: latitude,
       },
     });
 
