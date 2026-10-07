@@ -1,5 +1,5 @@
 export interface ExpoItem extends Record<string, unknown> {
-  id: number;
+  id: string;
   coverImage: string;
   title: string;
   description: string;

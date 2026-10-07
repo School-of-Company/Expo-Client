@@ -5,7 +5,7 @@ const config: Meta<typeof ExpoListItem> = {
   title: 'Components/Common/ExpoListItem',
   component: ExpoListItem,
   args: {
-    id: 1,
+    id: '00000000-0000-7000-8000-000000000001',
     coverImage: 'https://via.placeholder.com/140x140',
     title: '박람회 제목',
     description: '박람회 설명',

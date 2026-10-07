@@ -4,7 +4,7 @@ import DefaultExpo from '@/shared/assets/png/DefaultExpo.png';
 import { isValidSrc } from '@/shared/model';
 
 interface Props {
-  id: number;
+  id: string;
   coverImage: string;
   title: string;
   description: string;
