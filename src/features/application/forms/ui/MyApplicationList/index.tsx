@@ -2,6 +2,7 @@
 
 import { QRCodeCanvas } from 'qrcode.react';
 import { useRef, useState } from 'react';
+import { downloadQrImage } from '@/shared/libs/downloadQrImage';
 import { MyApplication, MyParticipant } from '../../api/myApplications';
 import { FORM_GROUPS } from '../../constant/formEntries';
 import { PARTICIPANT_TYPE_LABEL } from '../../constant/participant';
@@ -46,26 +47,7 @@ const ParticipantRow = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // QR 아래에 문구를 붙여 한 장의 이미지로 저장
-  const saveQr = () => {
-    const qr = canvasRef.current!;
-    const canvas = document.createElement('canvas');
-    canvas.width = qr.width;
-    canvas.height = qr.height + 80;
-    const context = canvas.getContext('2d')!;
-    context.fillStyle = '#fff';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(qr, 0, 0);
-    context.fillStyle = '#121212';
-    context.font = '600 36px Pretendard, sans-serif';
-    context.textAlign = 'center';
-    context.fillText(target.caption, canvas.width / 2, qr.height + 44);
-
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = `${target.caption}_QR.png`;
-    link.click();
-  };
+  const saveQr = () => downloadQrImage(canvasRef.current!, target.caption);
 
   return (
     <li className="flex items-center justify-between gap-12 py-12 mobile:flex-col mobile:items-stretch">
