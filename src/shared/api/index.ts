@@ -4,3 +4,5 @@ export { getSurveyForm } from './getSurveyForm';
 export { getStandardProgram } from './getStandardProgram';
 export { getTrainingProgram } from './getTrainingProgram';
 export { getExpoList } from './getExpoList';
+export { postSendSms } from './postSendSms';
+export { getCheckSmsCode } from './getCheckSmsCode';

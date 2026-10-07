@@ -1,16 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { postSendSms } from '@/shared/api';
+import { mockSendSms as postSendSms } from '../api/mockSms';
 
-export const useSendSms = (
-  setTimer: React.Dispatch<React.SetStateAction<number>>,
-  setIsSmsSent: React.Dispatch<React.SetStateAction<boolean>>,
-) => {
+export const useSendVerificationSms = (onSuccess: () => void) => {
   return useMutation({
     mutationFn: (phoneNumber: string) => postSendSms(phoneNumber),
     onSuccess: () => {
-      setIsSmsSent(true);
-      setTimer(180);
+      onSuccess();
       toast.success('문자 메시지 전송이 완료되었습니다.');
     },
     onError: (error: Error) => {

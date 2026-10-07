@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getCheckSmsCode } from '../api/getCheckSmsCode';
+import { getCheckSmsCode } from '@/shared/api';
 
 export const useCheckSmsCode = (
   phoneNumber: string,

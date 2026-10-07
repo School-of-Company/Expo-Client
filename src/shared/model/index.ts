@@ -10,3 +10,4 @@ export {
   formatTrainingProgramOption,
   extractTrainingProgramTitle,
 } from './trainingProgramQuestion';
+export { useTimer } from './useTimer';
