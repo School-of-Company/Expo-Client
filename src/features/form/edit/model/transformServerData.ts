@@ -1,125 +1,73 @@
-import { ApplicationForm } from '@/shared/types/application/type';
-import { FormValues, Option } from '@/shared/types/form/create/type';
+import type { ApplicationForm } from '@/shared/types/application/type';
+import type {
+  ConditionalSettings,
+  FormValues,
+  Option,
+} from '@/shared/types/form/create/type';
 
-interface JsonOption {
-  id?: string;
-  label?: string;
-  value?: string;
-  isAlwaysSelected?: boolean;
-}
-
+/** 서버의 위치·키 참조를 빌더 내부의 UUID 참조로 바꾼다. `formUtils.toOtherJson`의 역방향. */
 export const transformServerData = (
   data: ApplicationForm,
   mode: 'application' | 'survey',
 ): FormValues => {
-  const formItems =
-    mode === 'application' ? data.dynamicForm : data.dynamicSurveyResponseDto;
+  const items =
+    (mode === 'application'
+      ? data.dynamicForm
+      : data.dynamicSurveyResponseDto) ?? [];
 
-  const informationText = data.informationText || '';
-  const title = data.title || '';
-
-  if (!formItems) {
-    return { informationText, questions: [], title };
-  }
-
-  const filteredFormItems = formItems.filter(
-    (item) => (item.formType as unknown as string) !== 'PRIVACYCONSENT',
-  );
-
-  const itemsWithIds = filteredFormItems.map((item) => {
-    let questionId: string;
-    let options: Option[] = [];
-
-    try {
-      if (typeof item.jsonData === 'string') {
-        const parsed = JSON.parse(item.jsonData);
-
-        if (parsed.id) {
-          questionId = parsed.id;
-
-          if (parsed.options && Array.isArray(parsed.options)) {
-            options = parsed.options.map((opt: JsonOption) => ({
-              id: opt.id || crypto.randomUUID(),
-              value: opt.label || opt.value || '',
-              label: opt.label ?? opt.value ?? '',
-              isAlwaysSelected: opt.isAlwaysSelected,
-            }));
-          }
-        } else {
-          questionId = crypto.randomUUID();
-          options = Object.entries(parsed).map(([_key, value]): Option => {
-            if (
-              typeof value === 'object' &&
-              value !== null &&
-              'value' in value
-            ) {
-              const objValue = value as {
-                value: string;
-                isAlwaysSelected?: boolean;
-              };
-              return {
-                id: crypto.randomUUID(),
-                value: objValue.value,
-                label: objValue.value,
-                isAlwaysSelected: objValue.isAlwaysSelected || false,
-              };
-            }
-            return {
+  const questions = items.map((item) => ({
+    id: crypto.randomUUID(),
+    options: Object.entries(item.jsonData).map(
+      ([key, option]): Option =>
+        typeof option === 'string'
+          ? { id: crypto.randomUUID(), key, value: option }
+          : {
               id: crypto.randomUUID(),
-              value: value as string,
-              label: value as string,
-            };
-          });
-        }
-      } else {
-        questionId = crypto.randomUUID();
-      }
-    } catch (error) {
-      console.error(error);
-      questionId = crypto.randomUUID();
-    }
-
-    return {
-      ...item,
-      _generatedId: questionId,
-      _generatedOptions: options,
-    };
-  });
-
-  const questions = itemsWithIds.map((item) => {
-    let otherJson = item.otherJson;
-    if (otherJson) {
-      try {
-        const parsed = JSON.parse(otherJson);
-        if (parsed.conditional?.parentIndex !== undefined) {
-          const parentItem = itemsWithIds[parsed.conditional.parentIndex];
-          if (parentItem?._generatedId) {
-            parsed.conditional = {
-              parentId: parentItem._generatedId,
-              triggerValue: parsed.conditional.triggerValue,
-            };
-            otherJson = JSON.stringify(parsed);
-          }
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-    return {
-      id: item._generatedId,
-      title: item.title,
-      formType: item.formType,
-      options: item._generatedOptions,
-      requiredStatus: item.requiredStatus,
-      otherJson,
-      dynamicFormType: item.dynamicFormType || 'DEFAULT',
-    };
-  });
+              key,
+              value: option.value,
+              isAlwaysSelected: option.isAlwaysSelected,
+            },
+    ),
+  }));
 
   return {
-    informationText,
-    title,
-    questions,
+    title: data.title || '',
+    informationText: data.informationText || '',
+    questions: items.map((item, index) => {
+      const { maxSelection, conditional } = item.otherJson ?? {};
+      const parent = conditional && questions[conditional.parentIndex];
+      const idOf = (key: string) =>
+        parent?.options.find((o) => o.key === key)?.id ?? key;
+
+      const settings: ConditionalSettings = {
+        ...(maxSelection && { maxSelection }),
+        ...(parent && {
+          conditional: conditional.triggerValues
+            ? {
+                parentId: parent.id,
+                triggerValues: conditional.triggerValues.map(idOf),
+              }
+            : {
+                parentId: parent.id,
+                triggerValue: idOf(conditional.triggerValue ?? ''),
+              },
+        }),
+      };
+
+      return {
+        id: questions[index].id,
+        // 키는 직업처럼 고정된 것만 남긴다. 나머지는 저장할 때 순서로 다시 매겨 새 선택지와 겹치지 않게 한다.
+        options: questions[index].options.map(({ key, ...option }) =>
+          item.dynamicFormType === 'OCCUPATION' ? { ...option, key } : option,
+        ),
+        title: item.title,
+        formType: item.formType,
+        requiredStatus: item.requiredStatus,
+        otherJson: Object.keys(settings).length
+          ? JSON.stringify(settings)
+          : null,
+        dynamicFormType: item.dynamicFormType || 'DEFAULT',
+      };
+    }),
   };
 };
