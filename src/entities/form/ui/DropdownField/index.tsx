@@ -52,6 +52,7 @@ export default function DropdownField({
         onClick={() => setIsOpen(!isOpen)}
       >
         <p className="text-h3r text-black">
+          {/* 제출 값은 option.id, 화면에는 label 을 보여준다 */}
           {options.find((option) => option.id === selectedOption)?.label ||
             placeholder}
         </p>
