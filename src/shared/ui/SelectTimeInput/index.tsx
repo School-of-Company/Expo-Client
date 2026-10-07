@@ -7,6 +7,8 @@ interface SelectTimeInputProps {
   value: Date | null | undefined;
   onChange: (date: Date | null) => void;
   placeholder?: string;
+  /** 스크롤 컨테이너 안에서 달력이 잘리지 않도록 body 로 띄울 때 사용 */
+  portalId?: string;
 }
 
 interface CustomInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -37,6 +39,7 @@ const SelectTimeInput = ({
   value,
   onChange,
   placeholder = '시간을 선택해주세요',
+  portalId,
 }: SelectTimeInputProps) => {
   return (
     <div className="relative w-full">
@@ -51,6 +54,7 @@ const SelectTimeInput = ({
         placeholderText={placeholder}
         customInput={<CustomTimeInput placeholder={placeholder} />}
         wrapperClassName="w-full"
+        portalId={portalId}
       />
     </div>
   );

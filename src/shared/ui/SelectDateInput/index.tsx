@@ -10,6 +10,8 @@ interface SelectDateInputProps {
   placeholder?: string;
   inputClassName?: string;
   emptyCenter?: boolean;
+  /** 스크롤 컨테이너 안에서 달력이 잘리지 않도록 body 로 띄울 때 사용 */
+  portalId?: string;
 }
 
 interface CustomInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -45,6 +47,7 @@ const SelectDateInput = ({
   placeholder = '날짜를 선택해주세요',
   inputClassName = 'px-16 py-12',
   emptyCenter = false,
+  portalId,
 }: SelectDateInputProps) => {
   return (
     <div className="relative w-full">
@@ -62,6 +65,7 @@ const SelectDateInput = ({
         }
         wrapperClassName="w-full"
         locale={ko}
+        portalId={portalId}
       />
     </div>
   );
