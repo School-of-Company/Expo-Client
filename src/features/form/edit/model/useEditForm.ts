@@ -9,8 +9,6 @@ export const useEditApplicationForm = (
   id: string,
   type: 'STANDARD' | 'TRAINEE',
   router: AppRouterInstance,
-  startDate: string,
-  endDate: string,
 ) => {
   const queryClient = useQueryClient();
 
@@ -18,7 +16,7 @@ export const useEditApplicationForm = (
     mutationKey: ['editApplicationForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
       editApplicationForm({
-        data: { ...formattedData, startDate, endDate },
+        data: formattedData,
         id,
       }),
     onSuccess: () => {
@@ -41,15 +39,13 @@ export const useEditSurveyForm = (
   id: string,
   type: 'STANDARD' | 'TRAINEE',
   router: AppRouterInstance,
-  startDate: string,
-  endDate: string,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ['editSurveyForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
       editSurveyForm({
-        data: { ...formattedData, startDate, endDate },
+        data: formattedData,
         id,
       }),
     onSuccess: () => {
