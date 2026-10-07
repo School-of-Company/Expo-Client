@@ -51,7 +51,10 @@ export default function DropdownField({
         className="flex w-fit cursor-pointer items-center justify-between gap-16 rounded-sm border-1 border-solid border-gray-100 px-10 py-12"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <p className="text-h3r text-black">{selectedOption || placeholder}</p>
+        <p className="text-h3r text-black">
+          {options.find((option) => option.id === selectedOption)?.label ||
+            placeholder}
+        </p>
         {isOpen ? <ArrowUp /> : <ArrowDown />}
       </div>
 
