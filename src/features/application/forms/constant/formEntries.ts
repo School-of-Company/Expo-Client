@@ -5,22 +5,18 @@ export type FormGroup = 'PRE' | 'FIELD' | 'SURVEY';
 export const FORM_GROUPS: {
   key: FormGroup;
   label: string;
-  guide: string;
 }[] = [
   {
     key: 'PRE',
     label: '사전등록',
-    guide: '박람회 방문 전에 미리 등록해 주세요.',
   },
   {
     key: 'FIELD',
     label: '현장등록',
-    guide: '박람회 당일 현장에서 등록해 주세요.',
   },
   {
     key: 'SURVEY',
     label: '만족도 조사',
-    guide: '박람회에 참여하신 뒤 만족도 조사에 응답해 주세요.',
   },
 ];
 
