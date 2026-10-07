@@ -9,7 +9,7 @@ export const getSurveyForm = async (
 ) => {
   try {
     const response = await clientInstance.get(
-      `/survey/${expoId}?type=${userType}&applicationType=${ApplicationType}`,
+      `/surveys/${expoId}?type=${userType}&applicationType=${ApplicationType}`,
     );
     return response.data;
   } catch (error) {

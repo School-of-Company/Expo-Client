@@ -10,7 +10,7 @@ export const createApplicationForm = async ({
   id: string;
 }) => {
   try {
-    const response = await clientTokenInstance.post(`/form/${id}`, data);
+    const response = await clientTokenInstance.post(`/forms/${id}`, data);
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

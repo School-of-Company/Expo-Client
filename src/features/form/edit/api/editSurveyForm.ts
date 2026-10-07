@@ -10,7 +10,7 @@ export const editSurveyForm = async ({
   id: string;
 }) => {
   try {
-    const response = await clientTokenInstance.patch(`/survey/${id}`, data);
+    const response = await clientTokenInstance.patch(`/surveys/${id}`, data);
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

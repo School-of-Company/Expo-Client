@@ -15,8 +15,8 @@ const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
     STANDARD_FIELD_TEMPORARY: '/application/field/temporary/',
   },
   survey: {
-    STANDARD: '/survey/answer/standard/',
-    TRAINEE: '/survey/answer/trainee/',
+    STANDARD: '/surveys/answer/standard/',
+    TRAINEE: '/surveys/answer/trainee/',
   },
 };
 
