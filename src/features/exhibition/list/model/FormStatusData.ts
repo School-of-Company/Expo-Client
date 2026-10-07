@@ -15,7 +15,7 @@ const fetchExpoValidation = async (): Promise<ExpoValidationItem[] | null> => {
   try {
     const response = await clientTokenInstance.get('/expo/valid');
     return response.data.expoValid;
-  } catch (error) {
+  } catch {
     return null;
   }
 };

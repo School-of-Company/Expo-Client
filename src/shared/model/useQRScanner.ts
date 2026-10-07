@@ -16,7 +16,7 @@ export const useQRScanner = (
       try {
         const parsedData: QrScanData = JSON.parse(cleanData);
         setScannedQR(parsedData);
-      } catch (error) {
+      } catch {
         toast.error('QR 코드 데이터 파싱 오류');
       }
     },

@@ -17,7 +17,7 @@ export const getClassExcelFile = async (id: string) => {
     document.body.appendChild(link);
     link.click();
     link.remove();
-  } catch (error) {
+  } catch {
     toast.error('파일 설치 실패');
   }
 };
