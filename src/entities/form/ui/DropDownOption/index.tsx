@@ -1,14 +1,7 @@
 import { OptionProps } from '@/shared/types/form/create/type';
 import OptionItem from '../OptionItem';
-import OtherOption from '../OtherOptionProps';
 
-const DropDownOption = ({
-  fields,
-  remove,
-  register,
-  index,
-  isCheckBox,
-}: OptionProps) => {
+const DropDownOption = ({ fields, remove, register, index }: OptionProps) => {
   return (
     <div className="space-y-10">
       {fields.map((option, optionIndex) => (
@@ -22,7 +15,6 @@ const DropDownOption = ({
           inputName={`questions.${index}.options.${optionIndex}.value`}
         />
       ))}
-      {isCheckBox ? <OtherOption text="기타" /> : null}
     </div>
   );
 };

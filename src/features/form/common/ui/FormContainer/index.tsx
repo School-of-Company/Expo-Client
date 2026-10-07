@@ -11,13 +11,11 @@ import {
 import { toast } from 'react-toastify';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  CheckBox,
   CheckBoxOption,
   DeleteButton,
   DropDownOption,
   FormTitle,
   FormTypeSelect,
-  MultipleChoiceOption,
   RequiredToggle,
 } from '@/entities/form';
 import ConditionalSettings from '@/entities/form/ui/ConditionalSettings';
@@ -50,7 +48,6 @@ const FormContainer = ({
   setValue,
   control,
 }: Props) => {
-  const [isCheckBox, setIsCheckBox] = useState(false);
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(false);
   const [selectedOption, setSelectedOption] = useState<Option | null>(() => {
     const formType = control._formValues.questions[index].formType;
@@ -74,19 +71,23 @@ const FormContainer = ({
 
   const isTrainingProgram = isTrainingProgramQuestion(questionTitle);
 
-  const isSpecialField =
+  const isSpecialField = !!dynamicFormType && dynamicFormType !== 'DEFAULT';
+  // 이름·전화번호·연수자 아이디는 신청 처리에 꼭 필요해서 필수로 고정한다.
+  const isRequiredField =
     dynamicFormType === 'NAME' ||
     dynamicFormType === 'PHONE_NUMBER' ||
-    dynamicFormType === 'TRAINEE_ID';
+    dynamicFormType === 'TRAINING_ID';
+  const hasOptions =
+    selectedOption?.value === 'DROPDOWN' ||
+    selectedOption?.value === 'MULTIPLE';
 
   const componentMap: Record<string, JSX.Element | null> = {
-    CHECKBOX: (
+    MULTIPLE: (
       <CheckBoxOption
         fields={fields}
         remove={remove}
         register={register}
         index={index}
-        isCheckBox={isCheckBox}
         setValue={setValue}
         control={control}
       />
@@ -97,16 +98,6 @@ const FormContainer = ({
         remove={remove}
         register={register}
         index={index}
-        isCheckBox={isCheckBox}
-      />
-    ),
-    MULTIPLE: (
-      <MultipleChoiceOption
-        fields={fields}
-        remove={remove}
-        register={register}
-        index={index}
-        isCheckBox={isCheckBox}
       />
     ),
   };
@@ -151,24 +142,16 @@ const FormContainer = ({
   };
 
   useEffect(() => {
-    if (selectedOption?.value === 'SENTENCE') {
+    if (selectedOption && !hasOptions) {
       setValue(`questions.${index}.options`, []);
     }
+  }, [selectedOption, hasOptions, index, setValue]);
 
-    if (
-      selectedOption?.value === 'SENTENCE' ||
-      selectedOption?.value === 'IMAGE'
-    ) {
-      setIsCheckBox(false);
-    }
-  }, [selectedOption, index, setValue]);
-
-  // Set required status to true for special fields
   useEffect(() => {
-    if (isSpecialField) {
+    if (isRequiredField) {
       setValue(`questions.${index}.requiredStatus`, true);
     }
-  }, [isSpecialField, index, setValue]);
+  }, [isRequiredField, index, setValue]);
 
   return (
     <div
@@ -187,7 +170,7 @@ const FormContainer = ({
       </div>
       {renderOptionComponent()}
       <div className="flex items-center gap-12 border-b-1 border-solid border-gray-100">
-        {selectedOption?.value !== 'SENTENCE' ? (
+        {hasOptions && dynamicFormType !== 'OCCUPATION' ? (
           <>
             <AddItemButton
               onClick={(e: React.MouseEvent) => {
@@ -214,11 +197,6 @@ const FormContainer = ({
         ) : null}
       </div>
       <div className="flex w-full items-center justify-end gap-20">
-        {selectedOption?.value !== 'IMAGE' &&
-        selectedOption?.value !== 'SENTENCE' &&
-        selectedOption?.value !== 'DROPDOWN' ? (
-          <CheckBox control={control} index={index} text="기타" />
-        ) : null}
         <DeleteButton
           onClick={(e: React.MouseEvent) => {
             preventEvent(e);
@@ -228,7 +206,7 @@ const FormContainer = ({
         <RequiredToggle
           control={control}
           index={index}
-          isLocked={isSpecialField}
+          isLocked={isRequiredField}
         />
       </div>
 
