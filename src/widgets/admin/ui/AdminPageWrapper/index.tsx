@@ -56,6 +56,7 @@ const AdminPageWrapper = () => {
               key={page}
               id="expo-list"
               totalPage={expoListData?.totalPages}
+              totalCount={expoListData?.totalElements}
               categories={expoListCategories}
               data={expoList}
               maxHeight="414px"

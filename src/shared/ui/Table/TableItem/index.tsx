@@ -66,6 +66,14 @@ const TableItem = <
         return data['personalInformationStatus' as keyof T];
       case '참가자 상태':
         return data['participationType' as keyof T];
+      case '박람회이름':
+        return data['title' as keyof T];
+      case '박람회 설명':
+        return data['description' as keyof T];
+      case '모집 시작 날짜':
+        return data['startedDay' as keyof T];
+      case '모집 종료 날짜':
+        return data['finishedDay' as keyof T];
       case '프로그램':
       case '프로그램 이름':
         return data['programName' as keyof T] || data['title' as keyof T];

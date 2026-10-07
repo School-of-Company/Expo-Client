@@ -12,6 +12,7 @@ interface Props<T extends { id: string | number }> {
   text?: string;
   actions?: { [key: string]: (selectItem: T['id']) => void };
   totalPage?: number;
+  totalCount?: number;
   id?: string;
   selectItemBoolean?: boolean;
   setSelectItem?: React.Dispatch<React.SetStateAction<T['id'] | null>>;
@@ -26,6 +27,7 @@ const TableForm = <T extends { id: string | number }>({
   text,
   actions,
   totalPage,
+  totalCount,
   id,
   selectItemBoolean = true,
   setSelectItem,
@@ -63,7 +65,7 @@ const TableForm = <T extends { id: string | number }>({
       <TableFooter
         type={footerType}
         text={text}
-        num={data.length}
+        num={totalCount ?? data.length}
         actions={actions}
         selectItem={selectItem ?? selectItemState}
         setSelectItem={setSelectItem ?? setSelectItemState}
