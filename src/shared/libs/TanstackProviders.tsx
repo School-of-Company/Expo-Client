@@ -20,7 +20,9 @@ const TanstackProviders = ({ children }: { children: React.ReactNode }) => {
           },
         },
         queryCache: new QueryCache({
-          onError: (error) => {
+          onError: (error, query) => {
+            // 실패가 정상 흐름인 조회는 meta.silent 로 토스트를 끈다
+            if (query.meta?.silent) return;
             toast.error(`${(error as Error).message}`);
           },
         }),

@@ -1,12 +1,16 @@
 import axios from 'axios';
 import clientInstance from '../libs/http/clientInstance';
 import { ApplicationType } from '../types/exhibition/type';
+import { getMockForm } from './mockForm';
 
 export const getSurveyForm = async (
   expoId: string,
   userType: string,
   ApplicationType: ApplicationType,
 ) => {
+  if (expoId === 'mock')
+    return getMockForm('survey', userType, ApplicationType);
+
   try {
     const response = await clientInstance.get(
       `/survey/${expoId}?type=${userType}&applicationType=${ApplicationType}`,
