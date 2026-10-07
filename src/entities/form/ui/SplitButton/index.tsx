@@ -8,19 +8,15 @@ import { DynamicFormType } from '@/shared/types/form/create/type';
 interface SplitButtonProps {
   onDefaultClick: () => void;
   onSpecialFieldClick: (type: DynamicFormType) => void;
+  specialFieldOptions: { value: DynamicFormType; label: string }[];
   text?: string;
   disabledOptions?: Set<string>;
 }
 
-const SPECIAL_FIELD_OPTIONS: { value: DynamicFormType; label: string }[] = [
-  { value: 'NAME', label: '이름' },
-  { value: 'PHONE_NUMBER', label: '전화번호' },
-  { value: 'TRAINEE_ID', label: '연수자아이디' },
-];
-
 const SplitButton = ({
   onDefaultClick,
   onSpecialFieldClick,
+  specialFieldOptions,
   text = '추가하기',
   disabledOptions = new Set(),
 }: SplitButtonProps) => {
@@ -56,24 +52,28 @@ const SplitButton = ({
         <button
           type="button"
           onClick={onDefaultClick}
-          className="flex items-center gap-12 rounded-l-sm bg-main-100 px-16 py-12"
+          className={`flex items-center gap-12 bg-main-100 px-16 py-12 ${
+            specialFieldOptions.length > 0 ? 'rounded-l-sm' : 'rounded-sm'
+          }`}
         >
           <Plus fill={COLORS.main600} />
           <p className="text-body2r text-main-600">{text}</p>
         </button>
 
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center rounded-r-sm bg-main-100 px-8 py-12"
-        >
-          <ArrowDown fill={COLORS.main600} />
-        </button>
+        {specialFieldOptions.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex items-center rounded-r-sm bg-main-100 px-8 py-12"
+          >
+            <ArrowDown fill={COLORS.main600} />
+          </button>
+        )}
       </div>
 
       {isOpen && (
         <div className="absolute bottom-full left-0 z-10 mb-4 w-full min-w-[160px] rounded-sm border-1 border-solid border-gray-200 bg-white shadow-lg">
-          {SPECIAL_FIELD_OPTIONS.map((option) => {
+          {specialFieldOptions.map((option) => {
             const isDisabled = disabledOptions.has(option.value);
             return (
               <button

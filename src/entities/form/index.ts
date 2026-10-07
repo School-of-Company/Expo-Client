@@ -15,3 +15,8 @@ export { default as TextAreaField } from './ui/TextAreaField';
 export { default as PhoneField } from './ui/PhoneField';
 export { default as MultiSelectField } from './ui/MultiSelectField';
 export { default as DropdownField } from './ui/DropdownField';
+export {
+  OCCUPATION_OPTIONS,
+  SCHOOL_OCCUPATIONS,
+} from './constants/occupationData';
+export type { Occupation } from './constants/occupationData';
