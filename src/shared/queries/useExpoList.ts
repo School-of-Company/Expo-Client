@@ -1,19 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { ExpoItem } from '@/shared/types/admin/type';
-import { getExpoList, getExpoPage } from '../api/getExpoList';
-
-export const useExpoList = (enabled = true) => {
-  return useQuery<ExpoItem[], Error>({
-    queryKey: ['expoList'],
-    queryFn: getExpoList,
-    enabled,
-  });
-};
+import { getExpoPage } from '../api/getExpoList';
 
 // URL의 ?page(1부터 시작)를 읽어 서버 페이지(0부터 시작)를 조회합니다.
-export const useExpoPage = (enabled = true) => {
+export const useExpoPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
@@ -21,7 +12,6 @@ export const useExpoPage = (enabled = true) => {
   const { data, isLoading } = useQuery({
     queryKey: ['expoList', 'page', page],
     queryFn: () => getExpoPage(page - 1),
-    enabled,
   });
 
   const totalPages = data?.totalPages ?? 0;

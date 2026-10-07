@@ -12,5 +12,4 @@ export { default as FilterTab } from './ui/FilterTab';
 export { default as ExhibitionCheckInHeader } from './ui/ExhibitionCheckInHeader';
 export { default as ExhibitionAccessQr } from './ui/ExhibitionAccessQr';
 export { default as ExpoListItem } from './ui/ExpoListItem';
-export { default as FormFilter } from './ui/FormFilter';
 export { default as EmptyExpoList } from './ui/EmptyExpoList';
