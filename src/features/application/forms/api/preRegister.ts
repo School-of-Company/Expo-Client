@@ -50,6 +50,8 @@ export const getPreRegister = async (
   expoId: string,
   sessionId: string,
 ): Promise<PreRegisterDetail> => {
+  if (expoId === 'mock') return MOCK_DETAIL;
+
   try {
     const response = await clientInstance.get(sessionPath(expoId, sessionId));
     return response.data;
@@ -67,6 +69,8 @@ export const postPreRegister = async (
   sessionId: string,
   body: PreRegisterBody,
 ) => {
+  if (expoId === 'mock') return mockApply(body);
+
   try {
     await clientInstance.post(sessionPath(expoId, sessionId), body);
   } catch (error) {
@@ -75,4 +79,62 @@ export const postPreRegister = async (
     }
     throw error;
   }
+};
+
+// TODO(dev-mock): 서버 복구 후 제거
+const MOCK_DETAIL: PreRegisterDetail = {
+  session: {
+    title: '사전등록',
+    startedAt: '2026-10-31T09:30:00',
+    endedAt: '2026-10-31T12:30:00',
+    place: '추후 안내',
+    capacity: 1000,
+    waitingCapacity: 100,
+    confirmedCount: 11,
+    waitingCount: 0,
+  },
+  participants: [
+    {
+      participantId: 1,
+      name: '문강현',
+      region: '광주',
+      participantType: 'SECONDARY',
+      isApplied: true,
+    },
+    {
+      participantId: 2,
+      name: '박하민',
+      region: '광주',
+      participantType: 'SECONDARY',
+      isApplied: true,
+    },
+    {
+      participantId: 3,
+      name: '홍길동',
+      region: '광주',
+      participantType: 'TEACHER',
+      affiliation: '광주초',
+      isApplied: false,
+    },
+  ],
+};
+
+const mockApply = (body: PreRegisterBody) => {
+  if ('participantId' in body) {
+    MOCK_DETAIL.participants = MOCK_DETAIL.participants.map((participant) =>
+      participant.participantId === body.participantId
+        ? { ...participant, isApplied: true }
+        : participant,
+    );
+  } else {
+    MOCK_DETAIL.participants = [
+      ...MOCK_DETAIL.participants,
+      {
+        ...body,
+        participantId: MOCK_DETAIL.participants.length + 1,
+        isApplied: true,
+      },
+    ];
+  }
+  MOCK_DETAIL.session.confirmedCount += 1;
 };

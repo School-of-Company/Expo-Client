@@ -25,6 +25,8 @@ export interface MyApplication {
 export const getMyApplications = async (
   expoId: string,
 ): Promise<MyApplication[]> => {
+  if (expoId === 'mock') return MOCK_MY_APPLICATIONS;
+
   try {
     const response = await clientInstance.get(`/application/my/${expoId}`);
     return response.data;
@@ -49,3 +51,29 @@ export const deleteMyParticipant = async (participantId: number) => {
     throw error;
   }
 };
+
+// TODO(dev-mock): 서버 복구 후 제거
+const MOCK_MY_APPLICATIONS: MyApplication[] = [
+  {
+    applicationId: 1,
+    applicationType: 'PRE',
+    phoneNumber: '01012345678',
+    sessionStartedAt: '2026-10-31T09:30:00',
+    participants: [
+      { participantId: 1, participantType: 'GENERAL' },
+      { participantId: 2, participantType: 'ELEMENTARY' },
+      {
+        participantId: 3,
+        participantType: 'TEACHER',
+        affiliation: '광주초',
+        name: '홍길동',
+      },
+      {
+        participantId: 4,
+        participantType: 'PRE_TEACHER',
+        affiliation: '광주교대',
+        name: '김예비',
+      },
+    ],
+  },
+];
