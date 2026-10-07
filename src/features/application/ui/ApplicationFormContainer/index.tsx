@@ -8,7 +8,6 @@ import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
-import { printBadge } from '@/shared/model';
 import {
   ApplicationForm,
   DynamicFormValues,
@@ -16,7 +15,10 @@ import {
 } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { DetailHeader, Button } from '@/shared/ui';
-import { postApplication } from '../../api/postApplication';
+import {
+  createIdempotencyKey,
+  postApplication,
+} from '../../api/postApplication';
 import { postTrainingProgramSelection } from '../../api/postTrainingProgramSelection';
 import { extractTrainingProgramData } from '../../lib/extractTrainingProgramData';
 import { getFormatter } from '../../lib/formatterService';
@@ -78,7 +80,17 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         privacyConsent,
       } as DynamicFormValues & { privacyConsent: boolean });
 
-      let response;
+      if (
+        formType === 'application' &&
+        userType === 'STANDARD' &&
+        applicationType === 'FIELD' &&
+        !('phoneNumber' in formattedData && formattedData.phoneNumber)
+      ) {
+        toast.error(
+          '휴대폰 번호가 없으면 현장 관리자에게 종이 QR을 요청해주세요.',
+        );
+        return;
+      }
 
       if (
         formType === 'application' &&
@@ -95,45 +107,19 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         if (trainingProgramData)
           await postTrainingProgramSelection(params, trainingProgramData);
       } else {
-        response = await postApplication(
+        await postApplication(
           params,
           formType,
           userType,
           applicationType,
           formattedData,
+          createIdempotencyKey(),
         );
       }
       if (formType === 'survey') {
         router.push(
           `/application/success/${params}?formType=survey&userType=${userType}`,
         );
-      }
-
-      if (
-        formType === 'application' &&
-        userType === 'STANDARD' &&
-        applicationType === 'FIELD' &&
-        response &&
-        response.participantId &&
-        response.phoneNumber &&
-        response.expoId
-      ) {
-        const qrPayload = {
-          participantId: response.participantId,
-          phoneNumber: response.phoneNumber,
-          expoId: response.expoId,
-        };
-
-        const badgeData = {
-          name:
-            ('name' in formattedData ? formattedData.name : undefined) ||
-            '이름 없음',
-          qrCode: JSON.stringify(qrPayload),
-          isTemporary: true,
-        };
-
-        printBadge(badgeData);
-        return;
       }
 
       if (formType === 'application') {
