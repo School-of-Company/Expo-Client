@@ -1,10 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-import { useExpoList } from '@/shared/queries';
+import { useExpoPage } from '@/shared/queries';
 import { getAdminData } from '../api/getAdminData';
 import { getRequestSignUp } from '../api/getRequestSignUp';
 
 export const useAdminData = () => {
-  const { data: expoListData, isLoading: expoListLoading } = useExpoList();
+  const {
+    data: expoListData,
+    isLoading: expoListLoading,
+    page,
+  } = useExpoPage();
 
   const requestSignUpData = useQuery({
     queryKey: ['requestSignUp'],
@@ -21,5 +25,11 @@ export const useAdminData = () => {
     requestSignUpData.isLoading ||
     requestAdminData.isLoading;
 
-  return { expoListData, requestSignUpData, requestAdminData, isLoading };
+  return {
+    expoListData,
+    page,
+    requestSignUpData,
+    requestAdminData,
+    isLoading,
+  };
 };

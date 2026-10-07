@@ -12,7 +12,7 @@ import { withLoading } from '@/shared/hocs';
 import { TableForm } from '@/shared/ui/Table';
 
 const AdminPageWrapper = () => {
-  const { expoListData, requestSignUpData, requestAdminData, isLoading } =
+  const { expoListData, page, requestSignUpData, requestAdminData, isLoading } =
     useAdminData();
   const { approveSignup, rejectSignup } = useCheckActions();
   const { deleteExpo } = useDeleteActions();
@@ -27,7 +27,8 @@ const AdminPageWrapper = () => {
   };
 
   const expoList =
-    expoListData?.map(({ coverImage: _coverImage, ...rest }) => rest) || [];
+    expoListData?.content.map(({ coverImage: _coverImage, ...rest }) => rest) ||
+    [];
   const requestSignUp = requestSignUpData?.data || [];
   const requestAdmin = requestAdminData?.data;
 
@@ -52,6 +53,9 @@ const AdminPageWrapper = () => {
           <div className="space-y-[26px]">
             <p className="text-h2b text-black">등록된 박람회</p>
             <TableForm
+              key={page}
+              id="expo-list"
+              totalPage={expoListData?.totalPages}
               categories={expoListCategories}
               data={expoList}
               maxHeight="414px"
