@@ -1,19 +1,23 @@
-interface TableItemProps<T extends { id: number } & Record<string, unknown>> {
+interface TableItemProps<
+  T extends { id: string | number } & Record<string, unknown>,
+> {
   data: T;
-  state: number | null;
-  setState: React.Dispatch<React.SetStateAction<number | null>>;
+  state: T['id'] | null;
+  setState: React.Dispatch<React.SetStateAction<T['id'] | null>>;
   selectItemBoolean: boolean;
   categories: string[];
 }
 
-const TableItem = <T extends { id: number } & Record<string, unknown>>({
+const TableItem = <
+  T extends { id: string | number } & Record<string, unknown>,
+>({
   data,
   state,
   setState,
   selectItemBoolean,
   categories,
 }: TableItemProps<T>) => {
-  const handleSelectItem = (id: number) => {
+  const handleSelectItem = (id: T['id']) => {
     if (!selectItemBoolean) return;
     setState((prev) => (prev === id ? null : id));
   };
@@ -62,6 +66,14 @@ const TableItem = <T extends { id: number } & Record<string, unknown>>({
         return data['personalInformationStatus' as keyof T];
       case '참가자 상태':
         return data['participationType' as keyof T];
+      case '박람회이름':
+        return data['title' as keyof T];
+      case '박람회 설명':
+        return data['description' as keyof T];
+      case '모집 시작 날짜':
+        return data['startedDay' as keyof T];
+      case '모집 종료 날짜':
+        return data['finishedDay' as keyof T];
       case '프로그램':
       case '프로그램 이름':
         return data['programName' as keyof T] || data['title' as keyof T];

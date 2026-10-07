@@ -9,14 +9,14 @@ type ActionKeys =
   | 'PrintBadge'
   | 'exportExcel'
   | 'RouteActions';
-type ActionsType = Partial<Record<ActionKeys, (selectItem: number) => void>>;
+type ActionsType<Id> = Partial<Record<ActionKeys, (selectItem: Id) => void>>;
 
-type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
+type TableFooterProps<Id> = VariantProps<typeof tableFooterStyles> & {
   num: number;
   text?: string;
-  actions?: ActionsType;
-  selectItem: number | null;
-  setSelectItem: React.Dispatch<React.SetStateAction<number | null>>;
+  actions?: ActionsType<Id>;
+  selectItem: Id | null;
+  setSelectItem: React.Dispatch<React.SetStateAction<Id | null>>;
   selectItemBoolean: boolean;
 };
 
@@ -36,7 +36,7 @@ const tableFooterStyles = cva('flex justify-between items-center', {
   },
 });
 
-const TableFooter = ({
+const TableFooter = <Id extends string | number>({
   text = '참가자 전체 인원',
   type = 'default',
   actions = {},
@@ -44,7 +44,7 @@ const TableFooter = ({
   selectItem,
   setSelectItem,
   selectItemBoolean,
-}: TableFooterProps) => {
+}: TableFooterProps<Id>) => {
   const handleActionClick = (actionKey: ActionKeys) => {
     const isDisabled = selectItemBoolean !== false && selectItem === null;
 
