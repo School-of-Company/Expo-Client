@@ -20,6 +20,13 @@ export const createStandardApplicationFormatter = (
       (item) => item.dynamicFormType === 'NAME',
     );
 
+    const phoneField = dynamicFormItems.find(
+      (item) => item.dynamicFormType === 'PHONE_NUMBER',
+    );
+    const phoneValue = phoneField
+      ? (resolveFieldValue(data, phoneField) as string | undefined)
+      : undefined;
+
     let nameValue: string | undefined;
     let informationJsonData = processedData;
 
@@ -38,6 +45,7 @@ export const createStandardApplicationFormatter = (
         personalInformationStatus: data.privacyConsent,
       }),
       ...(nameValue && { name: nameValue }),
+      ...(phoneValue && { phoneNumber: phoneValue }),
     };
   };
 };

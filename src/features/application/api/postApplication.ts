@@ -12,7 +12,6 @@ const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
     TRAINEE_PRE: '/application/',
     STANDARD_FIELD: '/application/field/standard/',
     TRAINEE_FIELD: '/application/field/',
-    STANDARD_FIELD_TEMPORARY: '/application/field/temporary/',
   },
   survey: {
     STANDARD: '/surveys/answer/standard/',
@@ -20,49 +19,56 @@ const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
   },
 };
 
+const MAX_NETWORK_RETRIES = 2;
+
+const APPLICATION_ERROR_MESSAGES: Record<number, string> = {
+  400: '신청 기간이 아니거나 입력한 답변이 올바르지 않습니다.',
+  409: '이미 등록된 전화번호입니다.',
+  503: '일시적으로 등록할 수 없습니다. 잠시 후 다시 시도해주세요.',
+};
+
+export const createIdempotencyKey = () => crypto.randomUUID();
+
 export const postApplication = async (
   params: string,
   formType: 'application' | 'survey',
   userType: 'STANDARD' | 'TRAINEE',
   applicationType: ApplicationType,
   data: FormattedApplicationData | FormattedSurveyData,
+  idempotencyKey?: string,
 ) => {
   const baseUrl = URL_MAP[formType] || {};
-  let key =
-    formType === 'application'
-      ? (`${userType}_${applicationType}` as keyof typeof URL_MAP.application)
-      : userType;
-
-  const isStandardOnsiteTemporary =
-    formType === 'application' &&
-    userType === 'STANDARD' &&
-    applicationType === 'FIELD' &&
-    (!('phoneNumber' in data) || !data.phoneNumber);
-
-  if (isStandardOnsiteTemporary) {
-    key = 'STANDARD_FIELD_TEMPORARY';
-  }
+  const key =
+    formType === 'application' ? `${userType}_${applicationType}` : userType;
 
   const url = `${baseUrl[key] || '/api/application/'}${params}`;
-  const instance = clientInstance;
+  const headers =
+    formType === 'application' && idempotencyKey
+      ? { 'Idempotency-Key': idempotencyKey }
+      : undefined;
 
-  try {
-    const response = await instance.post(url, data);
-    return response.data;
-  } catch (error) {
-    if (
-      isStandardOnsiteTemporary &&
-      axios.isAxiosError(error) &&
-      error.response?.status === 401 &&
-      error.response.data?.isRefreshError
-    ) {
-      throw new Error('전화번호가 없다면 관리자에게 문의해주세요.');
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await clientInstance.post(url, data, { headers });
+      return response.data;
+    } catch (error) {
+      if (!axios.isAxiosError(error)) throw error;
+
+      // 응답을 받지 못한 네트워크 오류는 같은 Idempotency-Key로 재시도합니다.
+      if (!error.response && headers && attempt < MAX_NETWORK_RETRIES) {
+        continue;
+      }
+
+      if (error.response) {
+        const { status, data: body } = error.response;
+        const fallback =
+          formType === 'application'
+            ? APPLICATION_ERROR_MESSAGES[status] || '폼 등록 실패'
+            : '폼 등록 실패';
+        throw new Error(body?.error || body?.message || fallback);
+      }
+
+      throw error;
     }
-
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '폼 등록 실패');
-    }
-
-    throw error;
   }
 };
