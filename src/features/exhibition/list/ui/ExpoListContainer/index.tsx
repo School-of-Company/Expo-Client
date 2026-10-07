@@ -3,24 +3,28 @@
 import React, { useEffect, useState } from 'react';
 import { EmptyExpoList, ExpoListItem, FormFilter } from '@/entities/exhibition';
 import { withLoading } from '@/shared/hocs';
-import { useExpoList } from '@/shared/queries';
+import { useExpoList, useExpoPage } from '@/shared/queries';
 import { ExpoItem, OptionType } from '@/shared/types/main/type';
+import { NavigationBar } from '@/shared/ui';
 import { filterOptions } from '../../constant/filterOptions';
 import { FormStatusData } from '../../model/FormStatusData';
 
 const ExpoListContainer = () => {
-  const { data: expoList, isLoading: isFetching } = useExpoList();
-
   const [selectedFilter, setSelectedFilter] = useState<OptionType>({
     value: '필터',
     label: '필터',
     status: true,
   });
+  // 폼 상태 필터는 전체 목록을 기준으로 거르므로 필터가 없을 때만 페이지로 조회합니다.
+  const filtered = selectedFilter.value !== '필터';
+
+  const { data: expoPage, isLoading: isPageFetching } = useExpoPage(!filtered);
+  const { data: expoList, isLoading: isListFetching } = useExpoList(filtered);
 
   const [sortedExpoList, setSortedExpoList] = useState<ExpoItem[] | null>(null);
 
   useEffect(() => {
-    if (!expoList) return;
+    if (!filtered || !expoList) return;
     setSortedExpoList(null);
 
     FormStatusData(expoList, selectedFilter.value, selectedFilter.status)
@@ -29,10 +33,12 @@ const ExpoListContainer = () => {
         console.error('정렬 중 에러', err);
         setSortedExpoList([]);
       });
-  }, [expoList, selectedFilter]);
+  }, [expoList, selectedFilter, filtered]);
 
-  const displayLoading =
-    isFetching || (expoList != null && sortedExpoList === null);
+  const displayLoading = filtered
+    ? isListFetching || (expoList != null && sortedExpoList === null)
+    : isPageFetching;
+  const displayedExpoList = filtered ? sortedExpoList : expoPage?.content;
 
   return withLoading({
     isLoading: displayLoading,
@@ -47,9 +53,9 @@ const ExpoListContainer = () => {
           />
         </div>
 
-        {sortedExpoList && sortedExpoList.length > 0 ? (
+        {displayedExpoList && displayedExpoList.length > 0 ? (
           <div className="grid grid-cols-3 gap-x-36 gap-y-24 mobile:grid-cols-1">
-            {sortedExpoList.map((item) => (
+            {displayedExpoList.map((item) => (
               <ExpoListItem
                 key={item.id}
                 id={item.id}
@@ -63,6 +69,11 @@ const ExpoListContainer = () => {
           </div>
         ) : (
           <EmptyExpoList />
+        )}
+        {!filtered && expoPage && (
+          <div className="mt-[30px] flex justify-center">
+            <NavigationBar totalPage={expoPage.totalPages} />
+          </div>
         )}
       </div>
     ),
