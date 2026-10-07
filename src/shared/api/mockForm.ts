@@ -15,28 +15,23 @@ const PERIODS: Record<string, [number, number] | null> = {
   'survey-TRAINEE-PRE': [5, 10],
 };
 
-const option = (id: string, labels: string[]) =>
-  JSON.stringify({
-    id,
-    options: labels.map((label, index) => ({
-      id: `${id}-${index}`,
-      label,
-      value: label,
-    })),
-  });
+const option = (labels: string[]) =>
+  Object.fromEntries(labels.map((label, index) => [String(index + 1), label]));
 
 const FIELDS: ApplicationForm['dynamicForm'] = [
   {
+    id: 1,
     title: '대표자 거주 지역',
     formType: 'DROPDOWN',
-    jsonData: option('region', ['광주', '전남', '전북', '기타']),
+    jsonData: option(['광주', '전남', '전북', '기타']),
     requiredStatus: true,
     otherJson: null,
   },
   {
+    id: 2,
     title: '참여 시간',
     formType: 'MULTIPLE',
-    jsonData: option('session', [
+    jsonData: option([
       '10.31(토) 오전',
       '10.31(토) 오후',
       '11.1(일) 오전',
@@ -46,9 +41,10 @@ const FIELDS: ApplicationForm['dynamicForm'] = [
     otherJson: null,
   },
   {
+    id: 3,
     title: '이름',
     formType: 'SENTENCE',
-    jsonData: JSON.stringify({ id: 'name' }),
+    jsonData: {},
     requiredStatus: true,
     otherJson: null,
   },

@@ -2,10 +2,8 @@
 
 import { useState } from 'react';
 import { Control, UseFormSetValue, useWatch } from 'react-hook-form';
-import {
-  FormValues,
-  ConditionalSettings as ConditionalSettingsType,
-} from '@/shared/types/form/create/type';
+import { parseSettings } from '@/features/form/common/model/formUtils';
+import { FormValues } from '@/shared/types/form/create/type';
 import ToggleButton from '@/shared/ui/ToggleButton';
 
 interface Props {
@@ -25,23 +23,7 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
     name: `questions.${currentIndex}.formType`,
   });
 
-  const parseConditional = (
-    otherJson: string | null,
-  ): ConditionalSettingsType => {
-    if (!otherJson) return { hasEtc: false };
-    try {
-      const parsed = JSON.parse(otherJson);
-      return {
-        hasEtc: parsed.hasEtc || false,
-        maxSelection: parsed.maxSelection || null,
-        conditional: parsed.conditional || undefined,
-      };
-    } catch {
-      return { hasEtc: otherJson === 'etc' };
-    }
-  };
-
-  const currentSettings = parseConditional(currentOtherJson);
+  const currentSettings = parseSettings(currentOtherJson);
   const [isConditional, setIsConditional] = useState(
     !!currentSettings.conditional,
   );
@@ -58,15 +40,13 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
   const availableParents =
     questions
       ?.slice(0, currentIndex)
-      .filter((q) => ['MULTIPLE', 'CHECKBOX'].includes(q.formType)) || [];
+      .filter((q) => ['MULTIPLE', 'DROPDOWN'].includes(q.formType)) || [];
 
   const updateOtherJson = (
-    hasEtc: boolean,
     conditional: { parentId: string; triggerValue: string | null } | null,
     maxSelectionValue: number | null = maxSelection,
   ) => {
     const newValue = JSON.stringify({
-      hasEtc,
       maxSelection: maxSelectionValue || undefined,
       conditional: conditional || undefined,
     });
@@ -78,7 +58,7 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
     if (!enabled) {
       setParentId(null);
       setTriggerValue(null);
-      updateOtherJson(currentSettings.hasEtc, null);
+      updateOtherJson(null);
     } else {
       setValue(`questions.${currentIndex}.requiredStatus`, false);
     }
@@ -87,7 +67,7 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
   const handleParentChange = (questionId: string) => {
     setParentId(questionId);
     setTriggerValue(null);
-    updateOtherJson(currentSettings.hasEtc, {
+    updateOtherJson({
       parentId: questionId,
       triggerValue: null,
     });
@@ -96,7 +76,7 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
   const handleTriggerChange = (value: string) => {
     setTriggerValue(value);
     if (parentId !== null) {
-      updateOtherJson(currentSettings.hasEtc, {
+      updateOtherJson({
         parentId,
         triggerValue: value,
       });
@@ -107,7 +87,6 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
     const numValue = value ? Number(value) : null;
     setMaxSelection(numValue);
     updateOtherJson(
-      currentSettings.hasEtc,
       currentSettings.conditional
         ? {
             parentId: parentId!,
@@ -123,7 +102,7 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
 
   return (
     <div className="space-y-12 border-t border-gray-100 pt-16">
-      {currentFormType === 'CHECKBOX' && (
+      {currentFormType === 'MULTIPLE' && (
         <div className="space-y-8">
           <label className="flex items-center gap-8">
             <p className="text-caption1r text-black mobile:text-caption2r">

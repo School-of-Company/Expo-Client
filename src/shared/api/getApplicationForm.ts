@@ -12,7 +12,7 @@ export const getApplicationForm = async (
 
   try {
     const response = await clientInstance.get(
-      `/form/${id}?type=${userType}&applicationType=${application}`,
+      `/forms/${id}?type=${userType}&applicationType=${application}`,
     );
     return response.data;
   } catch (error) {

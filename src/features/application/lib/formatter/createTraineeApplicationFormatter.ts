@@ -28,7 +28,7 @@ export const createTraineeApplicationFormatter = (
       : undefined;
 
     const traineeIdField = dynamicFormItems.find(
-      (item) => item.dynamicFormType === 'TRAINEE_ID',
+      (item) => item.dynamicFormType === 'TRAINING_ID',
     );
     const traineeIdValue = traineeIdField
       ? (resolveFieldValue(data, traineeIdField) as string | undefined)
@@ -39,7 +39,7 @@ export const createTraineeApplicationFormatter = (
         !isTrainingProgramQuestion(item.title) &&
         item.dynamicFormType !== 'NAME' &&
         item.dynamicFormType !== 'PHONE_NUMBER' &&
-        item.dynamicFormType !== 'TRAINEE_ID',
+        item.dynamicFormType !== 'TRAINING_ID',
     );
 
     return {

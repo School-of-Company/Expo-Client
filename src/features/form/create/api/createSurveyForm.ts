@@ -8,11 +8,9 @@ export const createSurveyForm = async ({
 }: {
   data: CreateFormRequest;
   id: string;
-  startDate: string;
-  endDate: string;
 }) => {
   try {
-    const response = await clientTokenInstance.post(`/survey/${id}`, data);
+    const response = await clientTokenInstance.post(`/surveys/${id}`, data);
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

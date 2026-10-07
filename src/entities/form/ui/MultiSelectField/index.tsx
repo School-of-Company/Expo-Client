@@ -1,15 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-  Control,
-  Controller,
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-  FieldValues,
-} from 'react-hook-form';
-import EtcField from '../EtcField';
+import { Control, Controller, FieldValues } from 'react-hook-form';
 
 export interface Option {
   id: string;
@@ -23,12 +15,7 @@ interface MultiSelectFieldProps {
   options: Option[];
   required?: boolean;
   maxSelection?: number;
-  allowEtc?: boolean;
-  etcLabel?: string;
   control: Control<FieldValues>;
-  register: UseFormRegister<FieldValues>;
-  watch: UseFormWatch<FieldValues>;
-  setValue: UseFormSetValue<FieldValues>;
 }
 
 export default function MultiSelectField({
@@ -36,12 +23,7 @@ export default function MultiSelectField({
   options,
   required = false,
   maxSelection,
-  allowEtc = false,
-  etcLabel = '기타',
   control,
-  register,
-  watch,
-  setValue,
 }: MultiSelectFieldProps) {
   return (
     <Controller
@@ -101,20 +83,6 @@ export default function MultiSelectField({
                 </div>
               );
             })}
-            {allowEtc && (
-              <EtcField
-                register={register}
-                name={name}
-                type="checkbox"
-                watch={watch}
-                setValue={setValue}
-                label={etcLabel}
-                onCheckboxChange={(isChecked) =>
-                  handleCheckboxChange(etcLabel, isChecked)
-                }
-                selectedValues={selectedValues}
-              />
-            )}
             {maxSelection && (
               <p className="text-caption1r text-gray-500">
                 * 최대 {maxSelection}개까지 선택 가능합니다

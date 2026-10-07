@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { UseFormRegister } from 'react-hook-form';
+import { DynamicFormItem, JsonData, OtherJson } from '../../application/type';
 import { ApplicationType } from '../../exhibition/type';
 
 export interface Option {
@@ -8,9 +9,16 @@ export interface Option {
   label?: string;
   icon?: ReactNode;
   isAlwaysSelected?: boolean;
+  /** 서버 `jsonData` 키. 없으면 순서(1부터)로 매긴다. 직업처럼 키가 고정된 선택지만 둔다. */
+  key?: string;
 }
 
-export type DynamicFormType = 'NAME' | 'PHONE_NUMBER' | 'TRAINEE_ID';
+export type DynamicFormType =
+  | 'NAME'
+  | 'PHONE_NUMBER'
+  | 'TRAINING_ID'
+  | 'OCCUPATION'
+  | 'SCHOOL';
 
 export interface FormValues {
   questions: {
@@ -26,12 +34,13 @@ export interface FormValues {
   title: string;
 }
 
+/** 빌더 내부 `otherJson`(문자열)의 모양. 서버 모양으로는 `formUtils`에서 바꾼다. */
 export interface ConditionalSettings {
-  hasEtc: boolean;
   maxSelection?: number | null;
   conditional?: {
     parentId: string;
-    triggerValue: string;
+    triggerValue?: string | null;
+    triggerValues?: string[];
   };
 }
 export interface OptionProps {
@@ -39,39 +48,31 @@ export interface OptionProps {
   remove: (index: number) => void;
   register: UseFormRegister<FormValues>;
   index: number;
-  isCheckBox?: boolean;
+}
+
+export interface DynamicFieldRequest {
+  title: string;
+  formType: DynamicFormItem['formType'];
+  jsonData: JsonData;
+  requiredStatus: boolean;
+  otherJson: OtherJson | null;
 }
 
 export interface ApplicationFormRequest {
   startDate: string;
   endDate: string;
-  applicationId: string;
   participantType: 'STANDARD' | 'TRAINEE';
   applicationType: ApplicationType;
-  dynamicForm: {
-    title: string;
-    formType: string;
-    jsonData: string;
-    requiredStatus: boolean;
-    otherJson: string | null;
-    dynamicFormType: string;
-  }[];
+  dynamicForm: (DynamicFieldRequest & {
+    dynamicFormType: DynamicFormType | 'DEFAULT';
+  })[];
   informationText: string;
   title: string;
 }
 
 export interface SurveyFormRequest {
-  startDate: string;
-  endDate: string;
   participationType: 'STANDARD' | 'TRAINEE';
-  dynamicSurveyRequestDto: {
-    title: string;
-    formType: string;
-    jsonData: string;
-    requiredStatus: boolean;
-    otherJson: string | null;
-    dynamicFormType: string;
-  }[];
+  dynamicSurveyRequestDto: DynamicFieldRequest[];
   informationText: string;
   title: string;
 }

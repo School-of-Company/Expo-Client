@@ -3,11 +3,9 @@ export { default as DeleteButton } from './ui/DeleteButton';
 export { default as DropDownOption } from './ui/DropDownOption';
 export { default as FormTitle } from './ui/FormTitle';
 export { default as FormTypeSelect } from './ui/FormTypeSelect';
-export { default as MultipleChoiceOption } from './ui/MultipleChoiceOption';
 export { default as PictureOption } from './ui/PictureOption';
 export { default as RequiredToggle } from './ui/RequiredToggle';
 export { default as CreateFormButton } from './ui/CreateFormButton';
-export { default as CheckBox } from './ui/CheckBox';
 export { default as PrivacyConsentForm } from './ui/PrivacyConsentForm';
 export { default as ConditionalSettings } from './ui/ConditionalSettings';
 export { default as SplitButton } from './ui/SplitButton';
@@ -15,7 +13,10 @@ export { selectOptionData } from './constants/selectOptionData';
 export { default as TextField } from './ui/TextField';
 export { default as TextAreaField } from './ui/TextAreaField';
 export { default as PhoneField } from './ui/PhoneField';
-export { default as SingleSelectField } from './ui/SingleSelectField';
 export { default as MultiSelectField } from './ui/MultiSelectField';
 export { default as DropdownField } from './ui/DropdownField';
-export { default as EtcField } from './ui/EtcField';
+export {
+  OCCUPATION_OPTIONS,
+  SCHOOL_OCCUPATIONS,
+} from './constants/occupationData';
+export type { Occupation } from './constants/occupationData';

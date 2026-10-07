@@ -10,7 +10,7 @@ export const editApplicationForm = async ({
   id: string;
 }) => {
   try {
-    const response = await clientTokenInstance.patch(`/form/${id}`, data);
+    const response = await clientTokenInstance.patch(`/forms/${id}`, data);
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

@@ -11,7 +11,6 @@ import {
   TextField,
   TextAreaField,
   PhoneField,
-  SingleSelectField,
   MultiSelectField,
   DropdownField,
 } from '@/entities/form';
@@ -100,27 +99,19 @@ export default function FieldRenderer({
         </div>
       );
 
-    case 'SINGLE_SELECT':
+    case 'CHECKBOX':
       return (
-        <div className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-18">
-          <div className="flex items-center gap-2">
-            <p className="text-h3b text-black">{item.label}</p>
-            {item.required && <p className="text-main-600">*</p>}
-          </div>
-          <div className="space-y-10">
-            <SingleSelectField
-              name={item.id}
-              label={item.label}
-              options={item.options || []}
-              required={item.required}
-              allowEtc={item.config?.allowEtc}
-              etcLabel={item.config?.etcLabel}
-              register={register}
-              watch={watch}
-              setValue={setValue}
-            />
-          </div>
-        </div>
+        <label className="flex cursor-pointer items-center gap-12 rounded-sm border-1 border-solid border-gray-200 p-18">
+          <input
+            type="checkbox"
+            className="h-16 w-16 accent-blue-500"
+            {...register(item.id, {
+              required: item.required ? `${item.label}에 체크해주세요` : false,
+            })}
+          />
+          <p className="text-h3b text-black">{item.label}</p>
+          {item.required && <p className="text-main-600">*</p>}
+        </label>
       );
 
     case 'MULTI_SELECT':
@@ -137,12 +128,7 @@ export default function FieldRenderer({
               options={item.options || []}
               required={item.required}
               maxSelection={item.config?.maxSelection}
-              allowEtc={item.config?.allowEtc}
-              etcLabel={item.config?.etcLabel}
               control={control}
-              register={register}
-              watch={watch}
-              setValue={setValue}
             />
           </div>
         </div>
