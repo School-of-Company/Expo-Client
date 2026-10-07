@@ -43,7 +43,7 @@ export async function performTokenRefresh(
       .exec();
 
     return result;
-  } catch (err) {
+  } catch {
     const start = Date.now();
     while (Date.now() - start < MAX_POLL_MS) {
       const [polledAccess, polledRefresh] = await redis.hmget(

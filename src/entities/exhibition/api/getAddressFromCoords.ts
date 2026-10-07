@@ -17,7 +17,7 @@ export const getAddressFromCoords = async (
     }
 
     return data.documents[0].road_address.address_name;
-  } catch (e) {
+  } catch {
     throw new Error('주소를 찾을 수 없습니다.');
   }
 };

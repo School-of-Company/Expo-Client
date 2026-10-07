@@ -27,7 +27,7 @@ export async function refreshAccessToken(
     });
 
     return { accessToken, refreshToken: newRefreshToken };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
