@@ -35,12 +35,14 @@ const ProgramDetailTable = ({
   const handleAttendance = (scannedQR: QrScanData) => {
     if (navigation === 'standard') {
       standardAttendance({
+        expoId,
         programId,
         participantId: scannedQR.participantId!,
         phoneNumber: scannedQR.phoneNumber!,
       });
     } else {
       trainingAttendance({
+        expoId,
         programId,
         traineeId: scannedQR.traineeId!,
       });
