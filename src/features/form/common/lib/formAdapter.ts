@@ -1,81 +1,24 @@
 import {
   FormSchema,
   FormItem,
-  Option,
   FormLogic,
 } from '@/features/form/common/model/formSchema';
-import { DynamicFormItem } from '@/shared/types/application/type';
+import { DynamicFormItem, JsonData } from '@/shared/types/application/type';
 
-interface ParsedJsonData {
-  id: string;
-  options?: Array<{
-    id: string;
-    label: string;
-    value: string;
-  }>;
-}
+/** 렌더러 필드 id. 서버 문항 id이고, 설문 답변(`answers`)의 키로도 쓴다. */
+export const getFieldId = (item: DynamicFormItem) => String(item.id);
 
-interface ConditionalLogic {
-  parentId: string;
-  triggerValue: string;
-}
-
-interface ParsedOtherJson {
-  hasEtc?: boolean;
-  maxSelection?: number;
-  minSelection?: number;
-  conditional?: ConditionalLogic;
-}
-
-function parseJsonData(jsonDataStr?: string): ParsedJsonData | null {
-  if (!jsonDataStr) return null;
-
-  try {
-    const parsed = JSON.parse(jsonDataStr);
-
-    if (!parsed.id) {
-      throw new Error('jsonData must contain an id field');
-    }
-
-    return {
-      id: parsed.id,
-      options: parsed.options || undefined,
-    };
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-}
-
-function parseOtherJson(otherJsonStr: string | null): ParsedOtherJson {
-  if (!otherJsonStr) return {};
-
-  try {
-    const parsed = JSON.parse(otherJsonStr);
-    return {
-      hasEtc: parsed.hasEtc,
-      maxSelection: parsed.maxSelection,
-      minSelection: parsed.minSelection,
-      conditional: parsed.conditional,
-    };
-  } catch (error) {
-    console.error(error);
-    return {};
-  }
-}
+export const optionLabel = (option: JsonData[string]) =>
+  typeof option === 'string' ? option : option.value;
 
 function mapFormType(formType: DynamicFormItem['formType']): FormItem['type'] {
   switch (formType) {
-    case 'SENTENCE':
-      return 'TEXT';
     case 'CHECKBOX':
-      return 'MULTI_SELECT';
+      return 'CHECKBOX';
     case 'MULTIPLE':
-      return 'SINGLE_SELECT';
+      return 'MULTI_SELECT';
     case 'DROPDOWN':
       return 'DROPDOWN';
-    case 'APPLICATIONPHONEOPTION':
-      return 'PHONE';
     default:
       return 'TEXT';
   }
@@ -85,74 +28,46 @@ function adaptDynamicFormItem(
   item: DynamicFormItem,
   allItems: DynamicFormItem[],
 ): FormItem {
-  const fieldType = mapFormType(item.formType);
-  const parsedJsonData = parseJsonData(item.jsonData);
-  const parsedConfig = parseOtherJson(item.otherJson);
-  const { conditional, hasEtc, maxSelection, minSelection } = parsedConfig;
+  const type = mapFormType(item.formType);
+  const { conditional, maxSelection } = item.otherJson ?? {};
 
-  if (!parsedJsonData?.id) {
-    throw new Error(`jsonData must contain an id field. Item: ${item.title}`);
-  }
-
-  let options: Option[] | undefined;
-  if (
-    (fieldType === 'MULTI_SELECT' ||
-      fieldType === 'SINGLE_SELECT' ||
-      fieldType === 'DROPDOWN') &&
-    parsedJsonData?.options
-  ) {
-    options = parsedJsonData.options.map((opt) => ({
-      id: opt.id,
-      label: opt.label,
-      value: opt.value,
-    }));
-  }
+  // 선택지 값은 jsonData 키 그대로라 답변에 바로 실을 수 있다.
+  const options =
+    type === 'MULTI_SELECT' || type === 'DROPDOWN'
+      ? Object.entries(item.jsonData).map(([key, option]) => ({
+          id: key,
+          label: optionLabel(option),
+          value: key,
+        }))
+      : undefined;
 
   let logic: FormLogic | undefined;
-  if (conditional?.parentId) {
-    const parentItem = allItems.find((i) => {
-      try {
-        const parsed = JSON.parse(i.jsonData || '{}');
-        return parsed.id === conditional.parentId;
-      } catch {
-        return false;
-      }
-    });
-
-    const isParentMultiSelect = parentItem?.formType === 'CHECKBOX';
-
+  const parent = conditional && allItems[conditional.parentIndex];
+  if (parent) {
+    const fieldId = getFieldId(parent);
     logic = {
       visibility: {
         op: 'AND',
         conditions: [
-          {
-            fieldId: conditional.parentId,
-            op: isParentMultiSelect ? 'contains' : 'eq',
-            value: conditional.triggerValue,
-          },
+          conditional.triggerValues
+            ? { fieldId, op: 'in', value: conditional.triggerValues }
+            : {
+                fieldId,
+                op: parent.formType === 'MULTIPLE' ? 'contains' : 'eq',
+                value: conditional.triggerValue ?? '',
+              },
         ],
       },
     };
   }
 
-  const config =
-    hasEtc !== undefined ||
-    maxSelection !== undefined ||
-    minSelection !== undefined
-      ? {
-          allowEtc: hasEtc,
-          maxSelection,
-          minSelection,
-        }
-      : undefined;
-
   return {
-    id: parsedJsonData.id,
-    type: fieldType,
+    id: getFieldId(item),
+    type,
     label: item.title,
     required: item.requiredStatus,
     options,
-    config,
+    config: maxSelection ? { maxSelection } : undefined,
     logic,
   };
 }

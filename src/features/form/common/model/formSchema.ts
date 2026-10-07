@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const FormFieldType = z.enum([
   'TEXT',
   'TEXTAREA',
-  'SINGLE_SELECT',
+  'CHECKBOX',
   'MULTI_SELECT',
   'DROPDOWN',
   'PHONE',
@@ -12,7 +12,7 @@ export const FormFieldType = z.enum([
 export type FormFieldType = z.infer<typeof FormFieldType>;
 
 export const OptionSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   label: z.string().min(1, '선택지 제목을 입력해주세요'),
   value: z.string(),
 });
@@ -23,9 +23,6 @@ export const FieldConfigSchema = z.object({
   placeholder: z.string().optional(),
   description: z.string().optional(),
   maxSelection: z.number().min(1).optional(),
-  minSelection: z.number().min(0).optional(),
-  allowEtc: z.boolean().optional(),
-  etcLabel: z.string().optional(),
 });
 
 export type FieldConfig = z.infer<typeof FieldConfigSchema>;
@@ -41,7 +38,7 @@ export const ConditionOperator = z.enum([
 ]);
 
 export const ConditionSchema = z.object({
-  fieldId: z.string().uuid(),
+  fieldId: z.string(),
   op: ConditionOperator,
   value: z.union([z.string(), z.number(), z.boolean(), z.array(z.string())]),
 });
@@ -58,7 +55,7 @@ export const LogicSchema = z.object({
 export type FormLogic = z.infer<typeof LogicSchema>;
 
 export const FormItemSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   type: FormFieldType,
   label: z.string().min(1, '질문 제목을 입력해주세요'),
   required: z.boolean().default(false),
