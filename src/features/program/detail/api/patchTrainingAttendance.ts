@@ -3,6 +3,7 @@ import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { PatchTrainingProgramData } from '@/shared/types/program/detail/type';
 
 export const patchTrainingAttendance = async ({
+  expoId,
   programId,
   traineeId,
 }: PatchTrainingProgramData) => {
@@ -10,6 +11,7 @@ export const patchTrainingAttendance = async ({
     const response = await clientTokenInstance.patch(
       `/attendance/training/${programId}`,
       {
+        expoId,
         traineeId,
       },
     );
