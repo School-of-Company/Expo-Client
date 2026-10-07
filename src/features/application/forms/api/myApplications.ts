@@ -5,6 +5,8 @@ import { ParticipantType } from '../constant/participant';
 
 export interface MyParticipant {
   participantId: number;
+  // 입장 QR에 participantId와 함께 넣는 랜덤 값(22자)
+  code: string;
   participantType: ParticipantType;
   // 교사·예비교사만 입력
   affiliation?: string;
@@ -60,16 +62,26 @@ const MOCK_MY_APPLICATIONS: MyApplication[] = [
     phoneNumber: '01012345678',
     sessionStartedAt: '2026-10-31T09:30:00',
     participants: [
-      { participantId: 1, participantType: 'GENERAL' },
-      { participantId: 2, participantType: 'ELEMENTARY' },
+      {
+        participantId: 1,
+        code: 'mockCode0000000000000a',
+        participantType: 'GENERAL',
+      },
+      {
+        participantId: 2,
+        code: 'mockCode0000000000000b',
+        participantType: 'ELEMENTARY',
+      },
       {
         participantId: 3,
+        code: 'mockCode0000000000000c',
         participantType: 'TEACHER',
         affiliation: '광주초',
         name: '홍길동',
       },
       {
         participantId: 4,
+        code: 'mockCode0000000000000d',
         participantType: 'PRE_TEACHER',
         affiliation: '광주교대',
         name: '김예비',
