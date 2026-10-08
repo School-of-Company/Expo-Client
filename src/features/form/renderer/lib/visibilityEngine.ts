@@ -1,7 +1,8 @@
 import { FormLogic } from '@/features/form/common/model/formSchema';
+import { Companion } from '@/shared/types/application/type';
 
 export type FormValues = {
-  [fieldId: string]: string | string[] | boolean | undefined;
+  [fieldId: string]: string | string[] | boolean | Companion[] | undefined;
 };
 
 type ConditionOperator = 'eq' | 'neq' | 'in' | 'nin' | 'gt' | 'lt' | 'contains';
@@ -52,7 +53,7 @@ export function evaluateCondition(
 
     case 'contains':
       if (Array.isArray(fieldValue)) {
-        return fieldValue.includes(targetValue as string);
+        return (fieldValue as string[]).includes(targetValue as string);
       }
       return fieldValue === targetValue;
 

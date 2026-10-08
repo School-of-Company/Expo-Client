@@ -20,7 +20,14 @@ export interface OtherJson {
 export interface DynamicFormItem {
   id: number;
   title: string;
-  formType: 'SENTENCE' | 'CHECKBOX' | 'DROPDOWN' | 'IMAGE' | 'MULTIPLE';
+  formType:
+    | 'SENTENCE'
+    | 'CHECKBOX'
+    | 'DROPDOWN'
+    | 'IMAGE'
+    | 'MULTIPLE'
+    | 'COMPANION'
+    | 'REGION';
   jsonData: JsonData;
   requiredStatus: boolean;
   otherJson: OtherJson | null;
@@ -61,6 +68,17 @@ export interface FormattedSurveyData {
 /** 문항 id → 답변. SENTENCE 문자열, CHECKBOX boolean, DROPDOWN 키, MULTIPLE 키 배열. */
 export type SurveyAnswers = Record<string, string | boolean | string[]>;
 
+/**
+ * 동행자 한 명(`COMPANION` 답변의 원소). 전화번호 없이 대표자 번호로 등록된다.
+ * `occupation`은 직업 키, `region`은 지역 키이고 `school`은 소속이 필요한 직업일 때만 보낸다.
+ */
+export interface Companion {
+  name: string;
+  occupation: string;
+  region: string;
+  school?: string;
+}
+
 export type DynamicFormValues = {
-  [key: string]: string | string[] | boolean | undefined;
+  [key: string]: string | string[] | boolean | Companion[] | undefined;
 };

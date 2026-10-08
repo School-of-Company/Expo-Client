@@ -1,37 +1,13 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
-import {
-  getPreRegister,
-  postPreRegister,
-  PreRegisterBody,
-} from '../api/preRegister';
+import { useQuery } from '@tanstack/react-query';
+import { getPreRegisterSession } from '../api/preRegister';
 
-export const usePreRegister = (expoId: string, sessionId: string) => {
-  const queryClient = useQueryClient();
-  const queryKey = ['preRegister', expoId, sessionId];
-
-  const { data, isLoading } = useQuery({
-    queryKey,
-    queryFn: () => getPreRegister(expoId, sessionId),
+/** 회차 정보. 회차 API가 아직 없어 실패해도 신청은 막지 않도록 조용히 둔다. */
+export const usePreRegisterSession = (expoId: string, sessionId: string) =>
+  useQuery({
+    queryKey: ['preRegisterSession', expoId, sessionId],
+    queryFn: () => getPreRegisterSession(expoId, sessionId),
+    retry: false,
+    meta: { silent: true },
   });
-
-  const mutation = useMutation({
-    mutationFn: (body: PreRegisterBody) =>
-      postPreRegister(expoId, sessionId, body),
-    onSuccess: () => {
-      toast.success('신청이 완료되었습니다.');
-      queryClient.invalidateQueries({ queryKey });
-      queryClient.invalidateQueries({ queryKey: ['myApplications', expoId] });
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
-
-  return {
-    data,
-    isLoading,
-    apply: mutation.mutate,
-    isApplying: mutation.isPending,
-  };
-};

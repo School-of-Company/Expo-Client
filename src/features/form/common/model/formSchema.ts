@@ -7,6 +7,7 @@ export const FormFieldType = z.enum([
   'MULTI_SELECT',
   'DROPDOWN',
   'PHONE',
+  'COMPANION',
 ]);
 
 export type FormFieldType = z.infer<typeof FormFieldType>;

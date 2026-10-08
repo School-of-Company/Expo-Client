@@ -13,6 +13,7 @@ import {
   PhoneField,
   MultiSelectField,
   DropdownField,
+  CompanionField,
 } from '@/entities/form';
 import { FormItem } from '@/features/form/common/model/formSchema';
 import { evaluateVisibility, FormValues } from '../lib/visibilityEngine';
@@ -151,6 +152,24 @@ export default function FieldRenderer({
               setValue={setValue}
             />
           </div>
+        </div>
+      );
+
+    case 'COMPANION':
+      return (
+        <div className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-18">
+          <div className="flex items-center gap-2">
+            <p className="text-h3b text-black">{item.label}</p>
+            {item.required && <p className="text-main-600">*</p>}
+          </div>
+          <CompanionField
+            name={item.id}
+            label={item.label}
+            required={item.required}
+            maxCount={item.config?.maxSelection}
+            control={control}
+            register={register}
+          />
         </div>
       );
 
