@@ -19,17 +19,15 @@ interface QrTarget {
 }
 
 const toQrTarget = (
-  { participantId, participantType, affiliation, name }: MyParticipant,
+  { participantId, code, participantType, affiliation, name }: MyParticipant,
   index: number,
-  phoneNumber: string,
-  expoId: string,
 ): QrTarget => {
   const typeLabel = PARTICIPANT_TYPE_LABEL[participantType];
   const detail = affiliation && name ? `${affiliation} ${name}` : undefined;
 
   return {
-    // printBadge 와 같은 페이로드라 현장 체크인 스캐너에서 그대로 읽힌다
-    value: JSON.stringify({ participantId, phoneNumber, expoId }),
+    // 현장 체크인 스캐너(useQRScanner)가 읽는 입장 QR 페이로드
+    value: JSON.stringify({ participantId, code }),
     title: `${index === 0 ? '대표자' : `참여자 ${index + 1}`} · ${typeLabel}`,
     detail,
     caption: detail ?? typeLabel,
@@ -95,12 +93,10 @@ const ParticipantRow = ({
 
 const ApplicationItem = ({
   application,
-  expoId,
   onShowQr,
   onCancel,
 }: {
   application: MyApplication;
-  expoId: string;
   onShowQr: (target: QrTarget) => void;
   onCancel: (participantId: number, title: string) => void;
 }) => {
@@ -126,12 +122,7 @@ const ApplicationItem = ({
 
       <ul className="flex flex-col divide-y divide-solid divide-gray-100">
         {application.participants.map((participant, index) => {
-          const target = toQrTarget(
-            participant,
-            index,
-            application.phoneNumber,
-            expoId,
-          );
+          const target = toQrTarget(participant, index);
           return (
             <ParticipantRow
               key={participant.participantId}
@@ -191,7 +182,6 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
           <ApplicationItem
             key={application.applicationId}
             application={application}
-            expoId={expoId}
             onShowQr={setQrTarget}
             onCancel={(participantId, title) =>
               setCancelTarget({ participantId, title })

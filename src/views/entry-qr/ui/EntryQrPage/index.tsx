@@ -45,9 +45,11 @@ const EntryQrPage = ({ query }: { query: EntryQrQuery }) => {
 
       <div className="flex flex-col items-center gap-4">
         <p className="text-body1b text-black">{entryQr.typeLabel}</p>
-        <p className="text-body2r text-gray-500">
-          {maskPhoneNumber(entryQr.phoneNumber)}
-        </p>
+        {entryQr.phoneNumber && (
+          <p className="text-body2r text-gray-500">
+            {maskPhoneNumber(entryQr.phoneNumber)}
+          </p>
+        )}
       </div>
 
       <button

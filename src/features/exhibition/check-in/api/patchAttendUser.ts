@@ -10,10 +10,7 @@ export const patchAttendUser = async (
   data: AttendUserQrRequest,
 ): Promise<AttendUserResponse> => {
   try {
-    const response = await clientTokenInstance.patch(`/attendance/${id}`, {
-      authority: data.authority,
-      phoneNumber: data.phoneNumber,
-    });
+    const response = await clientTokenInstance.patch(`/attendance/${id}`, data);
 
     return response.data;
   } catch (error) {
