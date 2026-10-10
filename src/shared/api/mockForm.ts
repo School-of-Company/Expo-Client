@@ -18,15 +18,7 @@ const PERIODS: Record<string, [number, number] | null> = {
 const option = (labels: string[]) =>
   Object.fromEntries(labels.map((label, index) => [String(index + 1), label]));
 
-const FIELDS: ApplicationForm['dynamicForm'] = [
-  {
-    id: 1,
-    title: '대표자 거주 지역',
-    formType: 'DROPDOWN',
-    jsonData: option(['광주', '전남', '전북', '기타']),
-    requiredStatus: true,
-    otherJson: null,
-  },
+const FIELDS: NonNullable<ApplicationForm['dynamicForm']> = [
   {
     id: 2,
     title: '참여 시간',
@@ -50,6 +42,28 @@ const FIELDS: ApplicationForm['dynamicForm'] = [
   },
 ];
 
+// 일반 참가자 사전 폼에만 있는 문항(Form REGION·COMPANION)
+const STANDARD_PRE_FIELDS: NonNullable<ApplicationForm['dynamicForm']> = [
+  {
+    id: 4,
+    title: '지역',
+    formType: 'REGION',
+    jsonData: {},
+    requiredStatus: true,
+    otherJson: null,
+    dynamicFormType: 'DEFAULT',
+  },
+  {
+    id: 5,
+    title: '동행자',
+    formType: 'COMPANION',
+    jsonData: {},
+    requiredStatus: false,
+    otherJson: { hasEtc: false, maxSelection: 4 },
+    dynamicFormType: 'DEFAULT',
+  },
+];
+
 export const getMockForm = (
   formType: 'application' | 'survey',
   userType: string,
@@ -66,6 +80,10 @@ export const getMockForm = (
     endDate: new Date(now + period[1] * DAY).toISOString(),
     participantType: userType as ApplicationForm['participantType'],
     [formType === 'survey' ? 'dynamicSurveyResponseDto' : 'dynamicForm']:
-      FIELDS,
+      formType === 'application' &&
+      userType === 'STANDARD' &&
+      applicationType === 'PRE'
+        ? [...FIELDS, ...STANDARD_PRE_FIELDS]
+        : FIELDS,
   };
 };

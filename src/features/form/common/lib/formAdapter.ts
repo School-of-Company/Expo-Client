@@ -1,4 +1,8 @@
 import {
+  COMPANION_MAX_COUNT,
+  REGION_OPTIONS,
+} from '@/entities/form/constants/occupationData';
+import {
   FormSchema,
   FormItem,
   FormLogic,
@@ -18,7 +22,10 @@ function mapFormType(formType: DynamicFormItem['formType']): FormItem['type'] {
     case 'MULTIPLE':
       return 'MULTI_SELECT';
     case 'DROPDOWN':
+    case 'REGION':
       return 'DROPDOWN';
+    case 'COMPANION':
+      return 'COMPANION';
     default:
       return 'TEXT';
   }
@@ -32,13 +39,17 @@ function adaptDynamicFormItem(
   const { conditional, maxSelection } = item.otherJson ?? {};
 
   // 선택지 값은 jsonData 키 그대로라 답변에 바로 실을 수 있다.
+  // 지역은 선택지가 서버에 고정돼 jsonData가 비어 있으므로 클라이언트 목록을 쓴다.
+  const entries: [string, string][] =
+    item.formType === 'REGION'
+      ? REGION_OPTIONS.map(({ key, label }) => [key, label])
+      : Object.entries(item.jsonData).map(([key, option]) => [
+          key,
+          optionLabel(option),
+        ]);
   const options =
     type === 'MULTI_SELECT' || type === 'DROPDOWN'
-      ? Object.entries(item.jsonData).map(([key, option]) => ({
-          id: key,
-          label: optionLabel(option),
-          value: key,
-        }))
+      ? entries.map(([key, label]) => ({ id: key, label, value: key }))
       : undefined;
 
   let logic: FormLogic | undefined;
@@ -67,7 +78,12 @@ function adaptDynamicFormItem(
     label: item.title,
     required: item.requiredStatus,
     options,
-    config: maxSelection ? { maxSelection } : undefined,
+    config:
+      type === 'COMPANION'
+        ? { maxSelection: maxSelection ?? COMPANION_MAX_COUNT }
+        : maxSelection
+          ? { maxSelection }
+          : undefined,
     logic,
   };
 }

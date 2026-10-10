@@ -19,6 +19,7 @@ export const resolveFieldValue = (
     return typeof option === 'string' ? option : option.value;
   };
 
-  if (Array.isArray(raw)) return raw.map(toLabel);
+  // 동행자(COMPANION) 목록은 processCompanions가 따로 다룬다.
+  if (Array.isArray(raw)) return (raw as string[]).map(toLabel);
   return typeof raw === 'string' ? toLabel(raw) : raw;
 };

@@ -24,7 +24,7 @@ export const buildSurveyAnswers = (
     const triggers = conditional.triggerValues ?? [conditional.triggerValue];
     const parentValue = data[String(parent.id)];
     return Array.isArray(parentValue)
-      ? parentValue.some((value) => triggers.includes(value))
+      ? (parentValue as string[]).some((value) => triggers.includes(value))
       : triggers.includes(parentValue as string);
   };
 
