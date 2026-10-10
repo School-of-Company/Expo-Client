@@ -6,7 +6,7 @@ export const patchStandardAttendance = async ({
   expoId,
   programId,
   participantId,
-  phoneNumber,
+  code,
 }: PatchStandardProgramData) => {
   try {
     const response = await clientTokenInstance.patch(
@@ -14,7 +14,7 @@ export const patchStandardAttendance = async ({
       {
         expoId,
         participantId,
-        phoneNumber,
+        code,
       },
     );
     return response;
