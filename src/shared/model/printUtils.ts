@@ -5,12 +5,12 @@ import { createElement } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 
-const renderQRCodeSVG = (value: string): string => {
+export const renderQRCodeSVG = (value: string, size = 130): string => {
   const host = document.createElement('div');
   const root = createRoot(host);
 
   flushSync(() => {
-    root.render(createElement(QRCodeSVG, { value, size: 130 }));
+    root.render(createElement(QRCodeSVG, { value, size }));
   });
 
   const markup = host.innerHTML;
