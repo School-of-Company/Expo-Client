@@ -2,6 +2,7 @@
 
 import { QRCodeCanvas } from 'qrcode.react';
 import { useRef, useState } from 'react';
+import { downloadQrImage } from '@/shared/libs/downloadQrImage';
 import { MyApplication, MyParticipant } from '../../api/myApplications';
 import { FORM_GROUPS } from '../../constant/formEntries';
 import { PARTICIPANT_TYPE_LABEL } from '../../constant/participant';
@@ -18,17 +19,15 @@ interface QrTarget {
 }
 
 const toQrTarget = (
-  { participantId, participantType, affiliation, name }: MyParticipant,
+  { participantId, code, participantType, affiliation, name }: MyParticipant,
   index: number,
-  phoneNumber: string,
-  expoId: string,
 ): QrTarget => {
   const typeLabel = PARTICIPANT_TYPE_LABEL[participantType];
   const detail = affiliation && name ? `${affiliation} ${name}` : undefined;
 
   return {
-    // printBadge 와 같은 페이로드라 현장 체크인 스캐너에서 그대로 읽힌다
-    value: JSON.stringify({ participantId, phoneNumber, expoId }),
+    // 현장 체크인 스캐너(useQRScanner)가 읽는 입장 QR 페이로드
+    value: JSON.stringify({ participantId, code }),
     title: `${index === 0 ? '대표자' : `참여자 ${index + 1}`} · ${typeLabel}`,
     detail,
     caption: detail ?? typeLabel,
@@ -46,26 +45,7 @@ const ParticipantRow = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // QR 아래에 문구를 붙여 한 장의 이미지로 저장
-  const saveQr = () => {
-    const qr = canvasRef.current!;
-    const canvas = document.createElement('canvas');
-    canvas.width = qr.width;
-    canvas.height = qr.height + 80;
-    const context = canvas.getContext('2d')!;
-    context.fillStyle = '#fff';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(qr, 0, 0);
-    context.fillStyle = '#121212';
-    context.font = '600 36px Pretendard, sans-serif';
-    context.textAlign = 'center';
-    context.fillText(target.caption, canvas.width / 2, qr.height + 44);
-
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = `${target.caption}_QR.png`;
-    link.click();
-  };
+  const saveQr = () => downloadQrImage(canvasRef.current!, target.caption);
 
   return (
     <li className="flex items-center justify-between gap-12 py-12 mobile:flex-col mobile:items-stretch">
@@ -113,12 +93,10 @@ const ParticipantRow = ({
 
 const ApplicationItem = ({
   application,
-  expoId,
   onShowQr,
   onCancel,
 }: {
   application: MyApplication;
-  expoId: string;
   onShowQr: (target: QrTarget) => void;
   onCancel: (participantId: number, title: string) => void;
 }) => {
@@ -144,12 +122,7 @@ const ApplicationItem = ({
 
       <ul className="flex flex-col divide-y divide-solid divide-gray-100">
         {application.participants.map((participant, index) => {
-          const target = toQrTarget(
-            participant,
-            index,
-            application.phoneNumber,
-            expoId,
-          );
+          const target = toQrTarget(participant, index);
           return (
             <ParticipantRow
               key={participant.participantId}
@@ -209,7 +182,6 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
           <ApplicationItem
             key={application.applicationId}
             application={application}
-            expoId={expoId}
             onShowQr={setQrTarget}
             onCancel={(participantId, title) =>
               setCancelTarget({ participantId, title })

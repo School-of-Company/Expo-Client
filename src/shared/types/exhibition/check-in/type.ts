@@ -1,7 +1,7 @@
-export interface AttendUserQrRequest {
-  authority: string;
-  phoneNumber: string;
-}
+// 일반 참가자는 participantId + code, 연수자는 phoneNumber로 찾는다
+export type AttendUserQrRequest =
+  | { authority: string; participantId: number; code: string }
+  | { authority: string; phoneNumber: string };
 
 // 연수자 전원과 교사만 값이 있고 그 외는 null
 export interface AttendUserBadge {

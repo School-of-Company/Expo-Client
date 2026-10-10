@@ -1,12 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 import { ExhibitionCheckInHeader } from '@/entities/exhibition';
 import { toRoleAuthority, USER_AUTHORITY } from '@/shared/config';
 import { useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
-import { AttendUserResponse } from '@/shared/types/exhibition/check-in/type';
+import {
+  AttendUserQrRequest,
+  AttendUserResponse,
+} from '@/shared/types/exhibition/check-in/type';
 import { TableForm } from '@/shared/ui/Table';
 import { CHECK_IN_PRINT_CATEGORIES } from '../../model/constants';
 import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';
@@ -19,14 +23,35 @@ const QRScannerTable = ({ id }: { id: string }) => {
 
   useQRScanner(setScannedQR);
 
+  const toAttendRequest = ({
+    traineeId,
+    participantId,
+    code,
+    phoneNumber,
+  }: QrScanData): AttendUserQrRequest | null => {
+    if (traineeId && phoneNumber) {
+      return {
+        authority: toRoleAuthority(USER_AUTHORITY.TRAINEE),
+        phoneNumber,
+      };
+    }
+    if (participantId && code) {
+      return {
+        authority: toRoleAuthority(USER_AUTHORITY.STANDARD),
+        participantId,
+        code,
+      };
+    }
+    return null;
+  };
+
   const fetchUserData = async (scannedQR: QrScanData) => {
-    const authority = toRoleAuthority(
-      scannedQR.traineeId ? USER_AUTHORITY.TRAINEE : USER_AUTHORITY.STANDARD,
-    );
-    const newUser: AttendUserResponse = await attendUser({
-      authority,
-      phoneNumber: scannedQR.phoneNumber,
-    });
+    const request = toAttendRequest(scannedQR);
+    if (!request) {
+      toast.error('입장 QR 형식이 올바르지 않습니다.');
+      return;
+    }
+    const newUser: AttendUserResponse = await attendUser(request);
     setUserData((prev) => [...prev, newUser]);
   };
 
