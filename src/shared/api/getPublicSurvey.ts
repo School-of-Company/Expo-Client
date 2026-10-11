@@ -2,16 +2,21 @@ import axios from 'axios';
 import clientInstance from '../libs/http/clientInstance';
 import { ApplicationForm } from '../types/application/type';
 
-export type QrSurvey = ApplicationForm & { expoId: string };
+export type PublicSurvey = ApplicationForm & {
+  expoId: string;
+  lotteryEnabled: boolean;
+};
 
-export const getQrSurvey = async (token: string): Promise<QrSurvey> => {
+export const getPublicSurvey = async (
+  expoId: string,
+): Promise<PublicSurvey> => {
   try {
-    const response = await clientInstance.get(`/surveys/qr/${token}`);
+    const response = await clientInstance.get(`/surveys/public/${expoId}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      if (error.response.status === 409) {
-        throw new Error('이미 응답한 QR입니다.');
+      if (error.response.status === 404) {
+        throw new Error('진행 중인 만족도 조사가 없습니다.');
       }
       throw new Error(error.response.data.error || '설문 불러오기 실패');
     }
