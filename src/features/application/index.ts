@@ -1,3 +1,3 @@
 export { getSuccessMessage } from './lib/getSuccessMessage';
 export { default as ApplicationFormContainer } from './ui/ApplicationFormContainer';
-export { default as QrSurveyContainer } from './ui/QrSurveyContainer';
+export { default as PublicSurveyContainer } from './ui/PublicSurveyContainer';
