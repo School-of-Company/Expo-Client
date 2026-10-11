@@ -31,5 +31,8 @@ export interface PatchStandardProgramData {
 export interface PatchTrainingProgramData {
   expoId: string;
   programId: string;
-  traineeId: number;
+  // 연수자 QR이면 traineeId, 사전등록 참가자 QR이면 participantId와 code를 보낸다
+  traineeId?: number;
+  participantId?: number;
+  code?: string;
 }

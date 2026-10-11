@@ -50,6 +50,10 @@ const ProgramDetailTable = ({
       }
       standardAttendance({ expoId, programId, participantId, code });
     } else {
+      if (participantId && code) {
+        trainingAttendance({ expoId, programId, participantId, code });
+        return;
+      }
       if (!traineeId) {
         toast.error('연수자 QR 형식이 올바르지 않습니다.');
         return;
