@@ -25,6 +25,7 @@ import {
 } from '../../model/applicationFilter';
 import ApplicationFilters from '../ApplicationFilters';
 import ApplicationTable from '../ApplicationTable';
+import ExcelDownloadModal from '../ExcelDownloadModal';
 import GroupSmsModal from '../GroupSmsModal';
 
 const PAGE_SIZE = 10;
@@ -42,6 +43,7 @@ const ApplicationLedger = () => {
   const [sort, setSort] = useState<SortState>({ key: 'id', direction: 'desc' });
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isSmsModalOpen, setIsSmsModalOpen] = useState(false);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
 
   const { mutate: changeStatus, isPending: isChangingStatus } =
     useChangeApplicationStatus(() => setSelectedIds(new Set()));
@@ -201,7 +203,11 @@ const ApplicationLedger = () => {
                 />
                 <div className="flex items-center gap-20 mobile:gap-12">
                   <p className="text-body1r text-gray-400">출력</p>
-                  <SmallButton text="Excel" onClick={handleExportCsv} />
+                  <SmallButton
+                    text="Excel"
+                    onClick={() => setIsExcelModalOpen(true)}
+                  />
+                  <SmallButton text="CSV" onClick={handleExportCsv} />
                 </div>
               </>
             }
@@ -220,6 +226,17 @@ const ApplicationLedger = () => {
             filteredRows={filteredRows}
             onClose={() => setIsSmsModalOpen(false)}
             onSent={() => setSelectedIds(new Set())}
+          />
+        )}
+
+        {isExcelModalOpen && (
+          <ExcelDownloadModal
+            selectedRows={selectedRows}
+            filteredRows={filteredRows}
+            filter={filter}
+            programs={data.programs}
+            sessions={data.sessions}
+            onClose={() => setIsExcelModalOpen(false)}
           />
         )}
       </div>
