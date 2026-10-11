@@ -1,5 +1,6 @@
 /** 직업 선택지. 키는 Form 서비스 `Occupation` 값과 정확히 같아야 한다(서버가 키로 학생·교사를 알아본다). */
 export const OCCUPATION_OPTIONS = [
+  { key: 'KINDERGARTEN_STUDENT', label: '유치원생' },
   { key: 'ELEMENTARY_STUDENT', label: '초등학생' },
   { key: 'MIDDLE_SCHOOL_STUDENT', label: '중학생' },
   { key: 'HIGH_SCHOOL_STUDENT', label: '고등학생' },
@@ -12,13 +13,13 @@ export const OCCUPATION_OPTIONS = [
 
 export type Occupation = (typeof OCCUPATION_OPTIONS)[number]['key'];
 
-/** 소속 학교 필드를 보여 줄 직업. 학교에 다니는 학생과 학교에 소속된 교직원·교사다. */
+/**
+ * 소속 필드를 보여 줄 직업. 교사와 예비교사만 받는다(Form PR #91).
+ * 소속은 명찰에 "소속 이름"으로 찍히는 값이라 학생에게는 받지 않는다.
+ */
 export const SCHOOL_OCCUPATIONS: Occupation[] = [
-  'ELEMENTARY_STUDENT',
-  'MIDDLE_SCHOOL_STUDENT',
-  'HIGH_SCHOOL_STUDENT',
-  'SCHOOL_STAFF',
   'TEACHER',
+  'PRE_SERVICE_TEACHER',
 ];
 
 /** 지역 선택지. 키는 Form 서비스 `Region` 값이고, 서버가 선택지를 내려주지 않아 표시 이름은 클라이언트가 정한다. */

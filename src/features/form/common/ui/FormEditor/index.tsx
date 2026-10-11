@@ -92,7 +92,7 @@ const FormEditor = ({
   );
 
   // 직업·소속 학교는 Form 서비스가 모양을 검증한다: 직업은 키가 고정된 드롭다운,
-  // 일반 참가자의 소속 학교는 직업이 학생·교직원·교사일 때만 보이는 문장형이다.
+  // 일반 참가자의 소속 학교는 직업이 교사·예비교사일 때만 보이는 문장형이다.
   const handleAddSpecialField = (fieldType: DynamicFormType) => {
     const base = {
       id: crypto.randomUUID(),
