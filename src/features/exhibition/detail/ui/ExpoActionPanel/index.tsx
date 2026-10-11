@@ -98,6 +98,12 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
                 종이 QR 발급
               </Button>
               <Button
+                variant="white"
+                onClick={() => router.push(`/exhibition/lottery/${params}`)}
+              >
+                경품 추첨
+              </Button>
+              <Button
                 variant="gray"
                 onClick={() => openModal('edit', '수정할 항목을 선택하세요.')}
               >
