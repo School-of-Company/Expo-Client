@@ -65,7 +65,10 @@ const PreRegisterContainer = ({
     isLoading,
     error,
   } = useGetApplicationForm(expoId, 'STANDARD', 'PRE');
-  const { data: session } = usePreRegisterSession(expoId, sessionId);
+  const { data: session, error: sessionError } = usePreRegisterSession(
+    expoId,
+    sessionId,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const questions = useMemo(() => form?.dynamicForm ?? [], [form]);
@@ -96,7 +99,7 @@ const PreRegisterContainer = ({
         'application',
         'STANDARD',
         'PRE',
-        formatted,
+        { ...formatted, ...(sessionId && { sessionId }) },
         createIdempotencyKey(),
       );
       router.push(
@@ -131,6 +134,19 @@ const PreRegisterContainer = ({
             대표자 번호로 발송됩니다.
           </p>
         </div>
+
+        {sessionError && (
+          <div className="flex flex-col gap-8 rounded-sm border-1 border-solid border-error bg-white p-24">
+            <p className="text-body2b text-error">
+              회차 정보를 불러오지 못했습니다
+            </p>
+            <p className="text-body2r text-gray-600">
+              {sessionError.message} 남은 자리와 마감 여부를 확인할 수 없어
+              신청을 진행할 수 없습니다. 잠시 후 다시 시도하거나 다른 회차를
+              선택해 주세요.
+            </p>
+          </div>
+        )}
 
         {session && status && (
           <div className="flex flex-col gap-8 rounded-sm border-1 border-solid border-main-300 bg-main-100 p-24">
@@ -174,7 +190,11 @@ const PreRegisterContainer = ({
                   <div className="flex-1">
                     <Button
                       type="submit"
-                      disabled={isSubmitting || status?.canApply === false}
+                      disabled={
+                        isSubmitting ||
+                        !!sessionError ||
+                        status?.canApply === false
+                      }
                     >
                       {isSubmitting ? '신청 중...' : '신청 완료하기'}
                     </Button>
