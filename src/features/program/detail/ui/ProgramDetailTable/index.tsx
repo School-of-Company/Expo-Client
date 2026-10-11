@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import { withLoading } from '@/shared/hocs';
 import { useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
@@ -32,20 +33,28 @@ const ProgramDetailTable = ({
   useQRScanner(setScannedQR);
   const programDetailData = programDetailQueries.data || [];
 
-  const handleAttendance = (scannedQR: QrScanData) => {
+  const handleAttendance = ({
+    participantId,
+    code,
+    traineeId,
+    token,
+  }: QrScanData) => {
+    if (token) {
+      toast.warn('종이 QR은 박람회 입장에만 사용할 수 있습니다.');
+      return;
+    }
     if (navigation === 'standard') {
-      standardAttendance({
-        expoId,
-        programId,
-        participantId: scannedQR.participantId!,
-        phoneNumber: scannedQR.phoneNumber!,
-      });
+      if (!participantId || !code) {
+        toast.error('참가자 QR 형식이 올바르지 않습니다.');
+        return;
+      }
+      standardAttendance({ expoId, programId, participantId, code });
     } else {
-      trainingAttendance({
-        expoId,
-        programId,
-        traineeId: scannedQR.traineeId!,
-      });
+      if (!traineeId) {
+        toast.error('연수자 QR 형식이 올바르지 않습니다.');
+        return;
+      }
+      trainingAttendance({ expoId, programId, traineeId });
     }
   };
 

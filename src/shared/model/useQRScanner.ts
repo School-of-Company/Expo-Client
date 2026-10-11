@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { QrScanData } from '../types/common/QrScanData';
+import { parseQrScanValue } from './parseQrScanValue';
 
 export const useQRScanner = (
   setScannedQR: React.Dispatch<React.SetStateAction<QrScanData | null>>,
@@ -13,12 +14,12 @@ export const useQRScanner = (
 
   const handleQRScan = useCallback(
     (cleanData: string) => {
-      try {
-        const parsedData: QrScanData = JSON.parse(cleanData);
-        setScannedQR(parsedData);
-      } catch {
+      const parsedData = parseQrScanValue(cleanData);
+      if (!parsedData) {
         toast.error('QR 코드 데이터 파싱 오류');
+        return;
       }
+      setScannedQR(parsedData);
     },
     [setScannedQR],
   );
