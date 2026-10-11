@@ -6,4 +6,5 @@ export { getTrainingProgram } from './getTrainingProgram';
 export { postSendSms } from './postSendSms';
 export { getCheckSmsCode } from './getCheckSmsCode';
 export { getQrSurvey } from './getQrSurvey';
+export { getPublicSurvey } from './getPublicSurvey';
 export type { QrSurvey } from './getQrSurvey';

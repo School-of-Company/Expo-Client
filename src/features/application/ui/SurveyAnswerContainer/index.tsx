@@ -8,9 +8,10 @@ import { DropdownField, Occupation, OCCUPATION_OPTIONS } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
-import { getQrSurvey } from '@/shared/api';
+import { getPublicSurvey, getQrSurvey } from '@/shared/api';
 import { withLoading } from '@/shared/hocs';
 import { Button, DetailHeader } from '@/shared/ui';
+import { postPublicSurveyAnswer } from '../../api/postPublicSurveyAnswer';
 import { postQrSurveyAnswer } from '../../api/postQrSurveyAnswer';
 import { buildSurveyAnswers } from '../../lib/process/buildSurveyAnswers';
 
@@ -20,13 +21,23 @@ const occupationOptions = OCCUPATION_OPTIONS.map(({ key, label }) => ({
   value: key,
 }));
 
-/** 현장 종이 QR 설문. 응답자가 익명이라 전화번호·개인정보 동의 대신 직업만 받는다. */
-const QrSurveyContainer = ({ token }: { token: string }) => {
+/**
+ * 설문 응답 화면. 응답자를 식별하지 않아 전화번호·개인정보 동의 대신 직업만 받는다.
+ * 현장 종이 QR(`qr`)과 입장 QR과 무관한 공개 링크(`public`)가 같은 설문 모양을 쓴다.
+ */
+export type SurveySource =
+  | { kind: 'qr'; token: string }
+  | { kind: 'public'; expoId: string };
+
+const SurveyAnswerContainer = ({ source }: { source: SurveySource }) => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const sourceId = source.kind === 'qr' ? source.token : source.expoId;
   const { data, isLoading, error } = useQuery({
-    queryKey: ['getQrSurvey', token],
-    queryFn: () => getQrSurvey(token),
+    queryKey: ['survey', source.kind, sourceId],
+    queryFn: () =>
+      source.kind === 'qr' ? getQrSurvey(sourceId) : getPublicSurvey(sourceId),
     retry: false,
   });
 
@@ -41,13 +52,20 @@ const QrSurveyContainer = ({ token }: { token: string }) => {
     if (!data) return;
     setIsSubmitting(true);
     try {
-      await postQrSurveyAnswer(token, {
+      const payload = {
         answers: buildSurveyAnswers(
           values,
           data.dynamicSurveyResponseDto ?? [],
         ),
         occupation: occupation as Occupation,
-      });
+      };
+
+      if (source.kind === 'qr') {
+        await postQrSurveyAnswer(source.token, payload);
+      } else {
+        await postPublicSurveyAnswer(source.expoId, payload);
+      }
+
       router.push(
         `/application/success/${data.expoId}?formType=survey&userType=STANDARD`,
       );
@@ -105,4 +123,4 @@ const QrSurveyContainer = ({ token }: { token: string }) => {
   });
 };
 
-export default QrSurveyContainer;
+export default SurveyAnswerContainer;
