@@ -12,8 +12,8 @@ import {
 import { Button } from '@/shared/ui';
 import {
   ApplicationRow,
-  FUTURE_EDU_EXPO_INFO,
   STATUS_LABEL,
+  useRegistrationExpo,
   useReportExcelDownload,
 } from '../../../common';
 import { ApplicationFilter } from '../../model/applicationFilter';
@@ -30,6 +30,9 @@ interface ExcelDownloadModalProps {
   sessions: RegistrationSession[];
   onClose: () => void;
 }
+
+// TODO: 접수 원장 API 연결 시 true 로 바꾸고 이 플래그를 제거
+const IS_LEDGER_CONNECTED = false;
 
 const describeStatus = (rows: ApplicationRow[]) =>
   (['CONFIRMED', 'WAITING', 'CANCELED'] as const)
@@ -75,17 +78,18 @@ const ExcelDownloadModal = ({
     [template, scope, selectedRows, filter, programs, sessions],
   );
 
-  const { expoId } = FUTURE_EDU_EXPO_INFO;
-  const blockers = expoId
+  const { expoId } = useRegistrationExpo();
+  // 대장의 프로그램·회차·신청이 아직 mock 이라 서버에 보낼 ID가 실제 값이 아니다
+  const blockers = IS_LEDGER_CONNECTED
     ? plan.blockers
     : [
-        '행사 ID가 아직 연결되지 않았습니다. 접수 원장 API 연결 후 사용할 수 있습니다.',
+        '접수 관리대장이 아직 서버와 연결되지 않았습니다. 접수 원장 API 연결 후 사용할 수 있습니다.',
         ...plan.blockers,
       ];
-  const canDownload = !!expoId && !!plan.request && !isPending;
+  const canDownload = IS_LEDGER_CONNECTED && !!plan.request && !isPending;
 
   const handleDownload = () => {
-    if (!expoId || !plan.request || isPending) return;
+    if (!canDownload || !plan.request) return;
     download({ expoId, request: plan.request });
   };
 
