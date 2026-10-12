@@ -1,4 +1,6 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { isValidExpoId } from '@/shared/config';
 import { ExhibitionPaperQrPage } from '@/views/exhibition/paper-qr';
 
 export const metadata: Metadata = {
@@ -8,6 +10,8 @@ export const metadata: Metadata = {
 };
 
 const page = ({ params }: { params: { expo_id: string } }) => {
+  // expoId를 발급 API 경로에 그대로 쓰므로 형식이 다르면 들어오지 못하게 한다
+  if (!isValidExpoId(params.expo_id)) notFound();
   return <ExhibitionPaperQrPage id={params.expo_id} />;
 };
 
