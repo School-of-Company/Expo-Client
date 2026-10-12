@@ -9,9 +9,11 @@ export const getCheckSmsCode = async (phoneNumber: string, code: string) => {
   }
 
   try {
-    const response = await clientInstance.get(
-      `/sms?phoneNumber=${phoneNumber}&code=${code}`,
-    );
+    // GET /sms?code= 는 인증번호가 접근 로그에 남아 서버에서 지원 중단(deprecated)됐다
+    const response = await clientInstance.post('/sms/verify', {
+      phoneNumber,
+      code,
+    });
     if (response.status === 200) {
       toast.success('인증 번호 확인에 성공했습니다.');
       return true;
