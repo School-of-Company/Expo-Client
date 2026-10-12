@@ -13,6 +13,7 @@ import {
   getSessionStats,
   TableFooterAction,
   useChangeApplicationStatus,
+  useRegistrationExpo,
   useRegistrationOverview,
 } from '../../../common';
 import {
@@ -35,6 +36,8 @@ const ApplicationLedger = () => {
   const searchParams = useSearchParams();
   const page = Number(searchParams.get('page')) || 1;
   const { data, isLoading } = useRegistrationOverview();
+  // 박람회 정보는 RegistrationExpoGuard 가 불러온 뒤에 이 화면을 그린다
+  const { expo } = useRegistrationExpo();
 
   const [filter, setFilter] = useState<ApplicationFilter>(() => ({
     ...INITIAL_FILTER,
@@ -222,6 +225,7 @@ const ApplicationLedger = () => {
 
         {isSmsModalOpen && (
           <GroupSmsModal
+            expoTitle={expo?.title ?? '박람회'}
             selectedRows={selectedRows}
             filteredRows={filteredRows}
             onClose={() => setIsSmsModalOpen(false)}

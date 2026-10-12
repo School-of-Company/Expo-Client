@@ -12,13 +12,15 @@ import {
   applySmsTemplate,
   dedupeByContact,
   SMS_PLACEHOLDERS,
-  SMS_TEMPLATES,
+  getSmsTemplates,
   useSendGroupSms,
 } from '../../../common';
 
 type Target = 'SELECTED' | 'FILTERED';
 
 interface GroupSmsModalProps {
+  /** 템플릿 머리말에 들어갈 박람회 이름 */
+  expoTitle: string;
   selectedRows: ApplicationRow[];
   filteredRows: ApplicationRow[];
   onClose: () => void;
@@ -28,17 +30,19 @@ interface GroupSmsModalProps {
 const SMS_MAX_LENGTH = 1000;
 
 const GroupSmsModal = ({
+  expoTitle,
   selectedRows,
   filteredRows,
   onClose,
   onSent,
 }: GroupSmsModalProps) => {
+  const smsTemplates = getSmsTemplates(expoTitle);
   const [target, setTarget] = useState<Target>(
     selectedRows.length > 0 ? 'SELECTED' : 'FILTERED',
   );
   const { register, watch, setValue, handleSubmit } = useForm<{
     content: string;
-  }>({ defaultValues: { content: SMS_TEMPLATES[1].content } });
+  }>({ defaultValues: { content: smsTemplates[1].content } });
   const content = watch('content');
 
   useEffect(() => {
@@ -124,7 +128,7 @@ const GroupSmsModal = ({
         <div className="space-y-[10px]">
           <p className="text-h3b text-black">템플릿</p>
           <div className="flex flex-wrap gap-8">
-            {SMS_TEMPLATES.map((template) => (
+            {smsTemplates.map((template) => (
               <button
                 key={template.label}
                 type="button"
