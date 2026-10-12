@@ -46,11 +46,13 @@ export interface EditExhibitionData {
   x: number;
   y: number;
   updateStandardProRequestDto: {
+    id: number | null;
     title: string;
     startedAt: string;
     endedAt: string;
   }[];
   updateTrainingProRequestDto: {
+    id: number | null;
     title: string;
     startedAt: string;
     endedAt: string;
@@ -86,26 +88,4 @@ export interface ModalProps {
   watch: UseFormWatch<ExhibitionFormData>;
   index: number;
   fieldName: 'trainings' | 'standard';
-}
-
-export interface EditExhibitionData {
-  title: string;
-  description: string;
-  startedDay: string;
-  finishedDay: string;
-  location: string;
-  coverImage: string;
-  x: number;
-  y: number;
-  updateStandardProRequestDto: {
-    title: string;
-    startedAt: string;
-    endedAt: string;
-  }[];
-  updateTrainingProRequestDto: {
-    title: string;
-    startedAt: string;
-    endedAt: string;
-    category: 'ESSENTIAL' | 'CHOICE';
-  }[];
 }
