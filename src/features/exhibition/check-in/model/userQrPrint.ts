@@ -2,8 +2,16 @@ import { toast } from 'react-toastify';
 import { printBadge } from '@/shared/model';
 import { AttendUserResponse } from '@/shared/types/exhibition/check-in/type';
 
-export const userQrPrint = (data: AttendUserResponse[], selectItem: number) => {
-  const selectedData = data.find((item) => item.id === selectItem);
+// 참가자 ID와 연수자 ID는 서로 다른 번호 체계라 구분과 합쳐 행을 가린다
+export const toAttendUserRowKey = ({
+  participationType,
+  id,
+}: AttendUserResponse) => `${participationType}-${id}`;
+
+export const userQrPrint = (data: AttendUserResponse[], selectItem: string) => {
+  const selectedData = data.find(
+    (item) => toAttendUserRowKey(item) === selectItem,
+  );
   if (!selectedData) return;
 
   const { badge } = selectedData;
