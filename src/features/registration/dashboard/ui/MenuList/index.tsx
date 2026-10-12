@@ -6,6 +6,12 @@ const MenuList = () => {
   const { routes } = useRegistrationExpo();
   const menus = [
     {
+      href: routes.operations,
+      title: '박람회 운영',
+      description:
+        '참가자 조회, 폼, 현장 등록·입장 QR, 프로그램, 문자, 경품 추첨',
+    },
+    {
       href: routes.applications,
       title: '접수 관리대장',
       description: '신청자 조회, 취소·수동 승급, 그룹 문자, Excel 출력',

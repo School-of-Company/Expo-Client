@@ -7,6 +7,17 @@ const EXPO_ID_PATTERN =
 
 export const isValidExpoId = (expoId: string) => EXPO_ID_PATTERN.test(expoId);
 
+export const getExpoRoutes = (expoId: string) => {
+  const id = segment(expoId);
+  return {
+    participants: `/exhibition/participants/${id}?page=1&userType=STANDARD`,
+    checkIn: `/exhibition/check-in/${id}`,
+    program: `/program/${id}?navigation=standard`,
+    paperQr: `/exhibition/paper-qr/${id}`,
+    lottery: `/exhibition/lottery/${id}`,
+  };
+};
+
 export const getRegistrationRoutes = (expoId: string) => {
   const base = `/admin/future-edu-expo/${segment(expoId)}`;
   return {
@@ -14,5 +25,6 @@ export const getRegistrationRoutes = (expoId: string) => {
     applications: `${base}/applications`,
     schedule: `${base}/schedule`,
     history: `${base}/history`,
+    operations: `${base}/operations`,
   };
 };
