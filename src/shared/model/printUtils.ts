@@ -19,19 +19,31 @@ export const renderQRCodeSVG = (value: string, size = 130): string => {
   return markup;
 };
 
+// 이미지로 온 QR이면 img src로 쓸 값, QR 값 문자열이면 null
+// 랜덤 code에 'base64'가 들어가도 오판하지 않도록 접두어로만 판정한다
+const toQrImageSrc = (qrCode: string): string | null => {
+  if (qrCode.startsWith('data:image/')) return qrCode;
+  if (qrCode.startsWith('/9j/')) return `data:image/jpeg;base64,${qrCode}`;
+  if (qrCode.startsWith('iVBORw0KGgo'))
+    return `data:image/png;base64,${qrCode}`;
+  return null;
+};
+
 export const printBadge = (selectedData: {
   name: string;
-  qrCode: string;
+  // Swagger는 string이지만 예시가 객체라 객체로 와도 JSON 문자열로 바꿔 그린다
+  qrCode: unknown;
   isTemporary: boolean;
 }) => {
   const printWindow = window.open('', '_blank');
 
   if (!printWindow) return;
 
-  const isBase64 =
-    selectedData.qrCode &&
-    (selectedData.qrCode.startsWith('/9j/') ||
-      selectedData.qrCode.includes('base64'));
+  const qrValue =
+    typeof selectedData.qrCode === 'string'
+      ? selectedData.qrCode
+      : (JSON.stringify(selectedData.qrCode) ?? '');
+  const qrImageSrc = toQrImageSrc(qrValue);
 
   printWindow.document.write(`
       <html>
@@ -100,15 +112,15 @@ export const printBadge = (selectedData: {
 
   const qrContainer = doc.getElementById('badge-qr');
   if (qrContainer) {
-    if (isBase64) {
+    if (qrImageSrc) {
       const image = doc.createElement('img');
-      image.src = `data:image/png;base64,${selectedData.qrCode}`;
+      image.src = qrImageSrc;
       image.alt = 'QR Code';
       image.width = 100;
       image.height = 100;
       qrContainer.appendChild(image);
     } else {
-      qrContainer.innerHTML = renderQRCodeSVG(selectedData.qrCode);
+      qrContainer.innerHTML = renderQRCodeSVG(qrValue);
     }
   }
 

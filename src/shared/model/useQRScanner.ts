@@ -14,12 +14,12 @@ export const useQRScanner = (
 
   const handleQRScan = useCallback(
     (cleanData: string) => {
-      const parsedData = parseQrScanValue(cleanData);
-      if (!parsedData) {
-        toast.error('QR 코드 데이터 파싱 오류');
+      const { data, error } = parseQrScanValue(cleanData);
+      if (!data) {
+        toast.error(error);
         return;
       }
-      setScannedQR(parsedData);
+      setScannedQR(data);
     },
     [setScannedQR],
   );

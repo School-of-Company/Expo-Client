@@ -17,6 +17,7 @@ export interface AttendUserResponse {
   // 번호 없이 등록한 동행자는 null
   phoneNumber: string | null;
   personalInformationStatus: boolean;
-  participationType: 'STANDARD' | 'TRAINEE';
+  // Swagger상 string(STANDARD·TRAINEE 등 유저 서비스 값). 모르는 값이 와도 받는다
+  participationType: string;
   badge: AttendUserBadge | null;
 }
