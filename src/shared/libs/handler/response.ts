@@ -26,6 +26,11 @@ export function createFileDownloadResponse(response: AxiosResponse) {
     response.headers?.['content-type'] ||
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   );
+  // 개인정보가 담긴 파일이라 브라우저·중간 캐시에 남기지 않는다
+  downloadHeaders.set(
+    'Cache-Control',
+    response.headers?.['cache-control'] || 'no-store',
+  );
 
   return new NextResponse(response.data, {
     status: response.status,
