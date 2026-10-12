@@ -10,6 +10,7 @@ import {
   useFormState,
   useWatch,
 } from 'react-hook-form';
+import { ArrowDown } from '@/shared/assets/icons';
 import { Input } from '@/shared/ui';
 import {
   COMPANION_MAX_COUNT,
@@ -32,7 +33,14 @@ interface CompanionFieldProps {
 const EMPTY_COMPANION = { name: '', occupation: '', region: '', school: '' };
 
 const selectClassName =
-  'w-full rounded-sm border-1 border-solid border-gray-200 bg-white px-16 py-12 text-body2r text-black outline-none';
+  'w-full cursor-pointer appearance-none rounded-sm border-1 border-solid border-gray-200 bg-white py-12 pl-16 pr-40 text-body2r text-black outline-none';
+
+/** 기본 화살표는 패딩이 안 먹어 테두리에 붙으므로 끄고 아이콘을 올린다(RegistrationSelect 와 같은 모양). */
+const SelectArrow = () => (
+  <span className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 [&_svg]:h-16 [&_svg]:w-16">
+    <ArrowDown />
+  </span>
+);
 
 const ErrorText = ({ message }: { message?: string }) =>
   message ? <span className="text-caption1r text-error">{message}</span> : null;
@@ -103,34 +111,40 @@ export default function CompanionField({
             />
             <ErrorText message={fieldError(`${index}.name`)} />
 
-            <select
-              {...register(`${name}.${index}.occupation`, {
-                required: '구분을 선택해주세요',
-              })}
-              className={selectClassName}
-            >
-              <option value="">구분 선택</option>
-              {OCCUPATION_OPTIONS.map(({ key, label: optionLabel }) => (
-                <option key={key} value={key}>
-                  {optionLabel}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                {...register(`${name}.${index}.occupation`, {
+                  required: '구분을 선택해주세요',
+                })}
+                className={selectClassName}
+              >
+                <option value="">구분 선택</option>
+                {OCCUPATION_OPTIONS.map(({ key, label: optionLabel }) => (
+                  <option key={key} value={key}>
+                    {optionLabel}
+                  </option>
+                ))}
+              </select>
+              <SelectArrow />
+            </div>
             <ErrorText message={fieldError(`${index}.occupation`)} />
 
-            <select
-              {...register(`${name}.${index}.region`, {
-                required: '지역을 선택해주세요',
-              })}
-              className={selectClassName}
-            >
-              <option value="">지역 선택</option>
-              {REGION_OPTIONS.map(({ key, label: optionLabel }) => (
-                <option key={key} value={key}>
-                  {optionLabel}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                {...register(`${name}.${index}.region`, {
+                  required: '지역을 선택해주세요',
+                })}
+                className={selectClassName}
+              >
+                <option value="">지역 선택</option>
+                {REGION_OPTIONS.map(({ key, label: optionLabel }) => (
+                  <option key={key} value={key}>
+                    {optionLabel}
+                  </option>
+                ))}
+              </select>
+              <SelectArrow />
+            </div>
             <ErrorText message={fieldError(`${index}.region`)} />
 
             {needsSchool && (

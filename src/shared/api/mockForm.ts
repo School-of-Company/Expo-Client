@@ -42,8 +42,43 @@ const FIELDS: NonNullable<ApplicationForm['dynamicForm']> = [
   },
 ];
 
-// 일반 참가자 사전 폼에만 있는 문항(Form REGION·COMPANION)
+// 일반 참가자 사전 폼에만 있는 문항(Form OCCUPATION·SCHOOL·REGION·COMPANION)
 const STANDARD_PRE_FIELDS: NonNullable<ApplicationForm['dynamicForm']> = [
+  {
+    id: 6,
+    title: '직업',
+    formType: 'DROPDOWN',
+    jsonData: {
+      KINDERGARTEN_STUDENT: '유치원생',
+      ELEMENTARY_STUDENT: '초등학생',
+      MIDDLE_SCHOOL_STUDENT: '중학생',
+      HIGH_SCHOOL_STUDENT: '고등학생',
+      SCHOOL_STAFF: '교직원',
+      PRE_SERVICE_TEACHER: '예비교사',
+      PARENT: '보호자/학부모',
+      GENERAL: '일반인',
+      TEACHER: '교사',
+    },
+    requiredStatus: true,
+    otherJson: null,
+    dynamicFormType: 'OCCUPATION',
+  },
+  {
+    id: 7,
+    title: '소속',
+    formType: 'SENTENCE',
+    jsonData: {},
+    requiredStatus: false,
+    // parentIndex 는 [...FIELDS, ...STANDARD_PRE_FIELDS] 안의 직업 위치
+    otherJson: {
+      hasEtc: false,
+      conditional: {
+        parentIndex: FIELDS.length,
+        triggerValues: ['TEACHER', 'PRE_SERVICE_TEACHER'],
+      },
+    },
+    dynamicFormType: 'SCHOOL',
+  },
   {
     id: 4,
     title: '지역',

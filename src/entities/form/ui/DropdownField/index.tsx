@@ -48,10 +48,10 @@ export default function DropdownField({
     <div className="relative w-full">
       <div
         ref={buttonRef}
-        className="flex w-fit cursor-pointer items-center justify-between gap-16 rounded-sm border-1 border-solid border-gray-100 px-10 py-12"
+        className="flex w-fit cursor-pointer items-center justify-between gap-16 rounded-sm border-1 border-solid border-gray-100 px-16 py-12 [&_svg]:h-16 [&_svg]:w-16"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <p className="text-h3r text-black">
+        <p className="text-body2r text-black">
           {/* 제출 값은 option.id, 화면에는 label 을 보여준다 */}
           {options.find((option) => option.id === selectedOption)?.label ||
             placeholder}
