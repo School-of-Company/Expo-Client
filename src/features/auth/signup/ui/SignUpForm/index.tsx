@@ -22,6 +22,8 @@ const SignUpForm = () => {
     register,
     handleSubmit,
     watch,
+    trigger,
+    getValues,
     formState: { errors },
   } = useForm<SignUpData>();
   const [isSmsSent, setIsSmsSent] = useState(false);
@@ -33,13 +35,25 @@ const SignUpForm = () => {
     setTimer,
     setIsSmsSent,
   );
-  const { refetch: checkSmsCode, isPending: isCheckingCode } = useCheckSmsCode(
-    watch('phoneNumber'),
-    watch('code'),
-    setIsSmsVerified,
-  );
+  const { mutate: checkSmsCode, isPending: isCheckingCode } =
+    useCheckSmsCode(setIsSmsVerified);
 
   useTimer(timer, setTimer, setIsSmsSent, isSmsVerified);
+
+  const handleSendSms = async () => {
+    const isValid = await trigger('phoneNumber');
+    if (isValid) sendSms(getValues('phoneNumber'));
+  };
+
+  const handleCheckSmsCode = async () => {
+    const isValid = await trigger('code');
+    if (isValid) {
+      checkSmsCode({
+        phoneNumber: getValues('phoneNumber'),
+        code: getValues('code'),
+      });
+    }
+  };
 
   const onSubmit = useCallback(
     (data: SignUpData) => {
@@ -69,8 +83,8 @@ const SignUpForm = () => {
           isSendingSms={isSendingSms}
           isCheckingCode={isCheckingCode}
           timer={timer}
-          sendSms={sendSms}
-          checkSmsCode={checkSmsCode}
+          sendSms={handleSendSms}
+          checkSmsCode={handleCheckSmsCode}
         />
       </div>
       <div className="mt-[160px]">
