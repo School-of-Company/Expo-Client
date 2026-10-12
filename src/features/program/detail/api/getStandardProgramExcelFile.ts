@@ -1,4 +1,5 @@
 import { toast } from 'react-toastify';
+import { downloadExcelFile } from '@/shared/libs/downloadExcelFile';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
 export const getStandardProgramExcelFile = async (
@@ -6,24 +7,20 @@ export const getStandardProgramExcelFile = async (
   programId: string,
 ) => {
   try {
-    const response = await clientTokenInstance.get(
-      `/excel/program/${expoId}?programId=${programId}`,
-      {
-        headers: {
-          'X-File-Download': 'true',
+    await downloadExcelFile(() =>
+      clientTokenInstance.get<Blob>(
+        `/excel/program/${expoId}?programId=${programId}`,
+        {
+          headers: {
+            'X-File-Download': 'true',
+          },
+          responseType: 'blob',
         },
-        responseType: 'blob',
-      },
+      ),
     );
-
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'export.xlsx');
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  } catch {
-    toast.error('파일 설치 실패');
+  } catch (error) {
+    toast.error(
+      error instanceof Error ? error.message : '엑셀 파일을 만들지 못했습니다.',
+    );
   }
 };
