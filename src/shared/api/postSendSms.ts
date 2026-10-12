@@ -1,14 +1,13 @@
 import axios from 'axios';
-import { toast } from 'react-toastify';
 import clientInstance from '@/shared/libs/http/clientInstance';
 
 export const postSendSms = async (phoneNumber: string) => {
-  try {
-    if (!phoneNumber) {
-      toast.error('전화번호를 입력해주세요.');
-      return;
-    }
+  // 빈 번호는 요청하지 않고 실패로 처리한다
+  if (!phoneNumber) {
+    throw new Error('전화번호를 입력해주세요.');
+  }
 
+  try {
     const response = await clientInstance.post('/sms', { phoneNumber });
     return response;
   } catch (error) {
