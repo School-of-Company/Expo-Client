@@ -1,6 +1,6 @@
-import axios from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { ExpoItem } from '@/shared/types/admin/type';
+import { toApiError } from '../libs/http/apiError';
 
 export interface ExpoPage {
   content: ExpoItem[];
@@ -21,9 +21,6 @@ export const getExpoPage = async (
     });
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '박람회 불러오기 실패');
-    }
-    throw error;
+    throw toApiError(error, '박람회 불러오기 실패');
   }
 };
