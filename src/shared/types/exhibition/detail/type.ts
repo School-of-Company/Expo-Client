@@ -4,9 +4,10 @@ export interface ExpoDetail {
   startedDay: string;
   finishedDay: string;
   location: string;
-  coverImage: string;
-  x: number;
-  y: number;
+  coverImage: string | null;
+  // 경도·위도 문자열. 지도에 넘길 때 Number()로 바꾼다
+  x: string;
+  y: string;
 }
 
 export interface ExpoTrainingDetail {

@@ -12,6 +12,7 @@ export type ExhibitionFormData = {
   location: string;
   trainings: {
     id?: number;
+    revision?: number;
     title: string;
     startedAt: string;
     endedAt: string;
@@ -19,6 +20,7 @@ export type ExhibitionFormData = {
   }[];
   standard: {
     id?: number;
+    revision?: number;
     title: string;
     startedAt: string;
     endedAt: string;

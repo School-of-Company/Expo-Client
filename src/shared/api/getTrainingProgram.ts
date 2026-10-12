@@ -2,12 +2,12 @@ import { AxiosInstance } from 'axios';
 import { toApiError } from '../libs/http/apiError';
 import clientInstance from '../libs/http/clientInstance';
 import clientTokenInstance from '../libs/http/clientTokenInstance';
-import { Program } from '../types/program/list/type';
+import { TrainingProgramItem } from '../types/program/list/type';
 
 const fetchTrainingProgram = async (
   instance: AxiosInstance,
   id: string,
-): Promise<Program[]> => {
+): Promise<TrainingProgramItem[]> => {
   try {
     const response = await instance.get(
       `/training/program/${encodeURIComponent(id)}`,

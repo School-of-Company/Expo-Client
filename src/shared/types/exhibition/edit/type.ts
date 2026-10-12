@@ -4,6 +4,7 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
+import { ProgramPolicy } from '../../program/list/type';
 import { ExhibitionFormData } from '../type';
 
 export interface AddressResponse {
@@ -43,18 +44,24 @@ export interface EditExhibitionData {
   finishedDay: string;
   location: string;
   coverImage: string;
-  x: number;
-  y: number;
+  x: string;
+  y: string;
   updateStandardProRequestDto: {
+    id: number | null;
     title: string;
     startedAt: string;
     endedAt: string;
+    policy: ProgramPolicy | null;
+    revision: number | null;
   }[];
   updateTrainingProRequestDto: {
+    id: number | null;
     title: string;
     startedAt: string;
     endedAt: string;
     category: 'ESSENTIAL' | 'CHOICE';
+    policy: ProgramPolicy | null;
+    revision: number | null;
   }[];
 }
 
@@ -86,26 +93,4 @@ export interface ModalProps {
   watch: UseFormWatch<ExhibitionFormData>;
   index: number;
   fieldName: 'trainings' | 'standard';
-}
-
-export interface EditExhibitionData {
-  title: string;
-  description: string;
-  startedDay: string;
-  finishedDay: string;
-  location: string;
-  coverImage: string;
-  x: number;
-  y: number;
-  updateStandardProRequestDto: {
-    title: string;
-    startedAt: string;
-    endedAt: string;
-  }[];
-  updateTrainingProRequestDto: {
-    title: string;
-    startedAt: string;
-    endedAt: string;
-    category: 'ESSENTIAL' | 'CHOICE';
-  }[];
 }
