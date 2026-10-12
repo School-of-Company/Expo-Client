@@ -14,6 +14,7 @@ import {
   MultiSelectField,
   DropdownField,
   CompanionField,
+  COMPANION_MAX_COUNT,
 } from '@/entities/form';
 import { FormItem } from '@/features/form/common/model/formSchema';
 import { evaluateVisibility, FormValues } from '../lib/visibilityEngine';
@@ -173,7 +174,7 @@ export default function FieldRenderer({
               companionMaxCount === undefined
                 ? item.config?.maxSelection
                 : Math.min(
-                    item.config?.maxSelection ?? companionMaxCount,
+                    item.config?.maxSelection ?? COMPANION_MAX_COUNT,
                     companionMaxCount,
                   )
             }

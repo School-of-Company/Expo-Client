@@ -69,7 +69,8 @@ export default function CompanionField({
   return (
     <div className="flex flex-col gap-16">
       <p className="text-caption1r text-gray-500">
-        대표자를 포함해 최대 {maxCount + 1}명까지 함께 신청할 수 있습니다.
+        {maxCount > 0 &&
+          `대표자를 포함해 최대 ${maxCount + 1}명까지 함께 신청할 수 있습니다. `}
         동행자는 대표자 번호로 등록되고 사람마다 QR을 받습니다.
       </p>
 
