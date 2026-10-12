@@ -33,7 +33,6 @@ export const config = {
     '/program/:path*',
     '/signin',
     '/signup',
-    '/sms/:path*',
     '/',
   ],
 };
