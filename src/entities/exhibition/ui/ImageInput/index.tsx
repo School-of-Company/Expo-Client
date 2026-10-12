@@ -8,6 +8,10 @@ import { isValidSrc } from '@/shared/model';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 import WarningMessage from '../WarningMessage';
 
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
+// Swagger에 업로드 한도가 명시돼 있지 않아 10MB로 잡는다
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+
 interface ImageInputProps {
   register: UseFormRegisterReturn;
   setValue: UseFormSetValue<ExhibitionFormData>;
@@ -29,6 +33,18 @@ const ImageInput = ({ register, setValue, defaultImage }: ImageInputProps) => {
     const file = e.target.files?.[0];
 
     if (file) {
+      // 서버는 JPEG·PNG만 받고(그 외 415) 크기 초과는 413으로 거절하므로 미리 막는다
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        toast.error('JPEG 또는 PNG 이미지만 등록할 수 있습니다.');
+        e.target.value = '';
+        return;
+      }
+      if (file.size > MAX_IMAGE_SIZE) {
+        toast.error('이미지는 10MB 이하로 등록해주세요.');
+        e.target.value = '';
+        return;
+      }
+
       const imgElement = new window.Image();
       imgElement.src = URL.createObjectURL(file);
 
@@ -71,7 +87,7 @@ const ImageInput = ({ register, setValue, defaultImage }: ImageInputProps) => {
         <input
           type="file"
           id="imageUpload"
-          accept="image/*"
+          accept="image/jpeg,image/png"
           className="hidden"
           onChange={handleImageChange}
         />
