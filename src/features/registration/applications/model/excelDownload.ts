@@ -1,14 +1,10 @@
 import {
-  RegistrationProgram,
-  RegistrationSession,
   ReportApplicationFilter,
-  ReportApplicationStatus,
   ReportExcelDownloadRequest,
   ReportExcelScope,
   ReportExcelTemplate,
 } from '@/shared/types/registration/type';
-import { ApplicationRow } from '../../common';
-import { ApplicationFilter, StatusFilter } from './applicationFilter';
+import { LedgerFilter, LedgerRow, parseSessionKey } from './ledger';
 
 export const SELECTED_MAX_COUNT = 1000;
 
@@ -43,24 +39,11 @@ export const EXCEL_TEMPLATE_OPTIONS: {
   },
 ];
 
-// Application 상태는 CANCELLED 철자를 쓴다. 확정+대기는 서버 필터로 표현할 수 없다
-const STATUS_TO_REPORT: Record<
-  Exclude<StatusFilter, 'ACTIVE'>,
-  ReportApplicationStatus | null
-> = {
-  CONFIRMED: 'CONFIRMED',
-  WAITING: 'WAITING',
-  CANCELED: 'CANCELLED',
-  ALL: null,
-};
-
 interface ExcelDownloadPlanParams {
   template: ReportExcelTemplate;
   scope: ReportExcelScope;
-  selectedRows: ApplicationRow[];
-  filter: ApplicationFilter;
-  programs: RegistrationProgram[];
-  sessions: RegistrationSession[];
+  selectedRows: LedgerRow[];
+  filter: LedgerFilter;
 }
 
 export interface ExcelDownloadPlan {
@@ -69,12 +52,19 @@ export interface ExcelDownloadPlan {
   blockers: string[];
 }
 
-const isTraining = (program?: RegistrationProgram) =>
-  program?.type === 'TRAINING';
+const isConfirmed = ({ status }: LedgerRow) => status === 'CONFIRMED';
+const isTraining = ({ programType }: LedgerRow) => programType === 'TRAINING';
+
+/** 선택 신청이 모두 같은 연수자의 것이면 그 연수자 ID */
+const getSingleTraineeId = (rows: LedgerRow[]) => {
+  const ids = new Set(rows.map(({ traineeId }) => traineeId));
+  const [only] = Array.from(ids);
+  return ids.size === 1 && only !== null ? only : null;
+};
 
 const planSelected = (
   template: ReportExcelTemplate,
-  rows: ApplicationRow[],
+  rows: LedgerRow[],
   blockers: string[],
 ): ReportExcelDownloadRequest | null => {
   if (rows.length === 0) {
@@ -87,109 +77,121 @@ const planSelected = (
     );
   }
 
-  const applicationIds = Array.from(
-    new Set(rows.flatMap(({ applicationId }) => applicationId ?? [])),
-  );
-  if (rows.some(({ applicationId }) => !applicationId)) {
-    blockers.push(
-      '선택한 신청의 UUID 신청 ID가 아직 없습니다. 접수 원장 API 연결 후 사용할 수 있습니다.',
-    );
+  if (template === 'TRAINEE') {
+    if (!rows.every(isTraining)) {
+      blockers.push('연수자 명단은 연수 회차 신청만 선택할 수 있습니다.');
+    }
+    if (rows.some(({ traineeId }) => traineeId === null)) {
+      blockers.push(
+        '연수자가 연결되지 않은 신청은 연수자 명단에 넣을 수 없습니다.',
+      );
+    }
   }
 
-  if (
-    template === 'TRAINEE' &&
-    rows.some(({ program }) => !isTraining(program))
-  ) {
-    blockers.push('연수자 명단은 연수 회차 신청만 선택할 수 있습니다.');
-  }
-
-  const sessionIds = new Set(rows.map(({ sessionId }) => sessionId));
+  const sessions = new Set(rows.map(({ programId }) => programId));
   if (template === 'PROGRAM') {
-    if (sessionIds.size > 1) {
+    if (sessions.size > 1) {
       blockers.push(
         '일반 프로그램 명단은 한 회차의 신청만 선택할 수 있습니다.',
       );
     }
-    if (rows.some(({ program }) => isTraining(program))) {
+    if (rows.some(isTraining)) {
       blockers.push('연수 회차는 일반 프로그램 명단으로 받을 수 없습니다.');
     }
-    if (rows.some(({ status }) => status !== 'CONFIRMED')) {
+    if (!rows.every(isConfirmed)) {
       blockers.push('일반 프로그램 명단은 확정 신청만 받을 수 있습니다.');
+    }
+  }
+
+  const traineeId = getSingleTraineeId(rows);
+  if (template === 'ATTENDANCE') {
+    if (traineeId === null) {
+      blockers.push(
+        '개인 연수 출석부는 연수자 1명의 신청만 선택할 수 있습니다.',
+      );
+    }
+    if (!rows.every(isTraining)) {
+      blockers.push('개인 연수 출석부는 연수 회차 신청만 선택할 수 있습니다.');
+    }
+    if (!rows.every(isConfirmed)) {
+      blockers.push('개인 연수 출석부는 확정 신청만 받을 수 있습니다.');
     }
   }
 
   return {
     template,
     scope: 'SELECTED',
-    applicationIds,
-    ...(template === 'PROGRAM' && { programId: rows[0].sessionId }),
+    applicationIds: Array.from(new Set(rows.map(({ id }) => id))),
+    ...(template === 'PROGRAM' && { programId: rows[0].programId }),
+    ...(template === 'ATTENDANCE' && traineeId !== null && { traineeId }),
   };
 };
 
 const planFilter = (
   template: ReportExcelTemplate,
-  filter: ApplicationFilter,
-  programs: RegistrationProgram[],
-  sessions: RegistrationSession[],
+  filter: LedgerFilter,
+  selectedRows: LedgerRow[],
   blockers: string[],
 ): ReportExcelDownloadRequest | null => {
-  // 서버 필터는 회차(programId)·상태·회차 제목·신청 시각만 받는다
-  if (filter.keyword.trim()) {
+  // Report 필터에는 참가자 이름·번호와 직업 조건이 없다. 조용히 빼면 화면과 다른 대상이 나간다
+  if (filter.q.trim()) {
     blockers.push(
-      '검색어(이름·소속·연락처)는 서버 필터에 없어 전체 범위에 적용할 수 없습니다. 검색어를 지워주세요.',
+      '이름·번호 검색은 다운로드 필터에 없습니다. 검색어를 지우거나 신청을 선택해서 받아주세요.',
     );
   }
-  if (filter.applyType) {
+  if (filter.occupation) {
     blockers.push(
-      '신청구분 필터는 서버 필터에 없습니다. 신청구분을 해제해주세요.',
-    );
-  }
-  if (filter.date) {
-    blockers.push('운영일 필터는 서버 필터에 없습니다. 운영일을 해제해주세요.');
-  }
-  if (filter.programId && !filter.sessionId) {
-    blockers.push(
-      '프로그램 단위 필터는 서버 필터에 없습니다. 회차까지 선택하거나 프로그램을 해제해주세요.',
-    );
-  }
-  if (filter.status === 'ACTIVE') {
-    blockers.push(
-      '확정+대기는 서버 필터에 없습니다. 상태를 하나 고르거나 전체 상태를 선택해주세요.',
+      '직업 조건은 다운로드 필터에 없습니다. 직업을 해제하거나 신청을 선택해서 받아주세요.',
     );
   }
 
-  const session = sessions.find(({ id }) => String(id) === filter.sessionId);
-  const program = programs.find(({ id }) => id === session?.programId);
-  const status =
-    filter.status === 'ACTIVE' ? null : STATUS_TO_REPORT[filter.status];
+  const session = parseSessionKey(filter.session);
+  const status = filter.status || null;
 
-  if (template === 'TRAINEE' && session && !isTraining(program)) {
+  if (template === 'TRAINEE' && session?.programType === 'STANDARD') {
     blockers.push('연수자 명단은 연수 회차만 필터할 수 있습니다.');
   }
   if (template === 'PROGRAM') {
     if (!session) {
       blockers.push('일반 프로그램 명단은 회차를 하나 선택해야 합니다.');
-    } else if (isTraining(program)) {
+    } else if (session.programType !== 'STANDARD') {
       blockers.push('연수 회차는 일반 프로그램 명단으로 받을 수 없습니다.');
-    }
-    if (filter.status !== 'CONFIRMED') {
-      blockers.push('일반 프로그램 명단은 확정 상태만 받을 수 있습니다.');
     }
   }
 
+  // 출석부는 연수자 1명 기준이라 필터만으로는 대상을 정할 수 없다. 선택한 신청에서 연수자를 고른다
+  const traineeId = getSingleTraineeId(selectedRows);
+  if (template === 'ATTENDANCE') {
+    if (traineeId === null) {
+      blockers.push(
+        '개인 연수 출석부는 대상 연수자의 신청을 하나 이상 선택해야 합니다(연수자 1명).',
+      );
+    }
+    if (session?.programType === 'STANDARD') {
+      blockers.push('개인 연수 출석부는 연수 회차만 필터할 수 있습니다.');
+    }
+  }
+  if (
+    (template === 'PROGRAM' || template === 'ATTENDANCE') &&
+    status !== 'CONFIRMED'
+  ) {
+    blockers.push(
+      '이 양식은 확정 상태만 받을 수 있습니다. 상태를 확정으로 골라주세요.',
+    );
+  }
+
   const reportFilter: ReportApplicationFilter = {
-    ...(session && {
-      programType: isTraining(program) ? 'TRAINING' : 'STANDARD',
-      programId: session.id,
-    }),
+    ...(session ?? {}),
     status,
+    sort: filter.sort,
   };
 
   return {
     template,
     scope: 'FILTER',
     filter: reportFilter,
-    ...(template === 'PROGRAM' && session && { programId: session.id }),
+    ...(template === 'PROGRAM' && session && { programId: session.programId }),
+    ...(template === 'ATTENDANCE' && traineeId !== null && { traineeId }),
   };
 };
 
@@ -198,21 +200,12 @@ export const buildExcelDownloadPlan = ({
   scope,
   selectedRows,
   filter,
-  programs,
-  sessions,
 }: ExcelDownloadPlanParams): ExcelDownloadPlan => {
   const blockers: string[] = [];
-
-  if (template === 'ATTENDANCE') {
-    blockers.push(
-      '개인 연수 출석부는 연수자 ID가 필요하지만 접수 원장에 연수자 정보가 아직 연결되지 않았습니다.',
-    );
-  }
-
   const request =
     scope === 'SELECTED'
       ? planSelected(template, selectedRows, blockers)
-      : planFilter(template, filter, programs, sessions, blockers);
+      : planFilter(template, filter, selectedRows, blockers);
 
   return { request: blockers.length === 0 ? request : null, blockers };
 };
