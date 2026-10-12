@@ -1,4 +1,8 @@
 import { UseFormRegister, FieldErrors, UseFormWatch } from 'react-hook-form';
+import {
+  PHONE_NUMBER_PATTERN,
+  SMS_CODE_PATTERN,
+} from '@/shared/config/validation';
 import { SignUpData } from '@/shared/types/signup/type';
 import { Button, Input } from '@/shared/ui';
 
@@ -34,10 +38,7 @@ const PhoneVerification = ({
         <Input
           {...register('phoneNumber', {
             required: '연락처를 입력해주세요.',
-            pattern: {
-              value: /^\d{10,11}$/,
-              message: '유효한 전화번호를 입력해주세요.',
-            },
+            pattern: PHONE_NUMBER_PATTERN,
           })}
           type="tel"
           placeholder="연락처는 - 빼고 입력해주세요"
@@ -70,10 +71,7 @@ const PhoneVerification = ({
         <Input
           {...register('code', {
             required: '인증 번호를 입력해주세요.',
-            pattern: {
-              value: /^\d{4}$/,
-              message: '4자리 숫자를 입력해주세요.',
-            },
+            pattern: SMS_CODE_PATTERN,
           })}
           type="text"
           placeholder="인증 번호 입력"
