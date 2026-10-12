@@ -4,10 +4,7 @@ export * from './lib/format';
 export { useRegistrationOverview } from './model/useRegistrationOverview';
 export { useRegistrationExpo } from './model/useRegistrationExpo';
 export { useReportExcelDownload } from './model/useReportExcelDownload';
-export {
-  useRegistrationHistories,
-  useRegistrationMonitoring,
-} from './model/useRegistrationQueries';
+export { useRegistrationHistories } from './model/useRegistrationQueries';
 export {
   useApplyPeriod,
   useCreateProgram,
@@ -25,6 +22,5 @@ export {
   default as DateTimeInput,
   DATE_PICKER_PORTAL_ID,
 } from './ui/DateTimeInput';
-export { default as ProgramStatusTable } from './ui/ProgramStatusTable';
 export { default as RefreshStatus } from './ui/RefreshStatus';
 export { default as SectionError } from './ui/SectionError';
