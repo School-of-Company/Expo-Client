@@ -23,16 +23,41 @@ export type GroupMessageScope =
   | { kind: 'SELECTED'; applicationIds: string[] }
   | { kind: 'FILTERED'; filter: GroupMessageFilter };
 
-/** 서버는 알 수 없는 필드를 거절하므로 SMS 에 필요한 값만 보낸다 */
-export interface GroupMessageSource {
-  scope: GroupMessageScope;
-  channel: 'SMS';
-  body: string;
+export type GroupMessageChannel = 'SMS' | 'KAKAO';
+
+/**
+ * 서버는 알 수 없는 필드를 거절한다. SMS 는 body, 카카오는 승인 templateId 만 보낸다.
+ * SMS 자동 대체(fallbackToSms)는 서버가 항상 false 로 처리하므로 보내지 않는다
+ */
+export type GroupMessageSource =
+  | { scope: GroupMessageScope; channel: 'SMS'; body: string }
+  | { scope: GroupMessageScope; channel: 'KAKAO'; templateId: string };
+
+/** 카카오 템플릿 자리표시자 → 서버가 채우는 신청 값 */
+export interface KakaoVariableMapping {
+  name?: string;
+  programName?: string;
+  sessionName?: string;
+  location?: string;
+}
+
+export interface KakaoTemplate {
+  id: string;
+  name: string;
+  content: string;
+  variableMapping: KakaoVariableMapping;
+  variables: string[];
 }
 
 export interface GroupMessageConfig {
   enabled: boolean;
-  channels: Partial<Record<'SMS' | 'KAKAO', { enabled: boolean }>>;
+  channels: Partial<
+    Record<
+      GroupMessageChannel,
+      { enabled: boolean; templates?: KakaoTemplate[] }
+    >
+  >;
+  smsFallbackDefault: boolean;
 }
 
 export interface GroupMessagePreviewItem {
@@ -80,6 +105,25 @@ export interface GroupMessageJob {
     unknown: number;
     missing: number;
   };
+  items: GroupMessageJobItem[];
+}
+
+export type GroupMessageItemStatus =
+  | 'MISSING'
+  | 'PENDING'
+  | 'SENDING'
+  | 'ACCEPTED'
+  | 'DELIVERED'
+  | 'FAILED'
+  | 'UNKNOWN';
+
+export interface GroupMessageJobItem {
+  targetId: string;
+  applicationId: string;
+  recipientMasked: string | null;
+  status: GroupMessageItemStatus;
+  failureReason: string | null;
+  missingReason: string | null;
 }
 
 /** 실행·재시도는 미리보기와 같은 source 와 fingerprint, 새 멱등 키를 보낸다 */

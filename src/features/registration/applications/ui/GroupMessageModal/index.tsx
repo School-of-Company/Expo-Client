@@ -8,6 +8,7 @@ import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { Button, Loading } from '@/shared/ui';
 import { formatDateTime, SectionError } from '../../../common';
 import {
+  GroupMessageChannel,
   GroupMessagePreview,
   GroupMessageSource,
   postGroupMessageJob,
@@ -25,6 +26,8 @@ import {
   useGroupMessageConfig,
   useGroupMessageJob,
 } from '../../model/groupMessage';
+import GroupMessageJobItems from '../GroupMessageJobItems';
+import KakaoTemplatePanel from '../KakaoTemplatePanel';
 
 type Scope = 'SELECTED' | 'FILTERED';
 
@@ -41,6 +44,11 @@ const MISSING_REASON_LABEL: Record<string, string> = {
 };
 
 const PREVIEW_ITEM_LIMIT = 20;
+
+const CHANNEL_LABEL: Record<GroupMessageChannel, string> = {
+  SMS: '문자(SMS)',
+  KAKAO: '카카오 알림톡',
+};
 
 const errorMessage = (error: unknown) =>
   getErrorStatus(error) === 409
@@ -60,7 +68,9 @@ const GroupMessageModal = ({
   const [scope, setScope] = useState<Scope>(
     selectedRows.length > 0 ? 'SELECTED' : 'FILTERED',
   );
+  const [channel, setChannel] = useState<GroupMessageChannel>('SMS');
   const [body, setBody] = useState('');
+  const [templateId, setTemplateId] = useState('');
   const [preview, setPreview] = useState<{
     source: GroupMessageSource;
     result: GroupMessagePreview;
@@ -77,20 +87,30 @@ const GroupMessageModal = ({
     };
   }, []);
 
-  const source = useMemo<GroupMessageSource>(
-    () => ({
-      scope:
-        scope === 'SELECTED'
-          ? {
-              kind: 'SELECTED',
-              applicationIds: selectedRows.map(({ id }) => id),
-            }
-          : { kind: 'FILTERED', filter: toGroupMessageFilter(filter) },
-      channel: 'SMS',
-      body,
-    }),
-    [scope, selectedRows, filter, body],
-  );
+  const channels = config.data?.enabled ? config.data.channels : {};
+  const smsEnabled = channels.SMS?.enabled === true;
+  const kakaoTemplates = channels.KAKAO?.enabled
+    ? (channels.KAKAO.templates ?? [])
+    : [];
+  // 승인 템플릿이 하나도 없으면 카카오는 고를 수 없다
+  const kakaoEnabled = kakaoTemplates.length > 0;
+  const template = kakaoTemplates.find(({ id }) => id === templateId);
+
+  // SMS 가 꺼져 있고 카카오만 쓸 수 있으면 카카오로 시작한다
+  useEffect(() => {
+    if (!smsEnabled && kakaoEnabled) setChannel('KAKAO');
+  }, [smsEnabled, kakaoEnabled]);
+
+  const source = useMemo<GroupMessageSource>(() => {
+    const target: GroupMessageSource['scope'] =
+      scope === 'SELECTED'
+        ? { kind: 'SELECTED', applicationIds: selectedRows.map(({ id }) => id) }
+        : { kind: 'FILTERED', filter: toGroupMessageFilter(filter) };
+    return channel === 'SMS'
+      ? { scope: target, channel: 'SMS', body }
+      : { scope: target, channel: 'KAKAO', templateId };
+  }, [scope, selectedRows, filter, channel, body, templateId]);
+  const hasContent = channel === 'SMS' ? body.trim() !== '' : !!template;
   // 미리보기 뒤에 범위나 문구가 바뀌면 그 미리보기로는 보낼 수 없다
   const isPreviewCurrent =
     preview !== null &&
@@ -138,15 +158,13 @@ const GroupMessageModal = ({
     const { recipientCount, messageCount } = preview.result;
     if (
       !window.confirm(
-        `${recipientCount}개 번호로 문자 ${messageCount}건을 보낼까요? 보낸 뒤에는 취소할 수 없습니다.`,
+        `${recipientCount}개 번호로 ${CHANNEL_LABEL[channel]} ${messageCount}건을 보낼까요? 보낸 뒤에는 취소할 수 없습니다.`,
       )
     )
       return;
     executeMutation.mutate();
   };
 
-  const smsEnabled =
-    config.data?.enabled && config.data.channels.SMS?.enabled === true;
   const isEditable = jobId === null;
   const mutationError =
     previewMutation.error ?? executeMutation.error ?? retryMutation.error;
@@ -169,7 +187,8 @@ const GroupMessageModal = ({
     }
     return (
       <p role="status" className="text-body2r text-gray-500">
-        지금은 문자 발송이 꺼져 있습니다. 알림 서버 설정을 확인해주세요.
+        지금은 문자·알림톡 발송이 모두 꺼져 있습니다. 알림 서버 설정을
+        확인해주세요.
       </p>
     );
   };
@@ -193,14 +212,14 @@ const GroupMessageModal = ({
             id="group-message-title"
             className="flex-grow text-center text-h2r text-black mobile:text-body1r"
           >
-            문자 보내기
+            문자·알림톡 보내기
           </p>
           <button type="button" onClick={onClose} aria-label="닫기">
             <XMark />
           </button>
         </div>
 
-        {!smsEnabled ? (
+        {!smsEnabled && !kakaoEnabled ? (
           renderConfigGate()
         ) : (
           <>
@@ -242,47 +261,116 @@ const GroupMessageModal = ({
             </section>
 
             <section className="space-y-[10px]">
-              <label
-                htmlFor="group-message-body"
-                className="text-h3b text-black"
-              >
-                내용
-              </label>
-              <textarea
-                id="group-message-body"
-                value={body}
-                disabled={!isEditable}
-                maxLength={GROUP_MESSAGE_MAX_LENGTH}
-                onChange={(event) => setBody(event.target.value)}
-                rows={6}
-                placeholder="보낼 내용을 입력하세요"
-                className="w-full resize-none rounded-sm border-1 border-solid border-gray-200 px-16 py-12 text-body2r text-black outline-none focus:border-main-600"
-              />
-              <div className="flex flex-wrap items-center gap-8">
-                {GROUP_MESSAGE_VARIABLES.map((variable) => (
-                  <button
-                    key={variable}
-                    type="button"
-                    disabled={!isEditable}
-                    onClick={() =>
-                      setBody((prev) =>
-                        `${prev}${variable}`.slice(0, GROUP_MESSAGE_MAX_LENGTH),
-                      )
-                    }
-                    className="rounded-sm border-1 border-solid border-gray-200 px-12 py-6 text-caption1r text-gray-500 hover:border-main-600 hover:text-main-600"
-                  >
-                    {variable}
-                  </button>
-                ))}
-                <span className="ml-auto text-caption1r text-gray-400">
-                  {body.length}/{GROUP_MESSAGE_MAX_LENGTH}
-                </span>
+              <p className="text-h3b text-black">발송 수단</p>
+              <div className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
+                {(['SMS', 'KAKAO'] as const).map((value) => {
+                  const enabled = value === 'SMS' ? smsEnabled : kakaoEnabled;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      disabled={!isEditable || !enabled}
+                      onClick={() => setChannel(value)}
+                      className={`flex items-center gap-12 rounded-sm border-1 border-solid px-16 py-12 text-left duration-200 disabled:opacity-50 ${
+                        channel === value
+                          ? 'border-main-600'
+                          : 'border-gray-200'
+                      }`}
+                    >
+                      {channel === value ? (
+                        <CheckedBoxIcon />
+                      ) : (
+                        <CheckBoxIcon />
+                      )}
+                      <span className="text-body2r text-black">
+                        {CHANNEL_LABEL[value]}
+                      </span>
+                      {!enabled && (
+                        <span className="ml-auto text-caption1r text-gray-400">
+                          {value === 'KAKAO' ? '승인 템플릿 없음' : '사용 불가'}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
               <p className="text-caption1r text-gray-500">
-                변수를 쓰면 신청별로 문구를 만들고, 변수가 없으면 같은 번호에는
-                한 번만 보냅니다.
+                SMS 자동 대체는 사용하지 않습니다. 알림톡이 실패해도 문자로 대신
+                보내지 않습니다.
               </p>
             </section>
+
+            {channel === 'SMS' ? (
+              <section className="space-y-[10px]">
+                <label
+                  htmlFor="group-message-body"
+                  className="text-h3b text-black"
+                >
+                  내용
+                </label>
+                <textarea
+                  id="group-message-body"
+                  value={body}
+                  disabled={!isEditable}
+                  maxLength={GROUP_MESSAGE_MAX_LENGTH}
+                  onChange={(event) => setBody(event.target.value)}
+                  rows={6}
+                  placeholder="보낼 내용을 입력하세요"
+                  className="w-full resize-none rounded-sm border-1 border-solid border-gray-200 px-16 py-12 text-body2r text-black outline-none focus:border-main-600"
+                />
+                <div className="flex flex-wrap items-center gap-8">
+                  {GROUP_MESSAGE_VARIABLES.map((variable) => (
+                    <button
+                      key={variable}
+                      type="button"
+                      disabled={!isEditable}
+                      onClick={() =>
+                        setBody((prev) =>
+                          `${prev}${variable}`.slice(
+                            0,
+                            GROUP_MESSAGE_MAX_LENGTH,
+                          ),
+                        )
+                      }
+                      className="rounded-sm border-1 border-solid border-gray-200 px-12 py-6 text-caption1r text-gray-500 hover:border-main-600 hover:text-main-600"
+                    >
+                      {variable}
+                    </button>
+                  ))}
+                  <span className="ml-auto text-caption1r text-gray-400">
+                    {body.length}/{GROUP_MESSAGE_MAX_LENGTH}
+                  </span>
+                </div>
+                <p className="text-caption1r text-gray-500">
+                  변수를 쓰면 신청별로 문구를 만들고, 변수가 없으면 같은
+                  번호에는 한 번만 보냅니다.
+                </p>
+              </section>
+            ) : (
+              <section className="space-y-[10px]">
+                <label
+                  htmlFor="group-message-template"
+                  className="text-h3b text-black"
+                >
+                  승인 템플릿
+                </label>
+                <select
+                  id="group-message-template"
+                  value={templateId}
+                  disabled={!isEditable}
+                  onChange={(event) => setTemplateId(event.target.value)}
+                  className="w-full rounded-sm border-1 border-solid border-gray-200 bg-white px-16 py-12 text-body2r text-black outline-none focus:border-main-600"
+                >
+                  <option value="">템플릿을 선택하세요</option>
+                  {kakaoTemplates.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+                {template && <KakaoTemplatePanel template={template} />}
+              </section>
+            )}
 
             {preview && (
               <section className="space-y-[10px]">
@@ -356,6 +444,7 @@ const GroupMessageModal = ({
                     결과 불명 건은 중복 발송을 막기 위해 재시도하지 않습니다.
                   </p>
                 )}
+                <GroupMessageJobItems items={jobData.items} />
               </section>
             )}
 
@@ -370,7 +459,7 @@ const GroupMessageModal = ({
                 <Button
                   variant="white"
                   disabled={
-                    !body.trim() || !!scopeBlocker || previewMutation.isPending
+                    !hasContent || !!scopeBlocker || previewMutation.isPending
                   }
                   onClick={() => previewMutation.mutate()}
                 >
