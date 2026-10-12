@@ -58,6 +58,11 @@ const TableItem = <
         return data['trainingId' as keyof T];
       case '연락처':
         return data['phoneNumber' as keyof T];
+      // 관리자 가입 요청: 로그인에 쓰는 아이디는 서버 nickname 이다
+      case '로그인 아이디':
+        return data['nickname' as keyof T];
+      case '이메일':
+        return data['email' as keyof T];
       case '등록 유형':
         return data['applicationType' as keyof T];
       case '개인정보 동의':
