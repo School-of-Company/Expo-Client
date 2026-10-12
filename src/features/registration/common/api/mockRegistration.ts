@@ -1,4 +1,5 @@
 import {
+  RegistrationApplication,
   RegistrationApplyPeriodRequest,
   RegistrationGroupSmsRequest,
   RegistrationGroupSmsResult,
@@ -10,26 +11,27 @@ import {
   RegistrationProgramCreateRequest,
   RegistrationPromotionPolicyRequest,
   RegistrationScheduleSaveRequest,
+  RegistrationSession,
   RegistrationSessionCreateRequest,
   RegistrationStatusChangeRequest,
   RegistrationStatusChangeResult,
 } from '@/shared/types/registration/type';
-import { seedApplications, seedPrograms, seedSessions } from './mockSeed';
 
 // TODO: 신청 서버 API 연결 시 제거하고 실제 API 로 교체
 // 서버 동작(자동 승급, 정원 검증, 이력 기록)을 흉내 내기 위해 메모리에 상태를 보관한다.
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-let programs = seedPrograms();
-let sessions = seedSessions();
-const applications = seedApplications(programs, sessions);
+// 가짜 시드 데이터 없이 빈 상태로 시작한다
+let programs: RegistrationProgram[] = [];
+let sessions: RegistrationSession[] = [];
+const applications: RegistrationApplication[] = [];
 let autoPromotionUntil: string | null = null;
 const histories: RegistrationHistory[] = [];
 const monitoring: RegistrationMonitoring = {
-  todayPageView: 1284,
-  todayUniqueVisitor: 412,
-  totalPageView: 18342,
-  totalUniqueVisitor: 5127,
+  todayPageView: 0,
+  todayUniqueVisitor: 0,
+  totalPageView: 0,
+  totalUniqueVisitor: 0,
   todayCheckInCount: 0,
 };
 
@@ -95,10 +97,6 @@ export const mockGetRegistrationOverview =
 export const mockGetRegistrationMonitoring =
   async (): Promise<RegistrationMonitoring> => {
     await delay(200);
-    // 실시간 갱신처럼 보이도록 조회할 때마다 조금씩 증가
-    const increase = 1 + Math.floor(Math.random() * 3);
-    monitoring.todayPageView += increase;
-    monitoring.totalPageView += increase;
     return { ...monitoring };
   };
 
