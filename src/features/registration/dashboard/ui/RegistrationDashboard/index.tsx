@@ -8,6 +8,7 @@ import {
   useRegistrationExpo,
 } from '../../../common';
 import {
+  getLedgerErrorMessage,
   LEDGER_REFRESH_MS,
   useCurrentSessions,
   useLedgerSummary,
@@ -148,7 +149,10 @@ const RegistrationDashboard = () => {
       <Section title="최근 신청">
         {recent.isError && !recent.data ? (
           <SectionError
-            message="최근 신청을 불러오지 못했습니다."
+            message={getLedgerErrorMessage(
+              recent.error,
+              '최근 신청을 불러오지 못했습니다.',
+            )}
             onRetry={() => recent.refetch()}
           />
         ) : recent.data ? (

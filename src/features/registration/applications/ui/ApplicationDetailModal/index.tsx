@@ -84,15 +84,36 @@ const ApplicationDetailModal = ({
         <section className="space-y-[10px]">
           <p className="text-h3b text-black">참가자</p>
           <dl className="space-y-8">
-            <Field label="이름" value={row.name} />
+            {row.isParticipantMissing ? (
+              <Field label="이름" value="참가자 정보 없음" />
+            ) : (
+              <>
+                <Field label="이름" value={row.name} />
+                <Field
+                  label="구분"
+                  value={row.isRepresentative ? '대표자' : '동행자'}
+                />
+                <Field
+                  label="직업"
+                  value={
+                    row.occupation ? OCCUPATION_LABEL[row.occupation] : '-'
+                  }
+                />
+                {/* 연수 연결은 직업과 섞지 않고 따로 표시한다 */}
+                <Field
+                  label="연수 연결"
+                  value={
+                    row.linkedTraineeId !== null
+                      ? `연결됨 (연수자 ${row.linkedTraineeId})`
+                      : '없음'
+                  }
+                />
+              </>
+            )}
+            <Field label="개인 번호" value={row.phoneNumber ?? '없음'} />
             <Field
-              label="직업"
-              value={row.occupation ? OCCUPATION_LABEL[row.occupation] : '-'}
-            />
-            <Field label="개인 번호" value={row.phoneNumber ?? '-'} />
-            <Field
-              label="알림 번호"
-              value={row.notificationPhoneNumber ?? '-'}
+              label="대표 수신 번호"
+              value={row.notificationPhoneNumber ?? '없음'}
             />
           </dl>
         </section>
