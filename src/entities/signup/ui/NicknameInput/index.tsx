@@ -11,7 +11,10 @@ const NicknameInput = ({ register, errors }: NicknameInputProps) => (
   <div className="space-y-8">
     <p className="text-h3b text-black">아이디</p>
     <Input
-      {...register('nickname', { required: '아이디를 입력해주세요.' })}
+      {...register('nickname', {
+        required: '아이디를 입력해주세요.',
+        maxLength: { value: 50, message: '아이디는 50자 이하로 입력해주세요.' },
+      })}
       type="text"
       placeholder="아이디를 입력해주세요."
       error={!!errors.nickname}

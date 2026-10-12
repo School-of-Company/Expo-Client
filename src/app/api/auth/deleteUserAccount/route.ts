@@ -1,28 +1,34 @@
-import { AxiosError } from 'axios';
-import { cookies } from 'next/headers';
+import { isAxiosError } from 'axios';
 import { NextResponse } from 'next/server';
 import { deleteAuthCookies } from '@/shared/libs/cookie/deleteCookies';
+import {
+  AuthExpiredError,
+  callWithAdminToken,
+} from '@/shared/libs/handler/adminTokenRequest';
 import { serverInstance } from '@/shared/libs/http/serverInstance';
 
 export async function DELETE() {
-  const cookieStore = cookies();
-  const accessToken = cookieStore.get('accessToken')?.value;
-
   try {
-    await serverInstance.delete('/admin', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    const response = NextResponse.json({ success: true });
-    return deleteAuthCookies(response);
+    await callWithAdminToken((accessToken) =>
+      serverInstance.delete('/admin', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }),
+    );
+    return deleteAuthCookies(NextResponse.json({ success: true }));
   } catch (error) {
-    if (error instanceof AxiosError) {
-      const status = error.response?.status || 500;
-      const message =
-        error.response?.data?.message || 'delete user account failed';
-      return NextResponse.json({ error: message }, { status });
+    // 로그인이 만료되면 탈퇴할 수 없으니 쿠키를 지우고 다시 로그인하게 한다
+    if (error instanceof AuthExpiredError) {
+      return deleteAuthCookies(
+        NextResponse.json(
+          { error: error.message, status: 401, isRefreshError: true },
+          { status: 401 },
+        ),
+      );
     }
+    const status = isAxiosError(error) ? error.response?.status || 500 : 500;
+    const message =
+      (isAxiosError(error) && error.response?.data?.message) ||
+      '회원 탈퇴에 실패했습니다.';
+    return NextResponse.json({ error: message, status }, { status });
   }
 }

@@ -1,7 +1,8 @@
+// User 서버 SignUpReqDto 와 같은 규칙
 export const PASSWORD_PATTERN = {
-  value: /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/,
+  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[A-Za-z\d\W_]{8,24}$/,
   message:
-    '비밀번호는 8자리 이상, 대문자 1개, 특수문자 1개 이상을 포함해야 합니다.',
+    '비밀번호는 8~24자이며 영문 대문자·소문자, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다.',
 };
 
 export const DATE_TIME_PATTERN = {
@@ -10,12 +11,14 @@ export const DATE_TIME_PATTERN = {
   message: 'yyyy-mm-dd HH:mm 형식으로 입력해주세요',
 };
 
+// User·Notification 서버와 같은 규칙: 01 로 시작하는 휴대폰 번호, 하이픈 없이
 export const PHONE_NUMBER_PATTERN = {
-  value: /^\d{10,11}$/,
-  message: '유효한 전화번호를 입력해주세요.',
+  value: /^01\d{8,9}$/,
+  message: '휴대폰 번호를 - 없이 입력해주세요. (예: 01012345678)',
 };
 
+// 서버가 보내는 인증번호는 4자리
 export const SMS_CODE_PATTERN = {
-  value: /^\d{6}$/,
-  message: '6자리 숫자를 입력해주세요.',
+  value: /^\d{4}$/,
+  message: '4자리 숫자를 입력해주세요.',
 };
