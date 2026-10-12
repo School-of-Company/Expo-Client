@@ -4,6 +4,7 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
+import { ProgramPolicy } from '../../program/list/type';
 import { ExhibitionFormData } from '../type';
 
 export interface CreateExhibitionData {
@@ -19,12 +20,14 @@ export interface CreateExhibitionData {
     title: string;
     startedAt: string;
     endedAt: string;
+    policy?: ProgramPolicy | null;
   }[];
   addTrainingProRequestDto: {
     title: string;
     startedAt: string;
     endedAt: string;
     category: 'ESSENTIAL' | 'CHOICE';
+    policy?: ProgramPolicy | null;
   }[];
 }
 

@@ -4,6 +4,7 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
+import { ProgramPolicy } from '../../program/list/type';
 import { ExhibitionFormData } from '../type';
 
 export interface AddressResponse {
@@ -50,6 +51,8 @@ export interface EditExhibitionData {
     title: string;
     startedAt: string;
     endedAt: string;
+    policy: ProgramPolicy | null;
+    revision: number | null;
   }[];
   updateTrainingProRequestDto: {
     id: number | null;
@@ -57,6 +60,8 @@ export interface EditExhibitionData {
     startedAt: string;
     endedAt: string;
     category: 'ESSENTIAL' | 'CHOICE';
+    policy: ProgramPolicy | null;
+    revision: number | null;
   }[];
 }
 
