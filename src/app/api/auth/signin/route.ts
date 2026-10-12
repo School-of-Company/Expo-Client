@@ -18,7 +18,8 @@ export async function POST(request: Request) {
       accessTokenExpires,
       refreshTokenExpires,
     });
-    return NextResponse.json(data);
+    // 토큰은 httpOnly 쿠키로만 둔다. 브라우저 스크립트에 넘기지 않는다
+    return NextResponse.json({ success: true });
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
     const status = axiosError.response?.status || 500;

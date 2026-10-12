@@ -45,6 +45,13 @@ const QRScannerTable = ({ id }: { id: string }) => {
         code,
       };
     }
+    // 예전 일반 참가자 QR({participantId, phoneNumber})은 서버가 번호로 찾는다
+    if (participantId && phoneNumber) {
+      return {
+        authority: toRoleAuthority(USER_AUTHORITY.STANDARD),
+        phoneNumber,
+      };
+    }
     return null;
   };
 

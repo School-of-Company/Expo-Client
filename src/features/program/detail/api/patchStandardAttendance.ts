@@ -1,5 +1,6 @@
 import axios from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
+import { getScanErrorMessage } from '@/shared/libs/http/getScanErrorMessage';
 import { PatchStandardProgramData } from '@/shared/types/program/detail/type';
 
 export const patchStandardAttendance = async ({
@@ -20,7 +21,7 @@ export const patchStandardAttendance = async ({
     return response;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || 'QR코드 스캔 실패');
+      throw new Error(getScanErrorMessage(error, 'QR코드 스캔 실패'));
     }
     throw error;
   }

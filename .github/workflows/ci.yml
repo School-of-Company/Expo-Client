@@ -1,55 +1,62 @@
 name: Expo_Client CI
 
+# 다른 PR 위에 쌓은 PR(base 가 develop·main 이 아닌 PR)도 검사한다
 on:
   pull_request:
-    branches:
-      - 'develop'
-      - 'main'
+
+# 같은 PR 에 새 커밋이 올라오면 이전 실행은 취소한다
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   Expo_Client_CI:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+      - uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: npm install
+      # 배포(cd.yml)와 같은 Node 버전으로 검사한다
+      - name: Use Node.js 22.14.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          cache: 'npm'
 
-    - name: Run Next.js build
-      run: npm run build
-    
-    - name: Success Discord Notification
-      uses: sarisia/actions-status-discord@v1.11.0
-      if: ${{ success() }}
-      with:
-        webhook: ${{ secrets.WEBHOOK_CI }}
-        title: "🎉 Expo Client CI"
-        description: "CI success"
-        status: ${{ job.status }}
-        content: "<@${{ secrets.ID1 }}> <@${{ secrets.ID2 }}>\n확인해주세요."
-        username: Expo Client CI bot
-        url: "https://github.com/School-of-Company/Expo-Client"
-        color: 4CAF50
-  
-    - name: Failure notification to discord
-      uses: sarisia/actions-status-discord@v1.11.0
-      if: failure()
-      with:
-        webhook: ${{ secrets.WEBHOOK_CI }}
-        title: "❌ Expo Client CI"
-        description: "CI failed"
-        content: "안돼 안바꿔줘 돌아가"
-        status: ${{ job.status }}
-        username: Expo Client CI bot
-        url: "https://github.com/School-of-Company/Expo-Client"
-        color: e74c3c
+      # lock 파일 그대로 설치한다
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # 타입 검사도 Next 빌드 안에서 함께 한다
+      - name: Run Next.js build
+        run: npm run build
+
+      # 알림은 develop·main 으로 가는 PR 에만 보낸다. 쌓인 PR 마다 알리지 않는다
+      - name: Success Discord Notification
+        uses: sarisia/actions-status-discord@v1.11.0
+        if: ${{ success() && contains(fromJSON('["develop", "main"]'), github.base_ref) }}
+        with:
+          webhook: ${{ secrets.WEBHOOK_CI }}
+          title: "🎉 Expo Client CI"
+          description: "CI success"
+          status: ${{ job.status }}
+          content: "<@${{ secrets.ID1 }}> <@${{ secrets.ID2 }}>\n확인해주세요."
+          username: Expo Client CI bot
+          url: "https://github.com/School-of-Company/Expo-Client"
+          color: 4CAF50
+
+      - name: Failure notification to discord
+        uses: sarisia/actions-status-discord@v1.11.0
+        if: ${{ failure() && contains(fromJSON('["develop", "main"]'), github.base_ref) }}
+        with:
+          webhook: ${{ secrets.WEBHOOK_CI }}
+          title: "❌ Expo Client CI"
+          description: "CI failed"
+          content: "안돼 안바꿔줘 돌아가"
+          status: ${{ job.status }}
+          username: Expo Client CI bot
+          url: "https://github.com/School-of-Company/Expo-Client"
+          color: e74c3c

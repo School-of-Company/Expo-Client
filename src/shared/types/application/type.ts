@@ -53,6 +53,8 @@ export type ApplicationFormValues = {
 
 export type FormattedApplicationData = {
   informationJson: string;
+  /** 사전등록에서 고른 회차. 신청 서비스가 정원을 이 회차 기준으로 판정한다. */
+  sessionId?: string;
   personalInformationStatus?: boolean;
   name?: string;
   phoneNumber?: string;

@@ -9,7 +9,7 @@ export const useExpoPage = () => {
   const searchParams = useSearchParams();
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['expoList', 'page', page],
     queryFn: () => getExpoPage(page - 1),
   });
@@ -25,5 +25,5 @@ export const useExpoPage = () => {
     }
   }, [page, totalPages, router, searchParams]);
 
-  return { data, isLoading, page };
+  return { data, isLoading, isError, refetch, page };
 };

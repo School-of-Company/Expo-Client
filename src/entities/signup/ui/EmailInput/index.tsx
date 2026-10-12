@@ -13,6 +13,10 @@ const EmailInput = ({ register, errors }: EmailInputProps) => (
     <Input
       {...register('email', {
         required: '이메일을 입력해주세요.',
+        maxLength: {
+          value: 100,
+          message: '이메일은 100자 이하로 입력해주세요.',
+        },
         pattern: {
           value: /\S+@\S+\.\S+/,
           message: '유효한 이메일 주소를 입력해주세요.',
