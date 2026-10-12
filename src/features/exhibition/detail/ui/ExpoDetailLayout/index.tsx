@@ -33,9 +33,10 @@ const ExpoDetailLayout = ({
 }) => {
   const date = `${expoDetail?.startedDay} ~ ${expoDetail?.finishedDay}`;
 
-  const safeSrc = isValidSrc(expoDetail.coverImage)
-    ? expoDetail.coverImage
-    : DefaultExpo;
+  const safeSrc =
+    expoDetail.coverImage && isValidSrc(expoDetail.coverImage)
+      ? expoDetail.coverImage
+      : DefaultExpo;
 
   return (
     <div className="flex w-full flex-col space-y-48">
@@ -93,11 +94,14 @@ const ExpoDetailLayout = ({
 
           <div className="space-y-14">
             <ShowLocation
-              latitude={expoDetail?.y}
-              longitude={expoDetail?.x}
+              latitude={Number(expoDetail?.y)}
+              longitude={Number(expoDetail?.x)}
               detailAddress={expoDetail.location}
             />
-            <KaKaoMap latitude={expoDetail?.y} longitude={expoDetail?.x} />
+            <KaKaoMap
+              latitude={Number(expoDetail?.y)}
+              longitude={Number(expoDetail?.x)}
+            />
           </div>
         </div>
       </div>
