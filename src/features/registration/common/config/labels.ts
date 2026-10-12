@@ -1,6 +1,5 @@
 import {
   RegistrationApplyType,
-  RegistrationHistoryAction,
   RegistrationParticipantType,
   RegistrationProgramStatus,
   RegistrationProgramType,
@@ -62,16 +61,4 @@ export const PROGRAM_STATUS_LABEL: Record<RegistrationProgramStatus, string> = {
 export const PROMOTION_MODE_LABEL: Record<RegistrationPromotionMode, string> = {
   AUTO: 'AUTO - 자동 승급',
   MANUAL: 'MANUAL - 수동 승급',
-};
-
-export const HISTORY_ACTION_LABEL: Record<RegistrationHistoryAction, string> = {
-  STATUS_CHANGE: '상태 변경',
-  AUTO_PROMOTION: '자동 승급',
-  GROUP_SMS: '그룹 문자',
-  SCHEDULE_SAVE: '일정 저장',
-  APPLY_PERIOD: '신청기간',
-  PROMOTION_POLICY: '승급 정책',
-  PROGRAM_CREATE: '프로그램 등록',
-  SESSION_CREATE: '회차 개설',
-  SESSION_DELETE: '회차 삭제',
 };

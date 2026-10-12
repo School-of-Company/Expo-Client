@@ -26,10 +26,9 @@ const useRegistrationMutation = <TVariables, TResult = void>(
     mutationFn,
     // 갱신된 서버 값을 받은 뒤 화면 쪽 onSuccess 가 실행되도록 invalidate 를 기다린다
     onSuccess: async (result) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['registrationOverview'] }),
-        queryClient.invalidateQueries({ queryKey: ['registrationHistories'] }),
-      ]);
+      await queryClient.invalidateQueries({
+        queryKey: ['registrationOverview'],
+      });
       toast.success(getSuccessMessage(result));
       onSuccess?.();
     },
