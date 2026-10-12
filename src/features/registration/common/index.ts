@@ -29,6 +29,4 @@ export {
   default as DateTimeInput,
   DATE_PICKER_PORTAL_ID,
 } from './ui/DateTimeInput';
-export * from './config/routes';
-export * from './config/expoInfo';
 export { default as ProgramStatusTable } from './ui/ProgramStatusTable';
