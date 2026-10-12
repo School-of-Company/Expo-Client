@@ -2,7 +2,6 @@ import Link from 'next/link';
 
 import { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { Eye, SelectedEye } from '@/shared/assets/icons';
-import { PASSWORD_PATTERN } from '@/shared/config/validation';
 import { SignInData } from '@/shared/types/signin/type';
 import { Input } from '@/shared/ui';
 
@@ -24,7 +23,6 @@ const PasswordInput = ({
     <Input
       {...register('password', {
         required: '비밀번호를 입력해주세요.',
-        pattern: PASSWORD_PATTERN,
       })}
       placeholder="비밀번호를 입력해주세요."
       type={passwordVisible ? 'text' : 'password'}
