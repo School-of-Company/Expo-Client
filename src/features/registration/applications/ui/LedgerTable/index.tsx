@@ -17,30 +17,41 @@ const COLUMNS: TableColumn<LedgerRow>[] = [
   {
     key: 'name',
     label: '이름',
-    render: (row) => (
-      <>
-        <p className="truncate text-black">{row.name}</p>
-        {row.occupation && (
-          <p className="text-caption2r">{OCCUPATION_LABEL[row.occupation]}</p>
-        )}
-      </>
-    ),
+    flex: 1.2,
+    render: (row) =>
+      row.isParticipantMissing ? (
+        <p className="text-gray-400">참가자 정보 없음</p>
+      ) : (
+        <>
+          <p className="truncate text-black">{row.name}</p>
+          <p className="text-caption2r">
+            {row.isRepresentative ? '대표' : '동행'}
+            {row.occupation && ` · ${OCCUPATION_LABEL[row.occupation]}`}
+          </p>
+          {/* 연수 연결은 직업과 섞지 않고 따로 표시한다 */}
+          {row.linkedTraineeId !== null && (
+            <p className="text-caption2r text-main-600">연수 연결</p>
+          )}
+        </>
+      ),
   },
   {
     key: 'phone',
-    label: '연락처',
-    flex: 1.3,
-    // 개인 번호가 없을 때 알림 번호를 보여 주되, 개인 번호인 것처럼 섞지 않는다
-    render: (row) =>
-      row.phoneNumber ??
-      (row.notificationPhoneNumber ? (
-        <span title="개인 번호가 없어 알림 받는 번호를 표시합니다.">
-          {row.notificationPhoneNumber}
-          <span className="text-caption2r"> (알림)</span>
-        </span>
-      ) : (
-        '-'
-      )),
+    label: '개인 번호 / 대표 수신 번호',
+    flex: 1.5,
+    // 두 번호를 구분해 보여 주고, 없는 번호를 다른 번호로 채워 발송 가능한 것처럼 보이게 하지 않는다
+    render: (row) => (
+      <>
+        <p className={row.phoneNumber ? 'text-black' : 'text-gray-300'}>
+          {row.phoneNumber ?? '개인 번호 없음'}
+        </p>
+        <p className="text-caption2r">
+          {row.notificationPhoneNumber
+            ? `수신 ${row.notificationPhoneNumber}`
+            : '수신 번호 없음'}
+        </p>
+      </>
+    ),
   },
   {
     key: 'program',
