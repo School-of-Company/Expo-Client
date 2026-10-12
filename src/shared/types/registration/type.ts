@@ -84,25 +84,6 @@ export interface RegistrationMonitoring {
   todayCheckInCount: number;
 }
 
-export type RegistrationHistoryAction =
-  | 'STATUS_CHANGE'
-  | 'AUTO_PROMOTION'
-  | 'GROUP_SMS'
-  | 'SCHEDULE_SAVE'
-  | 'APPLY_PERIOD'
-  | 'PROMOTION_POLICY'
-  | 'PROGRAM_CREATE'
-  | 'SESSION_CREATE'
-  | 'SESSION_DELETE';
-
-export interface RegistrationHistory {
-  id: number;
-  action: RegistrationHistoryAction;
-  summary: string;
-  actor: string;
-  createdAt: string; // ISO
-}
-
 export interface RegistrationScheduleSaveRequest {
   programs: RegistrationProgram[];
   sessions: RegistrationSession[];

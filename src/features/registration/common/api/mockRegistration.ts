@@ -1,7 +1,5 @@
 import {
   RegistrationApplyPeriodRequest,
-  RegistrationHistory,
-  RegistrationHistoryAction,
   RegistrationMonitoring,
   RegistrationOverview,
   RegistrationProgram,
@@ -13,30 +11,19 @@ import {
 import { seedApplications, seedPrograms, seedSessions } from './mockSeed';
 
 // TODO: 신청 서버 API 연결 시 제거하고 실제 API 로 교체
-// 서버 동작(자동 승급, 정원 검증, 이력 기록)을 흉내 내기 위해 메모리에 상태를 보관한다.
+// 서버 동작(자동 승급, 정원 검증)을 흉내 내기 위해 메모리에 상태를 보관한다.
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let programs = seedPrograms();
 let sessions = seedSessions();
 const applications = seedApplications(programs, sessions);
 let autoPromotionUntil: string | null = null;
-const histories: RegistrationHistory[] = [];
 const monitoring: RegistrationMonitoring = {
   todayPageView: 1284,
   todayUniqueVisitor: 412,
   totalPageView: 18342,
   totalUniqueVisitor: 5127,
   todayCheckInCount: 0,
-};
-
-const addHistory = (action: RegistrationHistoryAction, summary: string) => {
-  histories.unshift({
-    id: histories.length + 1,
-    action,
-    summary,
-    actor: '관리자',
-    createdAt: new Date().toISOString(),
-  });
 };
 
 const isAutoPromotionActive = () =>
@@ -56,10 +43,9 @@ const getWaitingQueue = (sessionId: number) =>
     )
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
-/** AUTO 회차의 공석을 대기 순서대로 채운다. 승급된 인원 수를 반환 */
+/** AUTO 회차의 공석을 대기 순서대로 채운다 */
 const fillSeats = (sessionIds: number[]) => {
-  if (!isAutoPromotionActive()) return 0;
-  let promoted = 0;
+  if (!isAutoPromotionActive()) return;
   sessionIds.forEach((sessionId) => {
     const target = sessions.find(({ id }) => id === sessionId);
     if (!target || target.promotionMode !== 'AUTO') return;
@@ -68,13 +54,8 @@ const fillSeats = (sessionIds: number[]) => {
       .slice(0, Math.max(seats, 0))
       .forEach((application) => {
         application.status = 'CONFIRMED';
-        promoted += 1;
       });
   });
-  if (promoted > 0) {
-    addHistory('AUTO_PROMOTION', `대기자 ${promoted}명 자동 승급`);
-  }
-  return promoted;
 };
 
 export const mockGetRegistrationOverview =
@@ -97,13 +78,6 @@ export const mockGetRegistrationMonitoring =
     monitoring.totalPageView += increase;
     return { ...monitoring };
   };
-
-export const mockGetRegistrationHistories = async (): Promise<
-  RegistrationHistory[]
-> => {
-  await delay(200);
-  return histories.map((item) => ({ ...item }));
-};
 
 const SESSION_TIME_PATTERN = /^\d{2}:\d{2}$/;
 
@@ -145,10 +119,6 @@ export const mockPutRegistrationSchedule = async ({
 
   programs = nextPrograms.map((item) => ({ ...item }));
   sessions = nextSessions.map((item) => ({ ...item }));
-  addHistory(
-    'SCHEDULE_SAVE',
-    `프로그램 ${programs.length}개 · 회차 ${sessions.length}개 일괄 저장`,
-  );
   fillSeats(sessions.map(({ id }) => id));
 };
 
@@ -160,12 +130,6 @@ export const mockPutRegistrationApplyPeriod = async ({
   if (applyStartAt && applyEndAt && applyStartAt >= applyEndAt)
     throw new Error('신청 종료가 시작보다 늦어야 합니다.');
   programs = programs.map((item) => ({ ...item, applyStartAt, applyEndAt }));
-  addHistory(
-    'APPLY_PERIOD',
-    applyStartAt || applyEndAt
-      ? `전체 신청기간 ${applyStartAt ?? '제한 없음'} ~ ${applyEndAt ?? '제한 없음'} 적용`
-      : '전체 신청기간 일괄 해제',
-  );
 };
 
 export const mockPutRegistrationPromotionPolicy = async ({
@@ -175,10 +139,6 @@ export const mockPutRegistrationPromotionPolicy = async ({
   await delay(300);
   sessions = sessions.map((item) => ({ ...item, promotionMode }));
   autoPromotionUntil = until;
-  addHistory(
-    'PROMOTION_POLICY',
-    `전체 회차 ${promotionMode} 승급 적용${until ? ` (자동승급 종료 ${until})` : ''}`,
-  );
   fillSeats(sessions.map(({ id }) => id));
 };
 
@@ -217,7 +177,6 @@ export const mockPostRegistrationProgram = async (
       applyEndAt: null,
     },
   ];
-  addHistory('PROGRAM_CREATE', `프로그램 ${data.code} (${data.name}) 등록`);
 };
 
 export const mockPostRegistrationSession = async (
@@ -251,10 +210,6 @@ export const mockPostRegistrationSession = async (
       promotionMode: 'AUTO',
     },
   ];
-  addHistory(
-    'SESSION_CREATE',
-    `${target.name} ${data.round}회차 (${data.name || data.date}) 개설`,
-  );
 };
 
 export const mockDeleteRegistrationSession = async (sessionId: number) => {
@@ -273,6 +228,4 @@ export const mockDeleteRegistrationSession = async (sessionId: number) => {
     );
 
   sessions = sessions.filter(({ id }) => id !== sessionId);
-  const programName = programs.find(({ id }) => id === target.programId)?.name;
-  addHistory('SESSION_DELETE', `${programName} ${target.round}회차 삭제`);
 };
