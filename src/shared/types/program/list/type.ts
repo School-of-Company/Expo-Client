@@ -25,5 +25,9 @@ export interface Program {
   title: string;
   startedAt: string;
   endedAt: string;
+}
+
+// 연수 프로그램만 연수 구분을 갖는다
+export interface TrainingProgramItem extends Program {
   category: 'ESSENTIAL' | 'CHOICE';
 }
