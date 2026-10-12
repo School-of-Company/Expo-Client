@@ -1,4 +1,4 @@
-// 일반 참가자는 participantId + code, 연수자는 phoneNumber로 찾는다
+// 일반 참가자는 participantId + code(또는 예전 QR의 phoneNumber), 연수자는 phoneNumber로 찾는다
 export type AttendUserQrRequest =
   | { authority: string; participantId: number; code: string }
   | { authority: string; phoneNumber: string };
@@ -14,7 +14,8 @@ export interface AttendUserBadge {
 export interface AttendUserResponse {
   id: number;
   name: string;
-  phoneNumber: string;
+  // 번호 없이 등록한 동행자는 null
+  phoneNumber: string | null;
   personalInformationStatus: boolean;
   participationType: 'STANDARD' | 'TRAINEE';
   badge: AttendUserBadge | null;
