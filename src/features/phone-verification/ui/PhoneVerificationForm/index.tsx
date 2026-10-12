@@ -9,11 +9,14 @@ import {
 } from '@/shared/config/validation';
 import { useTimer } from '@/shared/model';
 import { Button, Input } from '@/shared/ui';
+import { getExpoId } from '../../lib/getExpoId';
 import { getRedirectPath } from '../../lib/getRedirectPath';
+import { useParticipantSession } from '../../model/useParticipantSession';
 import { useSendVerificationSms } from '../../model/useSendVerificationSms';
 import { useVerifySmsCode } from '../../model/useVerifySmsCode';
 
-const SMS_CODE_EXPIRY_SECONDS = 5 * 60;
+// 서버 인증번호 유효시간(Notification authCodeTtlSeconds). 다시 보내도 늘어나지 않는다
+const SMS_CODE_EXPIRY_SECONDS = 180;
 
 interface PhoneVerificationFormValues {
   phoneNumber: string;
@@ -23,9 +26,17 @@ interface PhoneVerificationFormValues {
 const formatTimer = (timer: number) =>
   `${Math.floor(timer / 60)}:${String(timer % 60).padStart(2, '0')}`;
 
-const PhoneVerificationForm = () => {
+const formatExpiresAt = (expiresAt: string) =>
+  new Date(`${expiresAt}Z`).toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+const VerificationFields = ({ expoId }: { expoId: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect');
+  const { data: session } = useParticipantSession(expoId);
   const {
     register,
     handleSubmit,
@@ -43,6 +54,7 @@ const PhoneVerificationForm = () => {
   useTimer(timer, setTimer, setIsSmsSent, isSmsVerified);
 
   const { mutate: sendSms, isPending: isSendingSms } = useSendVerificationSms(
+    expoId,
     () => {
       setIsSmsSent(true);
       setTimer(SMS_CODE_EXPIRY_SECONDS);
@@ -50,11 +62,10 @@ const PhoneVerificationForm = () => {
   );
 
   const { mutate: verifySmsCode, isPending: isVerifying } = useVerifySmsCode(
+    expoId,
     (phoneNumber) => {
       setIsSmsVerified(true);
-      router.replace(
-        getRedirectPath(searchParams.get('redirect'), phoneNumber),
-      );
+      router.replace(getRedirectPath(redirect, phoneNumber));
     },
   );
 
@@ -93,6 +104,23 @@ const PhoneVerificationForm = () => {
           신청할 수 있습니다.
         </p>
       </div>
+
+      {session && (
+        <div
+          role="status"
+          className="flex items-center justify-between gap-16 rounded-sm border-1 border-solid border-main-600 px-20 py-16 mobile:flex-col mobile:items-start"
+        >
+          <p className="text-body2r text-black">
+            이미 인증되어 있습니다. ({formatExpiresAt(session.expiresAt)}까지)
+          </p>
+          <Button
+            width="120px"
+            onClick={() => router.replace(getRedirectPath(redirect))}
+          >
+            계속하기
+          </Button>
+        </div>
+      )}
 
       <div className="space-y-20">
         <div className="space-y-8">
@@ -167,6 +195,25 @@ const PhoneVerificationForm = () => {
       </Button>
     </form>
   );
+};
+
+/** 박람회별로 세션을 발급하므로 박람회 ID 가 없으면 인증을 시작하지 않는다 */
+const PhoneVerificationForm = () => {
+  const searchParams = useSearchParams();
+  const expoId = getExpoId(
+    searchParams.get('expoId'),
+    searchParams.get('redirect'),
+  );
+
+  if (!expoId) {
+    return (
+      <p role="alert" className="text-center text-body1r text-gray-500">
+        박람회 정보가 없어 인증을 진행할 수 없습니다. 신청 화면에서 다시
+        시작해주세요.
+      </p>
+    );
+  }
+  return <VerificationFields expoId={expoId} />;
 };
 
 export default PhoneVerificationForm;
