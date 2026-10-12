@@ -14,8 +14,8 @@ export interface CreateExhibitionData {
   finishedDay: string;
   location: string;
   coverImage: string;
-  x: number;
-  y: number;
+  x: string;
+  y: string;
   addStandardProRequestDto: {
     title: string;
     startedAt: string;
