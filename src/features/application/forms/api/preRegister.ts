@@ -13,7 +13,8 @@ export interface PreRegisterSession {
 }
 
 // TODO(api): 회차 정의는 박람회 서비스, 확정·대기 인원은 신청 서비스가 내려주기로 했고
-// 공개 경로와 응답은 아직 정해지지 않았다(Expo-Application-Server#34). 계약이 나오면 맞춘다.
+// 공개 경로와 응답은 아직 정해지지 않았다(Expo-Application-Server#34, Expo-Expo-Server#70).
+// 제출의 sessionId 키도 같은 계약에서 확정된다. 계약이 나오면 맞춘다.
 // sessionId 없이 들어오면 현재 접수 중인 기본 회차를 돌려준다고 가정한다.
 const sessionPath = (expoId: string, sessionId: string) =>
   sessionId
