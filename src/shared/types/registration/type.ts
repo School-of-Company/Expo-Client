@@ -167,6 +167,7 @@ export interface ReportApplicationFilter {
   programId?: number;
   /** null 이면 모든 상태, 생략하면 서버 기본값 CONFIRMED */
   status: ReportApplicationStatus | null;
+  sort?: 'CREATED_DESC' | 'CREATED_ASC';
 }
 
 interface ReportExcelDownloadBase {

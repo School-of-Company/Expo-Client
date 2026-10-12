@@ -1,0 +1,134 @@
+import { toApiError } from '@/shared/libs/http/apiError';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
+
+// Expo-Application-Server AdminApplicationController 의 관리자 경로 응답 형식
+export type ProgramSessionType = 'STANDARD' | 'TRAINING';
+
+export type AdminApplicationStatus = 'CONFIRMED' | 'WAITING' | 'CANCELLED';
+
+export type AdminApplicationSort = 'CREATED_DESC' | 'CREATED_ASC';
+
+export type AdminOccupation =
+  | 'KINDERGARTEN_STUDENT'
+  | 'ELEMENTARY_STUDENT'
+  | 'MIDDLE_SCHOOL_STUDENT'
+  | 'HIGH_SCHOOL_STUDENT'
+  | 'SCHOOL_STAFF'
+  | 'PARENT'
+  | 'GENERAL'
+  | 'TEACHER'
+  | 'PRE_SERVICE_TEACHER';
+
+/** 접수 당시 회차 정의 (Expo-Expo-Server ProgramDefinition) */
+export interface ProgramSessionDefinition {
+  programType: ProgramSessionType;
+  id: number;
+  title: string;
+  /** ISO 지역 일시 (YYYY-MM-DDTHH:mm) */
+  startedAt: string;
+  endedAt: string;
+  category?: 'ESSENTIAL' | 'CHOICE' | null;
+}
+
+export interface AdminParticipantDetail {
+  participantId: number;
+  name: string;
+  phoneNumber: string | null;
+  notificationPhoneNumber: string | null;
+  occupation: AdminOccupation | null;
+}
+
+export interface AdminApplicationRow {
+  applicationId: string;
+  participantId: number;
+  traineeId: number | null;
+  programType: ProgramSessionType;
+  programId: number;
+  status: AdminApplicationStatus;
+  createdAt: string;
+  definition: Partial<ProgramSessionDefinition> | null;
+  participant: AdminParticipantDetail | null;
+}
+
+export interface AdminApplicationPage {
+  items: AdminApplicationRow[];
+  totalElements: number;
+  statusCounts: Partial<Record<AdminApplicationStatus, number>>;
+  page: number;
+  size: number;
+}
+
+/** 서버는 알 수 없거나 빈 파라미터를 400 으로 거절하므로 값이 있는 것만 보낸다 */
+export interface AdminApplicationQuery {
+  programType?: ProgramSessionType;
+  programId?: number;
+  status?: AdminApplicationStatus;
+  /** 참가자 이름·번호 (1–50자) */
+  q?: string;
+  occupation?: AdminOccupation;
+  sort?: AdminApplicationSort;
+  page?: number;
+  size?: number;
+}
+
+interface CurrentSessionPage {
+  items: ProgramSessionDefinition[];
+  totalElements: number;
+  definitionVersion: string;
+}
+
+const basePath = (expoId: string) =>
+  `/application/admin/expos/${encodeURIComponent(expoId)}/program-session-applications`;
+
+const compactParams = (params: object) =>
+  Object.fromEntries(
+    Object.entries(params).filter(
+      ([, value]) => value !== undefined && value !== '',
+    ),
+  );
+
+export const getAdminApplications = async (
+  expoId: string,
+  query: AdminApplicationQuery,
+): Promise<AdminApplicationPage> => {
+  try {
+    const response = await clientTokenInstance.get(basePath(expoId), {
+      params: compactParams(query),
+    });
+    return response.data;
+  } catch (error) {
+    throw toApiError(error, '접수 원장을 불러오지 못했습니다.');
+  }
+};
+
+const SESSION_PAGE_SIZE = 100;
+
+/** 접수가 없는 회차도 포함한 현재 모집 회차 전체. 다음 페이지는 같은 definitionVersion 으로 읽는다 */
+export const getAdminCurrentSessions = async (
+  expoId: string,
+): Promise<ProgramSessionDefinition[]> => {
+  const sessions: ProgramSessionDefinition[] = [];
+  let definitionVersion: string | undefined;
+  try {
+    for (let page = 0; ; page += 1) {
+      const response = await clientTokenInstance.get<CurrentSessionPage>(
+        `${basePath(expoId)}/current-sessions`,
+        {
+          params: compactParams({
+            page,
+            size: SESSION_PAGE_SIZE,
+            definitionVersion,
+          }),
+        },
+      );
+      const data = response.data;
+      sessions.push(...data.items);
+      definitionVersion = data.definitionVersion;
+      if (data.items.length === 0 || sessions.length >= data.totalElements) {
+        return sessions;
+      }
+    }
+  } catch (error) {
+    throw toApiError(error, '회차 목록을 불러오지 못했습니다.');
+  }
+};
