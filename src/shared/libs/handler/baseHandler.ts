@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
 import { serverInstance } from '@/shared/libs/http/serverInstance';
+import { toServerMessage } from './serverMessage';
 
 export async function baseHandleRequest(
   req: NextRequest,
@@ -36,10 +37,10 @@ export async function baseHandleRequest(
 
     return NextResponse.json(response.data, { status: response.status });
   } catch (error) {
-    const axiosError = error as AxiosError<{ message: string }>;
+    const axiosError = error as AxiosError;
     const status = axiosError.response?.status || 500;
     const message =
-      axiosError.response?.data?.message ||
+      toServerMessage(status, axiosError.response?.data) ||
       '요청을 처리하는 중 오류가 발생했습니다.';
 
     return NextResponse.json({ error: message, status }, { status });
