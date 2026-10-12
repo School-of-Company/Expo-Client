@@ -44,8 +44,8 @@ export interface EditExhibitionData {
   finishedDay: string;
   location: string;
   coverImage: string;
-  x: number;
-  y: number;
+  x: string;
+  y: string;
   updateStandardProRequestDto: {
     id: number | null;
     title: string;

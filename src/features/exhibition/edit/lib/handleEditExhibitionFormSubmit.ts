@@ -28,8 +28,8 @@ export const handleEditExhibitionFormSubmit = async (
       finishedDay: data.finishedDay,
       location: data.location,
       coverImage: coverImage,
-      x: lng,
-      y: lat,
+      x: String(lng),
+      y: String(lat),
       // 새로 추가한 프로그램은 서버 계약상 id를 null로 보낸다.
       // 기존 프로그램은 조회한 revision을 돌려보내고, policy는 null로 보내 기존 정책을 유지한다
       updateStandardProRequestDto: data.standard.map((standard) => ({
