@@ -5,15 +5,22 @@ import { useCallback, useMemo, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
 import { DetailHeader, NavigationBar } from '@/shared/ui';
 import SmallButton from '@/shared/ui/SmallButton';
-import { useRegistrationExpo } from '../../../common';
+import {
+  RefreshStatus,
+  SectionError,
+  useRegistrationExpo,
+} from '../../../common';
 import {
   INITIAL_LEDGER_FILTER,
   LEDGER_PAGE_SIZE,
+  LEDGER_REFRESH_MS,
   LedgerFilter,
   LedgerRow,
+  parseSessionKey,
   useCurrentSessions,
   useLedger,
 } from '../../../common/model/ledger';
+import ApplicationDetailModal from '../ApplicationDetailModal';
 import ExcelDownloadModal from '../ExcelDownloadModal';
 import LedgerFilters from '../LedgerFilters';
 import LedgerTable from '../LedgerTable';
@@ -25,16 +32,21 @@ const ApplicationLedger = () => {
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
   const { expoId } = useRegistrationExpo();
 
-  const [filter, setFilter] = useState<LedgerFilter>(INITIAL_LEDGER_FILTER);
+  // 대시보드 회차 표에서 ?session=TYPE:ID 로 들어오면 그 회차로 시작한다
+  const [filter, setFilter] = useState<LedgerFilter>(() => {
+    const session = searchParams.get('session') ?? '';
+    return parseSessionKey(session)
+      ? { ...INITIAL_LEDGER_FILTER, session }
+      : INITIAL_LEDGER_FILTER;
+  });
   // 서버 페이지를 넘겨도 선택이 유지되도록 선택한 행 자체를 보관한다
   const [selected, setSelected] = useState<Map<string, LedgerRow>>(new Map());
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const closeDetail = useCallback(() => setDetailId(null), []);
 
-  const { data, isLoading, isError, refetch } = useLedger(
-    expoId,
-    filter,
-    page - 1,
-  );
+  const { data, isLoading, isError, isFetching, dataUpdatedAt, refetch } =
+    useLedger(expoId, filter, page - 1);
   const { data: sessions = [] } = useCurrentSessions(expoId);
 
   const rows = useMemo(() => data?.rows ?? [], [data]);
@@ -78,6 +90,16 @@ const ApplicationLedger = () => {
       <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px] overflow-y-auto">
         <DetailHeader textCenter headerTitle="접수 관리대장" />
 
+        <div className="flex justify-end">
+          <RefreshStatus
+            updatedAt={dataUpdatedAt}
+            isFetching={isFetching}
+            onRefresh={() => refetch()}
+            intervalMs={LEDGER_REFRESH_MS}
+            hasError={isError && !!data}
+          />
+        </div>
+
         <LedgerFilters
           filter={filter}
           sessions={sessions}
@@ -85,19 +107,11 @@ const ApplicationLedger = () => {
           onReset={() => handleFilterChange(INITIAL_LEDGER_FILTER)}
         />
 
-        {isError ? (
-          <div className="flex items-center justify-between gap-16 rounded-sm border-1 border-solid border-gray-200 px-20 py-16">
-            <p className="text-body2r text-gray-500">
-              접수 원장을 불러오지 못했습니다.
-            </p>
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="shrink-0 text-body2r text-main-600 underline"
-            >
-              다시 시도
-            </button>
-          </div>
+        {isError && !data ? (
+          <SectionError
+            message="접수 원장을 불러오지 못했습니다."
+            onRetry={() => refetch()}
+          />
         ) : (
           <div className="space-y-16">
             <div className="flex items-center justify-between gap-16 text-body2r text-gray-500">
@@ -127,6 +141,7 @@ const ApplicationLedger = () => {
               selectedIds={selectedIds}
               onToggle={handleToggle}
               onTogglePage={handleTogglePage}
+              onRowClick={({ id }) => setDetailId(id)}
               footerActions={
                 <>
                   <p className="text-body2r text-gray-500">
@@ -149,6 +164,14 @@ const ApplicationLedger = () => {
               )}
             </LedgerTable>
           </div>
+        )}
+
+        {detailId && (
+          <ApplicationDetailModal
+            expoId={expoId}
+            applicationId={detailId}
+            onClose={closeDetail}
+          />
         )}
 
         {isExcelModalOpen && (
