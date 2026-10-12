@@ -1,7 +1,7 @@
-import { getExpoRoutes } from '@/shared/config';
+import { getExpoRoutes, getRegistrationRoutes } from '@/shared/config';
 
 /** FormTypeModal 의 modalType */
-export type ExpoActionModalType = 'formcreate' | 'FIELD' | 'message' | 'edit';
+export type ExpoActionModalType = 'formcreate' | 'FIELD' | 'edit';
 
 export type ExpoAction = {
   title: string;
@@ -39,8 +39,9 @@ export const getExpoActions = (expoId: string) => {
     },
     message: {
       title: '문자 전송',
-      description: '참가자 대상 문자 보내기',
-      modal: { type: 'message', text: '대상을 선택하세요.' },
+      description: '접수 목록에서 대상을 골라 문자·카카오 보내기',
+      // 단체 발송은 접수 목록의 그룹 발송 모달이 맡는다
+      href: getRegistrationRoutes(expoId).applications,
     },
     paperQr: {
       title: '종이 QR 발급',
