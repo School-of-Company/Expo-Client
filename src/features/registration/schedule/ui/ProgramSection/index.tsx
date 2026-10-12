@@ -1,197 +1,205 @@
 'use client';
 
 import { useState } from 'react';
+import { Trash } from '@/shared/assets/icons';
+import { AddItemButton, Button } from '@/shared/ui';
 import {
-  RegistrationProgram,
-  RegistrationProgramType,
-  RegistrationQrColor,
-  RegistrationSession,
-} from '@/shared/types/registration/type';
-import { AddItemButton, Input, ToggleButton } from '@/shared/ui';
-import {
-  DateTimeInput,
-  PROGRAM_TYPE_LABEL,
-  QR_COLORS,
-  RegistrationSelect,
+  deleteScheduleProgram,
+  formatDateTimeValue,
+  fromOffsetDateTime,
   RegistrationTable,
+  retryProgramChanges,
+  ScheduleProgram,
   TableColumn,
+  useScheduleMutation,
 } from '../../../common';
-import ProgramCreateForm from '../ProgramCreateForm';
+import {
+  formatDefinitionSchedule,
+  PROGRAM_TYPE_LABEL,
+} from '../../../common/model/ledger';
+import ProgramForm from '../ProgramForm';
 import ScheduleSection from '../ScheduleSection';
 
 interface ProgramSectionProps {
-  programs: RegistrationProgram[];
-  sessions: RegistrationSession[];
-  onChange: (id: number, patch: Partial<RegistrationProgram>) => void;
-  isCreateDisabled: boolean;
+  expoId: string;
+  programs: ScheduleProgram[];
 }
 
-const TYPE_OPTIONS = Object.entries(PROGRAM_TYPE_LABEL).map(
-  ([value, label]) => ({ value, label }),
-);
-const QR_TYPE_OPTIONS = Object.keys(PROGRAM_TYPE_LABEL).map((value) => ({
-  value,
-  label: value,
-}));
-const QR_COLOR_OPTIONS = QR_COLORS.map((value) => ({ value, label: value }));
+/** 연수·일반 프로그램 ID 는 서로 겹칠 수 있어 표 행 키를 구분한다 */
+interface ProgramRow {
+  id: string;
+  program: ScheduleProgram;
+}
 
-const ProgramSection = ({
-  programs,
-  sessions,
-  onChange,
-  isCreateDisabled,
-}: ProgramSectionProps) => {
-  const [isCreating, setIsCreating] = useState(false);
+const toRowId = ({ programType, id }: ScheduleProgram) =>
+  `${programType}-${id}`;
 
-  const columns: TableColumn<RegistrationProgram>[] = [
-    {
-      key: 'code',
-      label: '코드',
-      render: (program) => (
-        <p className="truncate text-black">{program.code}</p>
-      ),
-    },
-    {
-      key: 'name',
-      label: '프로그램명',
-      flex: 1.4,
-      render: (program) => (
-        <Input
-          size="small"
-          value={program.name}
-          onChange={(e) => onChange(program.id, { name: e.target.value })}
-        />
-      ),
-    },
+const formatPeriod = (program: ScheduleProgram) => {
+  const start = fromOffsetDateTime(program.policy?.applicationStartedAt);
+  const end = fromOffsetDateTime(program.policy?.applicationEndedAt);
+  if (!start && !end) return '제한 없음';
+  return `${start ? formatDateTimeValue(start) : ''} ~ ${end ? formatDateTimeValue(end) : ''}`;
+};
+
+const ProgramSection = ({ expoId, programs }: ProgramSectionProps) => {
+  const [editing, setEditing] = useState<ScheduleProgram | 'new' | null>(null);
+  const { mutate: removeProgram, isPending: isDeleting } = useScheduleMutation(
+    expoId,
+    deleteScheduleProgram,
+    '프로그램을 삭제했습니다.',
+  );
+  const { mutate: retry, isPending: isRetrying } = useScheduleMutation(
+    expoId,
+    () => retryProgramChanges(expoId),
+    '중단된 프로그램 변경을 다시 처리했습니다.',
+  );
+
+  const pendingCount = programs.filter(
+    ({ pendingRevision }) => pendingRevision !== null,
+  ).length;
+
+  const handleDelete = (program: ScheduleProgram) => {
+    if (
+      !window.confirm(
+        `'${program.title}' 프로그램을 삭제할까요? 신청 이력이 있으면 삭제할 수 없습니다.`,
+      )
+    )
+      return;
+    removeProgram(program);
+  };
+
+  const columns: TableColumn<ProgramRow>[] = [
     {
       key: 'type',
-      label: '유형',
-      render: (program) => (
-        <RegistrationSelect
-          size="small"
-          value={program.type}
-          options={TYPE_OPTIONS}
-          onChange={(type) =>
-            onChange(program.id, { type: type as RegistrationProgramType })
-          }
-        />
-      ),
-    },
-    {
-      key: 'qrType',
-      label: 'QR 유형',
-      render: (program) => (
-        <RegistrationSelect
-          size="small"
-          value={program.qrType}
-          options={QR_TYPE_OPTIONS}
-          onChange={(qrType) =>
-            onChange(program.id, { qrType: qrType as RegistrationProgramType })
-          }
-        />
-      ),
-    },
-    {
-      key: 'qrColor',
-      label: 'QR 색',
-      flex: 0.8,
-      render: (program) => (
-        <RegistrationSelect
-          size="small"
-          value={program.qrColor}
-          options={QR_COLOR_OPTIONS}
-          onChange={(qrColor) =>
-            onChange(program.id, { qrColor: qrColor as RegistrationQrColor })
-          }
-        />
-      ),
-    },
-    {
-      key: 'max',
-      label: '1인 최대',
+      label: '구분',
       flex: 0.6,
-      render: (program) => (
-        <Input
-          size="small"
-          type="number"
-          min={1}
-          value={program.maxSessionsPerPerson}
-          onChange={(e) =>
-            onChange(program.id, {
-              maxSessionsPerPerson: Number(e.target.value),
-            })
-          }
-        />
+      render: ({ program }) =>
+        program.category
+          ? `${PROGRAM_TYPE_LABEL[program.programType]} · ${program.category === 'ESSENTIAL' ? '필수' : '선택'}`
+          : PROGRAM_TYPE_LABEL[program.programType],
+    },
+    {
+      key: 'title',
+      label: '프로그램명',
+      flex: 1.4,
+      render: ({ program }) => (
+        <p className="truncate text-black">{program.title}</p>
       ),
     },
     {
-      key: 'applyStartAt',
-      label: '신청 시작',
-      flex: 1.8,
-      render: (program) => (
-        <DateTimeInput
-          size="small"
-          value={program.applyStartAt}
-          onChange={(applyStartAt) => onChange(program.id, { applyStartAt })}
-        />
-      ),
+      key: 'schedule',
+      label: '일정',
+      flex: 1.4,
+      render: ({ program }) =>
+        formatDefinitionSchedule(program.startedAt, program.endedAt),
     },
     {
-      key: 'applyEndAt',
-      label: '신청 종료',
-      flex: 1.8,
-      render: (program) => (
-        <DateTimeInput
-          size="small"
-          value={program.applyEndAt}
-          onChange={(applyEndAt) => onChange(program.id, { applyEndAt })}
-        />
-      ),
+      key: 'period',
+      label: '모집 기간',
+      flex: 1.4,
+      render: ({ program }) => (program.policy ? formatPeriod(program) : '-'),
     },
     {
-      key: 'sessions',
-      label: '회차',
-      flex: 0.4,
-      render: (program) =>
-        sessions.filter(({ programId }) => programId === program.id).length,
+      key: 'capacity',
+      label: '정원 / 대기',
+      flex: 0.7,
+      render: ({ program }) =>
+        program.policy
+          ? `${program.policy.capacity ?? '-'} / ${program.policy.waitingCapacity ?? 0}`
+          : '-',
     },
     {
       key: 'status',
-      label: '신청',
-      flex: 0.6,
-      render: (program) => (
-        <div className="flex justify-center">
-          <ToggleButton
-            value={program.status === 'OPEN'}
-            onChange={(isOpen) =>
-              onChange(program.id, { status: isOpen ? 'OPEN' : 'CLOSED' })
-            }
-          />
+      label: '상태',
+      flex: 0.8,
+      render: ({ program }) => {
+        if (program.pendingRevision !== null)
+          return <p className="text-red-500">변경 처리 중</p>;
+        if (!program.policy) return <p className="text-gray-400">정책 없음</p>;
+        return program.policy.closed ? (
+          <p className="text-gray-400">마감</p>
+        ) : (
+          <p className="text-main-600">모집 중</p>
+        );
+      },
+    },
+    {
+      key: 'actions',
+      label: '관리',
+      flex: 0.8,
+      render: ({ program }) => (
+        <div className="flex items-center justify-center gap-12">
+          <button
+            type="button"
+            className="text-body2r text-main-600 disabled:opacity-40"
+            disabled={program.pendingRevision !== null}
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditing(program);
+            }}
+          >
+            수정
+          </button>
+          <button
+            type="button"
+            aria-label="프로그램 삭제"
+            disabled={isDeleting}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(program);
+            }}
+            className="disabled:opacity-40"
+          >
+            <Trash />
+          </button>
         </div>
       ),
     },
   ];
 
+  const rows: ProgramRow[] = programs.map((program) => ({
+    id: toRowId(program),
+    program,
+  }));
+
   return (
     <ScheduleSection
-      title="프로그램"
-      description="프로그램 이름·유형·QR·신청기간·신청 열림 여부를 관리합니다."
+      title="프로그램 모집 정책"
+      description="모집 정책이 있는 프로그램만 참가자가 프로그램별로 신청합니다. 신청 이력이 있으면 정원은 확정 인원보다 줄일 수 없습니다."
     >
+      {pendingCount > 0 && (
+        <div className="flex items-center justify-between gap-16 rounded-sm border-1 border-solid border-red-200 px-20 py-12 mobile:flex-col mobile:items-stretch">
+          <p className="text-body2r text-red-500">
+            변경이 끝나지 않은 프로그램이 {pendingCount}개 있습니다. 끝날 때까지
+            해당 프로그램은 수정할 수 없습니다.
+          </p>
+          <Button
+            variant="white"
+            disabled={isRetrying}
+            onClick={() => retry(undefined)}
+          >
+            {isRetrying ? '처리 중...' : '다시 처리'}
+          </Button>
+        </div>
+      )}
       <RegistrationTable
         columns={columns}
-        rows={programs}
+        rows={rows}
         emptyText="등록된 프로그램이 없습니다."
         footerText="프로그램"
         footerCount={programs.length}
-        minWidth="1500px"
+        minWidth="1200px"
         maxHeight="none"
       >
-        {isCreating ? (
-          <ProgramCreateForm onClose={() => setIsCreating(false)} />
+        {editing ? (
+          <ProgramForm
+            key={editing === 'new' ? 'new' : toRowId(editing)}
+            expoId={expoId}
+            program={editing === 'new' ? undefined : editing}
+            onClose={() => setEditing(null)}
+          />
         ) : (
-          !isCreateDisabled && (
-            <AddItemButton onClick={() => setIsCreating(true)} />
-          )
+          <AddItemButton onClick={() => setEditing('new')} />
         )}
       </RegistrationTable>
     </ScheduleSection>
