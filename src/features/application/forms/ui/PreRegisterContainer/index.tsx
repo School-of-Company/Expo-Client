@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -17,7 +18,11 @@ import {
   postApplication,
 } from '../../../api/postApplication';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
-import { PreRegisterSession } from '../../api/preRegister';
+import {
+  getCompanionLimit,
+  getRemainingSeats,
+  getSessionStatus,
+} from '../../model/sessionSeats';
 import { usePreRegisterSession } from '../../model/usePreRegister';
 
 const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토'];
@@ -29,23 +34,6 @@ const time = (date: Date) =>
 const formatSession = (startedAt: string, endedAt: string) => {
   const start = new Date(startedAt);
   return `${start.getMonth() + 1}월 ${start.getDate()}일 (${WEEKDAY[start.getDay()]}) ${time(start)} ~ ${time(new Date(endedAt))}`;
-};
-
-const getSessionStatus = (session: PreRegisterSession) => {
-  const remaining = session.capacity - session.confirmedCount;
-  const waitingRemaining = session.waitingCapacity - session.waitingCount;
-
-  if (remaining > 0)
-    return {
-      canApply: true,
-      label: `현재 신청 가능 · 잔여 ${remaining.toLocaleString()}명`,
-    };
-  if (waitingRemaining > 0)
-    return {
-      canApply: true,
-      label: `정원 마감 · 대기 신청 가능 · 대기 잔여 ${waitingRemaining.toLocaleString()}명`,
-    };
-  return { canApply: false, label: '신청 마감' };
 };
 
 /**
@@ -60,6 +48,7 @@ const PreRegisterContainer = ({
   sessionId: string;
 }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const {
     data: form,
     isLoading,
@@ -78,6 +67,11 @@ const PreRegisterContainer = ({
   );
 
   const status = session ? getSessionStatus(session) : null;
+  const remainingSeats = session ? getRemainingSeats(session) : undefined;
+  const companionLimit = session ? getCompanionLimit(session) : undefined;
+  const companionFieldId = schema?.items.find(
+    (item) => item.type === 'COMPANION',
+  )?.id;
   const backHref = `/application/forms/${expoId}`;
 
   const onSubmit = async (
@@ -111,6 +105,10 @@ const PreRegisterContainer = ({
           ? submitError.message
           : '사전등록에 실패했습니다',
       );
+      // 제출 사이에 자리가 줄어 거절됐을 수 있으므로 회차 현황을 다시 받는다
+      queryClient.invalidateQueries({
+        queryKey: ['preRegisterSession', expoId, sessionId],
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -166,6 +164,13 @@ const PreRegisterContainer = ({
             >
               {status.label}
             </p>
+            {status.canApply && remainingSeats !== undefined && (
+              <p className="text-caption1r text-gray-600">
+                이 회차는 남은 자리가 {remainingSeats.toLocaleString()}명입니다.
+                대표자를 포함해 {remainingSeats.toLocaleString()}명까지 신청할
+                수 있습니다.
+              </p>
+            )}
           </div>
         )}
 
@@ -173,35 +178,56 @@ const PreRegisterContainer = ({
           <FormRenderer
             schema={schema}
             onSubmit={onSubmit}
-            renderFooter={(methods) => (
-              <div className="mt-48 flex flex-col gap-30">
-                <PrivacyConsent
-                  content={form?.informationText ?? ''}
-                  watch={methods.watch}
-                  setValue={methods.setValue}
-                />
-                <div className="flex gap-16 mobile:flex-col-reverse">
-                  <Link
-                    href={backHref}
-                    className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-center text-body2b text-gray-700"
-                  >
-                    프로그램 목록으로
-                  </Link>
-                  <div className="flex-1">
-                    <Button
-                      type="submit"
-                      disabled={
-                        isSubmitting ||
-                        !!sessionError ||
-                        status?.canApply === false
-                      }
+            companionMaxCount={companionLimit}
+            renderFooter={(methods) => {
+              const companionCount = companionFieldId
+                ? ((methods.watch(companionFieldId) as unknown[] | undefined)
+                    ?.length ?? 0)
+                : 0;
+              // 회차를 바꾸면 이미 추가한 동행자가 새 회차의 남은 자리를 넘을 수 있다
+              const isOverCapacity =
+                remainingSeats !== undefined &&
+                companionCount + 1 > remainingSeats;
+
+              return (
+                <div className="mt-48 flex flex-col gap-30">
+                  <PrivacyConsent
+                    content={form?.informationText ?? ''}
+                    watch={methods.watch}
+                    setValue={methods.setValue}
+                  />
+                  {isOverCapacity && (
+                    <p className="text-body2r text-error">
+                      이 회차는 남은 자리가{' '}
+                      {(remainingSeats ?? 0).toLocaleString()}명입니다. 인원을
+                      줄이거나 다른 회차를 선택해 주세요.
+                    </p>
+                  )}
+
+                  <div className="flex gap-16 mobile:flex-col-reverse">
+                    <Link
+                      href={backHref}
+                      className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-center text-body2b text-gray-700"
                     >
-                      {isSubmitting ? '신청 중...' : '신청 완료하기'}
-                    </Button>
+                      프로그램 목록으로
+                    </Link>
+                    <div className="flex-1">
+                      <Button
+                        type="submit"
+                        disabled={
+                          isSubmitting ||
+                          !!sessionError ||
+                          status?.canApply === false ||
+                          isOverCapacity
+                        }
+                      >
+                        {isSubmitting ? '신청 중...' : '신청 완료하기'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            }}
           />
         )}
       </div>

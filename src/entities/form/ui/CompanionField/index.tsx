@@ -77,7 +77,8 @@ export default function CompanionField({
   return (
     <div className="flex flex-col gap-16">
       <p className="text-caption1r text-gray-500">
-        대표자를 포함해 최대 {maxCount + 1}명까지 함께 신청할 수 있습니다.
+        {maxCount > 0 &&
+          `대표자를 포함해 최대 ${maxCount + 1}명까지 함께 신청할 수 있습니다. `}
         동행자는 대표자 번호로 등록되고 사람마다 QR을 받습니다.
       </p>
 
@@ -174,9 +175,11 @@ export default function CompanionField({
         onClick={() => append(EMPTY_COMPANION)}
         className="rounded-sm border-1 border-dashed border-gray-300 px-16 py-12 text-body2b text-gray-700 disabled:cursor-not-allowed disabled:text-gray-400"
       >
-        {fields.length >= maxCount
-          ? `동행자는 최대 ${maxCount}명입니다`
-          : `+ 동행자 추가 (${fields.length}/${maxCount})`}
+        {maxCount === 0
+          ? '이 회차는 대표자 한 명만 신청할 수 있습니다'
+          : fields.length >= maxCount
+            ? `동행자는 최대 ${maxCount}명입니다`
+            : `+ 동행자 추가 (${fields.length}/${maxCount})`}
       </button>
       <ErrorText message={fieldError('root')} />
     </div>

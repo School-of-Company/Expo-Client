@@ -14,6 +14,7 @@ import {
   MultiSelectField,
   DropdownField,
   CompanionField,
+  COMPANION_MAX_COUNT,
 } from '@/entities/form';
 import { FormItem } from '@/features/form/common/model/formSchema';
 import { evaluateVisibility, FormValues } from '../lib/visibilityEngine';
@@ -24,6 +25,8 @@ interface FieldRendererProps {
   control: Control<FormValues>;
   watch: UseFormWatch<FormValues>;
   setValue: UseFormSetValue<FormValues>;
+  /** 회차 잔여석 등 폼 정의 밖에서 오는 동행자 상한. 폼 정의 상한과 함께 더 작은 쪽을 쓴다. */
+  companionMaxCount?: number;
 }
 
 export default function FieldRenderer({
@@ -32,6 +35,7 @@ export default function FieldRenderer({
   control,
   watch,
   setValue,
+  companionMaxCount,
 }: FieldRendererProps) {
   const formValues = watch();
 
@@ -166,7 +170,14 @@ export default function FieldRenderer({
             name={item.id}
             label={item.label}
             required={item.required}
-            maxCount={item.config?.maxSelection}
+            maxCount={
+              companionMaxCount === undefined
+                ? item.config?.maxSelection
+                : Math.min(
+                    item.config?.maxSelection ?? COMPANION_MAX_COUNT,
+                    companionMaxCount,
+                  )
+            }
             control={control}
             register={register}
           />

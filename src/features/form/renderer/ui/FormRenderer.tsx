@@ -11,6 +11,8 @@ interface FormRendererProps {
   onSubmit: (data: FormValues) => void;
   defaultValues?: FormValues;
   renderFooter?: (methods: UseFormReturn<FormValues>) => React.ReactNode;
+  /** 회차 잔여석 등 폼 정의 밖에서 오는 동행자 상한. */
+  companionMaxCount?: number;
 }
 
 export default function FormRenderer({
@@ -18,6 +20,7 @@ export default function FormRenderer({
   onSubmit,
   defaultValues = {},
   renderFooter,
+  companionMaxCount,
 }: FormRendererProps) {
   const methods = useForm<FormValues>({
     defaultValues,
@@ -53,6 +56,7 @@ export default function FormRenderer({
           control={control}
           watch={watch}
           setValue={setValue}
+          companionMaxCount={companionMaxCount}
         />
       ))}
 
