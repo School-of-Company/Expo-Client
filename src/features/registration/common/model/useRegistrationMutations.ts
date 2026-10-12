@@ -6,12 +6,9 @@ import {
   RegistrationPromotionPolicyRequest,
   RegistrationScheduleSaveRequest,
   RegistrationSessionCreateRequest,
-  RegistrationStatusChangeRequest,
-  RegistrationStatusChangeResult,
 } from '@/shared/types/registration/type';
 import {
   mockDeleteRegistrationSession as deleteRegistrationSession,
-  mockPatchRegistrationStatus as patchRegistrationStatus,
   mockPostRegistrationProgram as postRegistrationProgram,
   mockPostRegistrationSession as postRegistrationSession,
   mockPutRegistrationApplyPeriod as putRegistrationApplyPeriod,
@@ -41,28 +38,6 @@ const useRegistrationMutation = <TVariables, TResult = void>(
     },
   });
 };
-
-const getStatusChangeMessage = ({
-  changedCount,
-  skippedCount,
-  autoPromotedCount,
-}: RegistrationStatusChangeResult) =>
-  [
-    `${changedCount}건 처리했습니다.`,
-    skippedCount > 0 &&
-      `${skippedCount}건은 대상이 아니거나 정원이 없어 제외했습니다.`,
-    autoPromotedCount > 0 &&
-      `대기자 ${autoPromotedCount}명이 자동 승급되었습니다.`,
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-export const useChangeApplicationStatus = (onSuccess?: () => void) =>
-  useRegistrationMutation(
-    (data: RegistrationStatusChangeRequest) => patchRegistrationStatus(data),
-    getStatusChangeMessage,
-    onSuccess,
-  );
 
 export const useSaveSchedule = () =>
   useRegistrationMutation(
