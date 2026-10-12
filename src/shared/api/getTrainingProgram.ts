@@ -1,4 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
+import { AxiosInstance } from 'axios';
+import { toApiError } from '../libs/http/apiError';
 import clientInstance from '../libs/http/clientInstance';
 import clientTokenInstance from '../libs/http/clientTokenInstance';
 import { Program } from '../types/program/list/type';
@@ -8,15 +9,12 @@ const fetchTrainingProgram = async (
   id: string,
 ): Promise<Program[]> => {
   try {
-    const response = await instance.get(`/training/program/${id}`);
+    const response = await instance.get(
+      `/training/program/${encodeURIComponent(id)}`,
+    );
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(
-        error.response.data.error || '연수 프로그램 불러오기 실패',
-      );
-    }
-    throw error;
+    throw toApiError(error, '연수 프로그램 불러오기 실패');
   }
 };
 

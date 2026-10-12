@@ -8,10 +8,10 @@ import {
 import {
   formatDateWithWeekday,
   formatSessionTime,
-  REGISTRATION_ROUTES,
   RegistrationTable,
   SessionStat,
   TableColumn,
+  useRegistrationExpo,
 } from '../../../common';
 
 interface DailyScheduleProps {
@@ -87,6 +87,7 @@ const DailySchedule = ({
   sessionStats,
 }: DailyScheduleProps) => {
   const router = useRouter();
+  const { routes } = useRegistrationExpo();
   const programById = new Map(programs.map((program) => [program.id, program]));
   const dates = Array.from(new Set(sessions.map(({ date }) => date))).sort();
 
@@ -121,9 +122,7 @@ const DailySchedule = ({
               footerCount={rows.length}
               maxHeight="none"
               onRowClick={({ program }) =>
-                router.push(
-                  `${REGISTRATION_ROUTES.applications}?programId=${program.id}`,
-                )
+                router.push(`${routes.applications}?programId=${program.id}`)
               }
             />
           </div>

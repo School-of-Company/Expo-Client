@@ -57,7 +57,7 @@ export const postReportExcelDownload = async (
 ) => {
   try {
     const response = await clientTokenInstance.post<Blob>(
-      `/excel/expos/${expoId}/downloads`,
+      `/excel/expos/${encodeURIComponent(expoId)}/downloads`,
       request,
       {
         headers: { 'X-File-Download': 'true' },

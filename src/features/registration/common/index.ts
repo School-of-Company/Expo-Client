@@ -5,6 +5,7 @@ export * from './lib/exportApplicationsCsv';
 export * from './lib/smsTemplate';
 export { useRegistrationOverview } from './model/useRegistrationOverview';
 export { useSendGroupSms } from './model/useSendGroupSms';
+export { useRegistrationExpo } from './model/useRegistrationExpo';
 export { useReportExcelDownload } from './model/useReportExcelDownload';
 export {
   useRegistrationHistories,
@@ -28,6 +29,4 @@ export {
   default as DateTimeInput,
   DATE_PICKER_PORTAL_ID,
 } from './ui/DateTimeInput';
-export * from './config/routes';
-export * from './config/expoInfo';
 export { default as ProgramStatusTable } from './ui/ProgramStatusTable';

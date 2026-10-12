@@ -4,9 +4,9 @@ import { useMemo } from 'react';
 import { withLoading } from '@/shared/hocs';
 import {
   buildApplicationRows,
-  FUTURE_EDU_EXPO_INFO,
   ProgramStatusTable,
   getSessionStats,
+  useRegistrationExpo,
   useRegistrationOverview,
 } from '../../../common';
 import DailySchedule from '../DailySchedule';
@@ -32,6 +32,7 @@ const Section = ({
 
 const RegistrationDashboard = () => {
   const { data, isLoading } = useRegistrationOverview();
+  const { expo } = useRegistrationExpo();
 
   const summary = useMemo(() => {
     if (!data) return null;
@@ -66,7 +67,7 @@ const RegistrationDashboard = () => {
     children: data && summary && (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[80px] overflow-y-auto">
         <p className="text-h1m text-black mobile:text-h2b">
-          {FUTURE_EDU_EXPO_INFO.name}
+          {expo?.title ?? '박람회 관리'}
         </p>
 
         <Section title="신청 현황">

@@ -5,8 +5,8 @@ import {
   RegistrationProgram,
   RegistrationSession,
 } from '@/shared/types/registration/type';
-import { REGISTRATION_ROUTES } from '../../config/routes';
 import { SessionStat } from '../../lib/buildApplicationRows';
+import { useRegistrationExpo } from '../../model/useRegistrationExpo';
 import RegistrationTable, { TableColumn } from '../RegistrationTable';
 
 interface ProgramStatusTableProps {
@@ -69,6 +69,7 @@ const ProgramStatusTable = ({
   sessionStats,
 }: ProgramStatusTableProps) => {
   const router = useRouter();
+  const { routes } = useRegistrationExpo();
 
   const rows: ProgramStatusRow[] = programs.map((program) =>
     sessions
@@ -106,7 +107,7 @@ const ProgramStatusTable = ({
       footerCount={rows.length}
       maxHeight="none"
       onRowClick={({ id }) =>
-        router.push(`${REGISTRATION_ROUTES.applications}?programId=${id}`)
+        router.push(`${routes.applications}?programId=${id}`)
       }
     />
   );
