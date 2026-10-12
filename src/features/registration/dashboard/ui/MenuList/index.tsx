@@ -14,7 +14,7 @@ const MenuList = () => {
     {
       href: routes.applications,
       title: '접수 관리대장',
-      description: '프로그램 회차 신청 원장 조회·필터, Excel 출력',
+      description: '신청 원장 조회·필터·상세, 그룹 문자, Excel 출력',
     },
     {
       href: routes.schedule,

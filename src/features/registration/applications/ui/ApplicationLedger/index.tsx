@@ -22,6 +22,7 @@ import {
 } from '../../../common/model/ledger';
 import ApplicationDetailModal from '../ApplicationDetailModal';
 import ExcelDownloadModal from '../ExcelDownloadModal';
+import GroupMessageModal from '../GroupMessageModal';
 import LedgerFilters from '../LedgerFilters';
 import LedgerTable from '../LedgerTable';
 
@@ -42,6 +43,7 @@ const ApplicationLedger = () => {
   // 서버 페이지를 넘겨도 선택이 유지되도록 선택한 행 자체를 보관한다
   const [selected, setSelected] = useState<Map<string, LedgerRow>>(new Map());
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
   const closeDetail = useCallback(() => setDetailId(null), []);
 
@@ -147,6 +149,10 @@ const ApplicationLedger = () => {
                   <p className="text-body2r text-gray-500">
                     선택 <span className="text-main-600">{selected.size}</span>
                   </p>
+                  <SmallButton
+                    text="문자"
+                    onClick={() => setIsMessageModalOpen(true)}
+                  />
                   <div className="flex items-center gap-20 mobile:gap-12">
                     <p className="text-body1r text-gray-400">출력</p>
                     <SmallButton
@@ -171,6 +177,16 @@ const ApplicationLedger = () => {
             expoId={expoId}
             applicationId={detailId}
             onClose={closeDetail}
+          />
+        )}
+
+        {isMessageModalOpen && (
+          <GroupMessageModal
+            expoId={expoId}
+            selectedRows={selectedRows}
+            filter={filter}
+            filterCount={totalCount}
+            onClose={() => setIsMessageModalOpen(false)}
           />
         )}
 
