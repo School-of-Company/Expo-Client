@@ -13,7 +13,7 @@ const SignInForm = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<SignInData>();
-  const { mutate: signin, isPending, isSuccess } = useSignin();
+  const { mutate: signin, isPending, isSuccess, isLocked } = useSignin();
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   const handlePasswordVisibilityToggle = useCallback(
@@ -40,7 +40,7 @@ const SignInForm = () => {
         />
       </div>
       <div className="mt-100">
-        <Button disabled={isPending || isSuccess} type="submit">
+        <Button disabled={isPending || isSuccess || isLocked} type="submit">
           로그인
         </Button>
       </div>
