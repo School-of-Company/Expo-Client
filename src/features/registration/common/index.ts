@@ -4,7 +4,6 @@ export * from './lib/format';
 export { useRegistrationOverview } from './model/useRegistrationOverview';
 export { useRegistrationExpo } from './model/useRegistrationExpo';
 export { useReportExcelDownload } from './model/useReportExcelDownload';
-export { useRegistrationHistories } from './model/useRegistrationQueries';
 export {
   useApplyPeriod,
   useCreateProgram,
