@@ -148,8 +148,8 @@ const PhoneVerificationForm = () => {
             type="text"
             inputMode="numeric"
             autoComplete="one-time-code"
-            maxLength={6}
-            placeholder="인증 번호 6자리를 입력해주세요"
+            maxLength={4}
+            placeholder="인증 번호 4자리를 입력해주세요"
             disabled={!isSmsSent || isSmsVerified}
             error={!!errors.code}
           />
