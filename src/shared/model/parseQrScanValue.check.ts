@@ -23,7 +23,10 @@ assert.deepEqual(parseQrScanValue('1234567890123456789012'), {
 
 assert.equal(parseQrScanValue('{"participantId":'), null);
 assert.equal(parseQrScanValue('[1,2]'), null);
-assert.equal(parseQrScanValue('short-token'), null);
+// 길이는 1~64자면 받는다
+assert.deepEqual(parseQrScanValue('short-token'), { token: 'short-token' });
+assert.deepEqual(parseQrScanValue('a'.repeat(64)), { token: 'a'.repeat(64) });
+assert.equal(parseQrScanValue('a'.repeat(65)), null);
 assert.equal(parseQrScanValue('Ab3_-xYz0123456789AbCd!'), null);
 
 console.log('parseQrScanValue ok');
