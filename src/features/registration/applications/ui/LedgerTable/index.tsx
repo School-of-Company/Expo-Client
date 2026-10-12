@@ -11,7 +11,7 @@ import {
   LedgerRow,
   OCCUPATION_LABEL,
   PROGRAM_TYPE_LABEL,
-} from '../../model/ledger';
+} from '../../../common/model/ledger';
 
 const COLUMNS: TableColumn<LedgerRow>[] = [
   {
@@ -80,6 +80,7 @@ interface LedgerTableProps {
   selectedIds: Set<string>;
   onToggle: (id: string) => void;
   onTogglePage: () => void;
+  onRowClick: (row: LedgerRow) => void;
   footerActions: ReactNode;
   children: ReactNode;
 }
@@ -90,6 +91,7 @@ const LedgerTable = ({
   selectedIds,
   onToggle,
   onTogglePage,
+  onRowClick,
   footerActions,
   children,
 }: LedgerTableProps) => (
@@ -105,6 +107,7 @@ const LedgerTable = ({
     selectedIds={selectedIds}
     onToggleRow={onToggle}
     onToggleAll={onTogglePage}
+    onRowClick={onRowClick}
   >
     {children}
   </RegistrationTable>

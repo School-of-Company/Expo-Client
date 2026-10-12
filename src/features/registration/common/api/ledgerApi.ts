@@ -28,6 +28,44 @@ export interface ProgramSessionDefinition {
   startedAt: string;
   endedAt: string;
   category?: 'ESSENTIAL' | 'CHOICE' | null;
+  /** 현재 회차 조회에만 있다. 접수 당시 정의(definition)에는 없을 수 있다 */
+  policy?: ProgramSessionPolicy | null;
+}
+
+export interface ProgramSessionPolicy {
+  capacity: number;
+  waitingCapacity: number;
+  closed: boolean;
+}
+
+export interface AdminAttendanceSummary {
+  attendeeCount: number;
+  /** HH:mm */
+  firstEntryTime: string | null;
+  lastEntryTime: string | null;
+}
+
+export interface AdminSessionSummary {
+  programType: ProgramSessionType;
+  programId: number;
+  totalElements: number;
+  uniqueParticipants: number;
+  statusCounts: Partial<Record<AdminApplicationStatus, number>>;
+  attendance: AdminAttendanceSummary | null;
+}
+
+export interface AdminApplicationSummary {
+  totalElements: number;
+  uniqueParticipants: number;
+  statusCounts: Partial<Record<AdminApplicationStatus, number>>;
+  totalSessions: number;
+  sessions: AdminSessionSummary[];
+}
+
+export interface AdminApplicationHistory {
+  id: number;
+  status: AdminApplicationStatus;
+  createdAt: string;
 }
 
 export interface AdminParticipantDetail {
@@ -48,6 +86,8 @@ export interface AdminApplicationRow {
   createdAt: string;
   definition: Partial<ProgramSessionDefinition> | null;
   participant: AdminParticipantDetail | null;
+  /** 상태 변경 이력 */
+  history: AdminApplicationHistory[];
 }
 
 export interface AdminApplicationPage {
@@ -60,6 +100,8 @@ export interface AdminApplicationPage {
 
 /** 서버는 알 수 없거나 빈 파라미터를 400 으로 거절하므로 값이 있는 것만 보낸다 */
 export interface AdminApplicationQuery {
+  /** 신청 한 건 조회 */
+  applicationId?: string;
   programType?: ProgramSessionType;
   programId?: number;
   status?: AdminApplicationStatus;
@@ -98,6 +140,22 @@ export const getAdminApplications = async (
     return response.data;
   } catch (error) {
     throw toApiError(error, '접수 원장을 불러오지 못했습니다.');
+  }
+};
+
+/** 목록과 같은 필터의 건수·고유 참가자·회차별 집계와 회차별 실제 출석 */
+export const getAdminApplicationSummary = async (
+  expoId: string,
+  query: AdminApplicationQuery,
+): Promise<AdminApplicationSummary> => {
+  try {
+    const response = await clientTokenInstance.get(
+      `${basePath(expoId)}/summary`,
+      { params: compactParams(query) },
+    );
+    return response.data;
+  } catch (error) {
+    throw toApiError(error, '신청 현황을 불러오지 못했습니다.');
   }
 };
 

@@ -1,21 +1,22 @@
 'use client';
 
-import { useMemo } from 'react';
-import { withLoading } from '@/shared/hocs';
+import { useQueryClient } from '@tanstack/react-query';
+import { Loading } from '@/shared/ui';
 import {
-  buildApplicationRows,
-  ProgramStatusTable,
-  getSessionStats,
+  RefreshStatus,
+  SectionError,
   useRegistrationExpo,
-  useRegistrationOverview,
 } from '../../../common';
-import DailySchedule from '../DailySchedule';
+import {
+  LEDGER_REFRESH_MS,
+  useCurrentSessions,
+  useLedgerSummary,
+  useRecentApplications,
+} from '../../../common/model/ledger';
 import MenuList from '../MenuList';
-import MonitoringSummary from '../MonitoringSummary';
-import RecentApplicationTable from '../RecentApplicationTable';
+import RecentLedgerTable from '../RecentLedgerTable';
+import SessionStatusTable from '../SessionStatusTable';
 import StatusList from '../StatusList';
-
-const RECENT_APPLICATION_COUNT = 10;
 
 const Section = ({
   title,
@@ -30,102 +31,134 @@ const Section = ({
   </section>
 );
 
+const SectionLoading = () => (
+  <div className="flex justify-center py-40">
+    <Loading />
+  </div>
+);
+
 const RegistrationDashboard = () => {
-  const { data, isLoading } = useRegistrationOverview();
-  const { expo } = useRegistrationExpo();
+  const queryClient = useQueryClient();
+  const { expoId, expo } = useRegistrationExpo();
+  // 각 영역은 따로 조회해서 하나가 실패해도 나머지는 보여 준다
+  const summary = useLedgerSummary(expoId);
+  const sessions = useCurrentSessions(expoId);
+  const recent = useRecentApplications(expoId);
+  const queries = [summary, sessions, recent];
 
-  const summary = useMemo(() => {
-    if (!data) return null;
-    const rows = buildApplicationRows(data);
-    const activeRows = rows.filter(({ status }) => status !== 'CANCELED');
-    const confirmedCount = rows.filter(
-      ({ status }) => status === 'CONFIRMED',
-    ).length;
-    return {
-      sessionStats: getSessionStats(data.applications),
-      confirmedCount,
-      waitingCount: rows.filter(({ status }) => status === 'WAITING').length,
-      verifiedCount: new Set(
-        activeRows.map(({ verifiedPhoneNumber }) => verifiedPhoneNumber),
-      ).size,
-      participantCount: activeRows.length,
-      capacity: data.sessions.reduce((sum, { capacity }) => sum + capacity, 0),
-      waitlistCapacity: data.sessions.reduce(
-        (sum, { waitlistCapacity }) => sum + waitlistCapacity,
-        0,
-      ),
-      openProgramCount: data.programs.filter(({ status }) => status === 'OPEN')
-        .length,
-      recentRows: [...rows]
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-        .slice(0, RECENT_APPLICATION_COUNT),
-    };
-  }, [data]);
+  const updatedAt = Math.max(
+    ...queries.map(({ dataUpdatedAt }) => dataUpdatedAt),
+  );
+  const isFetching = queries.some(({ isFetching }) => isFetching);
+  const handleRefresh = () =>
+    Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['adminApplicationSummary', expoId],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['adminCurrentSessions', expoId],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['adminApplications', expoId],
+      }),
+    ]);
 
-  return withLoading({
-    isLoading: isLoading || !data || !summary,
-    children: data && summary && (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[80px] overflow-y-auto">
-        <p className="text-h1m text-black mobile:text-h2b">
-          {expo?.title ?? '박람회 관리'}
-        </p>
+  const counts = summary.data?.statusCounts;
 
-        <Section title="신청 현황">
-          <div className="space-y-16">
+  return (
+    <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[80px] overflow-y-auto">
+      <div className="flex items-end justify-between gap-16 mobile:flex-col mobile:items-start">
+        <p className="text-h1m text-black mobile:text-h2b">{expo?.title}</p>
+        <RefreshStatus
+          updatedAt={updatedAt}
+          isFetching={isFetching}
+          onRefresh={handleRefresh}
+          intervalMs={LEDGER_REFRESH_MS}
+          hasError={queries.some(({ isError }) => isError)}
+        />
+      </div>
+
+      <Section title="프로그램 신청 현황">
+        {summary.isError && !summary.data ? (
+          <SectionError
+            message="신청 현황을 불러오지 못했습니다. 출석 집계 원천이 응답하지 않으면 현황 전체가 실패할 수 있습니다."
+            onRetry={() => summary.refetch()}
+          />
+        ) : summary.data ? (
+          <div className="space-y-12">
             <StatusList
               items={[
                 {
+                  label: '신청',
+                  value: `${summary.data.totalElements.toLocaleString()}건`,
+                  sub: `회차 ${summary.data.totalSessions}개`,
+                },
+                {
+                  label: '고유 참가자',
+                  value: `${summary.data.uniqueParticipants.toLocaleString()}명`,
+                },
+                {
                   label: '확정',
-                  value: `${summary.confirmedCount.toLocaleString()}명`,
-                  sub: `정원 ${summary.capacity.toLocaleString()}석`,
+                  value: `${(counts?.CONFIRMED ?? 0).toLocaleString()}건`,
                 },
                 {
-                  label: '대기',
-                  value: `${summary.waitingCount.toLocaleString()}명`,
-                  sub: `대기정원 ${summary.waitlistCapacity.toLocaleString()}석`,
-                },
-                {
-                  label: '프로그램',
-                  value: `${data.programs.length}개`,
-                  sub: `신청 중 ${summary.openProgramCount}개 · ${data.sessions.length}개 회차`,
-                },
-                {
-                  label: '휴대전화 인증',
-                  value: `${summary.verifiedCount.toLocaleString()}건`,
-                  sub: `참가자 ${summary.participantCount}명`,
+                  label: '대기 · 취소',
+                  value: `${(counts?.WAITING ?? 0).toLocaleString()}건`,
+                  sub: `취소 ${(counts?.CANCELLED ?? 0).toLocaleString()}건`,
                 },
               ]}
             />
-            <MonitoringSummary activeQrCount={summary.confirmedCount} />
+            <p className="text-caption1r text-gray-400">
+              프로그램 회차 신청 기준입니다. 행사 입장·사전등록 인원은 포함하지
+              않습니다.
+            </p>
           </div>
-        </Section>
+        ) : (
+          <SectionLoading />
+        )}
+      </Section>
 
-        <Section title="관리 메뉴">
-          <MenuList />
-        </Section>
+      <Section title="관리 메뉴">
+        <MenuList />
+      </Section>
 
-        <Section title="일자별 일정">
-          <DailySchedule
-            programs={data.programs}
-            sessions={data.sessions}
-            sessionStats={summary.sessionStats}
+      <Section title="회차별 현황">
+        {sessions.isError && !sessions.data ? (
+          <SectionError
+            message="회차 목록을 불러오지 못했습니다."
+            onRetry={() => sessions.refetch()}
           />
-        </Section>
+        ) : sessions.data ? (
+          <>
+            {summary.isError && (
+              <p role="status" className="text-caption1r text-gray-400">
+                신청·출석 집계를 불러오지 못해 정원만 표시합니다.
+              </p>
+            )}
+            <SessionStatusTable
+              sessions={sessions.data}
+              summaries={summary.data?.sessions ?? []}
+            />
+          </>
+        ) : (
+          <SectionLoading />
+        )}
+      </Section>
 
-        <Section title="프로그램별 신청 현황">
-          <ProgramStatusTable
-            programs={data.programs}
-            sessions={data.sessions}
-            sessionStats={summary.sessionStats}
+      <Section title="최근 신청">
+        {recent.isError && !recent.data ? (
+          <SectionError
+            message="최근 신청을 불러오지 못했습니다."
+            onRetry={() => recent.refetch()}
           />
-        </Section>
-
-        <Section title="최근 접수">
-          <RecentApplicationTable rows={summary.recentRows} />
-        </Section>
-      </div>
-    ),
-  });
+        ) : recent.data ? (
+          <RecentLedgerTable rows={recent.data} />
+        ) : (
+          <SectionLoading />
+        )}
+      </Section>
+    </div>
+  );
 };
 
 export default RegistrationDashboard;

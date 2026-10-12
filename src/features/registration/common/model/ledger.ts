@@ -6,13 +6,17 @@ import {
   AdminApplicationStatus,
   AdminOccupation,
   getAdminApplications,
+  getAdminApplicationSummary,
   getAdminCurrentSessions,
   ProgramSessionDefinition,
   ProgramSessionType,
-} from '../../common/api/ledgerApi';
-import { formatDateWithWeekday } from '../../common/lib/format';
+} from '../api/ledgerApi';
+import { formatDateWithWeekday } from '../lib/format';
 
 export const LEDGER_PAGE_SIZE = 20;
+
+/** 관리 화면은 접수가 계속 들어오므로 주기적으로 다시 조회한다. 탭이 보이지 않으면 멈춘다 */
+export const LEDGER_REFRESH_MS = 30 * 1000;
 
 export const LEDGER_STATUS_LABEL: Record<AdminApplicationStatus, string> = {
   CONFIRMED: '확정',
@@ -142,6 +146,7 @@ export const useLedger = (expoId: string, filter: LedgerFilter, page: number) =>
     queryFn: () => getAdminApplications(expoId, toLedgerQuery(filter, page)),
     // 페이지·필터를 바꾸는 동안 이전 결과를 유지해 표가 깜빡이지 않게 한다
     placeholderData: keepPreviousData,
+    refetchInterval: LEDGER_REFRESH_MS,
     select: (data) => ({ ...data, rows: data.items.map(toLedgerRow) }),
   });
 
@@ -149,6 +154,50 @@ export const useCurrentSessions = (expoId: string) =>
   useQuery({
     queryKey: ['adminCurrentSessions', expoId],
     queryFn: () => getAdminCurrentSessions(expoId),
+    refetchInterval: LEDGER_REFRESH_MS,
+  });
+
+// 회차별 집계는 페이지로 나뉜다. 대시보드는 한 번에 보여 줄 수 있는 최대치를 읽는다
+const SUMMARY_SESSION_PAGE_SIZE = 100;
+
+export const useLedgerSummary = (expoId: string) =>
+  useQuery({
+    queryKey: ['adminApplicationSummary', expoId],
+    queryFn: () =>
+      getAdminApplicationSummary(expoId, {
+        page: 0,
+        size: SUMMARY_SESSION_PAGE_SIZE,
+      }),
+    refetchInterval: LEDGER_REFRESH_MS,
+  });
+
+const RECENT_APPLICATION_COUNT = 10;
+
+export const useRecentApplications = (expoId: string) =>
+  useQuery({
+    queryKey: ['adminApplications', expoId, 'recent'],
+    queryFn: () =>
+      getAdminApplications(expoId, {
+        sort: 'CREATED_DESC',
+        page: 0,
+        size: RECENT_APPLICATION_COUNT,
+      }),
+    refetchInterval: LEDGER_REFRESH_MS,
+    select: (data) => data.items.map(toLedgerRow),
+  });
+
+/** 신청 한 건의 최신 상태와 상태 변경 이력 */
+export const useApplicationDetail = (expoId: string, applicationId: string) =>
+  useQuery({
+    queryKey: ['adminApplications', expoId, 'detail', applicationId],
+    queryFn: async () => {
+      const { items } = await getAdminApplications(expoId, {
+        applicationId,
+        page: 0,
+        size: 1,
+      });
+      return items[0] ?? null;
+    },
   });
 
 const timeOf = (dateTime: string) => dateTime.slice(11, 16);

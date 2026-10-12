@@ -17,7 +17,7 @@ import {
   PROGRAM_TYPE_LABEL,
   Q_MAX_LENGTH,
   toSessionKey,
-} from '../../model/ledger';
+} from '../../../common/model/ledger';
 
 interface LedgerFiltersProps {
   filter: LedgerFilter;
