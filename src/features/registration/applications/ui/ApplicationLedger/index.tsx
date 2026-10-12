@@ -15,10 +15,12 @@ import {
   LEDGER_PAGE_SIZE,
   LEDGER_REFRESH_MS,
   LedgerFilter,
+  getLedgerErrorMessage,
   LedgerRow,
   parseSessionKey,
   useCurrentSessions,
   useLedger,
+  useLedgerSummary,
 } from '../../../common/model/ledger';
 import ApplicationDetailModal from '../ApplicationDetailModal';
 import ExcelDownloadModal from '../ExcelDownloadModal';
@@ -47,8 +49,17 @@ const ApplicationLedger = () => {
   const [detailId, setDetailId] = useState<string | null>(null);
   const closeDetail = useCallback(() => setDetailId(null), []);
 
-  const { data, isLoading, isError, isFetching, dataUpdatedAt, refetch } =
-    useLedger(expoId, filter, page - 1);
+  const {
+    data,
+    error,
+    isLoading,
+    isError,
+    isFetching,
+    dataUpdatedAt,
+    refetch,
+  } = useLedger(expoId, filter, page - 1);
+  // 같은 조건의 고유 참가자 수. 실패해도 목록은 보여 주고 이 값만 비워 둔다
+  const summary = useLedgerSummary(expoId, filter);
   const { data: sessions = [] } = useCurrentSessions(expoId);
 
   const rows = useMemo(() => data?.rows ?? [], [data]);
@@ -111,14 +122,29 @@ const ApplicationLedger = () => {
 
         {isError && !data ? (
           <SectionError
-            message="접수 원장을 불러오지 못했습니다."
+            message={getLedgerErrorMessage(
+              error,
+              '접수 원장을 불러오지 못했습니다.',
+            )}
             onRetry={() => refetch()}
           />
         ) : (
           <div className="space-y-16">
             <div className="flex items-center justify-between gap-16 text-body2r text-gray-500">
               <p>
-                확정{' '}
+                신청{' '}
+                <span className="text-black">
+                  {totalCount.toLocaleString()}
+                </span>
+                건 · 고유 참가자{' '}
+                <span className="text-black">
+                  {summary.data
+                    ? `${summary.data.uniqueParticipants.toLocaleString()}명`
+                    : summary.isError
+                      ? '집계 실패'
+                      : '-'}
+                </span>
+                {' · '}확정{' '}
                 <span className="text-main-600">
                   {statusCounts.CONFIRMED ?? 0}
                 </span>
