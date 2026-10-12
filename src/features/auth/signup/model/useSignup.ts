@@ -10,7 +10,10 @@ export const useSignup = () => {
   return useMutation({
     mutationFn: (data: SignUpData) => postSignup(data),
     onSuccess: () => {
-      toast.success('회원가입이 완료되었습니다.');
+      // 가입 직후에는 대기 상태라 관리자가 승인해야 로그인할 수 있다
+      toast.success(
+        '회원가입 신청이 완료되었습니다. 관리자 승인 후 로그인할 수 있습니다.',
+      );
       router.push('/signin');
     },
     onError: (error: Error) => {
