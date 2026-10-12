@@ -1,7 +1,32 @@
-import { DetailHeader } from '@/shared/ui';
+'use client';
 
-// 처리 이력은 공급 서비스별로 나뉜다. 공개 관리자 API가 생기기 전까지 mock 이력을 운영 이력처럼 보여 주지 않는다
-const HISTORY_SOURCES = [
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useState } from 'react';
+import { withLoading } from '@/shared/hocs';
+import { DetailHeader, NavigationBar } from '@/shared/ui';
+import {
+  RegistrationTable,
+  SectionError,
+  TableColumn,
+  useRegistrationExpo,
+} from '../../../common';
+import { AdminChangeHistoryItem } from '../../api/adminChangeHistoryApi';
+import {
+  formatOccurredAt,
+  getChangeTypeLabel,
+  getChangeTypeStyle,
+  getHistoryErrorMessage,
+  getHistoryTotalPage,
+  getTargetTypeLabel,
+  HistoryFilter,
+  INITIAL_HISTORY_FILTER,
+  isHistoryRangeInvalid,
+  useAdminChangeHistory,
+} from '../../model/adminChangeHistory';
+import HistoryFilters from '../HistoryFilters';
+
+// 신청·문자 이력은 출처 서비스의 공개 조회 API가 생기기 전까지 임시 이력을 보여 주지 않는다
+const PENDING_SOURCES = [
   {
     title: '신청·취소·승급 이력',
     source: 'Application',
@@ -13,40 +38,135 @@ const HISTORY_SOURCES = [
     status:
       '내부 이력 API 구현 완료(Expo-Notification-Server#43), Application 공개 경로 연결 전',
   },
+];
+
+const COLUMNS: TableColumn<AdminChangeHistoryItem>[] = [
   {
-    title: '모집 변경 이력',
-    source: 'Expo',
-    status: '공급 API 준비 전 (Expo-Expo-Server#94)',
+    key: 'occurredAt',
+    label: '처리 일시',
+    flex: 1.4,
+    render: ({ occurredAt }) => formatOccurredAt(occurredAt),
+  },
+  {
+    key: 'type',
+    label: '유형',
+    render: ({ type }) => (
+      <span className={getChangeTypeStyle(type)}>
+        {getChangeTypeLabel(type)}
+      </span>
+    ),
+  },
+  {
+    key: 'target',
+    label: '대상',
+    render: ({ targetType, targetId }) =>
+      `${getTargetTypeLabel(targetType)} #${targetId}`,
+  },
+  {
+    key: 'summary',
+    label: '내용',
+    flex: 3,
+    render: ({ summary }) => (
+      <p className="break-words text-left">{summary || '-'}</p>
+    ),
+  },
+  {
+    key: 'adminId',
+    label: '처리자',
+    render: ({ adminId }) =>
+      adminId === null ? (
+        <span className="text-gray-300">미기록</span>
+      ) : (
+        `관리자 #${adminId}`
+      ),
   },
 ];
 
-const HistoryLedger = () => (
-  <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px]">
-    <DetailHeader textCenter headerTitle="행정 이력" />
+const HistoryLedger = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // URL 의 ?page 는 1부터, 서버 페이지는 0부터
+  const page = Math.max(1, Number(searchParams.get('page')) || 1);
+  const { expoId } = useRegistrationExpo();
+  const [filter, setFilter] = useState<HistoryFilter>(INITIAL_HISTORY_FILTER);
 
-    <div
-      role="status"
-      className="space-y-16 rounded-sm border-1 border-solid border-gray-200 px-30 py-[28px] mobile:px-16"
-    >
-      <p className="text-body1b text-black">
-        처리 이력은 서버 연결 후 제공됩니다.
-      </p>
-      <p className="text-body2r text-gray-500">
-        이력은 출처 서비스별로 나뉘어 있어 각 서비스의 공개 조회 API가 준비되면
-        이 화면에 연결합니다. 그 전에는 실제와 다른 임시 이력을 보여 주지
-        않습니다.
-      </p>
-      <ul className="space-y-12">
-        {HISTORY_SOURCES.map(({ title, source, status }) => (
-          <li key={title} className="flex flex-wrap items-baseline gap-12">
-            <span className="text-body2b text-black">{title}</span>
-            <span className="text-caption1r text-gray-400">{source}</span>
-            <span className="text-caption1r text-gray-500">{status}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </div>
-);
+  const { data, error, isLoading, isError, refetch } = useAdminChangeHistory(
+    expoId,
+    filter,
+    page - 1,
+  );
+  const isRangeInvalid = isHistoryRangeInvalid(filter);
+  const totalCount = data?.totalElements ?? 0;
+  const totalPage = getHistoryTotalPage(totalCount);
+
+  const handleFilterChange = useCallback(
+    (next: HistoryFilter) => {
+      setFilter(next);
+      router.replace('?');
+    },
+    [router],
+  );
+
+  return withLoading({
+    isLoading: isLoading && !data,
+    children: (
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px]">
+        <DetailHeader textCenter headerTitle="행정 이력" />
+
+        <section className="space-y-16">
+          <div className="space-y-6">
+            <p className="text-body1b text-black">모집 변경 이력</p>
+            <p className="text-caption1r text-gray-400">
+              프로그램·회차 생성·수정·삭제 처리 이력입니다. 기록 이전의 변경은
+              포함하지 않습니다.
+            </p>
+          </div>
+
+          <HistoryFilters
+            filter={filter}
+            onChange={handleFilterChange}
+            onReset={() => handleFilterChange(INITIAL_HISTORY_FILTER)}
+          />
+
+          {isRangeInvalid ? (
+            <p role="alert" className="text-body2r text-error">
+              시작 일시는 종료 일시보다 앞서야 합니다.
+            </p>
+          ) : isError && !data ? (
+            <SectionError
+              message={getHistoryErrorMessage(error)}
+              onRetry={() => refetch()}
+            />
+          ) : (
+            <RegistrationTable
+              columns={COLUMNS}
+              rows={data?.items ?? []}
+              emptyText="조건에 맞는 변경 이력이 없습니다."
+              footerText="변경 이력"
+              footerCount={totalCount}
+              minWidth="900px"
+            >
+              {totalPage > 1 && (
+                <div className="flex justify-center">
+                  <NavigationBar totalPage={totalPage} />
+                </div>
+              )}
+            </RegistrationTable>
+          )}
+        </section>
+
+        <ul className="space-y-12 rounded-sm border-1 border-solid border-gray-200 px-30 py-20 mobile:px-16">
+          {PENDING_SOURCES.map(({ title, source, status }) => (
+            <li key={title} className="flex flex-wrap items-baseline gap-12">
+              <span className="text-body2b text-black">{title}</span>
+              <span className="text-caption1r text-gray-400">{source}</span>
+              <span className="text-caption1r text-gray-500">{status}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ),
+  });
+};
 
 export default HistoryLedger;
