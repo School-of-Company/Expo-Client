@@ -4,7 +4,7 @@ import { RegistrationApplicationsPage } from '@/views/registration/applications'
 export const metadata: Metadata = {
   title: '접수 관리대장',
   description:
-    '사전등록·프로그램 신청자를 조회하고 그룹 문자 발송, CSV 내보내기를 할 수 있는 관리자 전용 페이지입니다.',
+    '프로그램 회차 신청 원장을 조회·필터하고 Report 양식으로 Excel을 내려받는 관리자 전용 페이지입니다.',
 };
 
 const Page = () => {

@@ -53,8 +53,6 @@ export interface RegistrationSession {
 
 export interface RegistrationApplication {
   id: number;
-  /** Application 접수 원장의 UUID 신청 ID. 원장 API 연결 전(mock)에는 없다 */
-  applicationId?: string;
   name: string;
   phoneNumber: string;
   /** 사전등록처럼 참가자 개인 연락처가 없을 때 인증에 사용한 대표 번호 */
@@ -105,26 +103,6 @@ export interface RegistrationHistory {
   createdAt: string; // ISO
 }
 
-export interface RegistrationGroupSmsRequest {
-  applicationIds: number[];
-  content: string;
-}
-
-export interface RegistrationGroupSmsResult {
-  sentCount: number;
-}
-
-export interface RegistrationStatusChangeRequest {
-  applicationIds: number[];
-  status: 'CONFIRMED' | 'CANCELED';
-}
-
-export interface RegistrationStatusChangeResult {
-  changedCount: number;
-  skippedCount: number;
-  autoPromotedCount: number;
-}
-
 export interface RegistrationScheduleSaveRequest {
   programs: RegistrationProgram[];
   sessions: RegistrationSession[];
@@ -167,6 +145,7 @@ export interface ReportApplicationFilter {
   programId?: number;
   /** null 이면 모든 상태, 생략하면 서버 기본값 CONFIRMED */
   status: ReportApplicationStatus | null;
+  sort?: 'CREATED_DESC' | 'CREATED_ASC';
 }
 
 interface ReportExcelDownloadBase {

@@ -1,8 +1,6 @@
 import {
   RegistrationApplication,
   RegistrationApplyPeriodRequest,
-  RegistrationGroupSmsRequest,
-  RegistrationGroupSmsResult,
   RegistrationHistory,
   RegistrationHistoryAction,
   RegistrationMonitoring,
@@ -13,8 +11,6 @@ import {
   RegistrationScheduleSaveRequest,
   RegistrationSession,
   RegistrationSessionCreateRequest,
-  RegistrationStatusChangeRequest,
-  RegistrationStatusChangeResult,
 } from '@/shared/types/registration/type';
 
 // TODO: 신청 서버 API 연결 시 제거하고 실제 API 로 교체
@@ -105,71 +101,6 @@ export const mockGetRegistrationHistories = async (): Promise<
 > => {
   await delay(200);
   return histories.map((item) => ({ ...item }));
-};
-
-export const mockPostRegistrationGroupSms = async ({
-  applicationIds,
-}: RegistrationGroupSmsRequest): Promise<RegistrationGroupSmsResult> => {
-  await delay(500);
-  const phoneNumbers = new Set(
-    applications
-      .filter(({ id }) => applicationIds.includes(id))
-      .map(
-        ({ phoneNumber, verifiedPhoneNumber }) =>
-          phoneNumber || verifiedPhoneNumber,
-      ),
-  );
-  addHistory('GROUP_SMS', `그룹 문자 ${phoneNumbers.size}건 발송`);
-  return { sentCount: phoneNumbers.size };
-};
-
-export const mockPatchRegistrationStatus = async ({
-  applicationIds,
-  status,
-}: RegistrationStatusChangeRequest): Promise<RegistrationStatusChangeResult> => {
-  await delay(400);
-  const targets = applications
-    .filter(({ id }) => applicationIds.includes(id))
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  let changedCount = 0;
-  const freedSessionIds = new Set<number>();
-
-  targets.forEach((application) => {
-    if (status === 'CONFIRMED') {
-      const target = sessions.find(({ id }) => id === application.sessionId);
-      if (
-        application.status !== 'WAITING' ||
-        !target ||
-        countConfirmed(target.id) >= target.capacity
-      )
-        return;
-      application.status = 'CONFIRMED';
-      changedCount += 1;
-      return;
-    }
-
-    if (application.status === 'CANCELED') return;
-    if (application.status === 'CONFIRMED') {
-      freedSessionIds.add(application.sessionId);
-    }
-    application.status = 'CANCELED';
-    changedCount += 1;
-  });
-
-  if (changedCount > 0) {
-    addHistory(
-      'STATUS_CHANGE',
-      `${changedCount}건 ${status === 'CONFIRMED' ? '수동 승급' : '취소'} (접수번호 ${targets
-        .map(({ id }) => `#${id}`)
-        .join(', ')})`,
-    );
-  }
-
-  return {
-    changedCount,
-    skippedCount: targets.length - changedCount,
-    autoPromotedCount: fillSeats(Array.from(freedSessionIds)),
-  };
 };
 
 const SESSION_TIME_PATTERN = /^\d{2}:\d{2}$/;

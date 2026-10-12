@@ -1,245 +1,163 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
-import { toast } from 'react-toastify';
-import { Check, Trash } from '@/shared/assets/icons';
+import { useCallback, useMemo, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
 import { DetailHeader, NavigationBar } from '@/shared/ui';
 import SmallButton from '@/shared/ui/SmallButton';
+import { useRegistrationExpo } from '../../../common';
 import {
-  buildApplicationRows,
-  exportApplicationsCsv,
-  getSessionStats,
-  TableFooterAction,
-  useChangeApplicationStatus,
-  useRegistrationExpo,
-  useRegistrationOverview,
-} from '../../../common';
-import {
-  ApplicationFilter,
-  filterApplications,
-  INITIAL_FILTER,
-  SortKey,
-  SortState,
-  sortApplications,
-} from '../../model/applicationFilter';
-import ApplicationFilters from '../ApplicationFilters';
-import ApplicationTable from '../ApplicationTable';
+  INITIAL_LEDGER_FILTER,
+  LEDGER_PAGE_SIZE,
+  LedgerFilter,
+  LedgerRow,
+  useCurrentSessions,
+  useLedger,
+} from '../../model/ledger';
 import ExcelDownloadModal from '../ExcelDownloadModal';
-import GroupSmsModal from '../GroupSmsModal';
-
-const PAGE_SIZE = 10;
+import LedgerFilters from '../LedgerFilters';
+import LedgerTable from '../LedgerTable';
 
 const ApplicationLedger = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const page = Number(searchParams.get('page')) || 1;
-  const { data, isLoading } = useRegistrationOverview();
-  // 박람회 정보는 RegistrationExpoGuard 가 불러온 뒤에 이 화면을 그린다
-  const { expo } = useRegistrationExpo();
+  // URL 의 ?page 는 1부터, 서버 페이지는 0부터
+  const page = Math.max(1, Number(searchParams.get('page')) || 1);
+  const { expoId } = useRegistrationExpo();
 
-  const [filter, setFilter] = useState<ApplicationFilter>(() => ({
-    ...INITIAL_FILTER,
-    programId: searchParams.get('programId') ?? '',
-  }));
-  const [sort, setSort] = useState<SortState>({ key: 'id', direction: 'desc' });
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [isSmsModalOpen, setIsSmsModalOpen] = useState(false);
+  const [filter, setFilter] = useState<LedgerFilter>(INITIAL_LEDGER_FILTER);
+  // 서버 페이지를 넘겨도 선택이 유지되도록 선택한 행 자체를 보관한다
+  const [selected, setSelected] = useState<Map<string, LedgerRow>>(new Map());
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
 
-  const { mutate: changeStatus, isPending: isChangingStatus } =
-    useChangeApplicationStatus(() => setSelectedIds(new Set()));
-
-  const rows = useMemo(() => (data ? buildApplicationRows(data) : []), [data]);
-  const sessionStats = useMemo(
-    () => getSessionStats(data?.applications ?? []),
-    [data],
+  const { data, isLoading, isError, refetch } = useLedger(
+    expoId,
+    filter,
+    page - 1,
   );
-  const filteredRows = useMemo(
-    () => sortApplications(filterApplications(rows, filter), sort),
-    [rows, filter, sort],
+  const { data: sessions = [] } = useCurrentSessions(expoId);
+
+  const rows = useMemo(() => data?.rows ?? [], [data]);
+  const totalCount = data?.totalElements ?? 0;
+  const totalPage = Math.max(Math.ceil(totalCount / LEDGER_PAGE_SIZE), 1);
+  const selectedIds = useMemo(() => new Set(selected.keys()), [selected]);
+  const selectedRows = useMemo(() => Array.from(selected.values()), [selected]);
+
+  const handleFilterChange = useCallback(
+    (next: LedgerFilter) => {
+      setFilter(next);
+      router.replace('?');
+    },
+    [router],
   );
-  const selectedRows = useMemo(
-    () => rows.filter(({ id }) => selectedIds.has(id)),
-    [rows, selectedIds],
-  );
-  const totalPage = Math.max(Math.ceil(filteredRows.length / PAGE_SIZE), 1);
-  const pageRows = filteredRows.slice(
-    (Math.min(page, totalPage) - 1) * PAGE_SIZE,
-    Math.min(page, totalPage) * PAGE_SIZE,
-  );
 
-  const countByStatus = (status: string) =>
-    filteredRows.filter((row) => row.status === status).length;
-
-  const resetPage = (programId: string) => {
-    const params = new URLSearchParams();
-    if (programId) params.set('programId', programId);
-    router.replace(`?${params.toString()}`);
-  };
-
-  const handleFilterChange = (next: ApplicationFilter) => {
-    setFilter(next);
-    resetPage(next.programId);
-  };
-
-  const handleSort = (key: SortKey) =>
-    setSort((prev) => ({
-      key,
-      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc',
-    }));
-
-  const handleToggle = (id: number) =>
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
+  const handleToggle = (id: string) =>
+    setSelected((prev) => {
+      const next = new Map(prev);
+      const row = rows.find((item) => item.id === id);
       if (next.has(id)) next.delete(id);
-      else next.add(id);
+      else if (row) next.set(id, row);
       return next;
     });
 
   const handleTogglePage = () =>
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      const isAllSelected = pageRows.every(({ id }) => next.has(id));
-      pageRows.forEach(({ id }) =>
-        isAllSelected ? next.delete(id) : next.add(id),
+    setSelected((prev) => {
+      const next = new Map(prev);
+      const isAllSelected = rows.every(({ id }) => next.has(id));
+      rows.forEach((row) =>
+        isAllSelected ? next.delete(row.id) : next.set(row.id, row),
       );
       return next;
     });
 
-  const handleChangeStatus = (
-    ids: number[],
-    status: 'CONFIRMED' | 'CANCELED',
-  ) => {
-    if (ids.length === 0) {
-      toast.error('신청자를 선택해주세요.');
-      return;
-    }
-    const message =
-      status === 'CONFIRMED'
-        ? `${ids.length}건을 확정으로 승급할까요? 대기 중이고 공석이 있는 회차만 처리됩니다.`
-        : `${ids.length}건을 취소할까요? 자동 승급 회차는 대기자가 순서대로 확정됩니다.`;
-    if (!window.confirm(message)) return;
-    changeStatus({ applicationIds: ids, status });
-  };
-
-  const handleExportCsv = () => {
-    if (filteredRows.length === 0) {
-      toast.error('내보낼 신청 내역이 없습니다.');
-      return;
-    }
-    exportApplicationsCsv(filteredRows);
-  };
-
-  const selectedIdList = Array.from(selectedIds);
+  const statusCounts = data?.statusCounts ?? {};
 
   return withLoading({
-    isLoading: isLoading || !data,
-    children: data && (
+    isLoading: isLoading && !data,
+    children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px] overflow-y-auto">
         <DetailHeader textCenter headerTitle="접수 관리대장" />
 
-        <ApplicationFilters
+        <LedgerFilters
           filter={filter}
-          programs={data.programs}
-          sessions={data.sessions}
+          sessions={sessions}
           onChange={handleFilterChange}
-          onReset={() => handleFilterChange(INITIAL_FILTER)}
+          onReset={() => handleFilterChange(INITIAL_LEDGER_FILTER)}
         />
 
-        <div className="space-y-16">
-          <div className="flex items-center justify-between gap-16 text-body2r text-gray-500">
-            <p>
-              확정{' '}
-              <span className="text-main-600">
-                {countByStatus('CONFIRMED')}
-              </span>
-              {' · '}대기{' '}
-              <span className="text-black">{countByStatus('WAITING')}</span>
-              {' · '}취소 {countByStatus('CANCELED')}
+        {isError ? (
+          <div className="flex items-center justify-between gap-16 rounded-sm border-1 border-solid border-gray-200 px-20 py-16">
+            <p className="text-body2r text-gray-500">
+              접수 원장을 불러오지 못했습니다.
             </p>
-            {selectedIds.size > 0 && (
-              <button
-                type="button"
-                onClick={() => setSelectedIds(new Set())}
-                className="text-caption1r text-gray-400 underline"
-              >
-                선택 해제
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="shrink-0 text-body2r text-main-600 underline"
+            >
+              다시 시도
+            </button>
           </div>
+        ) : (
+          <div className="space-y-16">
+            <div className="flex items-center justify-between gap-16 text-body2r text-gray-500">
+              <p>
+                확정{' '}
+                <span className="text-main-600">
+                  {statusCounts.CONFIRMED ?? 0}
+                </span>
+                {' · '}대기{' '}
+                <span className="text-black">{statusCounts.WAITING ?? 0}</span>
+                {' · '}취소 {statusCounts.CANCELLED ?? 0}
+              </p>
+              {selected.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelected(new Map())}
+                  className="text-caption1r text-gray-400 underline"
+                >
+                  선택 해제
+                </button>
+              )}
+            </div>
 
-          <ApplicationTable
-            rows={pageRows}
-            totalCount={filteredRows.length}
-            sessionStats={sessionStats}
-            selectedIds={selectedIds}
-            onToggle={handleToggle}
-            onToggleAll={handleTogglePage}
-            sort={sort}
-            onSort={handleSort}
-            onChangeStatus={handleChangeStatus}
-            isChangingStatus={isChangingStatus}
-            footerActions={
-              <>
-                <p className="text-body2r text-gray-500">
-                  선택 <span className="text-main-600">{selectedIds.size}</span>
-                </p>
-                <TableFooterAction
-                  text="승급"
-                  icon={<Check />}
-                  disabled={isChangingStatus}
-                  onClick={() =>
-                    handleChangeStatus(selectedIdList, 'CONFIRMED')
-                  }
-                />
-                <TableFooterAction
-                  text="취소"
-                  icon={<Trash />}
-                  disabled={isChangingStatus}
-                  onClick={() => handleChangeStatus(selectedIdList, 'CANCELED')}
-                />
-                <SmallButton
-                  text="문자"
-                  onClick={() => setIsSmsModalOpen(true)}
-                />
-                <div className="flex items-center gap-20 mobile:gap-12">
-                  <p className="text-body1r text-gray-400">출력</p>
-                  <SmallButton
-                    text="Excel"
-                    onClick={() => setIsExcelModalOpen(true)}
-                  />
-                  <SmallButton text="CSV" onClick={handleExportCsv} />
+            <LedgerTable
+              rows={rows}
+              totalCount={totalCount}
+              selectedIds={selectedIds}
+              onToggle={handleToggle}
+              onTogglePage={handleTogglePage}
+              footerActions={
+                <>
+                  <p className="text-body2r text-gray-500">
+                    선택 <span className="text-main-600">{selected.size}</span>
+                  </p>
+                  <div className="flex items-center gap-20 mobile:gap-12">
+                    <p className="text-body1r text-gray-400">출력</p>
+                    <SmallButton
+                      text="Excel"
+                      onClick={() => setIsExcelModalOpen(true)}
+                    />
+                  </div>
+                </>
+              }
+            >
+              {totalPage > 1 && (
+                <div className="flex justify-center">
+                  <NavigationBar totalPage={totalPage} />
                 </div>
-              </>
-            }
-          >
-            {totalPage > 1 && (
-              <div className="flex justify-center">
-                <NavigationBar totalPage={totalPage} />
-              </div>
-            )}
-          </ApplicationTable>
-        </div>
-
-        {isSmsModalOpen && (
-          <GroupSmsModal
-            expoTitle={expo?.title ?? '박람회'}
-            selectedRows={selectedRows}
-            filteredRows={filteredRows}
-            onClose={() => setIsSmsModalOpen(false)}
-            onSent={() => setSelectedIds(new Set())}
-          />
+              )}
+            </LedgerTable>
+          </div>
         )}
 
         {isExcelModalOpen && (
           <ExcelDownloadModal
+            expoId={expoId}
             selectedRows={selectedRows}
-            filteredRows={filteredRows}
             filter={filter}
-            programs={data.programs}
-            sessions={data.sessions}
+            filterCount={totalCount}
+            filterStatusCounts={statusCounts}
             onClose={() => setIsExcelModalOpen(false)}
           />
         )}

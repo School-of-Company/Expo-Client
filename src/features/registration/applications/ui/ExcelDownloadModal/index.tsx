@@ -4,50 +4,59 @@ import { useEffect, useMemo, useState } from 'react';
 import { XMark } from '@/shared/assets/icons';
 import { CheckBoxIcon, CheckedBoxIcon } from '@/shared/assets/svg';
 import {
-  RegistrationProgram,
-  RegistrationSession,
   ReportExcelScope,
   ReportExcelTemplate,
 } from '@/shared/types/registration/type';
 import { Button } from '@/shared/ui';
-import {
-  ApplicationRow,
-  STATUS_LABEL,
-  useRegistrationExpo,
-  useReportExcelDownload,
-} from '../../../common';
-import { ApplicationFilter } from '../../model/applicationFilter';
+import { useReportExcelDownload } from '../../../common';
+import { AdminApplicationStatus } from '../../../common/api/ledgerApi';
 import {
   buildExcelDownloadPlan,
   EXCEL_TEMPLATE_OPTIONS,
 } from '../../model/excelDownload';
+import {
+  LEDGER_STATUS_LABEL,
+  LedgerFilter,
+  LedgerRow,
+} from '../../model/ledger';
+
+type StatusCounts = Partial<Record<AdminApplicationStatus, number>>;
 
 interface ExcelDownloadModalProps {
-  selectedRows: ApplicationRow[];
-  filteredRows: ApplicationRow[];
-  filter: ApplicationFilter;
-  programs: RegistrationProgram[];
-  sessions: RegistrationSession[];
+  expoId: string;
+  selectedRows: LedgerRow[];
+  filter: LedgerFilter;
+  /** 현재 필터 전체 건수와 상태 집계 (서버 기준) */
+  filterCount: number;
+  filterStatusCounts: StatusCounts;
   onClose: () => void;
 }
 
-// TODO: 접수 원장 API 연결 시 true 로 바꾸고 이 플래그를 제거
-const IS_LEDGER_CONNECTED = false;
+const STATUSES: AdminApplicationStatus[] = [
+  'CONFIRMED',
+  'WAITING',
+  'CANCELLED',
+];
 
-const describeStatus = (rows: ApplicationRow[]) =>
-  (['CONFIRMED', 'WAITING', 'CANCELED'] as const)
-    .map(
-      (status) =>
-        `${STATUS_LABEL[status]} ${rows.filter((row) => row.status === status).length}`,
-    )
-    .join(' · ');
+const countByStatus = (rows: LedgerRow[]): StatusCounts =>
+  Object.fromEntries(
+    STATUSES.map((status) => [
+      status,
+      rows.filter((row) => row.status === status).length,
+    ]),
+  );
+
+const describeStatus = (counts: StatusCounts) =>
+  STATUSES.map(
+    (status) => `${LEDGER_STATUS_LABEL[status]} ${counts[status] ?? 0}`,
+  ).join(' · ');
 
 const ExcelDownloadModal = ({
+  expoId,
   selectedRows,
-  filteredRows,
   filter,
-  programs,
-  sessions,
+  filterCount,
+  filterStatusCounts,
   onClose,
 }: ExcelDownloadModalProps) => {
   const [template, setTemplate] = useState<ReportExcelTemplate>('STANDARD');
@@ -66,34 +75,21 @@ const ExcelDownloadModal = ({
   const { mutate: download, isPending } = useReportExcelDownload(onClose);
 
   const plan = useMemo(
-    () =>
-      buildExcelDownloadPlan({
-        template,
-        scope,
-        selectedRows,
-        filter,
-        programs,
-        sessions,
-      }),
-    [template, scope, selectedRows, filter, programs, sessions],
+    () => buildExcelDownloadPlan({ template, scope, selectedRows, filter }),
+    [template, scope, selectedRows, filter],
   );
 
-  const { expoId } = useRegistrationExpo();
-  // 대장의 프로그램·회차·신청이 아직 mock 이라 서버에 보낼 ID가 실제 값이 아니다
-  const blockers = IS_LEDGER_CONNECTED
-    ? plan.blockers
-    : [
-        '접수 관리대장이 아직 서버와 연결되지 않았습니다. 접수 원장 API 연결 후 사용할 수 있습니다.',
-        ...plan.blockers,
-      ];
-  const canDownload = IS_LEDGER_CONNECTED && !!plan.request && !isPending;
+  const { blockers } = plan;
+  const canDownload = !!plan.request && !isPending;
 
   const handleDownload = () => {
     if (!canDownload || !plan.request) return;
     download({ expoId, request: plan.request });
   };
 
-  const targetRows = scope === 'SELECTED' ? selectedRows : filteredRows;
+  const targetCount = scope === 'SELECTED' ? selectedRows.length : filterCount;
+  const targetStatusCounts =
+    scope === 'SELECTED' ? countByStatus(selectedRows) : filterStatusCounts;
   const isPersonDeduped = template === 'STANDARD' || template === 'TRAINEE';
 
   const scopeOptions: {
@@ -105,7 +101,7 @@ const ExcelDownloadModal = ({
     {
       value: 'FILTER',
       label: '현재 필터 전체',
-      count: filteredRows.length,
+      count: filterCount,
     },
   ];
 
@@ -175,9 +171,9 @@ const ExcelDownloadModal = ({
             ))}
           </div>
           <p className="text-caption1r text-gray-500">
-            대상 신청 {targetRows.length}건 ({describeStatus(targetRows)})
+            대상 신청 {targetCount}건 ({describeStatus(targetStatusCounts)})
             {scope === 'FILTER' &&
-              '. 화면 페이지와 관계없이 서버가 필터 조건 전체를 다시 조회하므로 최종 건수는 서버 기준입니다'}
+              '. 화면 페이지와 관계없이 서버가 필터 조건 전체를 다시 조회합니다. 상태를 고르지 않으면 모든 상태가 포함됩니다'}
             {isPersonDeduped &&
               '. 같은 사람은 1번만 출력되어 행 수가 신청 건수보다 적을 수 있습니다'}
             .
