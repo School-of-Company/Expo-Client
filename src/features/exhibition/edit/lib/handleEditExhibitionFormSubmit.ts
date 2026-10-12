@@ -30,12 +30,15 @@ export const handleEditExhibitionFormSubmit = async (
       coverImage: coverImage,
       x: lng,
       y: lat,
-      // 새로 추가한 프로그램은 서버 계약상 id를 null로 보낸다
+      // 새로 추가한 프로그램은 서버 계약상 id를 null로 보낸다.
+      // 기존 프로그램은 조회한 revision을 돌려보내고, policy는 null로 보내 기존 정책을 유지한다
       updateStandardProRequestDto: data.standard.map((standard) => ({
         id: standard.id ?? null,
         title: standard.title,
         startedAt: `${standard.startedAt}`,
         endedAt: `${standard.endedAt}`,
+        policy: null,
+        revision: standard.revision ?? null,
       })),
       updateTrainingProRequestDto: data.trainings.map((training) => ({
         id: training.id ?? null,
@@ -43,6 +46,8 @@ export const handleEditExhibitionFormSubmit = async (
         startedAt: `${training.startedAt}`,
         endedAt: `${training.endedAt}`,
         category: training.category ?? 'CHOICE',
+        policy: null,
+        revision: training.revision ?? null,
       })),
     };
 
