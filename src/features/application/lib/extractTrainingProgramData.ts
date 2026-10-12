@@ -37,6 +37,6 @@ export const extractTrainingProgramData = async (
     trainingId: formattedData.trainingId || '',
     informationJson: formattedData.informationJson,
     personalInformationStatus: formattedData.personalInformationStatus ?? false,
-    trainingProId: trainingProIds,
+    trainingProIds,
   };
 };
