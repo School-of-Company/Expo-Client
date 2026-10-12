@@ -24,6 +24,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'api.startup-expo.kr',
       },
+      {
+        protocol: 'https',
+        hostname: 'a.glink.kr',
+        pathname: '/expo/image/**',
+      },
     ],
   },
 };

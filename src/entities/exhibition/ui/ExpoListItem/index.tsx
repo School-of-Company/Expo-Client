@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import DefaultExpo from '@/shared/assets/png/DefaultExpo.png';
 import { isValidSrc } from '@/shared/model';
 
@@ -25,7 +28,12 @@ const ExpoListItem = ({
     return `${month}.${day}`;
   };
 
-  const safeSrc = isValidSrc(coverImage) ? coverImage : DefaultExpo;
+  // 주소 형식이 맞아도 불러오지 못하면(권한·삭제 등) 기본 이미지로 바꾼다
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const safeSrc =
+    isValidSrc(coverImage) && coverImage !== failedSrc
+      ? coverImage
+      : DefaultExpo;
 
   return (
     <Link
@@ -38,6 +46,7 @@ const ExpoListItem = ({
       >
         <Image
           src={safeSrc}
+          onError={() => setFailedSrc(coverImage)}
           alt="이미지 설명"
           width={110}
           height={110}
