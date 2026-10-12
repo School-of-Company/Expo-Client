@@ -11,7 +11,9 @@ export interface TableColumn<T> {
   render: (row: T) => ReactNode;
 }
 
-interface RegistrationTableProps<T extends { id: number }> {
+type RowId = number | string;
+
+interface RegistrationTableProps<T extends { id: RowId }> {
   columns: TableColumn<T>[];
   rows: T[];
   emptyText: string;
@@ -20,8 +22,8 @@ interface RegistrationTableProps<T extends { id: number }> {
   footerActions?: ReactNode;
   maxHeight?: string;
   minWidth?: string;
-  selectedIds?: Set<number>;
-  onToggleRow?: (id: number) => void;
+  selectedIds?: Set<T['id']>;
+  onToggleRow?: (id: T['id']) => void;
   onToggleAll?: () => void;
   onRowClick?: (row: T) => void;
   sort?: { key: string; direction: 'asc' | 'desc' };
@@ -32,7 +34,7 @@ interface RegistrationTableProps<T extends { id: number }> {
 const CELL = 'min-w-0 px-4 text-center';
 
 /** shared TableForm 과 같은 모양에 다중 선택·정렬·커스텀 셀을 더한 표 */
-const RegistrationTable = <T extends { id: number }>({
+const RegistrationTable = <T extends { id: RowId }>({
   columns,
   rows,
   emptyText,
