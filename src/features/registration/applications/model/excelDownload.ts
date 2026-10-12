@@ -4,7 +4,11 @@ import {
   ReportExcelScope,
   ReportExcelTemplate,
 } from '@/shared/types/registration/type';
-import { LedgerFilter, LedgerRow, parseSessionKey } from './ledger';
+import {
+  LedgerFilter,
+  LedgerRow,
+  parseSessionKey,
+} from '../../common/model/ledger';
 
 export const SELECTED_MAX_COUNT = 1000;
 

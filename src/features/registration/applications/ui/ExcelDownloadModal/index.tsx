@@ -11,14 +11,14 @@ import { Button } from '@/shared/ui';
 import { useReportExcelDownload } from '../../../common';
 import { AdminApplicationStatus } from '../../../common/api/ledgerApi';
 import {
-  buildExcelDownloadPlan,
-  EXCEL_TEMPLATE_OPTIONS,
-} from '../../model/excelDownload';
-import {
   LEDGER_STATUS_LABEL,
   LedgerFilter,
   LedgerRow,
-} from '../../model/ledger';
+} from '../../../common/model/ledger';
+import {
+  buildExcelDownloadPlan,
+  EXCEL_TEMPLATE_OPTIONS,
+} from '../../model/excelDownload';
 
 type StatusCounts = Partial<Record<AdminApplicationStatus, number>>;
 

@@ -11,7 +11,7 @@ import {
   LedgerRow,
   OCCUPATION_LABEL,
   PROGRAM_TYPE_LABEL,
-} from '../../model/ledger';
+} from '../../../common/model/ledger';
 
 const COLUMNS: TableColumn<LedgerRow>[] = [
   {

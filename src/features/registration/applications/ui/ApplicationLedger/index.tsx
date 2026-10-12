@@ -13,7 +13,7 @@ import {
   LedgerRow,
   useCurrentSessions,
   useLedger,
-} from '../../model/ledger';
+} from '../../../common/model/ledger';
 import ExcelDownloadModal from '../ExcelDownloadModal';
 import LedgerFilters from '../LedgerFilters';
 import LedgerTable from '../LedgerTable';
