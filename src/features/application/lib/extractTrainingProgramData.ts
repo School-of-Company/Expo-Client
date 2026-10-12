@@ -10,47 +10,33 @@ import {
 } from '@/shared/types/application/type';
 import { TrainingProgramSelectionRequest } from '../api/postTrainingProgramSelection';
 import { resolveFieldValue } from './process/resolveFieldValue';
+import { resolveTrainingProgramIds } from './resolveTrainingProgramIds';
 
 export const extractTrainingProgramData = async (
   data: DynamicFormValues,
   dynamicFormItems: DynamicFormItem[],
   exhibitionId: string,
   formattedData: FormattedApplicationData,
-): Promise<TrainingProgramSelectionRequest | null> => {
-  const trainingProIds: number[] = [];
+): Promise<TrainingProgramSelectionRequest> => {
+  const selectedTitles = dynamicFormItems
+    .filter((form) => isTrainingProgramQuestion(form.title))
+    .flatMap((form) => {
+      const value = resolveFieldValue(data, form);
+      return Array.isArray(value) ? value : [];
+    })
+    .map(extractTrainingProgramTitle);
 
-  const programs = await getTrainingProgram(exhibitionId);
-
-  const trainingProgramForms = dynamicFormItems.filter((form) =>
-    isTrainingProgramQuestion(form.title),
+  const trainingProIds = resolveTrainingProgramIds(
+    selectedTitles,
+    selectedTitles.length > 0 ? await getTrainingProgram(exhibitionId) : [],
   );
 
-  for (const form of trainingProgramForms) {
-    const value = resolveFieldValue(data, form);
-
-    if (value && Array.isArray(value)) {
-      for (const programTitle of value) {
-        const extractedTitle = extractTrainingProgramTitle(programTitle);
-        const program = programs.find((p) => p.title === extractedTitle);
-
-        if (program) {
-          trainingProIds.push(program.id);
-        }
-      }
-    }
-  }
-
-  if (trainingProIds.length > 0) {
-    return {
-      name: formattedData.name || '',
-      phoneNumber: formattedData.phoneNumber || '',
-      trainingId: formattedData.trainingId || '',
-      informationJson: formattedData.informationJson,
-      personalInformationStatus:
-        formattedData.personalInformationStatus ?? false,
-      trainingProId: trainingProIds,
-    };
-  }
-
-  return null;
+  return {
+    name: formattedData.name || '',
+    phoneNumber: formattedData.phoneNumber || '',
+    trainingId: formattedData.trainingId || '',
+    informationJson: formattedData.informationJson,
+    personalInformationStatus: formattedData.personalInformationStatus ?? false,
+    trainingProId: trainingProIds,
+  };
 };
