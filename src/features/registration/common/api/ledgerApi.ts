@@ -74,6 +74,10 @@ export interface AdminParticipantDetail {
   phoneNumber: string | null;
   notificationPhoneNumber: string | null;
   occupation: AdminOccupation | null;
+  /** 없으면 대표자, 있으면 그 대표자의 동행자 */
+  representativeId: number | null;
+  /** 연결된 연수자. 직업과 별개다 */
+  linkedTraineeId: number | null;
 }
 
 export interface AdminApplicationRow {

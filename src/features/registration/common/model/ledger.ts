@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { getErrorStatus } from '@/shared/libs/http/apiError';
 import {
   AdminApplicationQuery,
   AdminApplicationRow,
@@ -36,7 +37,7 @@ export const OCCUPATION_LABEL: Record<AdminOccupation, string> = {
   MIDDLE_SCHOOL_STUDENT: '중학생',
   HIGH_SCHOOL_STUDENT: '고등학생',
   SCHOOL_STAFF: '교직원',
-  PARENT: '학부모',
+  PARENT: '보호자/학부모',
   GENERAL: '일반인',
   TEACHER: '교사',
   PRE_SERVICE_TEACHER: '예비교사',
@@ -63,6 +64,11 @@ export interface LedgerRow {
   phoneNumber: string | null;
   notificationPhoneNumber: string | null;
   occupation: AdminOccupation | null;
+  /** 참가자 원천(User)에서 받지 못한 행 */
+  isParticipantMissing: boolean;
+  /** 대표자면 true, 동행자면 false. 참가자 정보가 없으면 null */
+  isRepresentative: boolean | null;
+  linkedTraineeId: number | null;
 }
 
 export const toLedgerRow = (row: AdminApplicationRow): LedgerRow => ({
@@ -80,6 +86,11 @@ export const toLedgerRow = (row: AdminApplicationRow): LedgerRow => ({
   phoneNumber: row.participant?.phoneNumber ?? null,
   notificationPhoneNumber: row.participant?.notificationPhoneNumber ?? null,
   occupation: row.participant?.occupation ?? null,
+  isParticipantMissing: row.participant === null,
+  isRepresentative: row.participant
+    ? row.participant.representativeId === null
+    : null,
+  linkedTraineeId: row.participant?.linkedTraineeId ?? null,
 });
 
 /** 회차 선택 값은 `${programType}:${programId}` */
@@ -160,16 +171,28 @@ export const useCurrentSessions = (expoId: string) =>
 // 회차별 집계는 페이지로 나뉜다. 대시보드는 한 번에 보여 줄 수 있는 최대치를 읽는다
 const SUMMARY_SESSION_PAGE_SIZE = 100;
 
-export const useLedgerSummary = (expoId: string) =>
+/**
+ * 신청 건수·고유 참가자·회차별 집계. filter 를 주면 관리대장과 같은 조건으로 집계하고,
+ * 이때는 건수만 쓰므로 회차 집계는 1개만 받는다
+ */
+export const useLedgerSummary = (expoId: string, filter?: LedgerFilter) =>
   useQuery({
-    queryKey: ['adminApplicationSummary', expoId],
+    queryKey: ['adminApplicationSummary', expoId, filter ?? null],
     queryFn: () =>
       getAdminApplicationSummary(expoId, {
+        ...(filter ? toLedgerQuery(filter, 0) : {}),
         page: 0,
-        size: SUMMARY_SESSION_PAGE_SIZE,
+        size: filter ? 1 : SUMMARY_SESSION_PAGE_SIZE,
       }),
+    placeholderData: keepPreviousData,
     refetchInterval: LEDGER_REFRESH_MS,
   });
+
+/** 관리자 원장은 참가자 원천(User) 조회가 하나라도 실패하면 전체를 502 로 거절한다 */
+export const getLedgerErrorMessage = (error: unknown, fallback: string) =>
+  getErrorStatus(error) === 502
+    ? '참가자 정보를 불러오지 못해 목록을 표시하지 않습니다. 잠시 후 다시 시도해주세요.'
+    : fallback;
 
 const RECENT_APPLICATION_COUNT = 10;
 
