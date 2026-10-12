@@ -26,3 +26,5 @@ export {
   DATE_PICKER_PORTAL_ID,
 } from './ui/DateTimeInput';
 export { default as ProgramStatusTable } from './ui/ProgramStatusTable';
+export { default as RefreshStatus } from './ui/RefreshStatus';
+export { default as SectionError } from './ui/SectionError';
