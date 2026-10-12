@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { toApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { EditExhibitionData } from '@/shared/types/exhibition/edit/type';
 
@@ -6,9 +6,7 @@ export const editExhibition = async (data: EditExhibitionData, id: string) => {
   try {
     await clientTokenInstance.patch(`/expo/${id}`, data);
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '박람회 수정 실패');
-    }
-    throw error;
+    // 409 원인을 화면에서 구분할 수 있도록 상태를 보존한다
+    throw toApiError(error, '박람회 수정 실패');
   }
 };
