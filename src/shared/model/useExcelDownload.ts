@@ -20,8 +20,9 @@ export const useExcelDownload = () =>
   useMutation({
     mutationFn: ({ path, params }: ExcelDownloadVariables) =>
       downloadExcel(path, params),
-    onSuccess: () => {
-      toast.success('엑셀 파일을 내려받았습니다.');
+    onSuccess: (saved) => {
+      // 파일을 저장하지 않고 끝났으면(로그인 화면으로 이동 중) 성공 안내를 띄우지 않는다
+      if (saved) toast.success('엑셀 파일을 내려받았습니다.');
     },
     onError: (error: Error) => {
       toast.error(error.message);

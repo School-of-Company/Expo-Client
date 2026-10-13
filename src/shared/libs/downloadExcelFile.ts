@@ -60,14 +60,15 @@ export const saveBlob = (blob: Blob, fileName: string) => {
 /**
  * blob 으로 받은 XLSX 응답을 저장한다. 실패하면 서버 문구를 담은 Error 를 던진다.
  * request 는 responseType: 'blob' 으로 요청해야 한다.
+ * 저장했으면 true, 응답 없이 끝났으면(로그인 화면으로 이동 중) false 를 돌려준다. 성공 안내는 true 일 때만 띄운다
  */
 export const downloadExcelFile = async (
   request: () => Promise<AxiosResponse<Blob>>,
-) => {
+): Promise<boolean> => {
   try {
     const response: AxiosResponse<Blob> | undefined = await request();
     // 토큰 갱신 실패로 로그인 화면으로 옮겨 가는 중이면 인터셉터가 응답 없이 끝낸다
-    if (!response) return;
+    if (!response) return false;
 
     // 성공 상태여도 XLSX 가 아니면 저장하지 않는다 (오류 본문을 파일로 위장하지 않음)
     const contentType = String(response.headers['content-type'] ?? '');
@@ -79,6 +80,7 @@ export const downloadExcelFile = async (
       response.data,
       getFileName(response.headers['content-disposition']),
     );
+    return true;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(
