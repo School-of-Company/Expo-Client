@@ -82,6 +82,12 @@ const PreRegisterContainer = ({
       return;
     }
 
+    const session = Number(sessionId);
+    if (!Number.isInteger(session) || session <= 0) {
+      toast.error('신청할 회차를 선택해주세요');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const formatted = createStandardApplicationFormatter(
@@ -93,7 +99,7 @@ const PreRegisterContainer = ({
         'application',
         'STANDARD',
         'PRE',
-        { ...formatted, ...(sessionId && { sessionId }) },
+{ ...formatted, sessionId: session },
         createIdempotencyKey(),
       );
       router.push(

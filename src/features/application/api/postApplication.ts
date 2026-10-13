@@ -23,7 +23,10 @@ const MAX_NETWORK_RETRIES = 2;
 
 const APPLICATION_ERROR_MESSAGES: Record<number, string> = {
   400: '신청 기간이 아니거나 입력한 답변이 올바르지 않습니다.',
-  409: '이미 등록된 전화번호입니다.',
+  401: '인증이 필요합니다. 다시 인증한 뒤 시도해주세요.',
+  404: '박람회, 신청서 또는 회차를 찾을 수 없습니다.',
+  409: '이미 등록되었거나 정원이 가득 찼습니다. 등록 내역과 남은 자리를 확인해주세요.',
+  502: '등록 서버 응답에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
   503: '일시적으로 등록할 수 없습니다. 잠시 후 다시 시도해주세요.',
 };
 
@@ -61,11 +64,13 @@ export const postApplication = async (
 
       if (error.response) {
         const { status, data: body } = error.response;
-        const fallback =
+        const mapped =
           formType === 'application'
-            ? APPLICATION_ERROR_MESSAGES[status] || '폼 등록 실패'
-            : '폼 등록 실패';
-        throw new Error(body?.error || body?.message || fallback);
+            ? APPLICATION_ERROR_MESSAGES[status]
+            : undefined;
+        throw new Error(
+          mapped || body?.error || body?.message || '폼 등록 실패',
+        );
       }
 
       throw error;
