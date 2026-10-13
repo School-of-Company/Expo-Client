@@ -64,10 +64,8 @@ export interface LedgerRow {
   phoneNumber: string | null;
   notificationPhoneNumber: string | null;
   occupation: AdminOccupation | null;
-  /** 참가자 원천(User)에서 받지 못한 행 */
-  isParticipantMissing: boolean;
-  /** 대표자면 true, 동행자면 false. 참가자 정보가 없으면 null */
-  isRepresentative: boolean | null;
+  /** 대표자면 true, 동행자면 false */
+  isRepresentative: boolean;
   linkedTraineeId: number | null;
 }
 
@@ -82,15 +80,12 @@ export const toLedgerRow = (row: AdminApplicationRow): LedgerRow => ({
   title: row.definition?.title || `회차 ${row.programId}`,
   startedAt: row.definition?.startedAt ?? null,
   endedAt: row.definition?.endedAt ?? null,
-  name: row.participant?.name ?? '-',
-  phoneNumber: row.participant?.phoneNumber ?? null,
-  notificationPhoneNumber: row.participant?.notificationPhoneNumber ?? null,
-  occupation: row.participant?.occupation ?? null,
-  isParticipantMissing: row.participant === null,
-  isRepresentative: row.participant
-    ? row.participant.representativeId === null
-    : null,
-  linkedTraineeId: row.participant?.linkedTraineeId ?? null,
+  name: row.participant.name,
+  phoneNumber: row.participant.phoneNumber,
+  notificationPhoneNumber: row.participant.notificationPhoneNumber,
+  occupation: row.participant.occupation,
+  isRepresentative: row.participant.representativeId === null,
+  linkedTraineeId: row.participant.linkedTraineeId,
 });
 
 /** 회차 선택 값은 `${programType}:${programId}` */
@@ -118,6 +113,8 @@ export const parseSessionKey = (
 export interface LedgerFilter {
   session: string;
   status: AdminApplicationStatus | '';
+  /** 제출 당시 제목 */
+  search: string;
   /** 참가자 이름·번호 */
   q: string;
   occupation: AdminOccupation | '';
@@ -127,6 +124,7 @@ export interface LedgerFilter {
 export const INITIAL_LEDGER_FILTER: LedgerFilter = {
   session: '',
   status: '',
+  search: '',
   q: '',
   occupation: '',
   sort: 'CREATED_DESC',
@@ -134,15 +132,20 @@ export const INITIAL_LEDGER_FILTER: LedgerFilter = {
 
 export const Q_MAX_LENGTH = 50;
 
+// Swagger 에 제한이 없어 서버가 400 으로 거절하지 않을 값으로 임의로 둔 상한
+export const SEARCH_MAX_LENGTH = 100;
+
 export const toLedgerQuery = (
   filter: LedgerFilter,
   page: number,
 ): AdminApplicationQuery => {
   const session = parseSessionKey(filter.session);
   const q = filter.q.trim();
+  const search = filter.search.trim();
   return {
     ...(session ?? {}),
     status: filter.status || undefined,
+    search: search || undefined,
     q: q || undefined,
     occupation: filter.occupation || undefined,
     sort: filter.sort,
@@ -189,10 +192,18 @@ export const useLedgerSummary = (expoId: string, filter?: LedgerFilter) =>
   });
 
 /** 관리자 원장은 참가자 원천(User) 조회가 하나라도 실패하면 전체를 502 로 거절한다 */
+export const isParticipantSourceError = (error: unknown) =>
+  getErrorStatus(error) === 502;
+
+const LEDGER_ERROR_MESSAGE: Record<number, string> = {
+  400: '조회 조건이 올바르지 않습니다. 필터를 확인해주세요.',
+  401: '로그인이 만료되었습니다. 다시 로그인해주세요.',
+  403: '이 행사의 접수 원장을 조회할 권한이 없습니다.',
+  502: '참가자 정보를 일부 불러오지 못해 목록을 표시하지 않습니다(부분 장애). 잠시 후 다시 시도해주세요.',
+};
+
 export const getLedgerErrorMessage = (error: unknown, fallback: string) =>
-  getErrorStatus(error) === 502
-    ? '참가자 정보를 불러오지 못해 목록을 표시하지 않습니다. 잠시 후 다시 시도해주세요.'
-    : fallback;
+  LEDGER_ERROR_MESSAGE[getErrorStatus(error) ?? 0] ?? fallback;
 
 const RECENT_APPLICATION_COUNT = 10;
 
