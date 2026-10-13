@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { UseFormRegister } from 'react-hook-form';
 import { DynamicFormItem, JsonData, OtherJson } from '../../application/type';
 import { ApplicationType } from '../../exhibition/type';
+import type { DynamicFormType as ServerDynamicFormType } from '@/entities/form/model/types';
 
 export interface Option {
   id?: string;
@@ -13,12 +14,8 @@ export interface Option {
   key?: string;
 }
 
-export type DynamicFormType =
-  | 'NAME'
-  | 'PHONE_NUMBER'
-  | 'TRAINING_ID'
-  | 'OCCUPATION'
-  | 'SCHOOL';
+/** 빌더가 고르는 특수 필드. 서버 값에서 `DEFAULT`(일반 필드)를 뺀 것이다. */
+export type DynamicFormType = Exclude<ServerDynamicFormType, 'DEFAULT'>;
 
 export interface FormValues {
   questions: {
@@ -75,6 +72,9 @@ export interface SurveyFormRequest {
   dynamicSurveyRequestDto: DynamicFieldRequest[];
   informationText: string;
   title: string;
+  /** PATCH는 통째로 교체한다. 수정할 때 빠지면 서버 기본값으로 돌아갈 수 있다. */
+  lotteryEnabled?: boolean;
+  lotteryNumbers?: number[];
 }
 
 export type CreateFormRequest = ApplicationFormRequest | SurveyFormRequest;
