@@ -1,4 +1,8 @@
 import {
+  isProgramTitleTooLong,
+  PROGRAM_TITLE_MAX_LENGTH,
+} from '@/shared/config/validation';
+import {
   fromOffsetDateTime,
   ProgramPolicy,
   ScheduleProgram,
@@ -116,6 +120,9 @@ export const toPolicyDateTime = (value: string | null): string => {
 /** 보내기 전에 서버가 400 으로 거절할 값을 막는다. 문제가 없으면 null */
 export const validateProgramForm = (form: ProgramForm): string | null => {
   if (!form.title.trim()) return '프로그램명을 입력해주세요.';
+  // 보낼 때 앞뒤 공백을 지우므로 지운 값으로 센다
+  if (isProgramTitleTooLong(form.title.trim()))
+    return `프로그램명은 ${PROGRAM_TITLE_MAX_LENGTH}자 이하로 입력해주세요.`;
   if (!form.startedAt || !form.endedAt) return '시작·종료 일시를 입력해주세요.';
   if (form.startedAt >= form.endedAt)
     return '종료 일시가 시작 일시보다 늦어야 합니다.';
