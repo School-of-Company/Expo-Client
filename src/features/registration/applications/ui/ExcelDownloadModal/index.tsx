@@ -16,8 +16,10 @@ import {
   LedgerRow,
 } from '../../../common/model/ledger';
 import {
+  ATTENDANCE_FILTER_BLOCKER,
   buildExcelDownloadPlan,
   EXCEL_TEMPLATE_OPTIONS,
+  getAllowedScopes,
 } from '../../model/excelDownload';
 
 type StatusCounts = Partial<Record<AdminApplicationStatus, number>>;
@@ -82,6 +84,14 @@ const ExcelDownloadModal = ({
   const { blockers } = plan;
   const canDownload = !!plan.request && !isPending;
 
+  const allowedScopes = getAllowedScopes(template);
+
+  // 고를 수 없는 범위가 선택되어 있으면 선택한 신청으로 옮긴다
+  const handleTemplateChange = (value: ReportExcelTemplate) => {
+    setTemplate(value);
+    if (!getAllowedScopes(value).includes(scope)) setScope('SELECTED');
+  };
+
   const handleDownload = () => {
     if (!canDownload || !plan.request) return;
     download({ expoId, request: plan.request });
@@ -132,7 +142,7 @@ const ExcelDownloadModal = ({
               <button
                 key={value}
                 type="button"
-                onClick={() => setTemplate(value)}
+                onClick={() => handleTemplateChange(value)}
                 className={`flex items-center gap-12 rounded-sm border-1 border-solid px-16 py-12 text-left duration-200 ${
                   template === value ? 'border-main-600' : 'border-gray-200'
                 }`}
@@ -158,7 +168,8 @@ const ExcelDownloadModal = ({
                 key={value}
                 type="button"
                 onClick={() => setScope(value)}
-                className={`flex items-center gap-12 rounded-sm border-1 border-solid px-16 py-12 text-left duration-200 ${
+                disabled={!allowedScopes.includes(value)}
+                className={`flex items-center gap-12 rounded-sm border-1 border-solid px-16 py-12 text-left duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
                   scope === value ? 'border-main-600' : 'border-gray-200'
                 }`}
               >
@@ -178,6 +189,11 @@ const ExcelDownloadModal = ({
               '. 같은 사람은 1번만 출력되어 행 수가 신청 건수보다 적을 수 있습니다'}
             .
           </p>
+          {!allowedScopes.includes('FILTER') && (
+            <p className="text-caption1r text-gray-500">
+              {ATTENDANCE_FILTER_BLOCKER}
+            </p>
+          )}
         </div>
 
         {blockers.length > 0 && (

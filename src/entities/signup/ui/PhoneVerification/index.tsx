@@ -15,7 +15,7 @@ interface PhoneVerificationProps {
   isSendingSms: boolean;
   isCheckingCode: boolean;
   timer: number;
-  sendSms: (phoneNumber: string) => void;
+  sendSms: () => void;
   checkSmsCode: () => void;
 }
 
@@ -43,11 +43,12 @@ const PhoneVerification = ({
           type="tel"
           placeholder="연락처는 - 빼고 입력해주세요"
           width="80%"
-          disabled={isSmsVerified}
+          // 발송한 번호로만 인증할 수 있으므로 만료 전까지 잠근다
+          disabled={isSmsSent || isSmsVerified}
           error={!!errors.phoneNumber}
         />
         <Button
-          onClick={() => sendSms(watch('phoneNumber'))}
+          onClick={sendSms}
           width="20%"
           disabled={
             !watch('phoneNumber') || isSendingSms || isSmsSent || isSmsVerified
@@ -80,9 +81,11 @@ const PhoneVerification = ({
           error={!!errors.code}
         />
         <Button
-          onClick={() => checkSmsCode()}
+          onClick={checkSmsCode}
           width="20%"
-          disabled={!watch('code') || isSmsVerified || !isCheckingCode}
+          disabled={
+            !isSmsSent || !watch('code') || isSmsVerified || isCheckingCode
+          }
           type="button"
         >
           확인

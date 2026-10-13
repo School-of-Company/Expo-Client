@@ -4,7 +4,7 @@ import { RegistrationSchedulePage } from '@/views/registration/schedule';
 export const metadata: Metadata = {
   title: '일정·모집 제어',
   description:
-    '프로그램·회차·정원·신청기간·대기자 승급 정책을 관리하는 관리자 전용 페이지입니다.',
+    '사전등록 회차와 프로그램 모집 정책(정원·모집 기간·대기 승급)을 관리하는 관리자 전용 페이지입니다.',
 };
 
 const Page = () => {

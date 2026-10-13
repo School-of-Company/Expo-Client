@@ -4,25 +4,35 @@ import { useState } from 'react';
 import { TableFooter, TableHeader, TableItem } from '@/shared/ui/Table';
 import NavigationBar from '../../NavigationBar';
 
-interface Props<T extends { id: string | number }> {
+interface Props<
+  T extends { id: string | number },
+  K extends string | number = T['id'],
+> {
   data: T[];
+  // 선택·행 구분에 쓰는 키. id가 행마다 유일하지 않을 때만 넘긴다
+  getRowKey?: (item: T) => K;
   footerType: 'default' | 'file' | 'print' | 'check' | 'delete' | 'route';
   maxHeight?: string;
   categories: string[];
   text?: string;
-  actions?: { [key: string]: (selectItem: T['id']) => void };
+  actions?: { [key: string]: (selectItem: K) => void };
   totalPage?: number;
   totalCount?: number;
   id?: string;
   selectItemBoolean?: boolean;
-  setSelectItem?: React.Dispatch<React.SetStateAction<T['id'] | null>>;
-  selectItem?: T['id'] | null;
+  setSelectItem?: React.Dispatch<React.SetStateAction<K | null>>;
+  selectItem?: K | null;
+  isExporting?: boolean;
 }
 
-const TableForm = <T extends { id: string | number }>({
+const TableForm = <
+  T extends { id: string | number },
+  K extends string | number = T['id'],
+>({
   footerType,
   maxHeight = '500px',
   data,
+  getRowKey = (item: T) => item.id as K,
   categories,
   text,
   actions,
@@ -32,8 +42,9 @@ const TableForm = <T extends { id: string | number }>({
   selectItemBoolean = true,
   setSelectItem,
   selectItem,
-}: Props<T>) => {
-  const [selectItemState, setSelectItemState] = useState<T['id'] | null>(null);
+  isExporting,
+}: Props<T, K>) => {
+  const [selectItemState, setSelectItemState] = useState<K | null>(null);
   return (
     <div className="space-y-[34px] rounded-sm border-1 border-solid border-gray-200 px-30 py-20">
       <div className="space-y-[30px] overflow-x-auto border-b-1 border-solid border-gray-100 pb-6">
@@ -43,11 +54,12 @@ const TableForm = <T extends { id: string | number }>({
             className="space-y-20 overflow-y-auto pt-6"
             style={{ maxHeight }}
           >
-            {data.map((item, index) => (
+            {data.map((item) => (
               <TableItem
                 state={selectItem ?? selectItemState}
                 setState={setSelectItem ?? setSelectItemState}
-                key={index}
+                key={getRowKey(item)}
+                rowKey={getRowKey(item)}
                 data={item}
                 selectItemBoolean={selectItemBoolean}
                 categories={categories}
@@ -70,6 +82,7 @@ const TableForm = <T extends { id: string | number }>({
         selectItem={selectItem ?? selectItemState}
         setSelectItem={setSelectItem ?? setSelectItemState}
         selectItemBoolean={selectItemBoolean}
+        isExporting={isExporting}
       />
     </div>
   );

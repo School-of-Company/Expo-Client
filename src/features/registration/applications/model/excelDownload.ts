@@ -131,12 +131,26 @@ const planSelected = (
   };
 };
 
+/** 양식이 고를 수 있는 범위. 출석부는 연수자 1명 기준이라 선택한 신청으로만 받는다 */
+export const getAllowedScopes = (
+  template: ReportExcelTemplate,
+): ReportExcelScope[] =>
+  template === 'ATTENDANCE' ? ['SELECTED'] : ['SELECTED', 'FILTER'];
+
+export const ATTENDANCE_FILTER_BLOCKER =
+  '개인 연수 출석부는 현재 필터 전체로 받을 수 없습니다. 연수자 1명의 신청을 선택해서 받아주세요.';
+
 const planFilter = (
   template: ReportExcelTemplate,
   filter: LedgerFilter,
-  selectedRows: LedgerRow[],
   blockers: string[],
 ): ReportExcelDownloadRequest | null => {
+  // 필터에는 연수자 조건이 없어 다른 연수자의 신청이 섞이면 서버가 거절한다
+  if (template === 'ATTENDANCE') {
+    blockers.push(ATTENDANCE_FILTER_BLOCKER);
+    return null;
+  }
+
   // Report 필터에는 참가자 이름·번호와 직업 조건이 없다. 조용히 빼면 화면과 다른 대상이 나간다
   if (filter.q.trim()) {
     blockers.push(
@@ -161,31 +175,17 @@ const planFilter = (
     } else if (session.programType !== 'STANDARD') {
       blockers.push('연수 회차는 일반 프로그램 명단으로 받을 수 없습니다.');
     }
-  }
-
-  // 출석부는 연수자 1명 기준이라 필터만으로는 대상을 정할 수 없다. 선택한 신청에서 연수자를 고른다
-  const traineeId = getSingleTraineeId(selectedRows);
-  if (template === 'ATTENDANCE') {
-    if (traineeId === null) {
+    if (status !== 'CONFIRMED') {
       blockers.push(
-        '개인 연수 출석부는 대상 연수자의 신청을 하나 이상 선택해야 합니다(연수자 1명).',
+        '이 양식은 확정 상태만 받을 수 있습니다. 상태를 확정으로 골라주세요.',
       );
     }
-    if (session?.programType === 'STANDARD') {
-      blockers.push('개인 연수 출석부는 연수 회차만 필터할 수 있습니다.');
-    }
-  }
-  if (
-    (template === 'PROGRAM' || template === 'ATTENDANCE') &&
-    status !== 'CONFIRMED'
-  ) {
-    blockers.push(
-      '이 양식은 확정 상태만 받을 수 있습니다. 상태를 확정으로 골라주세요.',
-    );
   }
 
   const reportFilter: ReportApplicationFilter = {
     ...(session ?? {}),
+    // 회차를 고르지 않아도 연수자 명단은 연수 신청만 대상으로 한다
+    ...(template === 'TRAINEE' && { programType: 'TRAINING' }),
     status,
     sort: filter.sort,
   };
@@ -195,7 +195,6 @@ const planFilter = (
     scope: 'FILTER',
     filter: reportFilter,
     ...(template === 'PROGRAM' && session && { programId: session.programId }),
-    ...(template === 'ATTENDANCE' && traineeId !== null && { traineeId }),
   };
 };
 
@@ -209,7 +208,7 @@ export const buildExcelDownloadPlan = ({
   const request =
     scope === 'SELECTED'
       ? planSelected(template, selectedRows, blockers)
-      : planFilter(template, filter, selectedRows, blockers);
+      : planFilter(template, filter, blockers);
 
   return { request: blockers.length === 0 ? request : null, blockers };
 };

@@ -1,93 +1,169 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
+import { DetailHeader, NavigationBar } from '@/shared/ui';
 import {
-  RegistrationHistory,
-  RegistrationHistoryAction,
-} from '@/shared/types/registration/type';
-import { DetailHeader } from '@/shared/ui';
-import SelectUserType from '@/shared/ui/SelectUserType';
-import {
-  formatDateTime,
-  HISTORY_ACTION_LABEL,
   RegistrationTable,
+  SectionError,
   TableColumn,
-  useRegistrationHistories,
+  useRegistrationExpo,
 } from '../../../common';
+import { AdminChangeHistoryItem } from '../../api/adminChangeHistoryApi';
+import {
+  formatOccurredAt,
+  getChangeTypeLabel,
+  getChangeTypeStyle,
+  getHistoryErrorMessage,
+  getHistoryTotalPage,
+  getTargetTypeLabel,
+  HistoryFilter,
+  INITIAL_HISTORY_FILTER,
+  isHistoryRangeInvalid,
+  useAdminChangeHistory,
+} from '../../model/adminChangeHistory';
+import HistoryFilters from '../HistoryFilters';
 
-const ACTION_OPTIONS = [
-  { value: '', label: '전체 이력' },
-  ...Object.entries(HISTORY_ACTION_LABEL).map(([value, label]) => ({
-    value,
-    label,
-  })),
+// 신청·문자 이력은 출처 서비스의 공개 조회 API가 생기기 전까지 임시 이력을 보여 주지 않는다
+const PENDING_SOURCES = [
+  {
+    title: '신청·취소·승급 이력',
+    source: 'Application',
+    status: '공개 관리자 조회 API 구현 중 (Expo-Application-Server#93)',
+  },
+  {
+    title: '그룹 문자 발송 이력',
+    source: 'Notification',
+    status:
+      '내부 이력 API 구현 완료(Expo-Notification-Server#43), Application 공개 경로 연결 전',
+  },
 ];
 
-const COLUMNS: TableColumn<RegistrationHistory>[] = [
-  { key: 'id', label: '번호', flex: 0.5, render: (history) => history.id },
+const COLUMNS: TableColumn<AdminChangeHistoryItem>[] = [
   {
-    key: 'action',
-    label: '구분',
-    flex: 0.8,
-    render: (history) => (
-      <span className="text-main-600">
-        {HISTORY_ACTION_LABEL[history.action]}
+    key: 'occurredAt',
+    label: '처리 일시',
+    flex: 1.4,
+    render: ({ occurredAt }) => formatOccurredAt(occurredAt),
+  },
+  {
+    key: 'type',
+    label: '유형',
+    render: ({ type }) => (
+      <span className={getChangeTypeStyle(type)}>
+        {getChangeTypeLabel(type)}
       </span>
     ),
+  },
+  {
+    key: 'target',
+    label: '대상',
+    render: ({ targetType, targetId }) =>
+      `${getTargetTypeLabel(targetType)} #${targetId}`,
   },
   {
     key: 'summary',
     label: '내용',
     flex: 3,
-    render: (history) => (
-      <p className="truncate text-left text-black">{history.summary}</p>
+    render: ({ summary }) => (
+      <p className="break-words text-left">{summary || '-'}</p>
     ),
   },
   {
-    key: 'actor',
+    key: 'adminId',
     label: '처리자',
-    flex: 0.7,
-    render: (history) => history.actor,
-  },
-  {
-    key: 'createdAt',
-    label: '일시',
-    render: (history) => formatDateTime(history.createdAt),
+    render: ({ adminId }) =>
+      adminId === null ? (
+        <span className="text-gray-300">미기록</span>
+      ) : (
+        `관리자 #${adminId}`
+      ),
   },
 ];
 
 const HistoryLedger = () => {
-  const { data, isLoading } = useRegistrationHistories();
-  const [action, setAction] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // URL 의 ?page 는 1부터, 서버 페이지는 0부터
+  const page = Math.max(1, Number(searchParams.get('page')) || 1);
+  const { expoId } = useRegistrationExpo();
+  const [filter, setFilter] = useState<HistoryFilter>(INITIAL_HISTORY_FILTER);
 
-  const histories = useMemo(
-    () =>
-      (data ?? []).filter(
-        (history) =>
-          !action || history.action === (action as RegistrationHistoryAction),
-      ),
-    [data, action],
+  const { data, error, isLoading, isError, refetch } = useAdminChangeHistory(
+    expoId,
+    filter,
+    page - 1,
+  );
+  const isRangeInvalid = isHistoryRangeInvalid(filter);
+  const totalCount = data?.totalElements ?? 0;
+  const totalPage = getHistoryTotalPage(totalCount);
+
+  const handleFilterChange = useCallback(
+    (next: HistoryFilter) => {
+      setFilter(next);
+      router.replace('?');
+    },
+    [router],
   );
 
   return withLoading({
-    isLoading: isLoading || !data,
+    isLoading: isLoading && !data,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px] overflow-y-auto">
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px]">
         <DetailHeader textCenter headerTitle="행정 이력" />
-        <SelectUserType
-          options={ACTION_OPTIONS}
-          value={action}
-          onChange={setAction}
-        />
-        <RegistrationTable
-          columns={COLUMNS}
-          rows={histories}
-          emptyText="기록된 이력이 없습니다."
-          footerText="이력"
-          footerCount={histories.length}
-          maxHeight="700px"
-        />
+
+        <section className="space-y-16">
+          <div className="space-y-6">
+            <p className="text-body1b text-black">모집 변경 이력</p>
+            <p className="text-caption1r text-gray-400">
+              프로그램·회차 생성·수정·삭제 처리 이력입니다. 기록 이전의 변경은
+              포함하지 않습니다.
+            </p>
+          </div>
+
+          <HistoryFilters
+            filter={filter}
+            onChange={handleFilterChange}
+            onReset={() => handleFilterChange(INITIAL_HISTORY_FILTER)}
+          />
+
+          {isRangeInvalid ? (
+            <p role="alert" className="text-body2r text-error">
+              시작 일시는 종료 일시보다 앞서야 합니다.
+            </p>
+          ) : isError && !data ? (
+            <SectionError
+              message={getHistoryErrorMessage(error)}
+              onRetry={() => refetch()}
+            />
+          ) : (
+            <RegistrationTable
+              columns={COLUMNS}
+              rows={data?.items ?? []}
+              emptyText="조건에 맞는 변경 이력이 없습니다."
+              footerText="변경 이력"
+              footerCount={totalCount}
+              minWidth="900px"
+            >
+              {totalPage > 1 && (
+                <div className="flex justify-center">
+                  <NavigationBar totalPage={totalPage} />
+                </div>
+              )}
+            </RegistrationTable>
+          )}
+        </section>
+
+        <ul className="space-y-12 rounded-sm border-1 border-solid border-gray-200 px-30 py-20 mobile:px-16">
+          {PENDING_SOURCES.map(({ title, source, status }) => (
+            <li key={title} className="flex flex-wrap items-baseline gap-12">
+              <span className="text-body2b text-black">{title}</span>
+              <span className="text-caption1r text-gray-400">{source}</span>
+              <span className="text-caption1r text-gray-500">{status}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     ),
   });

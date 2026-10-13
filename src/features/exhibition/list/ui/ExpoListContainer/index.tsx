@@ -5,10 +5,12 @@ import { CreateExpoCard, ExpoListItem } from '@/entities/exhibition';
 import { withLoading } from '@/shared/hocs';
 import { useExpoPage } from '@/shared/queries';
 import { NavigationBar } from '@/shared/ui';
+import { useExpoValid } from '../../model/useExpoValid';
 
 const ExpoListContainer = () => {
   const { data: expoPage, isLoading, isError, refetch } = useExpoPage();
   const expoList = expoPage?.content;
+  const { data: expoValidMap } = useExpoValid();
 
   return withLoading({
     isLoading,
@@ -43,6 +45,7 @@ const ExpoListContainer = () => {
               description={item.description}
               startedDay={item.startedDay}
               finishedDay={item.finishedDay}
+              formStatus={expoValidMap?.get(item.id)}
             />
           ))}
           <CreateExpoCard />

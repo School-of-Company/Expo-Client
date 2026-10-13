@@ -63,11 +63,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   const handleUserTypeSelect = (type: string) => {
     setSelectedUserType(type);
 
-    if (
-      type === USER_TYPES.TRAINEE ||
-      selectedCategory === CATEGORIES.SURVEY ||
-      modalType === 'message'
-    ) {
+    if (type === USER_TYPES.TRAINEE || selectedCategory === CATEGORIES.SURVEY) {
       handleFinalSelection(type, 'PRE');
     }
   };
@@ -81,9 +77,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   const handleFinalSelection = (userType: string, appType: ApplicationType) => {
     const baseURL = window.location.origin;
 
-    if (modalType === 'message') {
-      router.push(`/sms/${params}/${userType}`);
-    } else if (modalType === 'edit' && selectedFormType) {
+    if (modalType === 'edit' && selectedFormType) {
       router.push(
         `/form/edit/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
       );
@@ -111,10 +105,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   };
 
   const renderButtons = () => {
-    if (
-      (modalType === 'message' || modalType === 'FIELD') &&
-      !selectedUserType
-    ) {
+    if (modalType === 'FIELD' && !selectedUserType) {
       return [
         {
           label: '참가자',

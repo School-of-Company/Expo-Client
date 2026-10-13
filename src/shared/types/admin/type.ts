@@ -7,6 +7,16 @@ export interface ExpoItem extends Record<string, unknown> {
   finishedDay: string;
 }
 
+/** GET /expo/valid 의 박람회별 폼·설문 생성 여부 */
+export interface ExpoValid {
+  expoId: string;
+  preStandardFormCreatedStatus: boolean;
+  siteStandardFormCreatedStatus: boolean;
+  traineeFormCreatedStatus: boolean;
+  standardSurveyCreatedStatus: boolean;
+  traineeSurveyCreatedStatus: boolean;
+}
+
 export interface SignUpItem extends Record<string, unknown> {
   id: number;
   name: string;

@@ -13,6 +13,8 @@ export const useCreateExhibitionMutation = () => {
       handleCreateExhibitionFormSubmit(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expoList'] });
+      // 목록 카드의 폼·설문 생성 여부도 박람회 목록과 함께 바뀐다
+      queryClient.invalidateQueries({ queryKey: ['expoValid'] });
       router.push(`/`);
       toast.success('박람회가 생성되었습니다.');
     },

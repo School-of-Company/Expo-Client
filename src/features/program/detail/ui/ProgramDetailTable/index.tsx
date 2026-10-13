@@ -4,11 +4,9 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { withLoading } from '@/shared/hocs';
-import { useQRScanner } from '@/shared/model';
+import { useExcelDownload, useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
 import { TableForm } from '@/shared/ui/Table';
-import { getStandardProgramExcelFile } from '../../api/getStandardProgramExcelFile';
-import { getTraineeProgramExcelFile } from '../../api/getTraineeProgramExcelFile';
 import { programCategories } from '../../model/category';
 import { useProgramDetailQueries } from '../../model/useProgramDetailData';
 import { useStandardAttendance } from '../../model/useStandardAttendance';
@@ -24,6 +22,7 @@ const ProgramDetailTable = ({
   const searchParams = useSearchParams();
   const { mutate: standardAttendance } = useStandardAttendance();
   const { mutate: trainingAttendance } = useTrainingAttendance();
+  const { mutate: downloadExcel, isPending: isExporting } = useExcelDownload();
   const navigation = searchParams.get('navigation') || 'standard';
   const { programDetailQueries, isLoading } = useProgramDetailQueries(
     programId,
@@ -69,10 +68,14 @@ const ProgramDetailTable = ({
   }, [scannedQR]);
 
   const TraineeProgramActions = {
-    exportExcel: () => getTraineeProgramExcelFile(expoId),
+    exportExcel: () => downloadExcel({ path: `/excel/${expoId}` }),
   };
   const StandardProgramActions = {
-    exportExcel: () => getStandardProgramExcelFile(expoId, programId),
+    exportExcel: () =>
+      downloadExcel({
+        path: `/excel/program/${expoId}`,
+        params: { programId },
+      }),
   };
 
   const filteActions =
@@ -91,6 +94,7 @@ const ProgramDetailTable = ({
           text="인원 수"
           actions={filteActions}
           selectItemBoolean={false}
+          isExporting={isExporting}
         />
       </div>
     ),
