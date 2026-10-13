@@ -1,7 +1,7 @@
-import axios from 'axios';
 import { Occupation } from '@/entities/form';
 import clientInstance from '@/shared/libs/http/clientInstance';
 import { SurveyAnswers } from '@/shared/types/application/type';
+import { toSurveyAnswerError } from '../lib/surveyAnswerErrors';
 
 export interface PublicSurveyAnswerResult {
   won: boolean;
@@ -24,9 +24,6 @@ export const postPublicSurveyAnswer = async (
     );
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '설문 제출 실패');
-    }
-    throw error;
+    throw toSurveyAnswerError(error, '설문 제출 실패');
   }
 };

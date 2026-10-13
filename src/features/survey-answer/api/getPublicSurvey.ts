@@ -1,6 +1,6 @@
 import axios from 'axios';
-import clientInstance from '../libs/http/clientInstance';
-import { ApplicationForm } from '../types/application/type';
+import clientInstance from '@/shared/libs/http/clientInstance';
+import { ApplicationForm } from '@/shared/types/application/type';
 
 export type PublicSurvey = ApplicationForm & {
   expoId: string;
