@@ -60,16 +60,18 @@ export const EMPTY_PROGRAM_FORM: ProgramForm = {
   policy: EMPTY_POLICY_FORM,
 };
 
+// 타입은 서버 계약대로 필수지만 런타임 값은 서버 응답이라, 빠진 값이 와도 화면이 깨지지 않게 기본값을 둔다.
+// 빈 값은 저장할 때 validateProgramForm 이 다시 막는다
 const toPolicyForm = (policy: ProgramPolicy): PolicyForm => ({
-  capacity: policy.capacity,
-  waitingCapacity: policy.waitingCapacity,
+  capacity: policy.capacity ?? 1,
+  waitingCapacity: policy.waitingCapacity ?? 0,
   applicationStartedAt: fromOffsetDateTime(policy.applicationStartedAt),
   applicationEndedAt: fromOffsetDateTime(policy.applicationEndedAt),
   cancelEndedAt: fromOffsetDateTime(policy.cancelEndedAt),
   promotionEndedAt: fromOffsetDateTime(policy.promotionEndedAt),
-  closed: policy.closed,
-  allowedOccupations: policy.allowedOccupations,
-  formId: policy.formId,
+  closed: policy.closed ?? false,
+  allowedOccupations: policy.allowedOccupations ?? [],
+  formId: policy.formId ?? '',
   groupId: policy.groupId ?? '',
 });
 
@@ -98,7 +100,8 @@ export const getPolicyProblem = (policy: ProgramPolicy): string | null => {
     return '취소 마감은 모집 시작 이후여야 합니다.';
   if (Date.parse(policy.promotionEndedAt) < startedAt)
     return '대기 승급 마감은 모집 시작 이후여야 합니다.';
-  if (policy.allowedOccupations.length === 0)
+  // 일괄 적용은 조회한 정책을 그대로 합치므로 값이 빠져 와도 TypeError 대신 사유로 막는다
+  if (!policy.allowedOccupations?.length)
     return '신청 가능 직업을 하나 이상 선택해주세요.';
   return null;
 };
