@@ -1,11 +1,4 @@
-import {
-  UseFieldArrayReturn,
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from 'react-hook-form';
 import { ProgramPolicy } from '../../program/list/type';
-import { ExhibitionFormData } from '../type';
 
 export interface AddressResponse {
   meta: {
@@ -63,34 +56,4 @@ export interface EditExhibitionData {
     policy: ProgramPolicy | null;
     revision: number | null;
   }[];
-}
-
-export interface FieldArrayProps {
-  fields: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['fields'];
-  append: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['append'];
-  remove: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['remove'];
-  register: UseFormRegister<ExhibitionFormData>;
-  setValue: UseFormSetValue<ExhibitionFormData>;
-  watch: UseFormWatch<ExhibitionFormData>;
-  fieldName: 'trainings' | 'standard';
-}
-
-export interface ModalProps {
-  setModal: (value: boolean) => void;
-  setValue: UseFormSetValue<ExhibitionFormData>;
-  watch: UseFormWatch<ExhibitionFormData>;
-  index: number;
-  fieldName: 'trainings' | 'standard';
 }
