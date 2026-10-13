@@ -1,4 +1,3 @@
-import { isFieldVisible } from '@/shared/lib/form-conditional';
 import type {
   DynamicFormItem,
   DynamicFormValues,
@@ -18,9 +17,20 @@ export const buildSurveyAnswers = (
   data: DynamicFormValues,
   items: DynamicFormItem[],
 ): SurveyAnswers => {
+  const isVisible = (item: DynamicFormItem) => {
+    const conditional = item.otherJson?.conditional;
+    const parent = conditional && items[conditional.parentIndex];
+    if (!parent) return true;
+    const triggers = conditional.triggerValues ?? [conditional.triggerValue];
+    const parentValue = data[String(parent.id)];
+    return Array.isArray(parentValue)
+      ? (parentValue as string[]).some((value) => triggers.includes(value))
+      : triggers.includes(parentValue as string);
+  };
+
   const answers: SurveyAnswers = {};
   for (const item of items) {
-    if (!isFieldVisible(item, items, data)) continue;
+    if (!isVisible(item)) continue;
     const value = data[String(item.id)];
     if (item.formType === 'CHECKBOX') {
       answers[item.id] = value === true;
