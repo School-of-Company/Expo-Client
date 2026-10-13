@@ -3,6 +3,11 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteAuthCookies } from '../cookie/deleteCookies';
 import { handleError } from './error';
+import {
+  forbiddenPathResponse,
+  isFileDownloadRequest,
+  toGatewayUrl,
+} from './proxyTarget';
 import { parseRequestData, sendRequest } from './request';
 import { createResponse } from './response';
 import { performTokenRefresh } from './token';
@@ -11,6 +16,10 @@ export async function tokenHandleRequest(
   req: NextRequest,
   originalBody?: string | FormData,
 ): Promise<NextResponse> {
+  const gatewayUrl = toGatewayUrl(req, '/api/server/token');
+  if (!gatewayUrl) return forbiddenPathResponse();
+  const url = gatewayUrl;
+
   const cookieStore = cookies();
   const refreshToken = cookieStore.get('refreshToken')?.value;
 
@@ -26,14 +35,21 @@ export async function tokenHandleRequest(
     return deleteAuthCookies(res);
   }
 
-  const { requestData, headers } = await parseRequestData(req, originalBody);
-  const isFileDownload =
-    req.headers.get('X-File-Download') === 'true' ||
-    req.nextUrl.pathname.includes('/excel/');
+  let parsed: Awaited<ReturnType<typeof parseRequestData>>;
+  try {
+    parsed = await parseRequestData(req, originalBody);
+  } catch {
+    return NextResponse.json(
+      { error: '잘못된 요청 본문입니다.', status: 400 },
+      { status: 400 },
+    );
+  }
+  const { requestData, headers } = parsed;
+  const isFileDownload = isFileDownloadRequest(req);
 
   async function doRequest(token?: string) {
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    const resp = await sendRequest(req, token, requestData, headers);
+    const resp = await sendRequest(req, url, token, requestData, headers);
     return createResponse(resp, isFileDownload);
   }
 
