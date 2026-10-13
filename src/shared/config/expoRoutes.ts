@@ -26,5 +26,6 @@ export const getRegistrationRoutes = (expoId: string) => {
     schedule: `${base}/schedule`,
     history: `${base}/history`,
     operations: `${base}/operations`,
+    survey: `${base}/survey`,
   };
 };
