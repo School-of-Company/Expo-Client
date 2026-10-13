@@ -15,15 +15,17 @@ const ToggleButton = ({ value, onChange, disabled = false }: Props) => {
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={value}
       onClick={toggle}
       disabled={disabled}
-      className={`relative inline-flex h-16 w-50 items-center rounded-full transition-colors ${
-        value ? 'bg-main-100' : 'bg-gray-100'
-      } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
+      className={`relative inline-flex h-24 w-44 shrink-0 items-center rounded-full p-2 transition-colors duration-200 ${
+        value ? 'bg-main-600' : 'bg-gray-200'
+      } ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
     >
       <span
-        className={`absolute left-0 h-20 w-20 rounded-full transition-transform duration-300 ${
-          value ? 'translate-x-30 bg-main-600' : 'translate-x-0 bg-gray-500'
+        className={`h-20 w-20 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+          value ? 'translate-x-20' : 'translate-x-0'
         }`}
       />
     </button>
