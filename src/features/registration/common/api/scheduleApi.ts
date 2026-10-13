@@ -211,12 +211,3 @@ export const deleteScheduleProgram = async (
     throw toApiError(error, '프로그램을 삭제하지 못했습니다.');
   }
 };
-
-/** 박람회의 중단된 프로그램 변경을 다시 처리한다 */
-export const retryProgramChanges = async (expoId: string): Promise<void> => {
-  try {
-    await clientTokenInstance.post(`${expoPath(expoId)}/program-changes/retry`);
-  } catch (error) {
-    throw toApiError(error, '프로그램 변경을 다시 처리하지 못했습니다.');
-  }
-};
