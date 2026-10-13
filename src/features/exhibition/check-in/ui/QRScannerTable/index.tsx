@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 import { ExhibitionCheckInHeader } from '@/entities/exhibition';
@@ -13,6 +13,7 @@ import {
 } from '@/shared/types/exhibition/check-in/type';
 import { TableForm } from '@/shared/ui/Table';
 import { CHECK_IN_PRINT_CATEGORIES } from '../../model/constants';
+import { errorResult, ScanResult, successResult } from '../../model/scanResult';
 import { toExitRequest } from '../../model/toExitRequest';
 import { useInvalidateEntrySummary } from '../../model/useEntrySummary';
 import { useExitUserMutation } from '../../model/useExitUserMutation';
@@ -20,7 +21,9 @@ import { usePaperQrAttendanceMutation } from '../../model/usePaperQrAttendanceMu
 import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';
 import { toAttendUserRowKey, userQrPrint } from '../../model/userQrPrint';
 import EntrySummaryPanel from '../EntrySummaryPanel';
+import ManualScanInput from '../ManualScanInput';
 import ScanModeToggle, { ScanMode } from '../ScanModeToggle';
+import ScanResultCard from '../ScanResultCard';
 
 const QRScannerTable = ({ id }: { id: string }) => {
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
@@ -31,8 +34,13 @@ const QRScannerTable = ({ id }: { id: string }) => {
   const { mutateAsync: exitUser } = useExitUserMutation(id);
   const invalidateSummary = useInvalidateEntrySummary(id);
   const [mode, setMode] = useState<ScanMode>('entry');
+  const [lastResult, setLastResult] = useState<ScanResult | null>(null);
 
-  useQRScanner(setScannedQR);
+  const handleInvalidQr = useCallback(
+    (message: string) => setLastResult(errorResult('읽을 수 없는 QR', message)),
+    [],
+  );
+  const { submitScan } = useQRScanner(setScannedQR, handleInvalidQr);
 
   const toAttendRequest = ({
     traineeId,
@@ -66,12 +74,19 @@ const QRScannerTable = ({ id }: { id: string }) => {
   const handleExit = async (scannedQR: QrScanData) => {
     const request = toExitRequest(scannedQR);
     if (!request) {
-      toast.error(
-        '퇴장 처리할 수 없는 QR입니다. 예전 참가자 QR은 퇴장을 기록하지 않습니다.',
-      );
+      const message =
+        '퇴장 처리할 수 없는 QR입니다. 예전 참가자 QR은 퇴장을 기록하지 않습니다.';
+      toast.error(message);
+      setLastResult(errorResult('퇴장 실패', message));
       return;
     }
-    await exitUser(request);
+    const { enteredTime, exitedTime, stayedMinutes } = await exitUser(request);
+    setLastResult(
+      successResult(
+        '퇴장 완료',
+        `${enteredTime} 입장 → ${exitedTime} 퇴장 (${stayedMinutes}분 체류)`,
+      ),
+    );
   };
 
   const fetchUserData = async (scannedQR: QrScanData) => {
@@ -83,11 +98,15 @@ const QRScannerTable = ({ id }: { id: string }) => {
     if (scannedQR.token) {
       await attendPaperQr(scannedQR.token);
       setPaperQrCount((prev) => prev + 1);
+      setLastResult(successResult('입장 완료', '종이 QR'));
       return;
     }
     const request = toAttendRequest(scannedQR);
     if (!request) {
       toast.error('입장 QR 형식이 올바르지 않습니다.');
+      setLastResult(
+        errorResult('입장 실패', '입장 QR 형식이 올바르지 않습니다.'),
+      );
       return;
     }
     const newUser: AttendUserResponse = await attendUser(request);
@@ -95,8 +114,15 @@ const QRScannerTable = ({ id }: { id: string }) => {
     const rowKey = toAttendUserRowKey(newUser);
     if (userData.some((user) => toAttendUserRowKey(user) === rowKey)) {
       toast.info(`${newUser.name}님은 이미 입장 처리되었습니다.`);
+      setLastResult(successResult('이미 입장 처리됨', newUser.name));
       return;
     }
+    setLastResult(
+      successResult(
+        '입장 완료',
+        newUser.badge ? `${newUser.name} · 명찰 출력 대상` : newUser.name,
+      ),
+    );
     setUserData((prev) =>
       prev.some((user) => toAttendUserRowKey(user) === rowKey)
         ? prev
@@ -111,8 +137,14 @@ const QRScannerTable = ({ id }: { id: string }) => {
         await fetchUserData(scannedQR);
         // 처리한 건수가 바로 보이도록 집계를 다시 읽는다
         invalidateSummary();
-      } catch {
-        // 실패 안내는 mutation의 onError가 띄운다
+      } catch (error) {
+        // 토스트는 mutation의 onError가 띄우고, 결과 카드에는 같은 문구를 남긴다
+        setLastResult(
+          errorResult(
+            `${mode === 'entry' ? '입장' : '퇴장'} 실패`,
+            error instanceof Error ? error.message : undefined,
+          ),
+        );
       } finally {
         setScannedQR(null);
       }
@@ -136,6 +168,21 @@ const QRScannerTable = ({ id }: { id: string }) => {
           않습니다.
         </p>
       )}
+      <section className="grid grid-cols-2 gap-24 mobile:grid-cols-1">
+        <div className="space-y-12">
+          <p className="text-body1b text-black">QR 스캔</p>
+          <p className="break-keep text-body2r text-gray-500">
+            USB 스캐너는 버튼 없이 바로 처리됩니다. 스캐너가 읽지 못하면 값을
+            직접 입력하세요.
+          </p>
+          <ManualScanInput onSubmit={submitScan} />
+        </div>
+        <ScanResultCard
+          mode={mode}
+          result={lastResult}
+          isProcessing={scannedQR !== null}
+        />
+      </section>
       <EntrySummaryPanel expoId={id} />
       {paperQrCount > 0 && (
         <p className="text-body2r text-gray-500">
