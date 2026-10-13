@@ -1,4 +1,8 @@
-import { FORM_TYPE_SPEC, FormType } from '@/entities/form/model/formTypes';
+import {
+  FORM_TYPE_SPEC,
+  FormType,
+  isOptionsLocked,
+} from '@/entities/form/model/formTypes';
 import type {
   DynamicFormItem,
   OtherJson,
@@ -123,6 +127,15 @@ export const updateField = (
   item: DynamicFormItem,
 ) => list.map((current, i) => (i === index ? item : current));
 
+export const addOption = (list: readonly DynamicFormItem[], index: number) => {
+  const item = list[index];
+  if (isOptionsLocked(item)) return [...list];
+  return updateField(list, index, {
+    ...item,
+    jsonData: { ...item.jsonData, [nextOptionKey(item.jsonData)]: '' },
+  });
+};
+
 /**
  * 부모 선택지에 없는 키를 자식 조건에서 뺀다.
  * 타입을 바꿔 선택지가 초기화된 뒤 같은 키('1')가 다른 뜻으로 다시 붙는 것을 막는다.
@@ -183,28 +196,30 @@ export const removeOption = (
   index: number,
   key: string,
 ) =>
-  list.map((item, i) => {
-    if (i === index) {
-      const { [key]: _, ...jsonData } = item.jsonData;
-      const max = item.otherJson?.maxSelection;
-      const count = Object.keys(jsonData).length;
-      // 선택지를 줄였는데 최대 선택 개수가 그대로면 선택지 수에 맞춰 낮춘다.
-      return {
-        ...item,
-        jsonData,
-        otherJson:
-          item.otherJson && max !== undefined && max > count
-            ? { ...item.otherJson, maxSelection: count }
-            : item.otherJson,
-      };
-    }
-    const conditional = item.otherJson?.conditional;
-    if (conditional?.parentIndex !== index) return item;
-    const { triggerValue, triggerValues, ...rest } = conditional;
-    const next: Conditional = { ...rest };
-    if (triggerValue !== undefined && triggerValue !== key)
-      next.triggerValue = triggerValue;
-    if (triggerValues)
-      next.triggerValues = triggerValues.filter((v) => v !== key);
-    return withConditional(item, next);
-  });
+  isOptionsLocked(list[index])
+    ? [...list]
+    : list.map((item, i) => {
+        if (i === index) {
+          const { [key]: _, ...jsonData } = item.jsonData;
+          const max = item.otherJson?.maxSelection;
+          const count = Object.keys(jsonData).length;
+          // 선택지를 줄였는데 최대 선택 개수가 그대로면 선택지 수에 맞춰 낮춘다.
+          return {
+            ...item,
+            jsonData,
+            otherJson:
+              item.otherJson && max !== undefined && max > count
+                ? { ...item.otherJson, maxSelection: count }
+                : item.otherJson,
+          };
+        }
+        const conditional = item.otherJson?.conditional;
+        if (conditional?.parentIndex !== index) return item;
+        const { triggerValue, triggerValues, ...rest } = conditional;
+        const next: Conditional = { ...rest };
+        if (triggerValue !== undefined && triggerValue !== key)
+          next.triggerValue = triggerValue;
+        if (triggerValues)
+          next.triggerValues = triggerValues.filter((v) => v !== key);
+        return withConditional(item, next);
+      });

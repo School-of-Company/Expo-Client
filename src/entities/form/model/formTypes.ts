@@ -43,6 +43,14 @@ export const FORM_TYPE_SPEC: Record<FormType, FormTypeSpec> = {
 };
 
 /**
+ * 직업 문항은 선택지 키(`KINDERGARTEN_STUDENT` 등)로 서버가 직업을 판별한다.
+ * 선택지를 더하거나 지우거나 고치면 모르는 값이 되므로 편집을 막는다.
+ */
+export const isOptionsLocked = (
+  item: Pick<DynamicFormItem, 'dynamicFormType'>,
+) => item.dynamicFormType === 'OCCUPATION';
+
+/**
  * 선택지 라벨만 바꾼다. 기존 폼의 `{ value, isAlwaysSelected }` 객체는
  * 이 빌더가 편집하지 않더라도 `isAlwaysSelected`를 그대로 남긴다.
  */

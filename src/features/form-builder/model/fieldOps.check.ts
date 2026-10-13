@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { withOptionLabel } from '@/entities/form/model/formTypes';
 import {
   addField,
+  addOption,
   changeFormType,
   duplicateField,
   moveField,
@@ -173,6 +174,24 @@ const base = () => [
     '1': { value: 'A', isAlwaysSelected: true },
   });
   assert.deepEqual(dropdown.otherJson, { hasEtc: true });
+}
+
+// 직업 문항은 선택지를 더하거나 지울 수 없다
+{
+  const occupation: DynamicFormItem = {
+    ...field(1),
+    jsonData: { KINDERGARTEN_STUDENT: '유치원생', TEACHER: '교사' },
+    dynamicFormType: 'OCCUPATION',
+  };
+  assert.deepEqual(addOption([occupation], 0), [occupation]);
+  assert.deepEqual(removeOption([occupation], 0, 'TEACHER'), [occupation]);
+  // 일반 문항은 마지막 번호 다음 키를 받는다
+  assert.deepEqual(Object.keys(addOption([field(1)], 0)[0].jsonData), [
+    '1',
+    '2',
+    '3',
+    '4',
+  ]);
 }
 
 // 라벨만 고쳐도 isAlwaysSelected는 남는다

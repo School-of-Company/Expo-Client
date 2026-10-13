@@ -2,6 +2,7 @@
 
 import {
   FORM_TYPE_SPEC,
+  isOptionsLocked,
   withOptionLabel,
 } from '@/entities/form/model/formTypes';
 import { Plus, XMark } from '@/shared/assets/icons';
@@ -31,6 +32,7 @@ const OptionListEditor = ({
   const otherJson = item.otherJson ?? { hasEtc: false };
   const entries = Object.entries(item.jsonData);
   const numbered = item.formType === 'DROPDOWN';
+  const locked = isOptionsLocked(item);
 
   const setOption = (key: string, label: string) =>
     onChange({
@@ -63,17 +65,20 @@ const OptionListEditor = ({
               onChange={(e) => setOption(key, e.target.value)}
               placeholder="문장을 입력해주세요."
               aria-label={`선택지 ${i + 1}`}
+              readOnly={locked}
               className="min-w-0 flex-1 border-b-1 border-solid border-gray-100 py-6 text-body2r text-black placeholder:text-gray-300 focus:border-main-600"
             />
-            <button
-              type="button"
-              onClick={() => onRemoveOption(key)}
-              disabled={entries.length <= 1}
-              aria-label={`선택지 ${i + 1} 삭제`}
-              className={removeButtonClass}
-            >
-              <XMark />
-            </button>
+            {!locked && (
+              <button
+                type="button"
+                onClick={() => onRemoveOption(key)}
+                disabled={entries.length <= 1}
+                aria-label={`선택지 ${i + 1} 삭제`}
+                className={removeButtonClass}
+              >
+                <XMark />
+              </button>
+            )}
           </li>
         ))}
         {otherJson.hasEtc && (
@@ -100,14 +105,16 @@ const OptionListEditor = ({
         )}
       </ul>
 
-      <button
-        type="button"
-        onClick={onAddOption}
-        className="flex w-full items-center justify-center gap-8 rounded-sm border-1 border-solid border-gray-200 py-16 text-body1r text-main-600 hover:bg-main-100"
-      >
-        <Plus fill={COLORS.main600} />
-        추가하기
-      </button>
+      {!locked && (
+        <button
+          type="button"
+          onClick={onAddOption}
+          className="flex w-full items-center justify-center gap-8 rounded-sm border-1 border-solid border-gray-200 py-16 text-body1r text-main-600 hover:bg-main-100"
+        >
+          <Plus fill={COLORS.main600} />
+          추가하기
+        </button>
+      )}
 
       {spec.supportsMaxSelection && (
         <label className="flex items-center justify-end gap-8 text-caption1r text-gray-500">

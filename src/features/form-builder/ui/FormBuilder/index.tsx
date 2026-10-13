@@ -24,10 +24,10 @@ import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter
 import { FormRenderer } from '@/features/form/renderer/ui';
 import {
   addField,
+  addOption,
   changeFormType,
   duplicateField,
   moveField,
-  nextOptionKey,
   removeField,
   removeOption,
   updateField,
@@ -151,17 +151,7 @@ const FormBuilder = ({ variant = 'application', value, onChange }: Props) => {
                   }
                   onRemove={() => onChange(removeField(value, index))}
                   onDuplicate={() => onChange(duplicateField(value, index))}
-                  onAddOption={() =>
-                    onChange(
-                      updateField(value, index, {
-                        ...item,
-                        jsonData: {
-                          ...item.jsonData,
-                          [nextOptionKey(item.jsonData)]: '',
-                        },
-                      }),
-                    )
-                  }
+                  onAddOption={() => onChange(addOption(value, index))}
                   onRemoveOption={(key) =>
                     onChange(removeOption(value, index, key))
                   }
