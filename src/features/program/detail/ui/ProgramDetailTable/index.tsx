@@ -43,11 +43,17 @@ const ProgramDetailTable = ({
       return;
     }
     if (navigation === 'standard') {
-      if (!participantId || !code) {
+      if (!participantId) {
         toast.error('참가자 QR 형식이 올바르지 않습니다.');
         return;
       }
-      standardAttendance({ expoId, programId, participantId, code });
+      // 출석 서버는 program-attendance.require-code가 기본 false라 code 없는 예전 QR도 participantId만으로 받는다.
+      // code가 있으면 항상 확인한다. 운영에서 require-code를 켜면 서버가 주는 4xx 메시지를 그대로 보여 준다
+      standardAttendance(
+        code
+          ? { expoId, programId, participantId, code }
+          : { expoId, programId, participantId },
+      );
     } else {
       if (participantId && code) {
         trainingAttendance({ expoId, programId, participantId, code });
