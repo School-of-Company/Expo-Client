@@ -9,11 +9,11 @@ import {
 
 // Expo-Application-Server AdminGroupMessageController (docs/admin-group-messaging.md)
 
-/** 원장과 같은 필터. status 가 null 이면 모든 상태 */
+/** 원장과 같은 필터. status 를 생략하면 모든 상태 */
 export interface GroupMessageFilter {
   programType?: ProgramSessionType;
   programId?: number;
-  status: AdminApplicationStatus | null;
+  status?: AdminApplicationStatus;
   q?: string;
   occupation?: AdminOccupation;
   sort: AdminApplicationSort;
@@ -26,12 +26,13 @@ export type GroupMessageScope =
 export type GroupMessageChannel = 'SMS' | 'KAKAO';
 
 /**
- * 서버는 알 수 없는 필드를 거절한다. SMS 는 body, 카카오는 승인 templateId 만 보낸다.
- * SMS 자동 대체(fallbackToSms)는 서버가 항상 false 로 처리하므로 보내지 않는다
+ * SMS 는 body, 카카오는 승인 templateId 를 보낸다. 서버는 알 수 없는 필드와
+ * fallbackToSms=true 를 400 으로 거절하므로 fallbackToSms 는 항상 false 다
  */
-export type GroupMessageSource =
+export type GroupMessageSource = (
   | { scope: GroupMessageScope; channel: 'SMS'; body: string }
-  | { scope: GroupMessageScope; channel: 'KAKAO'; templateId: string };
+  | { scope: GroupMessageScope; channel: 'KAKAO'; templateId: string }
+) & { fallbackToSms: false };
 
 /** 카카오 템플릿 자리표시자 → 서버가 채우는 신청 값 */
 export interface KakaoVariableMapping {
@@ -63,6 +64,7 @@ export interface GroupMessageConfig {
 export interface GroupMessagePreviewItem {
   targetId: string;
   applicationId: string;
+  participantId: number | null;
   recipientMasked: string | null;
   content: string | null;
   missingReason: string | null;
@@ -77,6 +79,8 @@ export interface GroupMessagePreview {
   recipientCount: number;
   /** 발송 가능한 개별 문구 수 */
   messageCount: number;
+  targetCount: number;
+  sendableCount: number;
   missingCount: number;
   expiresAt: string;
   items: GroupMessagePreviewItem[];
@@ -120,13 +124,15 @@ export type GroupMessageItemStatus =
 export interface GroupMessageJobItem {
   targetId: string;
   applicationId: string;
+  participantId: number | null;
   recipientMasked: string | null;
   status: GroupMessageItemStatus;
+  providerCode: string | null;
   failureReason: string | null;
   missingReason: string | null;
 }
 
-/** 실행·재시도는 미리보기와 같은 source 와 fingerprint, 새 멱등 키를 보낸다 */
+/** 실행·재시도는 미리보기와 같은 source 와 fingerprint, 제출마다 하나의 멱등 키를 보낸다 */
 export interface GroupMessageExecuteRequest {
   source: GroupMessageSource;
   targetFingerprint: string;
