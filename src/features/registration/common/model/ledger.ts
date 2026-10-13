@@ -12,6 +12,7 @@ import {
   ProgramSessionDefinition,
   ProgramSessionType,
 } from '../api/ledgerApi';
+import { getPreregistrationSummary } from '../api/preregistrationSummaryApi';
 import { formatDateWithWeekday } from '../lib/format';
 
 export const LEDGER_PAGE_SIZE = 20;
@@ -193,6 +194,34 @@ export const getLedgerErrorMessage = (error: unknown, fallback: string) =>
   getErrorStatus(error) === 502
     ? '참가자 정보를 불러오지 못해 목록을 표시하지 않습니다. 잠시 후 다시 시도해주세요.'
     : fallback;
+
+export const usePreregistrationSummary = (expoId: string) =>
+  useQuery({
+    queryKey: ['adminPreregistrationSummary', expoId],
+    queryFn: () => getPreregistrationSummary(expoId),
+    refetchInterval: LEDGER_REFRESH_MS,
+  });
+
+/**
+ * 집계 조회 실패 문구. 출석·사전등록 원천 장애는 서버가 오류로 주므로
+ * 0명으로 바꿔 보여 주지 않고 이 문구만 보인다
+ */
+export const getSummaryErrorMessage = (error: unknown, fallback: string) => {
+  switch (getErrorStatus(error)) {
+    case 401:
+      return '로그인이 만료되었습니다. 다시 로그인해주세요.';
+    case 403:
+      return '이 행사의 신청 조회 권한(APPLICATION_READ)이 없습니다.';
+    case 409:
+      return '삭제된 행사라 집계를 볼 수 없습니다.';
+    case 502:
+      return '집계 원천 응답에 문제가 있어 현황을 표시하지 않습니다. 잠시 후 다시 시도해주세요.';
+    case 503:
+      return '집계 원천에 연결할 수 없어 현황을 표시하지 않습니다. 잠시 후 다시 시도해주세요.';
+    default:
+      return fallback;
+  }
+};
 
 const RECENT_APPLICATION_COUNT = 10;
 
