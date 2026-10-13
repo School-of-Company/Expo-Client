@@ -9,6 +9,7 @@ function CheckboxRenderer({ item, value, onChange }: FieldRendererProps) {
       <input
         type="checkbox"
         className="h-16 w-16 accent-blue-500"
+        aria-label={item.title}
         checked={value === true}
         onChange={(e) => onChange(e.target.checked)}
       />

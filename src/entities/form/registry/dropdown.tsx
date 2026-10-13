@@ -27,6 +27,7 @@ function DropdownRenderer({
       <div className="relative w-fit">
         <select
           className="w-fit appearance-none rounded-sm border-1 border-solid border-gray-100 bg-white py-12 pl-16 pr-48 text-body2r text-black disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label={item.title}
           value={selected}
           disabled={locked}
           onChange={(e) => onChange(e.target.value)}

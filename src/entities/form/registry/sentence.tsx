@@ -28,6 +28,7 @@ function SentenceRenderer({ item, value, onChange }: FieldRendererProps) {
     <div className="flex flex-col gap-8">
       <input
         className="w-full bg-transparent text-body2r text-black"
+        aria-label={item.title}
         value={phone ? formatPhone(text) : text}
         inputMode={phone ? 'numeric' : undefined}
         maxLength={phone ? 13 : 500}
