@@ -9,8 +9,20 @@ import { parseQrScanValue } from './parseQrScanValue';
 // 같은 값이 이 시간 안에 다시 들어오면 무시한다
 const DUPLICATE_SCAN_WINDOW_MS = 2_000;
 
+// 입력창에 타이핑하는 키는 스캐너 입력으로 모으지 않는다(직접 입력은 그 입력창이 처리한다)
+const isEditableTarget = (target: EventTarget | null) =>
+  target instanceof HTMLElement &&
+  (target.isContentEditable ||
+    ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+
+/**
+ * USB 스캐너(키보드 HID + Enter) 입력을 QR 값으로 바꾼다.
+ * 돌려주는 submitScan 은 직접 입력한 값을 같은 규칙(중복 무시·형식 검사)으로 처리한다.
+ * onInvalid 는 형식이 틀린 값을 화면에도 남기고 싶을 때 쓴다
+ */
 export const useQRScanner = (
   setScannedQR: React.Dispatch<React.SetStateAction<QrScanData | null>>,
+  onInvalid?: (message: string) => void,
 ) => {
   const bufferRef = useRef<string>('');
   const isScanningRef = useRef<boolean>(false);
@@ -19,6 +31,20 @@ export const useQRScanner = (
 
   const handleQRScan = useCallback(
     (cleanData: string) => {
+      // 스캐너 입력과 직접 입력에 같은 형식 검사를 적용한다
+      if (cleanData.length < 5) {
+        const message = 'QR 코드 인식 실패: 데이터가 너무 짧습니다.';
+        toast.warn(message);
+        onInvalid?.(message);
+        return;
+      }
+      if (!/^[a-zA-Z0-9{}":,._[\]\s-]+$/.test(cleanData)) {
+        const message = '입력 언어를 영어로 변경해주세요.';
+        toast.warn(message);
+        onInvalid?.(message);
+        return;
+      }
+
       const now = Date.now();
       const last = lastScanRef.current;
       if (
@@ -33,16 +59,18 @@ export const useQRScanner = (
       const { data, error } = parseQrScanValue(cleanData);
       if (!data) {
         toast.error(error);
+        onInvalid?.(error);
         return;
       }
       setScannedQR(data);
     },
-    [setScannedQR],
+    [setScannedQR, onInvalid],
   );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key.length !== 1 && event.key !== 'Enter') return;
+      if (isEditableTarget(event.target)) return;
 
       if (!isScanningRef.current) {
         isScanningRef.current = true;
@@ -55,15 +83,7 @@ export const useQRScanner = (
           timeoutRef.current = null;
         }
 
-        const cleanData = bufferRef.current;
-
-        if (cleanData.length < 5) {
-          toast.warn('QR 코드 인식 실패: 데이터가 너무 짧습니다.');
-        } else if (!/^[a-zA-Z0-9{}":,._[\]\s-]+$/.test(cleanData)) {
-          toast.warn('입력 언어를 영어로 변경해주세요.');
-        } else {
-          handleQRScan(cleanData);
-        }
+        handleQRScan(bufferRef.current);
 
         bufferRef.current = '';
         isScanningRef.current = false;
@@ -85,4 +105,6 @@ export const useQRScanner = (
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [handleQRScan]);
+
+  return { submitScan: handleQRScan };
 };
