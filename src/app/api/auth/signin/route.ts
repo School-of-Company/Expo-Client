@@ -13,9 +13,10 @@ const INVALID_CREDENTIALS_MESSAGE = '닉네임 또는 비밀번호가 일치하�
 export async function POST(request: Request) {
   const body: SignInData = await request.json();
   try {
-    // 로그인 시도 제한이 사용자별로 걸리도록 클라이언트 IP 를 넘긴다
+    // 로그인 시도 제한이 사용자별로 걸리도록 클라이언트 IP 를 넘긴다.
+    // 앞단 프록시 구성(TRUSTED_PROXY_HOPS)이 설정되지 않으면 클라이언트가 적은 IP 로 제한을 피할 수 있어 넘기지 않는다
     const { data } = await serverInstance.post('/auth/signin', body, {
-      headers: clientIpHeaders(request),
+      headers: clientIpHeaders(request, { requireTrusted: true }),
     });
 
     setAuthCookies({
