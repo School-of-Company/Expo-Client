@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import { createSurveyForm } from '@/features/survey-admin/api/createSurveyForm';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
-import { createSurveyForm } from '../api/createSurveyForm';
 
 export const useCreateSurveyForm = (
   id: string,
