@@ -16,7 +16,8 @@ export const useDeleteActions = () => {
     },
   });
 
+  // 실패는 onError 가 알린다. mutateAsync 를 넘기면 호출부에서 잡지 않은 rejection 이 된다
   return {
-    deleteExpo: deleteExpo.mutateAsync,
+    deleteExpo: deleteExpo.mutate,
   };
 };
