@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { getExpoPage } from '../api/getExpoList';
+import { getExpoPage } from '../api/getExpoPage';
 
 // URL의 ?page(1부터 시작)를 읽어 서버 페이지(0부터 시작)를 조회합니다.
 export const useExpoPage = () => {

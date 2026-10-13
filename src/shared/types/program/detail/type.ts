@@ -1,23 +1,19 @@
 export interface TrainingProgram {
   id: number;
   name: string;
-  affiliation: string;
-  position: string;
   programName: string;
   status: boolean;
-  entryTime: string;
-  leaveTime: string;
+  entryTime: string | null;
+  leaveTime: string | null;
 }
 
 export interface StandardProgram {
   id: number;
   name: string;
-  affiliation: string;
-  position: string;
   programName: string;
   status: boolean;
-  entryTime: string;
-  leaveTime: string;
+  entryTime: string | null;
+  leaveTime: string | null;
 }
 
 export interface PatchStandardProgramData {

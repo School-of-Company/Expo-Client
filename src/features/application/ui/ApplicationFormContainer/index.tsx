@@ -104,8 +104,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
           formattedData as FormattedApplicationData,
         );
 
-        if (trainingProgramData)
-          await postTrainingProgramSelection(params, trainingProgramData);
+        await postTrainingProgramSelection(params, trainingProgramData);
       } else {
         await postApplication(
           params,

@@ -1,7 +1,12 @@
+import { toRoleAuthority } from '@/shared/config';
+
+// Swagger ScanEntryReqDto.authority: ROLE_STANDARD | ROLE_TRAINEE
+type AttendAuthority = ReturnType<typeof toRoleAuthority>;
+
 // 일반 참가자는 participantId + code(또는 예전 QR의 phoneNumber), 연수자는 phoneNumber로 찾는다
 export type AttendUserQrRequest =
-  | { authority: string; participantId: number; code: string }
-  | { authority: string; phoneNumber: string };
+  | { authority: AttendAuthority; participantId: number; code: string }
+  | { authority: AttendAuthority; phoneNumber: string };
 
 // 연수자 전원과 교사만 값이 있고 그 외는 null
 export interface AttendUserBadge {
@@ -17,6 +22,7 @@ export interface AttendUserResponse {
   // 번호 없이 등록한 동행자는 null
   phoneNumber: string | null;
   personalInformationStatus: boolean;
-  participationType: 'STANDARD' | 'TRAINEE';
+  // Swagger상 string(STANDARD·TRAINEE 등 유저 서비스 값). 모르는 값이 와도 받는다
+  participationType: string;
   badge: AttendUserBadge | null;
 }
