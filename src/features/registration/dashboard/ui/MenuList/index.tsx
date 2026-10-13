@@ -24,7 +24,7 @@ const MenuList = () => {
     {
       href: routes.history,
       title: '행정 이력',
-      description: '신청·발송·모집 변경 처리 이력 (서버 연결 준비 중)',
+      description: '신청·발송·모집 변경 처리 이력',
     },
   ];
 
