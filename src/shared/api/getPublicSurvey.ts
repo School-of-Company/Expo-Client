@@ -1,11 +1,8 @@
 import axios from 'axios';
 import clientInstance from '../libs/http/clientInstance';
-import { ApplicationForm } from '../types/application/type';
+import type { PublicSurveyResponseDto } from '@/entities/survey/model/types';
 
-export type PublicSurvey = ApplicationForm & {
-  expoId: string;
-  lotteryEnabled: boolean;
-};
+export type PublicSurvey = PublicSurveyResponseDto;
 
 export const getPublicSurvey = async (
   expoId: string,
