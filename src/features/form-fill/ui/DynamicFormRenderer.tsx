@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { etcKey, fieldRegistry } from '@/entities/form/registry';
 import { isFieldVisible } from '@/shared/lib/form-conditional';
@@ -48,9 +48,15 @@ export default function DynamicFormRenderer({
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors, isSubmitted },
   } = methods;
   const values = watch();
+
+  // 문항이 로딩 뒤에 들어와도 고정 선택지 기본값을 다시 잡는다.
+  useEffect(() => {
+    reset(getDefaultValues(dynamicForm));
+  }, [dynamicForm, reset]);
 
   return (
     <form
