@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
+import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
 const XLSX_CONTENT_TYPE =
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -89,3 +90,15 @@ export const downloadExcelFile = async (
     throw error;
   }
 };
+
+export type ExcelDownloadParams = Record<string, string | number>;
+
+/** 관리자 엑셀 GET 다운로드(`/excel/...`). 실패하면 서버 문구를 담은 Error 를 던진다 */
+export const downloadExcel = (path: string, params?: ExcelDownloadParams) =>
+  downloadExcelFile(() =>
+    clientTokenInstance.get<Blob>(path, {
+      params,
+      headers: { 'X-File-Download': 'true' },
+      responseType: 'blob',
+    }),
+  );
