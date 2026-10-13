@@ -1,91 +1,123 @@
-import axios from 'axios';
+import {
+  AdminApplicationStatus,
+  AdminOccupation,
+} from '@/features/registration/common/api/ledgerApi';
+import { ApiError, getErrorStatus } from '@/shared/libs/http/apiError';
 import clientInstance from '@/shared/libs/http/clientInstance';
-import { ApplicationType } from '@/shared/types/exhibition/type';
-import { ParticipantType } from '../constant/participant';
 
-export interface MyParticipant {
+export type OwnerApplicationType = 'PREREGISTER' | 'STANDARD' | 'TRAINING';
+
+type JsonNode =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonNode[]
+  | { [key: string]: JsonNode };
+
+export interface OwnerParticipant {
   participantId: number;
-  // 입장 QR에 participantId와 함께 넣는 랜덤 값(22자)
-  code: string;
-  participantType: ParticipantType;
-  // 교사·예비교사만 입력
-  affiliation?: string;
-  name?: string;
+  name: string;
+  occupation: AdminOccupation | null;
+  representative: boolean;
 }
 
-// 신청 1건에 참여자 최대 5명. 첫 번째 참여자가 대표자(인증한 번호의 주인)
-export interface MyApplication {
-  applicationId: number;
-  applicationType: ApplicationType;
-  phoneNumber: string;
-  sessionStartedAt: string;
-  participants: MyParticipant[];
+export interface OwnerApplication {
+  applicationId: string;
+  type: OwnerApplicationType;
+  participantId: number;
+  sessionOrProgramId: number;
+  status: AdminApplicationStatus;
+  applied: boolean;
+  questions: JsonNode | null;
+  answers: JsonNode | null;
+  history: { status: string }[];
+  cancellable: boolean;
+  // 취소 가능하면 빈 문자열
+  cancellationBlockedReason: string;
 }
 
-// TODO(api): 새 서버에서 만들 엔드포인트. 스펙 확정되면 경로/응답 맞출 것.
-// 서버가 SMS 인증 세션으로 본인 번호를 식별한다고 가정한다.
+export interface OwnerApplicationsResponse {
+  participants: OwnerParticipant[];
+  applications: OwnerApplication[];
+}
+
+export interface MyApplications extends OwnerApplicationsResponse {
+  // 응답 헤더 X-CSRF-TOKEN. 취소 요청 헤더에 그대로 싣는다
+  csrfToken?: string;
+}
+
+const COMMON_ERRORS: Record<number, string> = {
+  400: '잘못된 요청입니다. 다시 확인해주세요.',
+  401: '본인 인증이 필요하거나 인증이 만료되었습니다.',
+  404: '대상을 찾을 수 없습니다.',
+  409: '현재 상태와 충돌해 처리할 수 없습니다. 새로고침 후 다시 시도해주세요.',
+  502: '서버 응답에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+  503: '연동 서버를 사용할 수 없습니다. 잠시 후 다시 시도해주세요.',
+};
+
+const toError = (
+  error: unknown,
+  messages: Record<number, string>,
+  fallback: string,
+) => {
+  const status = getErrorStatus(error);
+  return status === undefined
+    ? error
+    : new ApiError(messages[status] ?? fallback, status);
+};
+
 export const getMyApplications = async (
   expoId: string,
-): Promise<MyApplication[]> => {
-  if (expoId === 'mock') return MOCK_MY_APPLICATIONS;
-
+): Promise<MyApplications> => {
   try {
-    const response = await clientInstance.get(`/application/my/${expoId}`);
-    return response.data;
+    const { data, headers } =
+      await clientInstance.get<OwnerApplicationsResponse>(
+        `/application/expos/${expoId}/my-applications`,
+      );
+    return { ...data, csrfToken: headers['x-csrf-token'] };
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '신청 내역 불러오기 실패');
-    }
-    throw error;
+    throw toError(error, COMMON_ERRORS, '신청 내역을 불러오지 못했습니다.');
   }
 };
 
-// TODO(api): 새 서버에서 만들 엔드포인트. 참여자 1명 단위로 취소
-export const deleteMyParticipant = async (participantId: number) => {
+export const cancelMyApplication = async (
+  expoId: string,
+  type: OwnerApplicationType,
+  applicationId: string,
+  csrfToken?: string,
+) => {
   try {
-    await clientInstance.delete(
-      `/application/my/participants/${participantId}`,
+    await clientInstance.post(
+      `/application/expos/${expoId}/my-applications/${type}/${applicationId}/cancellation`,
+      undefined,
+      { headers: { 'X-CSRF-TOKEN': csrfToken } },
     );
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '신청 취소 실패');
-    }
-    throw error;
+    throw toError(
+      error,
+      {
+        ...COMMON_ERRORS,
+        403: '요청을 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.',
+        404: '취소할 신청을 찾을 수 없습니다.',
+        409: '취소할 수 없는 신청입니다. 새로고침 후 다시 확인해주세요.',
+      },
+      '신청 취소에 실패했습니다.',
+    );
   }
 };
 
-// TODO(dev-mock): 서버 복구 후 제거
-const MOCK_MY_APPLICATIONS: MyApplication[] = [
-  {
-    applicationId: 1,
-    applicationType: 'PRE',
-    phoneNumber: '01012345678',
-    sessionStartedAt: '2026-10-31T09:30:00',
-    participants: [
-      {
-        participantId: 1,
-        code: 'mockCode0000000000000a',
-        participantType: 'GENERAL',
-      },
-      {
-        participantId: 2,
-        code: 'mockCode0000000000000b',
-        participantType: 'ELEMENTARY',
-      },
-      {
-        participantId: 3,
-        code: 'mockCode0000000000000c',
-        participantType: 'TEACHER',
-        affiliation: '광주초',
-        name: '홍길동',
-      },
-      {
-        participantId: 4,
-        code: 'mockCode0000000000000d',
-        participantType: 'PRE_TEACHER',
-        affiliation: '광주교대',
-        name: '김예비',
-      },
-    ],
-  },
-];
+// 대표자가 소유한 확정 참가자의 입장 QR 값. 현장 체크인 스캐너는 { participantId, code } 를 읽는다
+export const getParticipantQr = async (
+  expoId: string,
+  participantId: number,
+): Promise<{ participantId: number; code: string }> => {
+  try {
+    const { data } = await clientInstance.get(
+      `/application/expos/${expoId}/participants/${participantId}/qr`,
+    );
+    return data;
+  } catch (error) {
+    throw toError(error, COMMON_ERRORS, 'QR 을 불러오지 못했습니다.');
+  }
+};
