@@ -14,6 +14,17 @@ export const validateFields = (list: readonly DynamicFormItem[]) => {
   // 서버가 400(선택지 누락 등)으로 거절하는 모양을 먼저 막는다.
   list.forEach((item, index) => {
     if (!item.title.trim()) warn(index, '질문을 입력해주세요.');
+    const max = item.otherJson?.maxSelection;
+    if (max !== undefined) {
+      if (!Number.isInteger(max) || max < 1) {
+        warn(index, '최대 선택 개수는 1 이상의 정수여야 합니다.');
+      } else if (
+        FORM_TYPE_SPEC[item.formType].hasOptions &&
+        max > Object.keys(item.jsonData).length
+      ) {
+        warn(index, '최대 선택 개수가 선택지 수보다 많습니다.');
+      }
+    }
     if (!FORM_TYPE_SPEC[item.formType].hasOptions) return;
     const labels = Object.values(item.jsonData).map((option) =>
       typeof option === 'string' ? option : option.value,

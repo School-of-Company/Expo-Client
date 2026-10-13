@@ -115,8 +115,9 @@ const OptionListEditor = ({
                 ...item,
                 otherJson: {
                   ...otherJson,
+                  // 1 이상의 정수만 받는다. -1, 0, 1.5 같은 값은 자른다.
                   maxSelection: e.target.value
-                    ? Number(e.target.value)
+                    ? Math.max(1, Math.floor(Number(e.target.value)))
                     : undefined,
                 },
               })

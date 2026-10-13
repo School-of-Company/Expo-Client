@@ -169,7 +169,17 @@ export const removeOption = (
   list.map((item, i) => {
     if (i === index) {
       const { [key]: _, ...jsonData } = item.jsonData;
-      return { ...item, jsonData };
+      const max = item.otherJson?.maxSelection;
+      const count = Object.keys(jsonData).length;
+      // 선택지를 줄였는데 최대 선택 개수가 그대로면 선택지 수에 맞춰 낮춘다.
+      return {
+        ...item,
+        jsonData,
+        otherJson:
+          item.otherJson && max !== undefined && max > count
+            ? { ...item.otherJson, maxSelection: count }
+            : item.otherJson,
+      };
     }
     const conditional = item.otherJson?.conditional;
     if (conditional?.parentIndex !== index) return item;

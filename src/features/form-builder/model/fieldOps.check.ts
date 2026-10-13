@@ -132,6 +132,28 @@ const base = () => [
   assert.equal(nextOptionKey({}), '1');
 }
 
+// maxSelection: 선택지를 줄이면 같이 낮추고, 범위를 벗어난 값은 경고
+{
+  const multi = (maxSelection: number): DynamicFormItem => ({
+    ...field(1, undefined, 'MULTIPLE'),
+    title: 'q',
+    otherJson: { hasEtc: false, maxSelection },
+  });
+  // 선택지 3개 → 2개: 3은 2로 낮춘다. 이미 작은 값은 그대로
+  assert.equal(removeOption([multi(3)], 0, '1')[0].otherJson?.maxSelection, 2);
+  assert.equal(removeOption([multi(2)], 0, '1')[0].otherJson?.maxSelection, 2);
+  assert.equal(removeOption([multi(1)], 0, '1')[0].otherJson?.maxSelection, 1);
+  for (const bad of [-1, 0, 1.5]) {
+    assert.deepEqual(validateFields([multi(bad)]).get(0), [
+      '최대 선택 개수는 1 이상의 정수여야 합니다.',
+    ]);
+  }
+  assert.deepEqual(validateFields([multi(4)]).get(0), [
+    '최대 선택 개수가 선택지 수보다 많습니다.',
+  ]);
+  assert.equal(validateFields([multi(3)]).size, 0);
+}
+
 // 타입 변경: 선택지 없는 타입이면 자식에 경고
 {
   const changed = changeFormType(base(), 0, 'SENTENCE');
