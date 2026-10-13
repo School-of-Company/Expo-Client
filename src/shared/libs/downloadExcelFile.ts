@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
+import { ApiError } from './http/apiError';
 
 const XLSX_CONTENT_TYPE =
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -73,7 +74,11 @@ export const downloadExcelFile = async (
     );
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(await readErrorMessage(error.response?.data));
+      const message = await readErrorMessage(error.response?.data);
+      // 상태를 보존해 호출자가 상태별 안내로 바꿀 수 있게 한다
+      throw error.response
+        ? new ApiError(message, error.response.status)
+        : new Error(message);
     }
     throw error;
   }

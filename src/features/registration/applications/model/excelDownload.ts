@@ -4,6 +4,7 @@ import {
   ReportExcelScope,
   ReportExcelTemplate,
 } from '@/shared/types/registration/type';
+import { REPORT_TARGET_MAX_COUNT } from '../../common/api/reportTargetApi';
 import {
   LedgerFilter,
   LedgerRow,
@@ -48,6 +49,8 @@ interface ExcelDownloadPlanParams {
   scope: ReportExcelScope;
   selectedRows: LedgerRow[];
   filter: LedgerFilter;
+  /** 현재 필터 전체 건수 (서버 기준) */
+  filterCount: number;
 }
 
 export interface ExcelDownloadPlan {
@@ -143,8 +146,14 @@ export const ATTENDANCE_FILTER_BLOCKER =
 const planFilter = (
   template: ReportExcelTemplate,
   filter: LedgerFilter,
+  filterCount: number,
   blockers: string[],
 ): ReportExcelDownloadRequest | null => {
+  if (filterCount > REPORT_TARGET_MAX_COUNT) {
+    blockers.push(
+      `현재 필터 대상이 ${filterCount}건입니다. 한 번에 최대 ${REPORT_TARGET_MAX_COUNT}건까지 받을 수 있으니 필터를 좁혀주세요.`,
+    );
+  }
   // 필터에는 연수자 조건이 없어 다른 연수자의 신청이 섞이면 서버가 거절한다
   if (template === 'ATTENDANCE') {
     blockers.push(ATTENDANCE_FILTER_BLOCKER);
@@ -203,12 +212,13 @@ export const buildExcelDownloadPlan = ({
   scope,
   selectedRows,
   filter,
+  filterCount,
 }: ExcelDownloadPlanParams): ExcelDownloadPlan => {
   const blockers: string[] = [];
   const request =
     scope === 'SELECTED'
       ? planSelected(template, selectedRows, blockers)
-      : planFilter(template, filter, blockers);
+      : planFilter(template, filter, filterCount, blockers);
 
   return { request: blockers.length === 0 ? request : null, blockers };
 };

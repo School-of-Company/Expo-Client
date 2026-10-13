@@ -77,8 +77,15 @@ const ExcelDownloadModal = ({
   const { mutate: download, isPending } = useReportExcelDownload(onClose);
 
   const plan = useMemo(
-    () => buildExcelDownloadPlan({ template, scope, selectedRows, filter }),
-    [template, scope, selectedRows, filter],
+    () =>
+      buildExcelDownloadPlan({
+        template,
+        scope,
+        selectedRows,
+        filter,
+        filterCount,
+      }),
+    [template, scope, selectedRows, filter, filterCount],
   );
 
   const { blockers } = plan;
@@ -184,7 +191,7 @@ const ExcelDownloadModal = ({
           <p className="text-caption1r text-gray-500">
             대상 신청 {targetCount}건 ({describeStatus(targetStatusCounts)})
             {scope === 'FILTER' &&
-              '. 화면 페이지와 관계없이 서버가 필터 조건 전체를 다시 조회합니다. 상태를 고르지 않으면 모든 상태가 포함됩니다'}
+              '. 화면 페이지와 관계없이 서버가 필터 조건 전체를 대상으로 고정합니다(최대 10000건, 15분 유지). 상태를 고르지 않으면 모든 상태가 포함됩니다'}
             {isPersonDeduped &&
               '. 같은 사람은 1번만 출력되어 행 수가 신청 건수보다 적을 수 있습니다'}
             .
