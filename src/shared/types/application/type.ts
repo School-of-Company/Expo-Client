@@ -1,3 +1,4 @@
+import { ApplicationType } from '../exhibition/type';
 import { DynamicFormType } from '../form/create/type';
 
 /** 선택지 맵. 키는 답변 값으로 쓰이고, 값은 보기 문구다. */
@@ -84,3 +85,16 @@ export interface Companion {
 export type DynamicFormValues = {
   [key: string]: string | string[] | boolean | Companion[] | undefined;
 };
+
+/** `GET /forms/{expoId}` 응답. 문항 스펙(`dynamicForm`)까지 담긴다. */
+export interface FormResponseDto {
+  id: string;
+  expoId: string;
+  title: string;
+  informationText: string;
+  participantType: 'STANDARD' | 'TRAINEE';
+  applicationType: ApplicationType;
+  startDate: string;
+  endDate: string;
+  dynamicForm: DynamicFormItem[];
+}

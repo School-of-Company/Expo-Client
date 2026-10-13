@@ -1,6 +1,12 @@
 import { toApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
-import { AdminOccupation, ProgramSessionType } from './ledgerApi';
+import {
+  Program,
+  ProgramPolicy,
+  StandardProgramRequest,
+  TrainingCategory,
+} from '@/shared/types/program/list/type';
+import { ProgramSessionType } from './ledgerApi';
 
 // Expo-Expo-Server 사전등록 회차·프로그램 모집 정책 관리자 경로 형식
 
@@ -24,47 +30,22 @@ export interface PreregisterSession extends PreregisterSessionDefinition {
   revision: number;
 }
 
-/** 일시는 UTC 오프셋이 있는 ISO 8601 이다 */
-export interface ProgramPolicy {
-  groupId?: string | null;
-  formId?: string | null;
-  allowedOccupations?: AdminOccupation[];
-  capacity?: number;
-  waitingCapacity?: number;
-  applicationStartedAt?: string | null;
-  applicationEndedAt?: string | null;
-  cancelEndedAt?: string | null;
-  promotionEndedAt?: string | null;
-  closed?: boolean;
-}
+// 프로그램·모집 정책 형식은 박람회 화면과 같이 shared 타입을 쓴다
+export type {
+  ProgramPolicy,
+  TrainingCategory,
+} from '@/shared/types/program/list/type';
 
-export type TrainingCategory = 'ESSENTIAL' | 'CHOICE';
-
-export interface ScheduleProgram {
-  id: number;
-  programType: ProgramSessionType;
-  title: string;
-  /** ISO 지역 일시 (YYYY-MM-DDTHH:mm) */
-  startedAt: string;
-  endedAt: string;
-  /** 연수 프로그램만 있다 */
+/** 시각은 ISO 지역 일시 (YYYY-MM-DDTHH:mm). 연수 프로그램만 category 가 있다 */
+export type ScheduleProgram = Omit<Program, 'expoId'> & {
   category?: TrainingCategory;
-  groupId: string | null;
-  /** null 이면 정책이 없는 기존 프로그램이다 */
-  policy: ProgramPolicy | null;
-  revision: number;
-  /** 진행 중 변경의 다음 버전. 있으면 변경이 끝나지 않은 상태다 */
-  pendingRevision: number | null;
-}
+};
 
 /** 프로그램 생성·수정 본문. 시각은 'yyyy-MM-dd HH:mm' 이고 policy 가 null 이면 기존 정책을 유지한다 */
-export interface ScheduleProgramRequest {
-  title: string;
-  startedAt: string;
-  endedAt: string;
+export type ScheduleProgramRequest = StandardProgramRequest & {
   category?: TrainingCategory;
   policy: ProgramPolicy | null;
-}
+};
 
 const expoPath = (expoId: string) => `/expo/${encodeURIComponent(expoId)}`;
 
@@ -209,14 +190,5 @@ export const deleteScheduleProgram = async (
     );
   } catch (error) {
     throw toApiError(error, '프로그램을 삭제하지 못했습니다.');
-  }
-};
-
-/** 박람회의 중단된 프로그램 변경을 다시 처리한다 */
-export const retryProgramChanges = async (expoId: string): Promise<void> => {
-  try {
-    await clientTokenInstance.post(`${expoPath(expoId)}/program-changes/retry`);
-  } catch (error) {
-    throw toApiError(error, '프로그램 변경을 다시 처리하지 못했습니다.');
   }
 };

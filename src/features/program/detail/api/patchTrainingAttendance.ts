@@ -9,18 +9,17 @@ export const patchTrainingAttendance = async ({
   traineeId,
   participantId,
   code,
-}: PatchTrainingProgramData) => {
+}: PatchTrainingProgramData): Promise<void> => {
   try {
-    const response = await clientTokenInstance.patch(
-      `/attendance/training/${programId}`,
+    await clientTokenInstance.patch(
+      `/attendance/training/${encodeURIComponent(programId)}`,
       // 연수자 QR은 traineeId, 사전등록 참가자 QR은 participantId와 code를 보낸다
       participantId && code
         ? { expoId, participantId, code }
         : { expoId, traineeId },
     );
-    return response;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
+    if (axios.isAxiosError(error)) {
       throw new Error(getScanErrorMessage(error, '연수 프로그램 QR인식 실패'));
     }
     throw error;
