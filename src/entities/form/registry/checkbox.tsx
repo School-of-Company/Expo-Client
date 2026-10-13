@@ -12,7 +12,7 @@ function CheckboxRenderer({ item, value, onChange }: FieldRendererProps) {
         checked={value === true}
         onChange={(e) => onChange(e.target.checked)}
       />
-      <span className="text-body2r text-black">{item.title}</span>
+      <span className="text-body2r text-black">예</span>
     </label>
   );
 }
