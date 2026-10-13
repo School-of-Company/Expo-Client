@@ -1,27 +1,17 @@
-import axios from 'axios';
 import clientInstance from '../libs/http/clientInstance';
-import { ApplicationType } from '../types/exhibition/type';
+import { toApiError } from '../libs/http/apiError';
 import { getMockForm } from './mockForm';
 
-export const getSurveyForm = async (
-  expoId: string,
-  userType: string,
-  ApplicationType: ApplicationType,
-) => {
-  if (expoId === 'mock')
-    return getMockForm('survey', userType, ApplicationType);
+/** 설문은 (박람회, 참여자군) 조합당 하나라 신청방식을 받지 않는다. */
+export const getSurveyForm = async (expoId: string, userType: string) => {
+  if (expoId === 'mock') return getMockForm('survey', userType, 'PRE');
 
   try {
     const response = await clientInstance.get(
-      `/surveys/${expoId}?type=${userType}&applicationType=${ApplicationType}`,
+      `/surveys/${expoId}?type=${userType}`,
     );
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(
-        error.response.data.error || '만족도 조사 폼 불러오기 실패',
-      );
-    }
-    throw error;
+    throw toApiError(error, '만족도 조사 폼 불러오기 실패');
   }
 };

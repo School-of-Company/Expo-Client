@@ -10,5 +10,5 @@ export const useGetEditForm = (
   if (formType === 'application') {
     return useGetApplicationForm(id, userType, applicationType);
   }
-  return useGetSurveyForm(id, userType, applicationType);
+  return useGetSurveyForm(id, userType);
 };

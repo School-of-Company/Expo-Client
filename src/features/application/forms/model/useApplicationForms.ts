@@ -18,7 +18,7 @@ export const useApplicationForms = (expoId: string) => {
       queryFn: () =>
         entry.formType === 'application'
           ? getApplicationForm(expoId, entry.userType, entry.applicationType)
-          : getSurveyForm(expoId, entry.userType, entry.applicationType),
+          : getSurveyForm(expoId, entry.userType),
       retry: false,
       // 없는 조합은 실패가 정상이라 에러 토스트를 띄우지 않는다
       meta: { silent: true },
