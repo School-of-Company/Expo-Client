@@ -48,6 +48,7 @@ export default function DynamicFormRenderer({
     handleSubmit,
     watch,
     setValue,
+    trigger,
     reset,
     formState: { errors, isSubmitted },
   } = methods;
@@ -99,7 +100,11 @@ export default function DynamicFormRenderer({
               value={values[id]}
               etc={typeof etc === 'string' ? etc : ''}
               onChange={(value) => set(id, value)}
-              onEtcChange={(value) => set(etcKey(id), value)}
+              onEtcChange={(value) => {
+                // 기타 문구 오류는 문항 id에 붙으므로 문항을 다시 검증한다.
+                setValue(etcKey(id), value);
+                if (isSubmitted) trigger(id);
+              }}
             />
             {error && <p className="text-caption1r text-error">{error}</p>}
           </div>
