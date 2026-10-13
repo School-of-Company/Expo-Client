@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
+import { invalidateExpoPrograms, programQueryKeys } from '@/shared/queries';
 import {
   getPreregisterSessions,
   getSchedulePrograms,
@@ -9,7 +10,7 @@ import {
 
 export const scheduleQueryKeys = {
   sessions: (expoId: string) => ['preregisterSessions', expoId] as const,
-  programs: (expoId: string) => ['schedulePrograms', expoId] as const,
+  programs: programQueryKeys.schedule,
 };
 
 export const usePreregisterSessions = (expoId: string) =>
@@ -34,9 +35,8 @@ export const useInvalidateSchedule = (expoId: string) => {
       queryClient.invalidateQueries({
         queryKey: scheduleQueryKeys.sessions(expoId),
       }),
-      queryClient.invalidateQueries({
-        queryKey: scheduleQueryKeys.programs(expoId),
-      }),
+      // 일정 화면에서 바꾼 프로그램은 박람회 수정·상세·프로그램 목록도 다시 읽어야 한다
+      invalidateExpoPrograms(queryClient, expoId),
     ]);
 };
 
