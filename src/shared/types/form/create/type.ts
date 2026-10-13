@@ -75,6 +75,9 @@ export interface SurveyFormRequest {
   dynamicSurveyRequestDto: DynamicFieldRequest[];
   informationText: string;
   title: string;
+  /** 경품 추첨 설정. 설정 화면은 `/surveys/{expoId}/lottery` 를 따로 쓴다. */
+  lotteryEnabled?: boolean;
+  lotteryNumbers?: number[];
 }
 
 export type CreateFormRequest = ApplicationFormRequest | SurveyFormRequest;

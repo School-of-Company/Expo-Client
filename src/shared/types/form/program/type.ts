@@ -28,8 +28,11 @@ export interface ProgramFormRequest {
   dynamicForm: DynamicFieldRequest[];
 }
 
-/** 수정은 폼을 불러온 시점의 `version` 을 반드시 담는다. */
-export type ProgramFormPatchRequest = Partial<ProgramFormRequest> & {
+/**
+ * 수정은 메타데이터를 갱신하고 입력 필드를 통째로 교체하므로 전체를 보낸다.
+ * `expectedVersion` 은 폼을 불러온 시점의 `version` 이고, 빠지면 서버가 400 으로 거절한다.
+ */
+export type ProgramFormPatchRequest = ProgramFormRequest & {
   expectedVersion: number;
 };
 

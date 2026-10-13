@@ -35,13 +35,25 @@ export interface DynamicFormItem {
   dynamicFormType?: DynamicFormType | 'DEFAULT';
 }
 
+/**
+ * 폼 조회(`GET /forms/{expoId}`)와 설문 조회(`GET /surveys/{expoId}`) 응답.
+ * 두 응답이 필드 이름을 달리 쓴다: 폼은 `participantType`·`applicationType`·`dynamicForm`,
+ * 설문은 `participationType`·`totalAnswers`·`dynamicSurveyResponseDto`.
+ */
 export interface ApplicationForm {
+  id?: string;
+  expoId?: string;
   title: string;
   informationText: string;
   startDate: string;
   endDate: string;
   participantType: 'STANDARD' | 'TRAINEE';
+  applicationType?: 'PRE' | 'FIELD';
   dynamicForm?: DynamicFormItem[];
+  /** 설문 응답에만 있다. */
+  participationType?: 'STANDARD' | 'TRAINEE';
+  /** 설문 응답에만 있다. 문항을 바꾸면 기존 답변과 연결이 끊기므로 경고 기준으로 쓴다. */
+  totalAnswers?: number;
   dynamicSurveyResponseDto?: DynamicFormItem[];
 }
 
