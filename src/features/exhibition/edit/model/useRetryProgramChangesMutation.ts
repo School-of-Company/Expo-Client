@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
+import { retryProgramChanges } from '@/shared/api';
 import { programQueryKeys } from '@/shared/queries';
-import { retryProgramChanges } from '../api/retryProgramChanges';
 
 export const useRetryProgramChangesMutation = (
   id: string,
