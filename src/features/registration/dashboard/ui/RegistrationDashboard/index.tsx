@@ -9,6 +9,7 @@ import {
 } from '../../../common';
 import {
   getLedgerErrorMessage,
+  isParticipantSourceError,
   LEDGER_REFRESH_MS,
   useCurrentSessions,
   useLedgerSummary,
@@ -147,7 +148,8 @@ const RegistrationDashboard = () => {
       </Section>
 
       <Section title="최근 신청">
-        {recent.isError && !recent.data ? (
+        {recent.isError &&
+        (!recent.data || isParticipantSourceError(recent.error)) ? (
           <SectionError
             message={getLedgerErrorMessage(
               recent.error,
