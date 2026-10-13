@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
 import { serverInstance } from '@/shared/libs/http/serverInstance';
-import { toServerMessage } from './serverMessage';
+import { toServerCode, toServerMessage } from './serverMessage';
 
 // 참가자 화면이 쓰는 서버 세션 쿠키만 서버로 넘긴다. 관리자 로그인 토큰 쿠키는 공개 요청에 싣지 않는다
 const FORWARDED_COOKIES = ['PARTICIPANT_SESSION', 'XSRF-TOKEN'];
@@ -72,9 +72,13 @@ export async function baseHandleRequest(
     const message =
       toServerMessage(status, axiosError.response?.data) ||
       '요청을 처리하는 중 오류가 발생했습니다.';
+    const code = toServerCode(axiosError.response?.data);
 
     return withSetCookies(
-      NextResponse.json({ error: message, status }, { status }),
+      NextResponse.json(
+        { error: message, status, ...(code && { code }) },
+        { status },
+      ),
       axiosError.response?.headers?.['set-cookie'],
     );
   }
