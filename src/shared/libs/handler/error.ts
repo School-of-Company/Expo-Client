@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 import { NextResponse } from 'next/server';
 import { createErrorResponse } from './response';
 import { toServerMessage } from './serverMessage';
@@ -19,15 +19,15 @@ const getErrorMessage = (status: number, data: unknown): string | undefined => {
 const TIMEOUT_CODES = ['ECONNABORTED', 'ETIMEDOUT'];
 
 /**
- * Gateway 응답 자체를 받지 못한 경우를 상태로 바꾼다. 응답이 있으면 null.
- * 기다리다 끊기면 504, 연결하지 못하면 502 로 돌려 서버 오류(500)와 구분한다
+ * Gateway 응답 자체를 받지 못한 경우를 상태로 바꾼다. 응답이 있거나 axios 오류가 아니면 null.
+ * 기다리다 끊기면 504, 연결하지 못하면 502 로 돌려 서버 오류(500)와 구분한다.
+ * 핸들러 안의 코드 오류까지 502 로 바꾸면 게이트웨이 장애로 보이므로 axios 오류만 본다
  */
 export const toUpstreamFailure = (
   error: unknown,
 ): { status: number; message: string } | null => {
-  const axiosError = error as AxiosError;
-  if (axiosError?.response) return null;
-  return TIMEOUT_CODES.includes(axiosError?.code ?? '')
+  if (!axios.isAxiosError(error) || error.response) return null;
+  return TIMEOUT_CODES.includes(error.code ?? '')
     ? {
         status: 504,
         message:
