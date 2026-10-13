@@ -13,13 +13,14 @@ const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 
 interface ImageInputProps {
+  // 부모가 register('image', { required }) 로 필드와 검증 규칙을 등록한다. 값은 검사를 통과한 파일만 setValue 로 넣는다
   register: UseFormRegisterReturn;
   setValue: UseFormSetValue<ExhibitionFormData>;
   id: string;
   defaultImage?: string | File | null;
 }
 
-const ImageInput = ({ register, setValue, defaultImage }: ImageInputProps) => {
+const ImageInput = ({ setValue, defaultImage }: ImageInputProps) => {
   // 이 컴포넌트가 만든 미리보기 blob 주소. 바꾸거나 언마운트할 때 해제한다
   const objectUrlRef = useRef<string | null>(null);
 
@@ -61,7 +62,8 @@ const ImageInput = ({ register, setValue, defaultImage }: ImageInputProps) => {
       const objectUrl = URL.createObjectURL(file);
       const imgElement = new window.Image();
 
-      // 거절한 파일도 다시 고를 수 있게 input 을 비우고 주소를 해제한다
+      // 거절한 파일도 다시 고를 수 있게 input 을 비우고 주소를 해제한다.
+      // 폼 값은 통과한 파일만 넣으므로 거절하면 이전에 고른 이미지가 그대로 남는다
       const reject = (message: string) => {
         toast.error(message);
         URL.revokeObjectURL(objectUrl);
@@ -77,14 +79,12 @@ const ImageInput = ({ register, setValue, defaultImage }: ImageInputProps) => {
         if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
         objectUrlRef.current = objectUrl;
         setImg(objectUrl);
-        setValue('image', file);
+        setValue('image', file, { shouldValidate: true, shouldDirty: true });
       };
       imgElement.onerror = () => {
         reject('이미지를 불러오지 못했습니다. 다른 이미지를 선택해주세요.');
       };
       imgElement.src = objectUrl;
-
-      register.onChange(e);
     }
   };
 
