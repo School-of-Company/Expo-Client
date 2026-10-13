@@ -16,7 +16,33 @@ const getErrorMessage = (status: number, data: unknown): string | undefined => {
   return toServerMessage(status, data);
 };
 
+const TIMEOUT_CODES = ['ECONNABORTED', 'ETIMEDOUT'];
+
+/**
+ * Gateway 응답 자체를 받지 못한 경우를 상태로 바꾼다. 응답이 있으면 null.
+ * 기다리다 끊기면 504, 연결하지 못하면 502 로 돌려 서버 오류(500)와 구분한다
+ */
+export const toUpstreamFailure = (
+  error: unknown,
+): { status: number; message: string } | null => {
+  const axiosError = error as AxiosError;
+  if (axiosError?.response) return null;
+  return TIMEOUT_CODES.includes(axiosError?.code ?? '')
+    ? {
+        status: 504,
+        message:
+          '서버 응답이 늦어 요청을 마치지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      }
+    : {
+        status: 502,
+        message: '서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      };
+};
+
 export async function handleError(error: unknown): Promise<NextResponse> {
+  const upstream = toUpstreamFailure(error);
+  if (upstream) return createErrorResponse(upstream.message, upstream.status);
+
   const axiosError = error as AxiosError;
   const status = axiosError.response?.status || 500;
 
