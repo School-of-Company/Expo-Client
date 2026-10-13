@@ -1,4 +1,8 @@
-import { ApiError, getErrorStatus } from '@/shared/libs/http/apiError';
+import {
+  ApiError,
+  getErrorStatus,
+  toApiError,
+} from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import {
   AdminApplicationStatus,
@@ -21,8 +25,15 @@ const compactParams = (params: object) =>
 export const DEFINITION_CHANGED_MESSAGE =
   '회차 정의가 바뀌었습니다. 다시 조회해주세요.';
 
-/** 400·401·403·409 는 서버 문구 대신 화면 안내로 통일한다. 그 밖의 상태는 서버 문구를 따른다 */
-const toSessionApiError = (error: unknown, fallback: string): unknown => {
+/**
+ * 400·401·403 은 서버 문구 대신 화면 안내로 통일한다. 409(definitionVersion 변경)는 current-sessions 에만 있다.
+ * 그 밖의 상태·네트워크 오류는 toApiError 로 서버 문구와 기존 처리를 그대로 쓴다
+ */
+const toSessionApiError = (
+  error: unknown,
+  fallback: string,
+  { definitionVersion = false } = {},
+): unknown => {
   const status = getErrorStatus(error);
   const message =
     status === 400
@@ -31,14 +42,11 @@ const toSessionApiError = (error: unknown, fallback: string): unknown => {
         ? '로그인이 필요합니다. 다시 로그인해주세요.'
         : status === 403
           ? '접수 조회 권한(APPLICATION_READ)이 없습니다.'
-          : status === 409
+          : status === 409 && definitionVersion
             ? DEFINITION_CHANGED_MESSAGE
             : null;
   if (status && message) return new ApiError(message, status);
-  if (error instanceof ApiError) return error;
-  return error instanceof Error && !getErrorStatus(error)
-    ? error
-    : new ApiError(fallback, status ?? 0);
+  return error instanceof ApiError ? error : toApiError(error, fallback);
 };
 
 export interface CurrentSessionQuery {
@@ -79,7 +87,9 @@ export const getCurrentSessionPage = async (
     );
     return response.data;
   } catch (error) {
-    throw toSessionApiError(error, '회차 목록을 불러오지 못했습니다.');
+    throw toSessionApiError(error, '회차 목록을 불러오지 못했습니다.', {
+      definitionVersion: true,
+    });
   }
 };
 
