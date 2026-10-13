@@ -8,5 +8,3 @@ export {
 } from './getTrainingProgram';
 export { postSendSms } from './postSendSms';
 export { getCheckSmsCode } from './getCheckSmsCode';
-export { getPublicSurvey } from './getPublicSurvey';
-export type { PublicSurvey } from './getPublicSurvey';
