@@ -18,3 +18,9 @@ export const toServerMessage = (
   if (message.startsWith('ThrottlerException')) return TOO_MANY_REQUESTS;
   return message;
 };
+
+/** 서버 오류 본문({ code })의 오류 코드. 화면에서 코드별 안내를 고를 때 쓴다. */
+export const getErrorCode = (data: unknown): string | undefined => {
+  const code = (data as { code?: unknown } | undefined)?.code;
+  return typeof code === 'string' ? code : undefined;
+};
