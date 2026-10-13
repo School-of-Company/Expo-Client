@@ -35,7 +35,8 @@ clientTokenInstance.interceptors.response.use(
       }
 
       window.location.href = '/signin';
-      return;
+      // 이동하는 동안 호출부가 성공(undefined)으로 처리하지 않도록 끝나지 않는 Promise 로 둔다
+      return new Promise(() => {});
     }
 
     return Promise.reject(error);
