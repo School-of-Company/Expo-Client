@@ -12,6 +12,8 @@ function PlaceholderRenderer({ item }: FieldRendererProps) {
 export const placeholderField: FieldDefinition = {
   Renderer: PlaceholderRenderer,
   defaultValue: () => undefined,
-  validate: () => undefined,
+  // 답을 받을 수 없으니 필수 문항이면 막는다. 그냥 통과시키면 필수 답이 빠진 채 제출된다.
+  validate: (item) =>
+    item.requiredStatus ? '아직 지원하지 않는 항목입니다' : undefined,
   toAnswer: () => undefined,
 };
