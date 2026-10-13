@@ -8,6 +8,9 @@ const FALLBACK_FILE_NAME = 'export.xlsx';
 
 const DEFAULT_ERROR_MESSAGE = '엑셀 파일을 만들지 못했습니다.';
 
+// 클릭 직후 URL 을 해제하면 일부 브라우저가 저장을 시작하기 전에 blob 을 잃는다
+const REVOKE_DELAY_MS = 1_000;
+
 export const getFileName = (contentDisposition?: string) => {
   if (!contentDisposition) return FALLBACK_FILE_NAME;
   const encoded = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
@@ -46,7 +49,7 @@ export const saveBlob = (blob: Blob, fileName: string) => {
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
 };
 
 /**
