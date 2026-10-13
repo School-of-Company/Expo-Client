@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { serverInstance } from '@/shared/libs/http/serverInstance';
 import { toUpstreamFailure } from './error';
 import { forbiddenPathResponse, toGatewayUrl } from './proxyTarget';
-import { toServerMessage } from './serverMessage';
+import { toServerCode, toServerMessage } from './serverMessage';
 
 // 참가자 화면이 쓰는 서버 세션 쿠키만 서버로 넘긴다. 관리자 로그인 토큰 쿠키는 공개 요청에 싣지 않는다.
 // JSESSIONID 는 참가자 신청 취소의 CSRF 토큰이 묶인 세션이다
@@ -112,7 +112,14 @@ export async function baseHandleRequest(
       '요청을 처리하는 중 오류가 발생했습니다.';
 
     return withSetCookies(
-      NextResponse.json({ error: message, status }, { status }),
+      NextResponse.json(
+        {
+          error: message,
+          status,
+          code: toServerCode(axiosError.response?.data),
+        },
+        { status },
+      ),
       axiosError.response?.headers?.['set-cookie'],
     );
   }
