@@ -11,7 +11,6 @@ import { withLoading } from '@/shared/hocs';
 import {
   ApplicationForm,
   DynamicFormValues,
-  FormattedApplicationData,
 } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { DetailHeader, Button } from '@/shared/ui';
@@ -19,8 +18,6 @@ import {
   createIdempotencyKey,
   postApplication,
 } from '../../api/postApplication';
-import { postTrainingProgramSelection } from '../../api/postTrainingProgramSelection';
-import { extractTrainingProgramData } from '../../lib/extractTrainingProgramData';
 import { getFormatter } from '../../lib/formatterService';
 import { useGetForm } from '../../model/useGetForm';
 
@@ -92,29 +89,14 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         return;
       }
 
-      if (
-        formType === 'application' &&
-        userType === 'TRAINEE' &&
-        applicationType === 'PRE'
-      ) {
-        const trainingProgramData = await extractTrainingProgramData(
-          dynamicFormValues,
-          allQuestions,
-          params,
-          formattedData as FormattedApplicationData,
-        );
-
-        await postTrainingProgramSelection(params, trainingProgramData);
-      } else {
-        await postApplication(
-          params,
-          formType,
-          userType,
-          applicationType,
-          formattedData,
-          createIdempotencyKey(),
-        );
-      }
+      await postApplication(
+        params,
+        formType,
+        userType,
+        applicationType,
+        formattedData,
+        createIdempotencyKey(),
+      );
       if (formType === 'survey') {
         router.push(
           `/application/success/${params}?formType=survey&userType=${userType}`,
