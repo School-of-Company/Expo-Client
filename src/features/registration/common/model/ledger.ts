@@ -1,4 +1,10 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { toast } from 'react-toastify';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import {
   AdminApplicationQuery,
@@ -9,6 +15,7 @@ import {
   getAdminApplications,
   getAdminApplicationSummary,
   getAdminCurrentSessions,
+  postAdminApplicationCancellation,
   ProgramSessionDefinition,
   ProgramSessionType,
 } from '../api/ledgerApi';
@@ -222,6 +229,60 @@ export const useApplicationDetail = (expoId: string, applicationId: string) =>
       return items[0] ?? null;
     },
   });
+
+/** 서버가 관리자 취소를 받아 주는 상태. 취소된 신청은 다시 취소할 대상이 아니다 */
+export const isCancellableStatus = (status: AdminApplicationStatus) =>
+  status === 'CONFIRMED' || status === 'WAITING';
+
+/**
+ * 관리자 취소 실패 안내. 서버 사유(입장·마감·상태 변경 등)는 프록시를 거치며 공통 문구가 되므로
+ * 상태로 나눠 안내한다
+ */
+const getCancellationErrorMessage = (error: unknown) => {
+  switch (getErrorStatus(error)) {
+    case 403:
+      return '이 행사의 신청을 취소할 권한이 없습니다.';
+    case 404:
+      return '신청을 찾을 수 없습니다. 원장에서 삭제되었거나 다른 행사의 신청입니다.';
+    case 409:
+      return '지금은 취소할 수 없습니다. 참가자가 이미 입장했거나 취소 기간이 끝났거나 신청 상태가 바뀌었습니다.';
+    case 502:
+    case 503:
+      return '참가자·출석 연동을 확인하지 못해 취소하지 않았습니다. 잠시 후 다시 시도해주세요.';
+    default:
+      return error instanceof Error
+        ? error.message
+        : '신청을 취소하지 못했습니다.';
+  }
+};
+
+/**
+ * 관리자 신청 취소. 확정 취소는 대기자 자동 승급으로 다른 신청 상태도 바뀌므로
+ * 성공·실패와 상관없이 원장·상세·현황·처리 이력을 다시 읽는다
+ */
+export const useCancelApplication = (expoId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (applicationId: string) =>
+      postAdminApplicationCancellation(expoId, applicationId),
+    onSuccess: () => {
+      toast.success('신청을 취소했습니다.');
+    },
+    onError: (error) => {
+      toast.error(getCancellationErrorMessage(error));
+    },
+    onSettled: () =>
+      Promise.all(
+        [
+          // 목록·최근 신청·상세가 모두 이 키 아래에 있다
+          ['adminApplications', expoId],
+          ['adminApplicationSummary', expoId],
+          ['adminCurrentSessions', expoId],
+          ['adminChangeHistory', expoId],
+        ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+      ),
+  });
+};
 
 const timeOf = (dateTime: string) => dateTime.slice(11, 16);
 

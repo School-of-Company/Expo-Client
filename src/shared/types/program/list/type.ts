@@ -17,20 +17,21 @@ export type ProgramOccupation =
   | 'TEACHER'
   | 'PRE_SERVICE_TEACHER';
 
-// 프로그램 모집 정책 (ProgramPolicyRequest, 조회 응답도 같은 스키마를 쓴다).
-// 스펙은 모든 필드가 선택이고 groupId만 null을 허용하지만, 일정 화면이 formId·일시를
-// null로 비워 보내므로 더 느슨한 쪽에 맞춘다. 일시는 UTC 오프셋이 있는 ISO 8601 이다
+// 프로그램 모집 정책 (ProgramPolicyRequest, 조회 응답도 같은 클래스를 쓴다).
+// Swagger에는 required 표시가 없지만 서버는 Kotlin non-null 이라 groupId 외에는 모두 필수다.
+// null·키 누락·빈 직업 목록은 400 이다(Expo-Expo-Server ProgramPolicyRequest.kt).
+// 일시는 UTC 오프셋이 있는 ISO 8601 이다
 export interface ProgramPolicy {
-  groupId?: string | null;
-  formId?: string | null;
-  allowedOccupations?: ProgramOccupation[];
-  capacity?: number;
-  waitingCapacity?: number;
-  applicationStartedAt?: string | null;
-  applicationEndedAt?: string | null;
-  cancelEndedAt?: string | null;
-  promotionEndedAt?: string | null;
-  closed?: boolean;
+  groupId: string | null;
+  formId: string;
+  allowedOccupations: ProgramOccupation[];
+  capacity: number;
+  waitingCapacity: number;
+  applicationStartedAt: string;
+  applicationEndedAt: string;
+  cancelEndedAt: string;
+  promotionEndedAt: string;
+  closed: boolean;
 }
 
 // 프로그램 생성·수정 요청 공통 필드. 시각은 'yyyy-MM-dd HH:mm' 이다.

@@ -14,6 +14,10 @@ import {
   useLedgerSummary,
   useRecentApplications,
 } from '../../../common/model/ledger';
+import {
+  preregisterSummaryQueryKey,
+  usePreregisterSummary,
+} from '../../../common/model/preregisterSummary';
 import MenuList from '../MenuList';
 import RecentLedgerTable from '../RecentLedgerTable';
 import SessionStatusTable from '../SessionStatusTable';
@@ -45,7 +49,8 @@ const RegistrationDashboard = () => {
   const summary = useLedgerSummary(expoId);
   const sessions = useCurrentSessions(expoId);
   const recent = useRecentApplications(expoId);
-  const queries = [summary, sessions, recent];
+  const preregister = usePreregisterSummary(expoId);
+  const queries = [summary, sessions, recent, preregister];
 
   const updatedAt = Math.max(
     ...queries.map(({ dataUpdatedAt }) => dataUpdatedAt),
@@ -61,6 +66,9 @@ const RegistrationDashboard = () => {
       }),
       queryClient.invalidateQueries({
         queryKey: ['adminApplications', expoId],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: preregisterSummaryQueryKey(expoId),
       }),
     ]);
 
@@ -112,6 +120,42 @@ const RegistrationDashboard = () => {
             <p className="text-caption1r text-gray-400">
               프로그램 회차 신청 기준입니다. 행사 입장·사전등록 인원은 포함하지
               않습니다.
+            </p>
+          </div>
+        ) : (
+          <SectionLoading />
+        )}
+      </Section>
+
+      <Section title="사전등록 현황">
+        {preregister.isError && !preregister.data ? (
+          <SectionError
+            message="사전등록 인원을 불러오지 못했습니다."
+            onRetry={() => preregister.refetch()}
+          />
+        ) : preregister.data ? (
+          <div className="space-y-12">
+            <StatusList
+              items={[
+                {
+                  label: '확정 인원',
+                  value: `${preregister.data.confirmedUniqueParticipants.toLocaleString()}명`,
+                },
+                {
+                  label: '취소 인원',
+                  value: `${preregister.data.cancelledUniqueParticipants.toLocaleString()}명`,
+                },
+                {
+                  label: '확정 전 예약',
+                  value: `${preregister.data.pendingReservations.toLocaleString()}건`,
+                  sub: `신청 인원 ${preregister.data.pendingApplicants.toLocaleString()}명`,
+                },
+              ]}
+            />
+            <p className="text-caption1r text-gray-400">
+              행사 사전등록 기준 고유 인원입니다. 대표자와 동행자를 각각 한
+              명으로 세며, 취소 인원은 다시 등록한 확정 인원과 겹칠 수 있습니다.
+              프로그램 신청·출석 건수는 포함하지 않습니다.
             </p>
           </div>
         ) : (

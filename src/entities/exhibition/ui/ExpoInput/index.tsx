@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { XMark } from '@/shared/assets/icons';
-import { DATE_TIME_PATTERN } from '@/shared/config/validation';
+import {
+  DATE_TIME_PATTERN,
+  isProgramTitleTooLong,
+  PROGRAM_TITLE_MAX_LENGTH,
+} from '@/shared/config/validation';
 import { FieldArrayProps } from '@/shared/types/exhibition/type';
 import { AddItemButton } from '@/shared/ui';
 import Modal from '../Modal';
@@ -64,6 +68,9 @@ const ExpoInput = ({
                   <input
                     {...register(`${fieldName}.${index}.title`, {
                       required: '연수를 입력해주세요',
+                      validate: (title) =>
+                        !isProgramTitleTooLong(title) ||
+                        `프로그램명은 ${PROGRAM_TITLE_MAX_LENGTH}자 이하로 입력해주세요.`,
                     })}
                     placeholder="연수를 입력해주세요"
                     className="text-body4 w-full overflow-hidden overflow-ellipsis whitespace-nowrap bg-transparent text-gray-500"

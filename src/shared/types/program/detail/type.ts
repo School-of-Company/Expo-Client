@@ -20,8 +20,8 @@ export interface PatchStandardProgramData {
   expoId: string;
   programId: string;
   participantId: number;
-  // 입장 QR과 같은 참가자 QR의 code
-  code: string;
+  // 입장 QR과 같은 참가자 QR의 code. 예전 QR에는 없어 보내지 않는다
+  code?: string;
 }
 
 export interface PatchTrainingProgramData {

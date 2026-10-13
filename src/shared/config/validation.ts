@@ -22,3 +22,10 @@ export const SMS_CODE_PATTERN = {
   value: /^\d{4}$/,
   message: '4자리 숫자를 입력해주세요.',
 };
+
+// Expo 서버 프로그램 요청의 @CodePointLength(max = 50) 와 같은 규칙.
+// 이모지처럼 UTF-16 두 칸을 쓰는 문자도 한 글자로 세야 하므로 length 대신 Array.from 으로 코드 포인트 수를 센다
+export const PROGRAM_TITLE_MAX_LENGTH = 50;
+
+export const isProgramTitleTooLong = (title: string) =>
+  Array.from(title).length > PROGRAM_TITLE_MAX_LENGTH;

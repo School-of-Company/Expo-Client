@@ -15,6 +15,13 @@ export const toLowercaseUuid = (expoId: string) => {
   return UUID_PATTERN.test(id) ? id : null;
 };
 
+/**
+ * 화면 경로의 박람회 ID 를 서버에 보낼 형태로 맞춘다. UUID 는 소문자로 맞추고(서버 비교가 대소문자를 가림),
+ * 숫자 ID 는 관리 화면처럼 그대로 통과시킨다. 둘 다 아니면 null
+ */
+export const normalizeExpoId = (expoId: string) =>
+  toLowercaseUuid(expoId) ?? (isValidExpoId(expoId) ? expoId : null);
+
 export const getExpoRoutes = (expoId: string) => {
   const id = segment(expoId);
   return {
