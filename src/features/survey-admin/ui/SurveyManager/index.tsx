@@ -32,8 +32,8 @@ const SurveyManager = () => {
 
   const { data: survey, isLoading, error } = useSurvey(expoId, type);
   const isEdit = !!survey;
-  const save = useSaveSurvey(expoId, type, isEdit);
-  const remove = useDeleteSurvey(expoId, type);
+  const save = useSaveSurvey(expoId);
+  const remove = useDeleteSurvey(expoId);
 
   const handleSubmit = (values: FormValues) => {
     const data = transformFormData(
@@ -49,7 +49,7 @@ const SurveyManager = () => {
       setPending(data);
       return;
     }
-    save.mutate(data);
+    save.mutate({ type, isEdit, data });
   };
 
   const handleDelete = () => {
@@ -58,7 +58,7 @@ const SurveyManager = () => {
         '만족도 조사와 문항, 공개 링크 응답이 모두 삭제됩니다. 삭제할까요?',
       )
     ) {
-      remove.mutate();
+      remove.mutate(type);
     }
   };
 
@@ -170,7 +170,7 @@ const SurveyManager = () => {
               </Button>
               <Button
                 onClick={() => {
-                  save.mutate(pending);
+                  save.mutate({ type, isEdit: true, data: pending });
                   setPending(null);
                 }}
               >
