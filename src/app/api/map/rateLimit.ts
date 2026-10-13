@@ -9,12 +9,15 @@ const hits = new Map<string, number[]>();
 const getClientIp = (request: Request) =>
   request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
   request.headers.get('x-real-ip') ||
-  'unknown';
+  null;
 
 /** 제한을 넘었으면 true를 돌려준다 */
 export const isRateLimited = (request: Request) => {
-  const now = Date.now();
   const ip = getClientIp(request);
+  // IP 를 모르면 모든 사용자가 한 버킷에 묶여 서비스 전체가 분당 30회로 막히므로 제한하지 않는다
+  if (!ip) return false;
+
+  const now = Date.now();
   const recent = (hits.get(ip) ?? []).filter((at) => now - at < WINDOW_MS);
 
   if (recent.length >= MAX_REQUESTS) {
