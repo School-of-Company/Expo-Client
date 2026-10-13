@@ -11,14 +11,14 @@ export const postQrTokens = async (
 ): Promise<string[]> => {
   try {
     const response = await clientTokenInstance.post<{ tokens: string[] }>(
-      `/qr-tokens/${expoId}`,
+      `/qr-tokens/${encodeURIComponent(expoId)}`,
       { count, category },
     );
     return response.data.tokens;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
+    if (axios.isAxiosError(error)) {
       // ROLE_ADMIN이 아니면 403. 서버 문구보다 할 일을 바로 알린다
-      if (error.response.status === 403) {
+      if (error.response?.status === 403) {
         throw new Error('관리자만 발급할 수 있습니다.');
       }
       throw new Error(
