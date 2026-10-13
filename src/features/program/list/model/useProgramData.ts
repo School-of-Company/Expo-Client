@@ -1,7 +1,11 @@
 import { useStandardProgram, useTrainingProgram } from '@/shared/queries';
 
 export const useProgramQueries = (expoId: string, navigation: string) => {
-  const trainingProgramQueries = useTrainingProgram(expoId);
+  // 보고 있는 탭의 목록만 읽는다
+  const trainingProgramQueries = useTrainingProgram(
+    expoId,
+    navigation === 'training',
+  );
 
   const standardProgramQueries = useStandardProgram(
     expoId,

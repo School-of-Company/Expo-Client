@@ -11,11 +11,14 @@ export const patchAttendUser = async (
   data: AttendUserQrRequest,
 ): Promise<AttendUserResponse> => {
   try {
-    const response = await clientTokenInstance.patch(`/attendance/${id}`, data);
+    const response = await clientTokenInstance.patch(
+      `/attendance/${encodeURIComponent(id)}`,
+      data,
+    );
 
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
+    if (axios.isAxiosError(error)) {
       throw new Error(getScanErrorMessage(error, 'QR스캔에 실패했습니다.'));
     }
     throw error;

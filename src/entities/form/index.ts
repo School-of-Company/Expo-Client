@@ -23,3 +23,8 @@ export {
   COMPANION_MAX_COUNT,
 } from './constants/occupationData';
 export type { Occupation, Region } from './constants/occupationData';
+export { default as OptionListEditor } from './ui/OptionListEditor';
+export { formTypeRegistry } from './model/registry';
+export type { FormTypeEntry, FieldEditorProps } from './model/registry';
+export { FORM_TYPE_SPEC, BUILDER_FORM_TYPES } from './model/formTypes';
+export type { FormType, FormTypeSpec } from './model/formTypes';

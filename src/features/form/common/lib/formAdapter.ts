@@ -56,20 +56,36 @@ function adaptDynamicFormItem(
   const parent = conditional && allItems[conditional.parentIndex];
   if (parent) {
     const fieldId = getFieldId(parent);
-    logic = {
-      visibility: {
-        op: 'AND',
-        conditions: [
-          conditional.triggerValues
-            ? { fieldId, op: 'in', value: conditional.triggerValues }
-            : {
-                fieldId,
-                op: parent.formType === 'MULTIPLE' ? 'contains' : 'eq',
-                value: conditional.triggerValue ?? '',
-              },
-        ],
-      },
-    };
+    const { triggerValues } = conditional;
+    if (parent.formType === 'MULTIPLE' && triggerValues?.length) {
+      // 복수 선택 답은 배열이라 `in`(답 하나가 목록에 있는지)으로는 맞지 않는다.
+      // 고른 값 중 하나라도 trigger에 있으면 보이도록 contains를 OR로 묶는다.
+      logic = {
+        visibility: {
+          op: 'OR',
+          conditions: triggerValues.map((value) => ({
+            fieldId,
+            op: 'contains',
+            value,
+          })),
+        },
+      };
+    } else {
+      logic = {
+        visibility: {
+          op: 'AND',
+          conditions: [
+            triggerValues
+              ? { fieldId, op: 'in', value: triggerValues }
+              : {
+                  fieldId,
+                  op: parent.formType === 'MULTIPLE' ? 'contains' : 'eq',
+                  value: conditional.triggerValue ?? '',
+                },
+          ],
+        },
+      };
+    }
   }
 
   return {

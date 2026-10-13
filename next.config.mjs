@@ -2,8 +2,29 @@
 const nextConfig = {
   reactStrictMode: false,
   async headers() {
-    // 입장 QR 링크에는 입장 코드나 전화번호(연수자)가 들어가므로 Referer·캐시·검색 노출을 막는다
     return [
+      // 모든 경로 공통 보안 헤더. 스크립트·스타일 CSP는 카카오맵·GA 등 외부 스크립트가 깨지므로 frame-ancestors만 둔다
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          // 인증한 전화번호가 리다이렉트 쿼리에 실리므로 다른 출처로는 경로·쿼리를 보내지 않는다
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // QR 스캐너는 키보드 입력 방식이라 카메라·위치를 쓰지 않는다
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+        ],
+      },
+      // 입장 QR 링크에는 입장 코드나 전화번호(연수자)가 들어가므로 Referer·캐시·검색 노출을 막는다
+      // 공통 규칙보다 뒤에 두어 Referrer-Policy를 no-referrer로 덮어쓴다
       {
         source: '/qr',
         headers: [
