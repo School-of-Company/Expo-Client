@@ -1,6 +1,10 @@
 import { AxiosRequestConfig, ResponseType } from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
-import { serverInstance } from '@/shared/libs/http/serverInstance';
+import {
+  FILE_DOWNLOAD_TIMEOUT_MS,
+  GATEWAY_URL,
+  serverInstance,
+} from '@/shared/libs/http/serverInstance';
 import { tokenHandleRequest } from './tokenHandler';
 import { RequestData } from './type';
 
@@ -52,10 +56,11 @@ export async function sendRequest(
   const axiosConfig: AxiosRequestConfig = {
     responseType,
     headers: headers as AxiosRequestConfig['headers'],
+    ...(isFileDownload && { timeout: FILE_DOWNLOAD_TIMEOUT_MS }),
   };
 
   return await serverInstance.request({
-    url: `${process.env.NEXT_PUBLIC_BASE_URL}${req.nextUrl.pathname.replace(
+    url: `${GATEWAY_URL}${req.nextUrl.pathname.replace(
       '/api/server/token',
       '',
     )}`,
