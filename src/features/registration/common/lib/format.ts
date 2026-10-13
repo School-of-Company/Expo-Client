@@ -1,5 +1,3 @@
-import { RegistrationSession } from '@/shared/types/registration/type';
-
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 // YYYY-MM-DD → 10.31
@@ -13,14 +11,6 @@ export const formatDateWithWeekday = (date: string) => {
   const weekday = WEEKDAYS[new Date(`${date}T00:00:00`).getDay()];
   return `${formatShortDate(date)}(${weekday})`;
 };
-
-export const formatSessionTime = ({
-  startTime,
-  endTime,
-}: RegistrationSession) => `${startTime} ~ ${endTime}`;
-
-export const formatSessionSchedule = (session: RegistrationSession) =>
-  `${formatDateWithWeekday(session.date)} ${formatSessionTime(session)}`;
 
 // ISO → 10-07 00:47:23
 export const formatDateTime = (iso: string) => {

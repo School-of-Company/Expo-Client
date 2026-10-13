@@ -22,13 +22,21 @@ const ExpoInput = ({
     setModal(true);
   };
 
+  const items = watch(fieldName);
+
   const handleRemove = (index: number) => {
+    // 박람회 수정은 목록 전체 교체라 저장된 프로그램을 빼면 서버에서 삭제된다
+    if (
+      items[index]?.id != null &&
+      !window.confirm(
+        `'${items[index].title}' 프로그램을 목록에서 뺄까요?\n저장하면 이 프로그램이 삭제됩니다. 신청 이력이 있는 프로그램은 삭제할 수 없습니다.`,
+      )
+    )
+      return;
     remove(index);
     setSelectedIndex(null);
     setModal(false);
   };
-
-  const items = watch(fieldName);
 
   return (
     <div className="relative flex flex-col gap-[20px]">

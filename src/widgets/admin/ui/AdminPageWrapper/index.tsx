@@ -22,13 +22,22 @@ const AdminPageWrapper = () => {
     DeleteBadge: rejectSignup,
   };
 
-  const deleteExpoActions = {
-    DeleteBadge: deleteExpo,
-  };
-
   const expoList =
     expoListData?.content.map(({ coverImage: _coverImage, ...rest }) => rest) ||
     [];
+
+  // 박람회 삭제는 되돌릴 수 없어 한 번 더 확인한다
+  const deleteExpoActions = {
+    DeleteBadge: (id: string) => {
+      const title = expoList.find((expo) => expo.id === id)?.title;
+      const target = title ? `'${title}' 박람회` : '선택한 박람회';
+      if (
+        window.confirm(`${target}를 삭제할까요?\n삭제하면 되돌릴 수 없습니다.`)
+      ) {
+        deleteExpo(id);
+      }
+    },
+  };
   const requestSignUp = requestSignUpData?.data || [];
   const requestAdmin = requestAdminData?.data;
 

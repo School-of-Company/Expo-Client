@@ -1,21 +1,34 @@
 import axios from 'axios';
 import { NextResponse } from 'next/server';
+import { isRateLimited } from '../rateLimit';
 
 const KAKAO_REST_API_KEY = process.env.KAKAO_REST_API_KEY;
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const x = searchParams.get('x');
-  const y = searchParams.get('y');
+// x는 경도, y는 위도다. 숫자가 아니거나 범위를 벗어나면 카카오로 넘기지 않는다
+const parseCoordinate = (value: string | null, limit: number) => {
+  if (!value?.trim()) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && Math.abs(parsed) <= limit ? parsed : null;
+};
 
-  if (!x || !y) {
+export async function GET(request: Request) {
+  if (isRateLimited(request)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const x = parseCoordinate(searchParams.get('x'), 180);
+  const y = parseCoordinate(searchParams.get('y'), 90);
+
+  if (x === null || y === null) {
     return NextResponse.json(
-      { error: 'Missing x or y coordinates' },
+      { error: 'Invalid x or y coordinates' },
       { status: 400 },
     );
   }
 
-  const url = `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${x}&y=${y}`;
+  const query = new URLSearchParams({ x: String(x), y: String(y) });
+  const url = `https://dapi.kakao.com/v2/local/geo/coord2address.json?${query}`;
 
   try {
     const response = await axios.get(url, {

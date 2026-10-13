@@ -6,6 +6,7 @@ import { useExpoDetail } from '@/shared/queries';
 import { Button, Input } from '@/shared/ui';
 import {
   DEFAULT_LABEL_SIZE,
+  MAX_TOKENS_PER_ISSUE,
   MAX_TOKENS_PER_REQUEST,
   PAPER_QR_CATEGORIES,
   PaperQrCategory,
@@ -32,12 +33,15 @@ const PaperQrIssueForm = ({ expoId }: { expoId: string }) => {
   const [isIssuing, setIsIssuing] = useState(false);
   // 재조회 API가 없어 인쇄를 다시 할 수 있도록 이 화면에서만 메모리에 둔다
   const [lastBatches, setLastBatches] = useState<PaperQrBatch[]>([]);
+  // 일부만 발급되고 실패했을 때 화면에 남겨 두는 안내
+  const [partialNotice, setPartialNotice] = useState<string | null>(null);
 
   const requested = PAPER_QR_CATEGORIES.map(({ value }) => ({
     category: value,
     count: toCount(counts[value]),
   }));
   const total = requested.reduce((sum, { count }) => sum + count, 0);
+  const isOverLimit = total > MAX_TOKENS_PER_ISSUE;
   const isLabelSizeValid = labelSize.width >= 20 && labelSize.height >= 15;
 
   const print = async (batches: PaperQrBatch[]) => {
@@ -58,11 +62,31 @@ const PaperQrIssueForm = ({ expoId }: { expoId: string }) => {
       toast.warn('발급할 장수를 입력해 주세요.');
       return;
     }
+    if (isOverLimit) {
+      toast.warn(`한 번에 ${MAX_TOKENS_PER_ISSUE}장까지 발급할 수 있습니다.`);
+      return;
+    }
     setIsIssuing(true);
+    setPartialNotice(null);
     try {
-      const batches = await issuePaperQrTokens(expoId, requested);
+      const { batches, error } = await issuePaperQrTokens(expoId, requested);
+      const issued = batches.reduce(
+        (sum, { tokens }) => sum + tokens.length,
+        0,
+      );
+      if (error) {
+        if (issued === 0) {
+          toast.error(error.message);
+          return;
+        }
+        // 이미 발급된 토큰은 유효하므로 버리지 않고 인쇄한다
+        const notice = `요청한 ${total}장 중 ${issued}장만 발급되었습니다. 발급된 QR은 인쇄하고, 나머지만 다시 발급해 주세요.`;
+        setPartialNotice(notice);
+        toast.error(`${error.message} ${notice}`);
+      } else {
+        toast.success(`종이 QR ${total}장을 발급했습니다.`);
+      }
       setLastBatches(batches);
-      toast.success(`종이 QR ${total}장을 발급했습니다.`);
       await print(batches);
     } catch (error) {
       toast.error(
@@ -110,9 +134,11 @@ const PaperQrIssueForm = ({ expoId }: { expoId: string }) => {
             </div>
           ))}
         </div>
-        <p className="text-caption1r text-gray-400">
-          합계 {total}장 · {MAX_TOKENS_PER_REQUEST}장이 넘으면 나눠서
-          발급합니다.
+        <p
+          className={`text-caption1r ${isOverLimit ? 'text-error' : 'text-gray-400'}`}
+        >
+          합계 {total}장 · 한 번에 최대 {MAX_TOKENS_PER_ISSUE}장,{' '}
+          {MAX_TOKENS_PER_REQUEST}장이 넘으면 나눠서 발급합니다.
         </p>
       </section>
 
@@ -157,10 +183,15 @@ const PaperQrIssueForm = ({ expoId }: { expoId: string }) => {
       <div className="space-y-12">
         <Button
           onClick={handleIssue}
-          disabled={isIssuing || total === 0 || !isLabelSizeValid}
+          disabled={
+            isIssuing || total === 0 || isOverLimit || !isLabelSizeValid
+          }
         >
           {isIssuing ? '발급 중...' : `${total}장 발급 후 인쇄`}
         </Button>
+        {partialNotice && (
+          <p className="break-keep text-body2r text-error">{partialNotice}</p>
+        )}
         {lastBatches.length > 0 && (
           <div className="space-y-8">
             <p className="text-body2r text-gray-500">

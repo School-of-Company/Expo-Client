@@ -8,3 +8,4 @@ export {
 } from './getTrainingProgram';
 export { postSendSms } from './postSendSms';
 export { getCheckSmsCode } from './getCheckSmsCode';
+export { retryProgramChanges } from './retryProgramChanges';

@@ -1,81 +1,211 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-toastify';
 import { withLoading } from '@/shared/hocs';
+import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { Button, DetailHeader } from '@/shared/ui';
 import {
-  getSessionStats,
-  useDeleteSession,
-  useRegistrationOverview,
-  useSaveSchedule,
+  deletePreregisterSession,
+  patchPreregisterSession,
+  PreregisterSession,
+  retryPreregisterSessionChange,
+  SectionError,
+  useInvalidateSchedule,
+  usePreregisterSessions,
+  useRegistrationExpo,
+  useSchedulePrograms,
+  useScheduleMutation,
 } from '../../../common';
-import { useScheduleDraft } from '../../model/useScheduleDraft';
-import ApplyPeriodSection from '../ApplyPeriodSection';
+import {
+  SessionForm,
+  toSessionDefinition,
+  toSessionForm,
+  validateSessionForm,
+} from '../../model/sessionForm';
+import BulkPolicySection from '../BulkPolicySection';
 import ProgramSection from '../ProgramSection';
-import PromotionPolicySection from '../PromotionPolicySection';
-import SessionSection from '../SessionSection';
+import SessionSection, { SessionRow } from '../SessionSection';
+
+/** 변경이 서버에 남아 재시도로 이어서 처리할 수 있는 실패 */
+const isRetryable = (error: unknown) => {
+  const status = getErrorStatus(error);
+  return status === 502 || status === 503;
+};
 
 const ScheduleManager = () => {
-  const { data, isLoading } = useRegistrationOverview();
-  const { draft, isDirty, updateProgram, updateSession, reset } =
-    useScheduleDraft(data);
-  const { mutate: saveSchedule, isPending: isSaving } = useSaveSchedule();
-  const { mutate: deleteSession, isPending: isDeleting } = useDeleteSession();
+  const { expoId } = useRegistrationExpo();
+  const sessionsQuery = usePreregisterSessions(expoId);
+  const programsQuery = useSchedulePrograms(expoId);
+  const invalidate = useInvalidateSchedule(expoId);
 
-  const sessionStats = useMemo(
-    () => getSessionStats(data?.applications ?? []),
-    [data],
+  // 서버 값과 별개로 고친 회차만 보관한다
+  const [edits, setEdits] = useState<Map<number, SessionForm>>(new Map());
+  const [retryIds, setRetryIds] = useState<Set<number>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
+  const isDirty = edits.size > 0;
+
+  useEffect(() => {
+    if (!isDirty) return undefined;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
+  const sessions = sessionsQuery.data;
+  const rows = useMemo<SessionRow[]>(
+    () =>
+      [...(sessions ?? [])]
+        .sort((a, b) => a.startedAt.localeCompare(b.startedAt))
+        .map((session) => ({
+          id: session.id,
+          session,
+          form: edits.get(session.id) ?? toSessionForm(session),
+          needsRetry: retryIds.has(session.id),
+        })),
+    [sessions, edits, retryIds],
   );
 
-  const handleSave = () => {
-    if (!draft) return;
-    saveSchedule(draft, { onSuccess: reset });
+  const markRetry = (id: number, needsRetry: boolean) =>
+    setRetryIds((prev) => {
+      const next = new Set(prev);
+      if (needsRetry) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+
+  const { mutate: removeSession, isPending: isDeleting } = useScheduleMutation(
+    expoId,
+    (session: PreregisterSession) =>
+      deletePreregisterSession(expoId, session.id, session.revision),
+    '회차를 삭제했습니다.',
+  );
+  const { mutate: retrySession, isPending: isRetrying } = useScheduleMutation(
+    expoId,
+    async (session: PreregisterSession) => {
+      await retryPreregisterSessionChange(expoId, session.id);
+      markRetry(session.id, false);
+    },
+    '중단된 회차 변경을 다시 처리했습니다.',
+  );
+
+  const handleChange = (id: number, patch: Partial<SessionForm>) => {
+    const session = sessions?.find((item) => item.id === id);
+    if (!session) return;
+    setEdits((prev) =>
+      new Map(prev).set(id, {
+        ...(prev.get(id) ?? toSessionForm(session)),
+        ...patch,
+      }),
+    );
+  };
+
+  const handleDelete = (session: PreregisterSession) => {
+    if (!window.confirm(`'${session.title}' 회차를 삭제할까요?`)) return;
+    removeSession(session);
   };
 
   const handleCancel = () => {
     if (!window.confirm('저장하지 않은 변경 내용을 모두 되돌릴까요?')) return;
-    reset();
+    setEdits(new Map());
   };
 
-  const handleDelete = (sessionId: number) => {
-    if (!window.confirm('이 회차를 삭제할까요?')) return;
-    deleteSession(sessionId);
+  const handleSave = async () => {
+    if (!sessions) return;
+    const targets = sessions.filter(({ id }) => edits.has(id));
+    for (const session of targets) {
+      const error = validateSessionForm(edits.get(session.id)!);
+      if (error) {
+        toast.error(`${session.title}: ${error}`);
+        return;
+      }
+    }
+
+    setIsSaving(true);
+    // 회차마다 revision 이 달라 한 건씩 보낸다. 실패한 회차는 수정 내용을 남겨 다시 저장할 수 있게 한다
+    const failed: string[] = [];
+    const remaining = new Map(edits);
+    for (const session of targets) {
+      try {
+        await patchPreregisterSession(
+          expoId,
+          session.id,
+          session.revision,
+          toSessionDefinition(edits.get(session.id)!),
+        );
+        remaining.delete(session.id);
+        markRetry(session.id, false);
+      } catch (error) {
+        if (isRetryable(error)) {
+          // 서버에 저장된 변경을 재시도로 이어서 처리한다
+          remaining.delete(session.id);
+          markRetry(session.id, true);
+        } else if (getErrorStatus(error) === 409) {
+          // 다른 변경이 먼저 반영돼 최신 revision 으로 다시 고쳐야 한다
+          remaining.delete(session.id);
+        }
+        failed.push(
+          `${session.title}: ${error instanceof Error ? error.message : '실패'}`,
+        );
+      }
+    }
+    await invalidate();
+    setEdits(remaining);
+    setIsSaving(false);
+
+    if (failed.length === 0) {
+      toast.success('회차 변경 내용을 저장했습니다.');
+    } else {
+      toast.error(
+        `${targets.length}개 중 ${failed.length}개를 저장하지 못했습니다. ${failed.join(' / ')}`,
+      );
+    }
   };
+
+  const error = sessionsQuery.error ?? programsQuery.error;
 
   return withLoading({
-    isLoading: isLoading || !data || !draft,
-    children: data && draft && (
+    isLoading: sessionsQuery.isLoading || programsQuery.isLoading,
+    children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[80px] pb-[120px]">
         <DetailHeader textCenter headerTitle="일정·모집 제어" />
 
-        <ApplyPeriodSection disabled={isDirty} />
-        <PromotionPolicySection
-          key={data.autoPromotionUntil ?? 'none'}
-          sessions={data.sessions}
-          autoPromotionUntil={data.autoPromotionUntil}
-          disabled={isDirty}
-        />
-        <ProgramSection
-          programs={draft.programs}
-          sessions={draft.sessions}
-          onChange={updateProgram}
-          isCreateDisabled={isDirty}
-        />
-        <SessionSection
-          programs={draft.programs}
-          sessions={draft.sessions}
-          sessionStats={sessionStats}
-          onChange={updateSession}
-          onDelete={handleDelete}
-          isLocked={isDirty || isDeleting}
-        />
+        {error ? (
+          <SectionError
+            message={error.message}
+            onRetry={() => void invalidate()}
+          />
+        ) : (
+          <>
+            <SessionSection
+              expoId={expoId}
+              rows={rows}
+              onChange={handleChange}
+              onDelete={handleDelete}
+              onRetry={retrySession}
+              isLocked={isDirty || isDeleting || isRetrying || isSaving}
+            />
+            <BulkPolicySection
+              expoId={expoId}
+              programs={programsQuery.data ?? []}
+              disabled={isSaving}
+            />
+            <ProgramSection
+              expoId={expoId}
+              programs={programsQuery.data ?? []}
+            />
+          </>
+        )}
 
         {isDirty && (
           <div className="fixed inset-x-0 bottom-0 z-[5] flex justify-center border-t-1 border-solid border-gray-100 bg-white px-16 py-12 shadow-[0px_-4px_8px_0px_rgba(68,143,255,0.08)]">
             <div className="w-full max-w-[1200px] space-y-8">
               <p className="text-caption1r text-gray-500">
-                저장하지 않은 변경 내용이 있습니다. 저장 전에는 일괄 적용과
-                추가·삭제를 할 수 없습니다.
+                저장하지 않은 회차 변경 {edits.size}건이 있습니다. 저장 전에는
+                회차를 추가·삭제할 수 없습니다.
               </p>
               <div className="grid grid-cols-[1fr_3fr] gap-16">
                 <Button variant="gray" onClick={handleCancel}>

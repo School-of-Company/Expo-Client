@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import ProgramDetailPage from '@/views/program/detail/ui/ProgramDetailPage';
 
 export const metadata: Metadata = {
@@ -12,6 +13,8 @@ const page = ({
 }: {
   params: { expo_id: string; program_id: string };
 }) => {
+  // programId(int64)를 출석 API 경로에 그대로 쓰므로 양의 정수가 아니면 들어오지 못하게 한다
+  if (!/^[1-9]\d*$/.test(params.program_id)) notFound();
   return (
     <ProgramDetailPage expoId={params.expo_id} programId={params.program_id} />
   );
