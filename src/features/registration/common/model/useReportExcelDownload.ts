@@ -12,7 +12,9 @@ export const useReportExcelDownload = (onSuccess: () => void) =>
       expoId: string;
       request: ReportExcelDownloadRequest;
     }) => postReportExcelDownload(expoId, request),
-    onSuccess: () => {
+    onSuccess: (saved) => {
+      // 파일을 저장하지 않고 끝났으면(로그인 화면으로 이동 중) 성공 안내·모달 닫기를 하지 않는다
+      if (!saved) return;
       toast.success('엑셀 파일을 내려받았습니다.');
       onSuccess();
     },
