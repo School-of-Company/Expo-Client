@@ -14,10 +14,19 @@ export const useExpoQueries = (id: string) => {
     expoStandardQuery.isLoading ||
     expoTrainingQuery.isLoading;
 
+  const queries = [expoDetailQuery, expoStandardQuery, expoTrainingQuery];
+  const isError = queries.some((query) => query.isError);
+  const refetchFailed = () =>
+    queries
+      .filter((query) => query.isError)
+      .forEach((query) => query.refetch());
+
   return {
     expoDetailQuery,
     expoStandardQuery,
     expoTrainingQuery,
     isLoading,
+    isError,
+    refetchFailed,
   };
 };
