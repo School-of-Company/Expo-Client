@@ -113,6 +113,8 @@ const FormBuilder = ({ variant = 'application', value, onChange }: Props) => {
         aria-label="문항 편집"
       >
         <DndContext
+          // 고정 id가 없으면 dnd-kit이 전역 카운터로 만들어 SSR hydration이 어긋난다.
+          id="form-builder"
           sensors={sensors}
           collisionDetection={closestCenter}
           modifiers={[restrictToVerticalAxis]}
