@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { XMark } from '@/shared/assets/icons';
-import { Loading } from '@/shared/ui';
+import { Button, Loading } from '@/shared/ui';
 import { formatDateTime, SectionError } from '../../../common';
 import {
   formatDefinitionSchedule,
@@ -12,6 +13,7 @@ import {
   PROGRAM_TYPE_LABEL,
   toLedgerRow,
   useApplicationDetail,
+  useCancelApplication,
 } from '../../../common/model/ledger';
 
 interface ApplicationDetailModalProps {
@@ -37,6 +39,24 @@ const ApplicationDetailModal = ({
     expoId,
     applicationId,
   );
+
+  const cancel = useCancelApplication(expoId);
+
+  const handleCancel = () => {
+    if (cancel.isPending) return;
+    if (
+      !window.confirm(
+        '이 신청을 취소할까요? 취소 후에는 되돌릴 수 없으며, 대기자 승급은 서버 정책에 따라 처리됩니다.',
+      )
+    )
+      return;
+    cancel.mutate(applicationId, {
+      onSuccess: ({ status }) =>
+        toast.success(
+          `처리 결과: ${LEDGER_STATUS_LABEL[status as keyof typeof LEDGER_STATUS_LABEL] ?? status}`,
+        ),
+    });
+  };
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -164,6 +184,25 @@ const ApplicationDetailModal = ({
             </ol>
           )}
         </section>
+
+        {row.status !== 'CANCELLED' && (
+          <section className="space-y-8">
+            {cancel.error && (
+              <p role="alert" className="text-body2r text-error">
+                {cancel.error instanceof Error
+                  ? cancel.error.message
+                  : '신청을 취소하지 못했습니다.'}
+              </p>
+            )}
+            <Button
+              variant="white"
+              disabled={cancel.isPending}
+              onClick={handleCancel}
+            >
+              {cancel.isPending ? '취소 처리 중...' : '신청 취소'}
+            </Button>
+          </section>
+        )}
       </>
     );
   };
