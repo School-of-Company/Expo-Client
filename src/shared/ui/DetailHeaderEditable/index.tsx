@@ -8,17 +8,25 @@ import Input from '../Input';
 
 interface Props {
   textCenter?: boolean;
+  /** 페이지가 자체 뒤로가기를 가질 때 숨긴다 */
+  hideBack?: boolean;
   registration: UseFormRegisterReturn;
 }
 
-const DetailHeaderEditable = ({ textCenter = false, registration }: Props) => {
+const DetailHeaderEditable = ({
+  textCenter = false,
+  hideBack = false,
+  registration,
+}: Props) => {
   const router = useRouter();
 
   return (
-    <div className="flex items-center">
-      <label className="hover:cursor-pointer" onClick={() => router.back()}>
-        <ArrowLeft size={32} />
-      </label>
+    <div className="flex items-center gap-16">
+      {!hideBack && (
+        <label className="hover:cursor-pointer" onClick={() => router.back()}>
+          <ArrowLeft size={32} />
+        </label>
+      )}
       <Input
         placeholder="폼의 제목을 입력해주세요"
         className={`${textCenter ? 'text-center' : ''} flex-grow`}
