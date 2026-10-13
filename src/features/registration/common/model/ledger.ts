@@ -1,4 +1,9 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import {
   AdminApplicationQuery,
@@ -6,6 +11,7 @@ import {
   AdminApplicationSort,
   AdminApplicationStatus,
   AdminOccupation,
+  cancelAdminApplication,
   getAdminApplications,
   getAdminApplicationSummary,
   getAdminCurrentSessions,
@@ -235,4 +241,27 @@ export const formatDefinitionSchedule = (
   return endedAt
     ? `${date} ${timeOf(startedAt)} ~ ${timeOf(endedAt)}`
     : `${date} ${timeOf(startedAt)}`;
+};
+
+/**
+ * 관리자 신청 취소. 승급은 서버가 처리하므로 낙관적 갱신 없이 원장·집계·처리 이력을 다시 조회한다.
+ * 실패해도 다른 곳에서 상태가 바뀌었을 수 있어 같은 조회를 갱신한다
+ */
+export const useCancelApplication = (expoId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (applicationId: string) =>
+      cancelAdminApplication(expoId, applicationId),
+    onSettled: () =>
+      Promise.all(
+        [
+          'adminApplications',
+          'adminApplicationSummary',
+          'adminCurrentSessions',
+          'adminChangeHistory',
+        ].map((key) =>
+          queryClient.invalidateQueries({ queryKey: [key, expoId] }),
+        ),
+      ),
+  });
 };

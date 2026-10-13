@@ -194,3 +194,24 @@ export const getAdminCurrentSessions = async (
     throw toApiError(error, '회차 목록을 불러오지 못했습니다.');
   }
 };
+
+export interface CancelAdminApplicationResult {
+  applicationId: string;
+  /** 서버가 돌려준 처리 후 상태. 알 수 없는 값일 수 있어 문자열로 받는다 */
+  status: string;
+}
+
+/** 서버가 행사별 취소 권한·취소 마감·입장·출석·스캔 보호를 확인한다. 강제 취소는 없다 */
+export const cancelAdminApplication = async (
+  expoId: string,
+  applicationId: string,
+): Promise<CancelAdminApplicationResult> => {
+  try {
+    const response = await clientTokenInstance.post(
+      `${basePath(expoId)}/${encodeURIComponent(applicationId)}/cancellation`,
+    );
+    return response.data;
+  } catch (error) {
+    throw toApiError(error, '신청을 취소하지 못했습니다.');
+  }
+};
