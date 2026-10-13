@@ -90,7 +90,7 @@ const COLUMNS: TableColumn<SessionStatusRow>[] = [
   },
   {
     key: 'attendance',
-    label: '출석',
+    label: '출석 (회차 전체)',
     render: ({ summary }) => {
       const attendance = summary?.attendance;
       if (!attendance) return '-';
@@ -167,18 +167,26 @@ const SessionStatusTable = ({
   }, [sessions, summaries]);
 
   return (
-    <RegistrationTable
-      columns={COLUMNS}
-      rows={rows}
-      emptyText="등록된 회차가 없습니다."
-      footerText="회차"
-      footerCount={rows.length}
-      maxHeight="none"
-      minWidth="900px"
-      onRowClick={({ id }) =>
-        router.push(`${routes.applications}?session=${encodeURIComponent(id)}`)
-      }
-    />
+    <>
+      <p className="mb-8 text-caption1r text-gray-400">
+        출석은 접수 상태·필터와 무관하게 회차에 실제 입실한 전체 인원이며,
+        시간은 입실 범위(HH:mm)입니다. 확정·대기·취소는 신청 건수입니다.
+      </p>
+      <RegistrationTable
+        columns={COLUMNS}
+        rows={rows}
+        emptyText="등록된 회차가 없습니다."
+        footerText="회차"
+        footerCount={rows.length}
+        maxHeight="none"
+        minWidth="900px"
+        onRowClick={({ id }) =>
+          router.push(
+            `${routes.applications}?session=${encodeURIComponent(id)}`,
+          )
+        }
+      />
+    </>
   );
 };
 
