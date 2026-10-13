@@ -9,6 +9,8 @@ export const useDeleteActions = () => {
     mutationFn: deleteExpoApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expoList'] });
+      // 목록 카드의 폼·설문 생성 여부도 박람회 목록과 함께 바뀐다
+      queryClient.invalidateQueries({ queryKey: ['expoValid'] });
       toast.success('박람회 삭제 성공');
     },
     onError: (error: Error) => {
