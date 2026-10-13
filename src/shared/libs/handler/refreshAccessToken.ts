@@ -1,12 +1,17 @@
-import { setAuthCookies } from '../cookie/setAuthCookies';
+import { parseExpiresAt, setAuthCookies } from '../cookie/setAuthCookies';
 import { serverInstance } from '../http/serverInstance';
+import { RefreshTokenResult } from './type';
+
+// 재발급 락 TTL(token.ts)보다 짧아야 한다
+export const REFRESH_TIMEOUT_MS = 5_000;
 
 export async function refreshAccessToken(
   refreshToken: string,
-): Promise<{ accessToken: string; refreshToken: string } | null> {
+): Promise<RefreshTokenResult | null> {
   try {
     const response = await serverInstance.patch('/auth', null, {
       headers: { RefreshToken: `Bearer ${refreshToken}` },
+      timeout: REFRESH_TIMEOUT_MS,
     });
 
     const {
@@ -16,14 +21,11 @@ export async function refreshAccessToken(
       refreshTokenExpiresIn,
     } = response.data;
 
-    const accessTokenExpires = new Date(accessTokenExpiresIn + 'Z');
-    const refreshTokenExpires = new Date(refreshTokenExpiresIn + 'Z');
-
     setAuthCookies({
       accessToken,
       refreshToken: newRefreshToken,
-      accessTokenExpires,
-      refreshTokenExpires,
+      accessTokenExpires: parseExpiresAt(accessTokenExpiresIn),
+      refreshTokenExpires: parseExpiresAt(refreshTokenExpiresIn),
     });
 
     return { accessToken, refreshToken: newRefreshToken };

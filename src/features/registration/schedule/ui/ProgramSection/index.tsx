@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { retryProgramChanges } from '@/shared/api';
 import { Trash } from '@/shared/assets/icons';
 import { AddItemButton, Button } from '@/shared/ui';
 import {
@@ -8,7 +9,6 @@ import {
   formatDateTimeValue,
   fromOffsetDateTime,
   RegistrationTable,
-  retryProgramChanges,
   ScheduleProgram,
   TableColumn,
   useScheduleMutation,

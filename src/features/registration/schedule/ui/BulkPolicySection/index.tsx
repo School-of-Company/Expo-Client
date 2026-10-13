@@ -76,17 +76,21 @@ const BulkPolicySection = ({
     setIsApplying(true);
     // 한 건이 실패해도 나머지는 계속 바꾸고, 실패한 프로그램을 모아 알린다
     const failed: string[] = [];
-    for (const program of targets) {
-      try {
-        await patchScheduleProgram(program, withPolicyPatch(program, patch));
-      } catch (error) {
-        failed.push(
-          `${program.title}: ${error instanceof Error ? error.message : '실패'}`,
-        );
+    try {
+      for (const program of targets) {
+        try {
+          await patchScheduleProgram(program, withPolicyPatch(program, patch));
+        } catch (error) {
+          failed.push(
+            `${program.title}: ${error instanceof Error ? error.message : '실패'}`,
+          );
+        }
       }
+      await invalidate();
+    } finally {
+      // 목록 새로고침이 실패해도 버튼이 '적용 중'에 묶이지 않게 한다
+      setIsApplying(false);
     }
-    await invalidate();
-    setIsApplying(false);
 
     if (failed.length === 0) {
       toast.success(`${targets.length}개 프로그램에 적용했습니다.`);

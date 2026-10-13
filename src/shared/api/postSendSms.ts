@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { toApiError } from '@/shared/libs/http/apiError';
 import clientInstance from '@/shared/libs/http/clientInstance';
 
 export const postSendSms = async (phoneNumber: string) => {
@@ -11,11 +11,7 @@ export const postSendSms = async (phoneNumber: string) => {
     const response = await clientInstance.post('/sms', { phoneNumber });
     return response;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(
-        error.response.data.error || '문자 매시지 전송에 실패했습니다.',
-      );
-    }
-    throw error;
+    // 서버 문구가 문자열이 아니면 기본 문구를 쓴다
+    throw toApiError(error, '문자 메시지 전송에 실패했습니다.');
   }
 };

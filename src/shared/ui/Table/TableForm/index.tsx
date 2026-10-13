@@ -22,6 +22,7 @@ interface Props<
   selectItemBoolean?: boolean;
   setSelectItem?: React.Dispatch<React.SetStateAction<K | null>>;
   selectItem?: K | null;
+  isExporting?: boolean;
 }
 
 const TableForm = <
@@ -41,6 +42,7 @@ const TableForm = <
   selectItemBoolean = true,
   setSelectItem,
   selectItem,
+  isExporting,
 }: Props<T, K>) => {
   const [selectItemState, setSelectItemState] = useState<K | null>(null);
   return (
@@ -80,6 +82,7 @@ const TableForm = <
         selectItem={selectItem ?? selectItemState}
         setSelectItem={setSelectItem ?? setSelectItemState}
         selectItemBoolean={selectItemBoolean}
+        isExporting={isExporting}
       />
     </div>
   );

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
+import { invalidateExpoPrograms, programQueryKeys } from '@/shared/queries';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 import { Program } from '@/shared/types/program/list/type';
 import {
@@ -23,8 +24,8 @@ const hasRemoved = (
 export const useEditExhibitionMutation = (id: string) => {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const standardKey = ['standardProgram', id];
-  const trainingKey = ['trainingProgram', id];
+  const standardKey = programQueryKeys.standard(id);
+  const trainingKey = programQueryKeys.training(id);
 
   const handleConflict = async (error: Error, data: ExhibitionFormData) => {
     // 다시 조회하기 전 목록으로 이번 요청에서 빠진 기존 프로그램이 있었는지 본다
@@ -69,12 +70,8 @@ export const useEditExhibitionMutation = (id: string) => {
       queryClient.invalidateQueries({
         queryKey: ['expoDetail', id],
       });
-      queryClient.invalidateQueries({
-        queryKey: standardKey,
-      });
-      queryClient.invalidateQueries({
-        queryKey: trainingKey,
-      });
+      // 일정 화면의 프로그램 목록도 같은 revision 을 쓰므로 함께 다시 읽는다
+      invalidateExpoPrograms(queryClient, id);
 
       router.push(`/exhibition/detail/${id}`);
       toast.success('박람회가 수정되었습니다.');

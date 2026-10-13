@@ -6,6 +6,7 @@ import { useExpoDetail } from '@/shared/queries';
 import { Button, Input } from '@/shared/ui';
 import {
   DEFAULT_LABEL_SIZE,
+  MAX_TOKENS_PER_ISSUE,
   MAX_TOKENS_PER_REQUEST,
   PAPER_QR_CATEGORIES,
   PaperQrCategory,
@@ -40,6 +41,7 @@ const PaperQrIssueForm = ({ expoId }: { expoId: string }) => {
     count: toCount(counts[value]),
   }));
   const total = requested.reduce((sum, { count }) => sum + count, 0);
+  const isOverLimit = total > MAX_TOKENS_PER_ISSUE;
   const isLabelSizeValid = labelSize.width >= 20 && labelSize.height >= 15;
 
   const print = async (batches: PaperQrBatch[]) => {
@@ -58,6 +60,10 @@ const PaperQrIssueForm = ({ expoId }: { expoId: string }) => {
   const handleIssue = async () => {
     if (total === 0) {
       toast.warn('발급할 장수를 입력해 주세요.');
+      return;
+    }
+    if (isOverLimit) {
+      toast.warn(`한 번에 ${MAX_TOKENS_PER_ISSUE}장까지 발급할 수 있습니다.`);
       return;
     }
     setIsIssuing(true);
@@ -128,9 +134,11 @@ const PaperQrIssueForm = ({ expoId }: { expoId: string }) => {
             </div>
           ))}
         </div>
-        <p className="text-caption1r text-gray-400">
-          합계 {total}장 · {MAX_TOKENS_PER_REQUEST}장이 넘으면 나눠서
-          발급합니다.
+        <p
+          className={`text-caption1r ${isOverLimit ? 'text-error' : 'text-gray-400'}`}
+        >
+          합계 {total}장 · 한 번에 최대 {MAX_TOKENS_PER_ISSUE}장,{' '}
+          {MAX_TOKENS_PER_REQUEST}장이 넘으면 나눠서 발급합니다.
         </p>
       </section>
 
@@ -175,7 +183,9 @@ const PaperQrIssueForm = ({ expoId }: { expoId: string }) => {
       <div className="space-y-12">
         <Button
           onClick={handleIssue}
-          disabled={isIssuing || total === 0 || !isLabelSizeValid}
+          disabled={
+            isIssuing || total === 0 || isOverLimit || !isLabelSizeValid
+          }
         >
           {isIssuing ? '발급 중...' : `${total}장 발급 후 인쇄`}
         </Button>

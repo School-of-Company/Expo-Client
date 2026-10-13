@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { retryProgramChanges } from '../api/retryProgramChanges';
+import { retryProgramChanges } from '@/shared/api';
+import { programQueryKeys } from '@/shared/queries';
 
 export const useRetryProgramChangesMutation = (
   id: string,
@@ -13,8 +14,11 @@ export const useRetryProgramChangesMutation = (
     onSuccess: async () => {
       // 변경이 반영된 목록과 revision을 다시 받아 온 뒤 폼을 새로 채운다
       await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['standardProgram', id] }),
-        queryClient.refetchQueries({ queryKey: ['trainingProgram', id] }),
+        queryClient.refetchQueries({ queryKey: programQueryKeys.standard(id) }),
+        queryClient.refetchQueries({ queryKey: programQueryKeys.training(id) }),
+        queryClient.invalidateQueries({
+          queryKey: programQueryKeys.schedule(id),
+        }),
       ]);
       onRetried?.();
       toast.success(
