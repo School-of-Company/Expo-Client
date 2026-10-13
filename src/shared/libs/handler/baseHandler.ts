@@ -1,10 +1,26 @@
 import { AxiosError } from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
-import { GATEWAY_URL, serverInstance } from '@/shared/libs/http/serverInstance';
+import { serverInstance } from '@/shared/libs/http/serverInstance';
+import { toUpstreamFailure } from './error';
+import { forbiddenPathResponse, toGatewayUrl } from './proxyTarget';
 import { toServerMessage } from './serverMessage';
 
 // 참가자 화면이 쓰는 서버 세션 쿠키만 서버로 넘긴다. 관리자 로그인 토큰 쿠키는 공개 요청에 싣지 않는다
 const FORWARDED_COOKIES = ['PARTICIPANT_SESSION', 'XSRF-TOKEN'];
+
+// 신청 API 가 중복 등록을 막는 데 쓰는 헤더. 그 밖의 브라우저 헤더는 넘기지 않는다
+const FORWARDED_HEADERS = ['Idempotency-Key'];
+
+const pickForwardedHeaders = (req: NextRequest) => {
+  const headers: Record<string, string> = {};
+  FORWARDED_HEADERS.forEach((name) => {
+    const value = req.headers.get(name);
+    if (value) headers[name] = value;
+  });
+  const cookie = pickForwardedCookies(req);
+  if (cookie) headers.Cookie = cookie;
+  return headers;
+};
 
 const pickForwardedCookies = (req: NextRequest) =>
   FORWARDED_COOKIES.flatMap((name) => {
@@ -29,9 +45,9 @@ const withSetCookies = (
 export async function baseHandleRequest(
   req: NextRequest,
 ): Promise<NextResponse> {
-  const url = `${GATEWAY_URL}${req.nextUrl.pathname.replace('/api/server', '')}`;
+  const url = toGatewayUrl(req, '/api/server');
+  if (!url) return forbiddenPathResponse();
   const method = req.method;
-  const params = Object.fromEntries(req.nextUrl.searchParams.entries());
 
   let data;
   if (!['GET', 'DELETE', 'HEAD'].includes(method)) {
@@ -46,15 +62,12 @@ export async function baseHandleRequest(
     }
   }
 
-  const cookie = pickForwardedCookies(req);
-
   try {
     const response = await serverInstance.request({
       url,
       method,
-      params,
       data,
-      headers: cookie ? { Cookie: cookie } : undefined,
+      headers: pickForwardedHeaders(req),
     });
 
     const setCookie = response.headers['set-cookie'];
@@ -67,6 +80,14 @@ export async function baseHandleRequest(
       setCookie,
     );
   } catch (error) {
+    const upstream = toUpstreamFailure(error);
+    if (upstream) {
+      return NextResponse.json(
+        { error: upstream.message, status: upstream.status },
+        { status: upstream.status },
+      );
+    }
+
     const axiosError = error as AxiosError;
     const status = axiosError.response?.status || 500;
     const message =
