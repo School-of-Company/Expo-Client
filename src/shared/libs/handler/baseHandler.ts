@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
-import { serverInstance } from '@/shared/libs/http/serverInstance';
+import { GATEWAY_URL, serverInstance } from '@/shared/libs/http/serverInstance';
 import { toServerMessage } from './serverMessage';
 
 // 참가자 화면이 쓰는 서버 세션 쿠키만 서버로 넘긴다. 관리자 로그인 토큰 쿠키는 공개 요청에 싣지 않는다
@@ -29,7 +29,7 @@ const withSetCookies = (
 export async function baseHandleRequest(
   req: NextRequest,
 ): Promise<NextResponse> {
-  const url = `${process.env.NEXT_PUBLIC_BASE_URL}${req.nextUrl.pathname.replace('/api/server', '')}`;
+  const url = `${GATEWAY_URL}${req.nextUrl.pathname.replace('/api/server', '')}`;
   const method = req.method;
   const params = Object.fromEntries(req.nextUrl.searchParams.entries());
 
