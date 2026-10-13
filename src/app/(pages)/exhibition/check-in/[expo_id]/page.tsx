@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { isValidExpoId } from '@/shared/config';
+import { toLowercaseUuid } from '@/shared/config';
 import { ExhibitionCheckInPage } from '@/views/exhibition/check-in';
 
 export const metadata: Metadata = {
@@ -10,9 +10,11 @@ export const metadata: Metadata = {
 };
 
 const page = ({ params }: { params: { expo_id: string } }) => {
-  // expoId를 입장 스캔 API 경로에 쓰므로 형식이 다르면 들어오지 못하게 한다
-  if (!isValidExpoId(params.expo_id)) notFound();
-  return <ExhibitionCheckInPage id={params.expo_id} />;
+  // 출석 서버는 expoId를 소문자로 맞추지 않고 박람회 ID 비교가 대소문자를 가려 대문자면 404가 난다.
+  // 현장 입장·요약 API는 소문자 UUID가 아니면 400이라, 소문자로 맞추고 UUID가 아니면 들어오지 못하게 한다
+  const expoId = toLowercaseUuid(params.expo_id);
+  if (!expoId) notFound();
+  return <ExhibitionCheckInPage id={expoId} />;
 };
 
 export default page;
