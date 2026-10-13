@@ -11,6 +11,7 @@ import {
   useRegistrationExpo,
 } from '../../../common';
 import { AdminChangeHistoryItem } from '../../api/adminChangeHistoryApi';
+import { GroupMessageHistoryItem } from '../../api/groupMessageHistoryApi';
 import {
   formatOccurredAt,
   getChangeTypeLabel,
@@ -23,20 +24,55 @@ import {
   isHistoryRangeInvalid,
   useAdminChangeHistory,
 } from '../../model/adminChangeHistory';
+import {
+  getMessageHistoryErrorMessage,
+  getMessageTypeLabel,
+  useGroupMessageHistory,
+} from '../../model/groupMessageHistory';
 import HistoryFilters from '../HistoryFilters';
 
-// 신청·문자 이력은 출처 서비스의 공개 조회 API가 생기기 전까지 임시 이력을 보여 주지 않는다
+// 신청 이력은 공개 조회 API가 생기기 전까지 임시 이력을 보여 주지 않는다
 const PENDING_SOURCES = [
   {
     title: '신청·취소·승급 이력',
     source: 'Application',
     status: '공개 관리자 조회 API 구현 중 (Expo-Application-Server#93)',
   },
+];
+
+type MessageRow = GroupMessageHistoryItem & { id: string };
+
+const MESSAGE_COLUMNS: TableColumn<MessageRow>[] = [
   {
-    title: '그룹 문자 발송 이력',
-    source: 'Notification',
-    status:
-      '내부 이력 API 구현 완료(Expo-Notification-Server#43), Application 공개 경로 연결 전',
+    key: 'occurredAt',
+    label: '처리 일시',
+    flex: 1.4,
+    render: ({ occurredAt }) => formatOccurredAt(occurredAt),
+  },
+  {
+    key: 'type',
+    label: '유형',
+    render: ({ type }) => getMessageTypeLabel(type),
+  },
+  {
+    key: 'target',
+    label: '대상',
+    flex: 1.6,
+    render: ({ targetScope: { kind, applicationCount } }) =>
+      applicationCount === null ? kind : `${kind} · 신청 ${applicationCount}건`,
+  },
+  {
+    key: 'counts',
+    label: '결과',
+    flex: 2,
+    render: ({ counts }) =>
+      `전체 ${counts.total} · 전달 ${counts.delivered} · 실패 ${counts.failed} · 미확인 ${counts.unknown} · 누락 ${counts.missing}`,
+  },
+  { key: 'status', label: '상태', render: ({ status }) => status },
+  {
+    key: 'adminId',
+    label: '처리자',
+    render: ({ adminId }) => `관리자 #${adminId}`,
   },
 ];
 
@@ -96,6 +132,10 @@ const HistoryLedger = () => {
     page - 1,
   );
   const isRangeInvalid = isHistoryRangeInvalid(filter);
+  const message = useGroupMessageHistory(expoId, filter, !isRangeInvalid);
+  const messageRows: MessageRow[] = (message.data?.pages ?? [])
+    .flatMap(({ items }) => items)
+    .map((item) => ({ ...item, id: item.eventId }));
   const totalCount = data?.totalElements ?? 0;
   const totalPage = getHistoryTotalPage(totalCount);
 
@@ -149,6 +189,51 @@ const HistoryLedger = () => {
               {totalPage > 1 && (
                 <div className="flex justify-center">
                   <NavigationBar totalPage={totalPage} />
+                </div>
+              )}
+            </RegistrationTable>
+          )}
+        </section>
+
+        <section className="space-y-16">
+          <div className="space-y-6">
+            <p className="text-body1b text-black">그룹 문자 발송 이력</p>
+            <p className="text-caption1r text-gray-400">
+              Notification 원천의 처리 이력입니다. 위 기간(시작 포함·종료
+              미포함)만 적용되며 본문·전화번호는 표시하지 않습니다.
+            </p>
+          </div>
+
+          {isRangeInvalid ? null : message.isError && !message.data ? (
+            <SectionError
+              message={getMessageHistoryErrorMessage(message.error)}
+              onRetry={() => message.refetch()}
+            />
+          ) : (
+            <RegistrationTable
+              columns={MESSAGE_COLUMNS}
+              rows={messageRows}
+              emptyText="조건에 맞는 문자 발송 이력이 없습니다."
+              footerText="불러온 문자 이력"
+              footerCount={messageRows.length}
+              minWidth="900px"
+            >
+              {message.isError && (
+                <SectionError
+                  message={getMessageHistoryErrorMessage(message.error)}
+                  onRetry={() => message.fetchNextPage()}
+                />
+              )}
+              {message.hasNextPage && (
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    disabled={message.isFetchingNextPage}
+                    onClick={() => message.fetchNextPage()}
+                    className="text-body2r text-main-600 underline"
+                  >
+                    {message.isFetchingNextPage ? '불러오는 중...' : '더 보기'}
+                  </button>
                 </div>
               )}
             </RegistrationTable>
