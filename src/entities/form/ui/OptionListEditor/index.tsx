@@ -1,6 +1,9 @@
 'use client';
 
-import { FORM_TYPE_SPEC } from '@/entities/form/model/formTypes';
+import {
+  FORM_TYPE_SPEC,
+  withOptionLabel,
+} from '@/entities/form/model/formTypes';
 import { Plus, XMark } from '@/shared/assets/icons';
 import { Circle } from '@/shared/assets/svg';
 import { COLORS } from '@/shared/config';
@@ -29,9 +32,14 @@ const OptionListEditor = ({
   const entries = Object.entries(item.jsonData);
   const numbered = item.formType === 'DROPDOWN';
 
-  // API 계약상 jsonData 값은 라벨 문자열이다.
   const setOption = (key: string, label: string) =>
-    onChange({ ...item, jsonData: { ...item.jsonData, [key]: label } });
+    onChange({
+      ...item,
+      jsonData: {
+        ...item.jsonData,
+        [key]: withOptionLabel(item.jsonData[key], label),
+      },
+    });
 
   const marker = (n: number) =>
     numbered ? (

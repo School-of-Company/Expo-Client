@@ -144,7 +144,6 @@ const pruneTriggers = (list: DynamicFormItem[], parentIndex: number) => {
 
 /**
  * 타입을 바꾸면 새 타입이 못 쓰는 설정을 정리한다. 자식 조건은 경고로 남긴다.
- * API 계약상 `jsonData` 값은 문자열이라 예전 객체 선택지도 라벨 문자열로 바꾼다.
  */
 export const changeFormType = (
   list: readonly DynamicFormItem[],
@@ -153,14 +152,10 @@ export const changeFormType = (
 ) => {
   const item = list[index];
   const spec = FORM_TYPE_SPEC[formType];
+  // 선택지 값은 `{ value, isAlwaysSelected }` 객체여도 그대로 둔다.
   const jsonData = spec.hasOptions
     ? Object.keys(item.jsonData).length
-      ? Object.fromEntries(
-          Object.entries(item.jsonData).map(([key, option]) => [
-            key,
-            typeof option === 'string' ? option : option.value,
-          ]),
-        )
+      ? item.jsonData
       : { '1': '' }
     : {};
 

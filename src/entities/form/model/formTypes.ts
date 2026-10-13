@@ -42,6 +42,16 @@ export const FORM_TYPE_SPEC: Record<FormType, FormTypeSpec> = {
   REGION: { ...plain, label: '지역' },
 };
 
+/**
+ * 선택지 라벨만 바꾼다. 기존 폼의 `{ value, isAlwaysSelected }` 객체는
+ * 이 빌더가 편집하지 않더라도 `isAlwaysSelected`를 그대로 남긴다.
+ */
+export const withOptionLabel = (
+  option: DynamicFormItem['jsonData'][string],
+  label: string,
+): DynamicFormItem['jsonData'][string] =>
+  typeof option === 'string' ? label : { ...option, value: label };
+
 /** 빌더 추가 메뉴에 노출하는 타입. 나머지는 서버에서 온 문항을 보존만 한다. */
 export const BUILDER_FORM_TYPES: FormType[] = [
   'SENTENCE',

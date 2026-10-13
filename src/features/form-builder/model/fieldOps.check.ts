@@ -2,6 +2,7 @@
  * 자체 점검: `JITI_ALIAS="{\"@\":\"$PWD/src\"}" npx jiti src/features/form-builder/model/fieldOps.check.ts`
  */
 import assert from 'node:assert/strict';
+import { withOptionLabel } from '@/entities/form/model/formTypes';
 import {
   addField,
   changeFormType,
@@ -161,16 +162,25 @@ const base = () => [
   assert.deepEqual(validateFields(changed).get(1), [
     '부모 문항(1번)이 선택형이 아닙니다.',
   ]);
-  // MULTIPLE → DROPDOWN: maxSelection 정리, 예전 객체 선택지는 문자열로
+  // MULTIPLE → DROPDOWN: maxSelection 정리, 객체 선택지(isAlwaysSelected)는 보존
   const multiple: DynamicFormItem = {
     ...field(9, undefined, 'MULTIPLE'),
     jsonData: { '1': { value: 'A', isAlwaysSelected: true } },
     otherJson: { hasEtc: true, maxSelection: 2 },
   };
   const [dropdown] = changeFormType([multiple], 0, 'DROPDOWN');
-  assert.deepEqual(dropdown.jsonData, { '1': 'A' });
+  assert.deepEqual(dropdown.jsonData, {
+    '1': { value: 'A', isAlwaysSelected: true },
+  });
   assert.deepEqual(dropdown.otherJson, { hasEtc: true });
 }
+
+// 라벨만 고쳐도 isAlwaysSelected는 남는다
+assert.deepEqual(
+  withOptionLabel({ value: 'A', isAlwaysSelected: true }, 'AA'),
+  { value: 'AA', isAlwaysSelected: true },
+);
+assert.equal(withOptionLabel('A', 'AA'), 'AA');
 
 // 타입을 돌려도 옛 trigger가 새 선택지에 붙지 않는다
 {
