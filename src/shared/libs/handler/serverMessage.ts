@@ -18,3 +18,9 @@ export const toServerMessage = (
   if (message.startsWith('ThrottlerException')) return TOO_MANY_REQUESTS;
   return message;
 };
+
+/** 서버 오류 본문의 `code`(예: FORM_NOT_FOUND). 화면이 코드로 문구를 고를 수 있게 그대로 넘긴다. */
+export const toServerCode = (data: unknown): string | undefined => {
+  const code = (data as { code?: unknown } | undefined)?.code;
+  return typeof code === 'string' ? code : undefined;
+};

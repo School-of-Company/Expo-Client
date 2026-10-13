@@ -1,10 +1,11 @@
 import axios from 'axios';
 
-/** 서버 응답 상태를 보존하는 오류. 재시도·화면 분기에서 상태로 판단할 수 있다 */
+/** 서버 응답 상태와 오류 코드를 보존하는 오류. 재시도·화면 분기에서 상태나 코드로 판단할 수 있다 */
 export class ApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    readonly code?: string,
   ) {
     super(message);
     this.name = 'ApiError';
