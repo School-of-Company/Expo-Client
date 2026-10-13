@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import { NextResponse } from 'next/server';
 import { createErrorResponse } from './response';
-import { toServerMessage } from './serverMessage';
+import { getErrorCode, toServerMessage } from './serverMessage';
 
 // 파일 다운로드 요청은 arraybuffer 로 받으므로 오류 본문 { status, message } 를 직접 해석한다
 const getErrorMessage = (status: number, data: unknown): string | undefined => {
@@ -24,5 +24,7 @@ export async function handleError(error: unknown): Promise<NextResponse> {
     getErrorMessage(status, axiosError.response?.data) ||
       '요청 처리 중 오류가 발생했습니다.',
     status,
+    false,
+    getErrorCode(axiosError.response?.data),
   );
 }

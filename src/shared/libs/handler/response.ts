@@ -37,12 +37,14 @@ export function createErrorResponse(
   message: string,
   status: number,
   isRefreshError = false,
+  code?: string,
 ) {
   return NextResponse.json(
     {
       error: message,
       status: status,
       isRefreshError: isRefreshError,
+      code,
     },
     { status },
   );
