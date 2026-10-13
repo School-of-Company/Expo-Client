@@ -8,10 +8,10 @@ import {
   AdminOccupation,
   getAdminApplications,
   getAdminApplicationSummary,
-  getAdminCurrentSessions,
   ProgramSessionDefinition,
   ProgramSessionType,
 } from '../api/ledgerApi';
+import { getAllCurrentSessions } from '../api/sessionApi';
 import { formatDateWithWeekday } from '../lib/format';
 
 export const LEDGER_PAGE_SIZE = 20;
@@ -164,7 +164,7 @@ export const useLedger = (expoId: string, filter: LedgerFilter, page: number) =>
 export const useCurrentSessions = (expoId: string) =>
   useQuery({
     queryKey: ['adminCurrentSessions', expoId],
-    queryFn: () => getAdminCurrentSessions(expoId),
+    queryFn: () => getAllCurrentSessions(expoId),
     refetchInterval: LEDGER_REFRESH_MS,
   });
 
