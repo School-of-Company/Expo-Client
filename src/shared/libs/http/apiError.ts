@@ -5,6 +5,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    readonly code?: string,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -22,8 +23,12 @@ export const toApiError = (error: unknown, fallback: string): unknown => {
   return new ApiError(
     typeof message === 'string' && message ? message : fallback,
     status,
+    typeof data?.code === 'string' ? data.code : undefined,
   );
 };
+
+export const getErrorCode = (error: unknown): string | undefined =>
+  error instanceof ApiError ? error.code : undefined;
 
 export const getErrorStatus = (error: unknown): number | undefined => {
   if (error instanceof ApiError) return error.status;

@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { ApiError, toApiError } from '@/shared/libs/http/apiError';
 
 /** Form 서비스가 프로그램용 폼에서 내려주는 오류 코드(Expo-Form-Server#102, #113). */
 export const PROGRAM_FORM_ERROR_MESSAGES: Record<string, string> = {
@@ -11,14 +11,13 @@ export const PROGRAM_FORM_ERROR_MESSAGES: Record<string, string> = {
   FORM_NOT_FOUND: '폼을 찾을 수 없습니다.',
 };
 
-/** 응답의 오류 코드를 사람이 읽을 문구로 바꾼다. 코드를 모르면 서버 문구를 그대로 쓴다. */
+/** 응답의 오류 코드를 사람이 읽을 문구로 바꾼다. 코드는 ApiError.code 로 남겨 화면이 분기한다. */
 export const toProgramFormError = (error: unknown, fallback: string): Error => {
-  if (!axios.isAxiosError(error) || !error.response) {
-    return error instanceof Error ? error : new Error(fallback);
+  const apiError = toApiError(error, fallback);
+  if (!(apiError instanceof ApiError)) {
+    return apiError instanceof Error ? apiError : new Error(fallback);
   }
 
-  const body = error.response.data;
-  const known = body?.code && PROGRAM_FORM_ERROR_MESSAGES[body.code];
-
-  return new Error(known || body?.error || body?.message || fallback);
+  const known = apiError.code && PROGRAM_FORM_ERROR_MESSAGES[apiError.code];
+  return known ? new ApiError(known, apiError.status, apiError.code) : apiError;
 };
