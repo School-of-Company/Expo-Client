@@ -8,6 +8,7 @@ import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
+import { useGetApplicationForm } from '@/shared/queries';
 import {
   ApplicationForm,
   DynamicFormValues,
@@ -22,12 +23,10 @@ import {
 import { postTrainingProgramSelection } from '../../api/postTrainingProgramSelection';
 import { extractTrainingProgramData } from '../../lib/extractTrainingProgramData';
 import { getFormatter } from '../../lib/formatterService';
-import { useGetForm } from '../../model/useGetForm';
 
 const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const formType = searchParams.get('formType') as 'application' | 'survey';
   const userType = searchParams.get('userType') as 'STANDARD' | 'TRAINEE';
   const applicationType = (searchParams.get('applicationType') ||
     'PRE') as ApplicationType;
@@ -36,7 +35,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     data: formList,
     isLoading,
     error,
-  } = useGetForm(params, userType, formType, applicationType) as {
+  } = useGetApplicationForm(params, userType, applicationType) as {
     data: ApplicationForm | undefined;
     isLoading: boolean;
     error: Error | null;
@@ -46,9 +45,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
 
   const formSchema = useMemo(() => {
     if (!formList) return null;
-    const questions =
-      formList.dynamicForm || formList.dynamicSurveyResponseDto || [];
-    return adaptDynamicFormToSchema(questions, formList.title);
+    return adaptDynamicFormToSchema(formList.dynamicForm ?? [], formList.title);
   }, [formList]);
 
   const onSubmit = async (
@@ -64,16 +61,9 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     try {
       const { privacyConsent, ...rest } = data;
       const dynamicFormValues = rest as DynamicFormValues;
-      const allQuestions =
-        formList?.dynamicForm || formList?.dynamicSurveyResponseDto || [];
+      const allQuestions = formList?.dynamicForm ?? [];
 
-      const formatter = getFormatter(
-        formType,
-        userType,
-        allQuestions,
-        searchParams.get('phoneNumber'),
-        applicationType,
-      );
+      const formatter = getFormatter(userType, allQuestions, applicationType);
 
       const formattedData = formatter({
         ...dynamicFormValues,
@@ -81,7 +71,6 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
       } as DynamicFormValues & { privacyConsent: boolean });
 
       if (
-        formType === 'application' &&
         userType === 'STANDARD' &&
         applicationType === 'FIELD' &&
         !('phoneNumber' in formattedData && formattedData.phoneNumber)
@@ -92,11 +81,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         return;
       }
 
-      if (
-        formType === 'application' &&
-        userType === 'TRAINEE' &&
-        applicationType === 'PRE'
-      ) {
+      if (userType === 'TRAINEE' && applicationType === 'PRE') {
         const trainingProgramData = await extractTrainingProgramData(
           dynamicFormValues,
           allQuestions,
@@ -109,24 +94,16 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
       } else {
         await postApplication(
           params,
-          formType,
+          'application',
           userType,
           applicationType,
           formattedData,
           createIdempotencyKey(),
         );
       }
-      if (formType === 'survey') {
-        router.push(
-          `/application/success/${params}?formType=survey&userType=${userType}`,
-        );
-      }
-
-      if (formType === 'application') {
-        router.push(
-          `/application/success/${params}?userType=${userType}&formType=${formType}`,
-        );
-      }
+      router.push(
+        `/application/success/${params}?userType=${userType}&formType=application`,
+      );
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : '폼 등록에 실패했습니다',
