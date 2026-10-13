@@ -1,12 +1,19 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { ProgramFormEdit } from '@/features/program-form';
+import { FormBuilder } from '@/features/form-builder';
+import {
+  ProgramFormBuilderSlotProps,
+  ProgramFormEdit,
+} from '@/features/program-form';
 import { getRegistrationRoutes } from '@/shared/config';
 import { DetailHeader } from '@/shared/ui';
 import { Header } from '@/widgets/layout';
 
-// TODO(FormBuilder): 머지되면 renderBuilder 로 주입한다
+const renderBuilder = (props: ProgramFormBuilderSlotProps) => (
+  <FormBuilder variant="program" {...props} />
+);
+
 const ProgramFormEditPage = () => {
   const { expoId, formId } = useParams<{ expoId: string; formId: string }>();
 
@@ -20,7 +27,11 @@ const ProgramFormEditPage = () => {
             backHref={getRegistrationRoutes(expoId).dashboard}
             headerTitle="프로그램용 폼 수정"
           />
-          <ProgramFormEdit expoId={expoId} formId={formId} />
+          <ProgramFormEdit
+            expoId={expoId}
+            formId={formId}
+            renderBuilder={renderBuilder}
+          />
         </div>
       </div>
     </div>
