@@ -124,6 +124,25 @@ export const updateField = (
 ) => list.map((current, i) => (i === index ? item : current));
 
 /**
+ * 부모 선택지에 없는 키를 자식 조건에서 뺀다.
+ * 타입을 바꿔 선택지가 초기화된 뒤 같은 키('1')가 다른 뜻으로 다시 붙는 것을 막는다.
+ */
+const pruneTriggers = (list: DynamicFormItem[], parentIndex: number) => {
+  const { jsonData } = list[parentIndex];
+  return list.map((item) => {
+    const conditional = item.otherJson?.conditional;
+    if (conditional?.parentIndex !== parentIndex) return item;
+    const { triggerValue, triggerValues, ...rest } = conditional;
+    const next: Conditional = { ...rest };
+    if (triggerValue !== undefined && triggerValue in jsonData)
+      next.triggerValue = triggerValue;
+    if (triggerValues)
+      next.triggerValues = triggerValues.filter((key) => key in jsonData);
+    return withConditional(item, next);
+  });
+};
+
+/**
  * 타입을 바꾸면 새 타입이 못 쓰는 설정을 정리한다. 자식 조건은 경고로 남긴다.
  * API 계약상 `jsonData` 값은 문자열이라 예전 객체 선택지도 라벨 문자열로 바꾼다.
  */
@@ -157,7 +176,10 @@ export const changeFormType = (
     };
   }
 
-  return updateField(list, index, { ...item, formType, jsonData, otherJson });
+  return pruneTriggers(
+    updateField(list, index, { ...item, formType, jsonData, otherJson }),
+    index,
+  );
 };
 
 /** 선택지를 지우고, 그 키를 trigger로 쓰던 자식 조건에서 키를 뺀다. */

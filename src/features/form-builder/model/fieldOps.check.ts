@@ -172,6 +172,24 @@ const base = () => [
   assert.deepEqual(dropdown.otherJson, { hasEtc: true });
 }
 
+// 타입을 돌려도 옛 trigger가 새 선택지에 붙지 않는다
+{
+  const parentThenChild = () => [
+    field(1),
+    field(2, { parentIndex: 0, triggerValue: '1' }),
+  ];
+  const away = changeFormType(parentThenChild(), 0, 'SENTENCE');
+  assert.equal(away[1].otherJson?.conditional?.triggerValue, undefined);
+  const back = changeFormType(away, 0, 'DROPDOWN');
+  assert.deepEqual(back[0].jsonData, { '1': '' });
+  assert.equal(back[1].otherJson?.conditional?.triggerValue, undefined);
+  assert.deepEqual(validateFields(back).get(1), ['조건 값을 선택해주세요.']);
+  // 선택지가 그대로 남는 변경(드롭다운 → 객관식)은 조건을 유지한다
+  const kept = changeFormType(parentThenChild(), 0, 'MULTIPLE');
+  assert.equal(kept[1].otherJson?.conditional?.triggerValue, '1');
+  assert.equal(validateFields(kept).has(1), false);
+}
+
 // 검증: 범위 밖 부모, 없는 선택지, 특수 필드 중복
 {
   const broken = [
