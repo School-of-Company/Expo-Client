@@ -38,7 +38,10 @@ export const createProgramForm = async (
   }
 };
 
-/** `expectedVersion` 이 서버 `version` 과 다르면 409 FORM_VERSION_CONFLICT 다. */
+/**
+ * `expectedVersion` 이 서버 `version` 과 다르면 409 FORM_VERSION_CONFLICT 다.
+ * 제목이 겹치면 PROGRAM_FORM_TITLE_DUPLICATED, 적용 기간을 줄이면 PROGRAM_FORM_PROTECTION_PENDING(둘 다 409).
+ */
 export const editProgramForm = async (
   formId: string,
   data: ProgramFormPatchRequest,

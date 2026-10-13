@@ -25,11 +25,12 @@ export interface ProgramFormRequest {
   participantType?: 'STANDARD' | 'TRAINEE' | null;
   startDate: string;
   endDate: string;
-  dynamicForm: DynamicFieldRequest[];
+  /** 프로그램용 폼은 이름·직업 같은 특정 필드를 강제하지 않으므로 모든 필드가 `DEFAULT` 다. */
+  dynamicForm: (DynamicFieldRequest & { dynamicFormType: 'DEFAULT' })[];
 }
 
-/** 수정은 폼을 불러온 시점의 `version` 을 반드시 담는다. */
-export type ProgramFormPatchRequest = Partial<ProgramFormRequest> & {
+/** 수정은 입력 필드를 통째로 교체하므로 전체 값을 보내고, 불러온 시점의 `version` 을 반드시 담는다. */
+export type ProgramFormPatchRequest = ProgramFormRequest & {
   expectedVersion: number;
 };
 
