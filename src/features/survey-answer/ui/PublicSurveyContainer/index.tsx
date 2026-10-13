@@ -5,18 +5,18 @@ import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import { DropdownField, Occupation, OCCUPATION_OPTIONS } from '@/entities/form';
+import { buildSurveyAnswers } from '@/features/application/lib/process/buildSurveyAnswers';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
-import { getPublicSurvey } from '@/shared/api';
-import { ApplicationSuccessLogo } from '@/shared/assets/svg';
 import { withLoading } from '@/shared/hocs';
 import { Button, DetailHeader, Input } from '@/shared/ui';
+import { getPublicSurvey } from '../../api/getPublicSurvey';
 import {
   postPublicSurveyAnswer,
   PublicSurveyAnswerResult,
 } from '../../api/postPublicSurveyAnswer';
-import { buildSurveyAnswers } from '../../lib/process/buildSurveyAnswers';
+import SurveySubmitted from '../SurveySubmitted';
 
 const occupationOptions = OCCUPATION_OPTIONS.map(({ key, label }) => ({
   id: key,
@@ -27,33 +27,6 @@ const occupationOptions = OCCUPATION_OPTIONS.map(({ key, label }) => ({
 // 서버와 같은 규칙: 하이픈·공백을 지운 뒤 01로 시작하는 10~11자리
 const normalizePhoneNumber = (value: string) => value.replace(/[\s-]/g, '');
 const isValidPhoneNumber = (value: string) => /^01\d{8,9}$/.test(value);
-
-const SurveyResult = ({
-  result,
-  hasPhoneNumber,
-}: {
-  result: PublicSurveyAnswerResult;
-  hasPhoneNumber: boolean;
-}) => (
-  <div className="flex flex-1 flex-col items-center justify-center gap-32">
-    <ApplicationSuccessLogo className="mobile:h-[160px] mobile:w-[160px]" />
-    <p className="text-center text-h1m text-main-600 mobile:text-body1b">
-      만족도 조사 응답이 완료되었습니다.
-    </p>
-    {result.won && (
-      <div className="flex flex-col items-center gap-8 rounded-sm border-1 border-solid border-main-600 p-24">
-        <p className="text-center text-h2b text-main-600 mobile:text-body1b">
-          축하합니다! {result.drawNumber}번째 응답으로 경품에 당첨되었습니다.
-        </p>
-        <p className="break-keep text-center text-body2r text-gray-500">
-          {hasPhoneNumber
-            ? '입력하신 번호로 안내 문자를 보내 드립니다. 이 화면도 함께 보관해 주세요.'
-            : '이 화면을 현장 운영 요원에게 보여 주세요.'}
-        </p>
-      </div>
-    )}
-  </div>
-);
 
 /** 공개 링크 설문. 응답자가 익명이라 직업만 받고, 경품 추첨이 켜진 설문에서만 전화번호를 선택으로 받는다. */
 const PublicSurveyContainer = ({ expoId }: { expoId: string }) => {
@@ -128,9 +101,21 @@ const PublicSurveyContainer = ({ expoId }: { expoId: string }) => {
 
   if (result) {
     return (
-      <div className="flex w-full max-w-[816px] flex-1">
-        <SurveyResult result={result} hasPhoneNumber={!!lotteryPhoneNumber} />
-      </div>
+      <SurveySubmitted>
+        {result.won && (
+          <div className="flex flex-col items-center gap-8 rounded-sm border-1 border-solid border-main-600 p-24">
+            <p className="text-center text-h2b text-main-600 mobile:text-body1b">
+              축하합니다! {result.drawNumber}번째 응답으로 경품에
+              당첨되었습니다.
+            </p>
+            <p className="break-keep text-center text-body2r text-gray-500">
+              {lotteryPhoneNumber
+                ? '입력하신 번호로 안내 문자를 보내 드립니다. 이 화면도 함께 보관해 주세요.'
+                : '이 화면을 현장 운영 요원에게 보여 주세요.'}
+            </p>
+          </div>
+        )}
+      </SurveySubmitted>
     );
   }
 
