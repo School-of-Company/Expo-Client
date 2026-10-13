@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { toast } from 'react-toastify';
+import { editSurveyForm } from '@/features/survey-admin/api/editSurveyForm';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 import { editApplicationForm } from '../api/editApplicationForm';
-import { editSurveyForm } from '../api/editSurveyForm';
 
 export const useEditApplicationForm = (
   id: string,
