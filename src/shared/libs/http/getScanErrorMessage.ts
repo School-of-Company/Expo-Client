@@ -5,8 +5,13 @@ import axios from 'axios';
 // 없을 때만 대체 문구를 쓴다. 409·503은 신청 취소 처리와 겹쳐 잠시 막히는 경우라 재시도를 안내한다.
 const RETRYABLE_STATUSES = [409, 503];
 
+export const NETWORK_ERROR_MESSAGE =
+  '서버에 연결하지 못했습니다. 네트워크를 확인한 뒤 다시 시도해 주세요.';
+
 export const getScanErrorMessage = (error: unknown, fallback: string) => {
-  if (!axios.isAxiosError(error) || !error.response) return fallback;
+  if (!axios.isAxiosError(error)) return fallback;
+  // 응답이 없으면(네트워크 끊김·timeout) axios 원문 대신 할 일을 알린다
+  if (!error.response) return NETWORK_ERROR_MESSAGE;
 
   const { status, data } = error.response;
   const text = [data?.error, data?.message].find(

@@ -104,7 +104,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
       <ExhibitionCheckInHeader />
       {paperQrCount > 0 && (
         <p className="text-body2r text-gray-500">
-          종이 QR 입장 {paperQrCount}명
+          종이 QR 입장 {paperQrCount}명 (이 화면에서 스캔한 수)
         </p>
       )}
       <TableForm
