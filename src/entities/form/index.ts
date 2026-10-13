@@ -23,3 +23,21 @@ export {
   COMPANION_MAX_COUNT,
 } from './constants/occupationData';
 export type { Occupation, Region } from './constants/occupationData';
+export { default as RegionSelect } from './ui/RegionSelect';
+export { REGION_TREE, SIDO_LIST } from './constants/regionData';
+export { regionModel, checkRegion } from './registry/region';
+export type { RegionValue } from './registry/region';
+export { companionModel, companionCountRange } from './registry/companion';
+export type { CompanionValue } from './registry/companion';
+export {
+  imageModel,
+  checkImageFile,
+  IMAGE_EXTENSIONS,
+  IMAGE_MAX_BYTES,
+  IMAGE_UPLOADING,
+} from './registry/image';
+export type {
+  FieldDefinition,
+  FieldModel,
+  FieldRendererProps,
+} from './registry/types';
