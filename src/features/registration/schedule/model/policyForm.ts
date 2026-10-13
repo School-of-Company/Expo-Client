@@ -61,15 +61,15 @@ export const EMPTY_PROGRAM_FORM: ProgramForm = {
 };
 
 const toPolicyForm = (policy: ProgramPolicy): PolicyForm => ({
-  capacity: policy.capacity ?? 1,
-  waitingCapacity: policy.waitingCapacity ?? 0,
+  capacity: policy.capacity,
+  waitingCapacity: policy.waitingCapacity,
   applicationStartedAt: fromOffsetDateTime(policy.applicationStartedAt),
   applicationEndedAt: fromOffsetDateTime(policy.applicationEndedAt),
   cancelEndedAt: fromOffsetDateTime(policy.cancelEndedAt),
   promotionEndedAt: fromOffsetDateTime(policy.promotionEndedAt),
-  closed: policy.closed ?? false,
-  allowedOccupations: policy.allowedOccupations ?? [],
-  formId: policy.formId ?? '',
+  closed: policy.closed,
+  allowedOccupations: policy.allowedOccupations,
+  formId: policy.formId,
   groupId: policy.groupId ?? '',
 });
 
@@ -86,8 +86,29 @@ export const toProgramForm = (program: ScheduleProgram): ProgramForm => ({
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const isBefore = (from: string | null, to: string | null) =>
-  !from || !to || from < to;
+/**
+ * 서버 ProgramPolicyRequest.validate() 와 같은 규칙. 문제가 없으면 null.
+ * 모집 시작 < 모집 종료, 취소 마감·대기 승급 마감 ≥ 모집 시작, 직업 1개 이상
+ */
+export const getPolicyProblem = (policy: ProgramPolicy): string | null => {
+  const startedAt = Date.parse(policy.applicationStartedAt);
+  if (!(startedAt < Date.parse(policy.applicationEndedAt)))
+    return '모집 종료가 모집 시작보다 늦어야 합니다.';
+  if (Date.parse(policy.cancelEndedAt) < startedAt)
+    return '취소 마감은 모집 시작 이후여야 합니다.';
+  if (Date.parse(policy.promotionEndedAt) < startedAt)
+    return '대기 승급 마감은 모집 시작 이후여야 합니다.';
+  if (policy.allowedOccupations.length === 0)
+    return '신청 가능 직업을 하나 이상 선택해주세요.';
+  return null;
+};
+
+// 'YYYY-MM-DDTHH:mm'(로컬) → UTC 오프셋 ISO 8601. 정책 일시는 서버 필수값이라 비어 있으면 보내기 전에 막는다
+export const toPolicyDateTime = (value: string | null): string => {
+  const offset = toOffsetDateTime(value);
+  if (!offset) throw new Error('모집 일시를 모두 입력해주세요.');
+  return offset;
+};
 
 /** 보내기 전에 서버가 400 으로 거절할 값을 막는다. 문제가 없으면 null */
 export const validateProgramForm = (form: ProgramForm): string | null => {
@@ -102,27 +123,34 @@ export const validateProgramForm = (form: ProgramForm): string | null => {
     return '정원은 1명 이상이어야 합니다.';
   if (!Number.isInteger(policy.waitingCapacity) || policy.waitingCapacity < 0)
     return '대기 정원을 확인해주세요.';
-  if (!isBefore(policy.applicationStartedAt, policy.applicationEndedAt))
-    return '모집 종료가 모집 시작보다 늦어야 합니다.';
-  if (policy.formId.trim() && !UUID_PATTERN.test(policy.formId.trim()))
+  // 정책의 일시 4개와 폼 ID 는 서버 필수값이다(null·누락이면 400)
+  if (
+    !policy.applicationStartedAt ||
+    !policy.applicationEndedAt ||
+    !policy.cancelEndedAt ||
+    !policy.promotionEndedAt
+  )
+    return '모집 시작·종료, 취소 마감, 대기 승급 마감을 모두 입력해주세요.';
+  if (!policy.formId.trim()) return '프로그램 폼 ID를 입력해주세요.';
+  if (!UUID_PATTERN.test(policy.formId.trim()))
     return '폼 ID 형식이 올바르지 않습니다.';
   if (policy.groupId.trim() && !UUID_PATTERN.test(policy.groupId.trim()))
     return '묶음 ID 형식이 올바르지 않습니다.';
-  return null;
+  return getPolicyProblem(toProgramPolicy(policy));
 };
 
+/** validateProgramForm 을 통과한 정책만 넘긴다. 일시가 비어 있으면 throw 한다 */
 export const toProgramPolicy = (policy: PolicyForm): ProgramPolicy => ({
   capacity: policy.capacity,
   waitingCapacity: policy.waitingCapacity,
-  applicationStartedAt: toOffsetDateTime(policy.applicationStartedAt),
-  applicationEndedAt: toOffsetDateTime(policy.applicationEndedAt),
-  cancelEndedAt: toOffsetDateTime(policy.cancelEndedAt),
-  promotionEndedAt: toOffsetDateTime(policy.promotionEndedAt),
+  applicationStartedAt: toPolicyDateTime(policy.applicationStartedAt),
+  applicationEndedAt: toPolicyDateTime(policy.applicationEndedAt),
+  cancelEndedAt: toPolicyDateTime(policy.cancelEndedAt),
+  promotionEndedAt: toPolicyDateTime(policy.promotionEndedAt),
   closed: policy.closed,
   allowedOccupations: policy.allowedOccupations,
   groupId: policy.groupId.trim() || null,
-  // 폼 ID 는 null 을 받지 않으므로 비어 있으면 보내지 않는다
-  ...(policy.formId.trim() ? { formId: policy.formId.trim() } : {}),
+  formId: policy.formId.trim(),
 });
 
 export const toProgramRequest = (
@@ -135,14 +163,24 @@ export const toProgramRequest = (
   policy: form.hasPolicy ? toProgramPolicy(form.policy) : null,
 });
 
-/** 기존 프로그램의 기본 정보는 그대로 두고 정책 일부만 바꾼 수정 본문 */
+/**
+ * 기존 프로그램의 기본 정보는 그대로 두고 정책 일부만 바꾼 수정 본문.
+ * 정책이 없는 프로그램이거나 바꾼 결과가 서버 규칙에 어긋나면 그 사유를 담아 throw 한다
+ */
 export const withPolicyPatch = (
   program: ScheduleProgram,
   patch: Partial<ProgramPolicy>,
-): ScheduleProgramRequest => ({
-  title: program.title,
-  startedAt: toProgramDateTime(program.startedAt),
-  endedAt: toProgramDateTime(program.endedAt),
-  ...(program.category ? { category: program.category } : {}),
-  policy: { ...program.policy, ...patch },
-});
+): ScheduleProgramRequest => {
+  if (!program.policy) throw new Error('모집 정책이 없는 프로그램입니다.');
+  const policy: ProgramPolicy = { ...program.policy, ...patch };
+  const problem = getPolicyProblem(policy);
+  if (problem) throw new Error(problem);
+
+  return {
+    title: program.title,
+    startedAt: toProgramDateTime(program.startedAt),
+    endedAt: toProgramDateTime(program.endedAt),
+    ...(program.category ? { category: program.category } : {}),
+    policy,
+  };
+};
