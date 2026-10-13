@@ -1,36 +1,40 @@
 import axios from 'axios';
 import clientInstance from '@/shared/libs/http/clientInstance';
 
-export interface PreRegisterSession {
-  title: string;
-  startedAt: string;
-  endedAt: string;
-  place: string;
-  capacity: number;
-  waitingCapacity: number;
-  confirmedCount: number;
-  waitingCount: number;
+/** 화면 안내용 값. 최종 정원 판정은 제출 시 서버가 다시 한다. */
+export interface PreRegisterCapacity {
+  sessionId: number;
+  /** 남은 자리 */
+  remaining: number;
+  /** 1회 신청 최대 인원(대표자 포함) */
+  maxApplicants: number;
 }
 
-// TODO(api): 회차 정의는 박람회 서비스, 확정·대기 인원은 신청 서비스가 내려주기로 했고
-// 공개 경로와 응답은 아직 정해지지 않았다(Expo-Application-Server#34, Expo-Expo-Server#70).
-// 제출의 sessionId 키도 같은 계약에서 확정된다. 계약이 나오면 맞춘다.
-// sessionId 없이 들어오면 현재 접수 중인 기본 회차를 돌려준다고 가정한다.
-const sessionPath = (expoId: string, sessionId: string) =>
-  sessionId
-    ? `/pre-register/${expoId}/sessions/${sessionId}`
-    : `/pre-register/${expoId}`;
+const CAPACITY_ERRORS: Record<number, string> = {
+  400: '잘못된 박람회 또는 회차 정보입니다.',
+  404: '존재하지 않는 회차입니다.',
+  409: '회차가 삭제되었거나 변경 중입니다.',
+  502: '서버 응답에 문제가 있어 잔여석을 확인할 수 없습니다.',
+  503: '연동 서버를 사용할 수 없어 잔여석을 확인할 수 없습니다.',
+};
 
-export const getPreRegisterSession = async (
+export const getPreRegisterCapacity = async (
   expoId: string,
   sessionId: string,
-): Promise<PreRegisterSession> => {
+): Promise<PreRegisterCapacity> => {
+  // 서버는 양수 int64 만 받는다(0 이하는 400). 아니면 요청하지 않고 400 과 같이 안내한다
+  if (!/^[1-9]\d*$/.test(sessionId)) throw new Error(CAPACITY_ERRORS[400]);
   try {
-    const response = await clientInstance.get(sessionPath(expoId, sessionId));
+    const response = await clientInstance.get(
+      `/application/expos/${expoId}/preregister-sessions/${sessionId}/capacity`,
+    );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '회차 정보 불러오기 실패');
+      throw new Error(
+        CAPACITY_ERRORS[error.response.status] ||
+          '잔여석 정보를 불러오지 못했습니다.',
+      );
     }
     throw error;
   }
