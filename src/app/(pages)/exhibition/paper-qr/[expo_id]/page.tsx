@@ -1,4 +1,6 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { toLowercaseUuid } from '@/shared/config';
 import { ExhibitionPaperQrPage } from '@/views/exhibition/paper-qr';
 
 export const metadata: Metadata = {
@@ -8,7 +10,10 @@ export const metadata: Metadata = {
 };
 
 const page = ({ params }: { params: { expo_id: string } }) => {
-  return <ExhibitionPaperQrPage id={params.expo_id} />;
+  // 발급 API는 소문자 UUID가 아니면 400이라, 형식이 다르면 들어오지 못하게 한다
+  const expoId = toLowercaseUuid(params.expo_id);
+  if (!expoId) notFound();
+  return <ExhibitionPaperQrPage id={expoId} />;
 };
 
 export default page;

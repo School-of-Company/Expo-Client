@@ -8,19 +8,18 @@ export const patchStandardAttendance = async ({
   programId,
   participantId,
   code,
-}: PatchStandardProgramData) => {
+}: PatchStandardProgramData): Promise<void> => {
   try {
-    const response = await clientTokenInstance.patch(
-      `/attendance/standard/${programId}`,
+    await clientTokenInstance.patch(
+      `/attendance/standard/${encodeURIComponent(programId)}`,
       {
         expoId,
         participantId,
         code,
       },
     );
-    return response;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
+    if (axios.isAxiosError(error)) {
       throw new Error(getScanErrorMessage(error, 'QR코드 스캔 실패'));
     }
     throw error;

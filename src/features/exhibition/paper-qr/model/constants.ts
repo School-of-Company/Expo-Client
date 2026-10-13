@@ -15,5 +15,8 @@ export const PAPER_QR_CATEGORIES: {
 // 발급 API가 한 번에 받는 최대 장수
 export const MAX_TOKENS_PER_REQUEST = 1000;
 
+// 한 번에 발급할 합계 상한. 잘못 입력해 수만 장을 순차로 발급하지 않도록 막는다
+export const MAX_TOKENS_PER_ISSUE = 5000;
+
 // 라벨 크기(mm). 프린터와 라벨은 현장에서 확인해 바꾼다
 export const DEFAULT_LABEL_SIZE = { width: 60, height: 40 };

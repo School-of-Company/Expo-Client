@@ -3,6 +3,7 @@ export { default as Input } from './Input';
 export { default as FormTypeModal } from './FormTypeModal';
 export { default as CheckBox } from './CheckBox';
 export { default as Loading } from './Loading';
+export { default as QueryError } from './QueryError';
 export { default as ToggleButton } from './ToggleButton';
 export { default as AddItemButton } from './AddItemButton';
 export { default as DetailHeader } from './DetailHeader';

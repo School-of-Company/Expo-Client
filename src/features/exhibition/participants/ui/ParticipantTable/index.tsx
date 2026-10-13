@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useMemo, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { withLoading } from '@/shared/hocs';
+import { useExcelDownload } from '@/shared/model';
 import { useExpoDetail } from '@/shared/queries';
 import {
   participants,
@@ -14,9 +15,6 @@ import {
 import { SearchInput } from '@/shared/ui/SearchInput';
 import SelectUserType from '@/shared/ui/SelectUserType';
 import { TableForm } from '@/shared/ui/Table';
-import { getClassExcelFile } from '../../api/getClassExcelFile';
-import { getStandardExcelFile } from '../../api/getStandardExcelFile';
-import { getTraineeExcelFile } from '../../api/getTraineeExcelFile';
 import { category, selectOptionCategories } from '../../model/category';
 import { useExpoManageQueries } from '../../model/useExpoData';
 import DateContainer from '../DateContainer';
@@ -39,6 +37,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
   );
   const [selectItem, setSelectItem] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const { mutate: downloadExcel, isPending: isExporting } = useExcelDownload();
 
   useEffect(() => {
     if (expoDetailQuery?.startedDay && selectedDate === undefined) {
@@ -107,7 +106,8 @@ const ParticipantTable = ({ id }: { id: string }) => {
   const traineeExcelFile = {
     exportExcel: (selectedRowId: number) => {
       if (isProgram) {
-        void getClassExcelFile(id);
+        // 프로그램 탭은 행사 전체 연수자와 신청 강연을 담은 교원 연수자 명단을 받는다
+        downloadExcel({ path: `/excel/${id}` });
         return;
       }
 
@@ -116,11 +116,11 @@ const ParticipantTable = ({ id }: { id: string }) => {
         return;
       }
 
-      void getTraineeExcelFile(String(selectedRowId));
+      downloadExcel({ path: `/excel/trainee/${selectedRowId}` });
     },
   };
   const standardExcelFile = {
-    exportExcel: () => getStandardExcelFile(id),
+    exportExcel: () => downloadExcel({ path: `/excel/standard/${id}` }),
   };
 
   return withLoading({
@@ -159,6 +159,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
             selectItemBoolean={!isProgram}
             setSelectItem={setSelectItem}
             selectItem={selectItem}
+            isExporting={isExporting}
           />
         ) : (
           <TableForm<participants>
@@ -171,6 +172,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
             totalPage={totalPage}
             id={id}
             selectItemBoolean={false}
+            isExporting={isExporting}
           />
         )}
       </div>

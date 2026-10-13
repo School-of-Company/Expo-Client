@@ -5,4 +5,5 @@ export {
   getExpoRoutes,
   getRegistrationRoutes,
   isValidExpoId,
+  toLowercaseUuid,
 } from './expoRoutes';

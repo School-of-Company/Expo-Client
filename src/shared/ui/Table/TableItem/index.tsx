@@ -1,28 +1,33 @@
 interface TableItemProps<
   T extends { id: string | number } & Record<string, unknown>,
+  K extends string | number = T['id'],
 > {
   data: T;
-  state: T['id'] | null;
-  setState: React.Dispatch<React.SetStateAction<T['id'] | null>>;
+  // 선택 상태와 비교하는 키. 기본은 data.id
+  rowKey: K;
+  state: K | null;
+  setState: React.Dispatch<React.SetStateAction<K | null>>;
   selectItemBoolean: boolean;
   categories: string[];
 }
 
 const TableItem = <
   T extends { id: string | number } & Record<string, unknown>,
+  K extends string | number = T['id'],
 >({
   data,
+  rowKey,
   state,
   setState,
   selectItemBoolean,
   categories,
-}: TableItemProps<T>) => {
-  const handleSelectItem = (id: T['id']) => {
+}: TableItemProps<T, K>) => {
+  const handleSelectItem = (key: K) => {
     if (!selectItemBoolean) return;
-    setState((prev) => (prev === id ? null : id));
+    setState((prev) => (prev === key ? null : key));
   };
 
-  const isSelected = state === data.id;
+  const isSelected = state === rowKey;
   type RenderValueType = boolean | string | number | object | unknown;
 
   const renderValue = (value: RenderValueType): string => {
@@ -104,7 +109,7 @@ const TableItem = <
   return (
     <button
       type="button"
-      onClick={() => handleSelectItem(data.id)}
+      onClick={() => handleSelectItem(rowKey)}
       className={`flex w-full items-center justify-between rounded-sm border-1 border-solid border-gray-200 py-8 ${
         isSelected ? 'bg-main-100' : 'bg-white'
       }`}

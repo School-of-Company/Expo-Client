@@ -7,7 +7,7 @@ export interface TrainingProgramSelectionRequest {
   trainingId: string;
   informationJson: string;
   personalInformationStatus: boolean;
-  trainingProId: number[];
+  trainingProIds: number[];
 }
 
 export const postTrainingProgramSelection = async (

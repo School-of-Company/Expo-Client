@@ -15,7 +15,7 @@ import { TableForm } from '@/shared/ui/Table';
 import { CHECK_IN_PRINT_CATEGORIES } from '../../model/constants';
 import { usePaperQrAttendanceMutation } from '../../model/usePaperQrAttendanceMutation';
 import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';
-import { userQrPrint } from '../../model/userQrPrint';
+import { toAttendUserRowKey, userQrPrint } from '../../model/userQrPrint';
 
 const QRScannerTable = ({ id }: { id: string }) => {
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
@@ -68,7 +68,17 @@ const QRScannerTable = ({ id }: { id: string }) => {
       return;
     }
     const newUser: AttendUserResponse = await attendUser(request);
-    setUserData((prev) => [...prev, newUser]);
+    // 5분 안에 같은 QR을 다시 찍으면 서버가 처음 응답을 그대로 돌려준다
+    const rowKey = toAttendUserRowKey(newUser);
+    if (userData.some((user) => toAttendUserRowKey(user) === rowKey)) {
+      toast.info(`${newUser.name}님은 이미 입장 처리되었습니다.`);
+      return;
+    }
+    setUserData((prev) =>
+      prev.some((user) => toAttendUserRowKey(user) === rowKey)
+        ? prev
+        : [...prev, newUser],
+    );
   };
 
   useEffect(() => {
@@ -86,7 +96,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
   }, [scannedQR]);
 
   const userQrPrintActions = {
-    PrintBadge: (selectItem: number) => userQrPrint(userData, selectItem),
+    PrintBadge: (selectItem: string) => userQrPrint(userData, selectItem),
   };
 
   return (
@@ -94,12 +104,13 @@ const QRScannerTable = ({ id }: { id: string }) => {
       <ExhibitionCheckInHeader />
       {paperQrCount > 0 && (
         <p className="text-body2r text-gray-500">
-          종이 QR 입장 {paperQrCount}명
+          종이 QR 입장 {paperQrCount}명 (이 화면에서 스캔한 수)
         </p>
       )}
       <TableForm
         categories={CHECK_IN_PRINT_CATEGORIES}
         data={userData}
+        getRowKey={toAttendUserRowKey}
         maxHeight="414px"
         footerType="print"
         text="QR 스캔"

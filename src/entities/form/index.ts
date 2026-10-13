@@ -41,3 +41,8 @@ export type {
   FieldModel,
   FieldRendererProps,
 } from './registry/types';
+export { default as OptionListEditor } from './ui/OptionListEditor';
+export { formTypeRegistry } from './model/registry';
+export type { FormTypeEntry, FieldEditorProps } from './model/registry';
+export { FORM_TYPE_SPEC, BUILDER_FORM_TYPES } from './model/formTypes';
+export type { FormType, FormTypeSpec } from './model/formTypes';

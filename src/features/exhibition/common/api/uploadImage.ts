@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { toApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
 export const uploadImage = async (file: File | null | string) => {
@@ -11,11 +11,6 @@ export const uploadImage = async (file: File | null | string) => {
     const response = await clientTokenInstance.post('/image', formData);
     return response.data.imageURL;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(
-        error.response.data.error || '이미지 형식이 올바르지 않습니다',
-      );
-    }
-    throw error;
+    throw toApiError(error, '이미지를 올리지 못했습니다.');
   }
 };
