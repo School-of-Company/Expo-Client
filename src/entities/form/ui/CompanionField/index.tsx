@@ -10,7 +10,6 @@ import {
   useFormState,
   useWatch,
 } from 'react-hook-form';
-import { ArrowDown } from '@/shared/assets/icons';
 import { Input } from '@/shared/ui';
 import {
   COMPANION_MAX_COUNT,
@@ -19,6 +18,7 @@ import {
   REGION_OPTIONS,
   SCHOOL_OCCUPATIONS,
 } from '../../constants/occupationData';
+import { SelectArrow, selectClassName } from '../RegionSelect';
 
 interface CompanionFieldProps {
   name: string;
@@ -28,19 +28,13 @@ interface CompanionFieldProps {
   maxCount?: number;
   control: Control<FieldValues>;
   register: UseFormRegister<FieldValues>;
+  /** 목록 전체 검사. 없으면 필수일 때 1명 이상만 본다. */
+  validate?: (value: unknown) => true | string;
+  /** 지역 입력을 바꿔 끼운다(`${name}.${index}.region` 경로를 받는다). 없으면 기존 지역 enum 선택. */
+  renderRegion?: (path: string) => React.ReactNode;
 }
 
 const EMPTY_COMPANION = { name: '', occupation: '', region: '', school: '' };
-
-const selectClassName =
-  'w-full cursor-pointer appearance-none rounded-sm border-1 border-solid border-gray-200 bg-white py-12 pl-16 pr-40 text-body2r text-black outline-none';
-
-/** 기본 화살표는 패딩이 안 먹어 테두리에 붙으므로 끄고 아이콘을 올린다(RegistrationSelect 와 같은 모양). */
-const SelectArrow = () => (
-  <span className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 [&_svg]:h-16 [&_svg]:w-16">
-    <ArrowDown />
-  </span>
-);
 
 const ErrorText = ({ message }: { message?: string }) =>
   message ? <span className="text-caption1r text-error">{message}</span> : null;
@@ -56,15 +50,18 @@ export default function CompanionField({
   maxCount = COMPANION_MAX_COUNT,
   control,
   register,
+  validate,
+  renderRegion,
 }: CompanionFieldProps) {
   const { fields, append, remove } = useFieldArray({
     control,
     name,
     rules: {
       validate: (value) =>
-        !required ||
-        (value?.length ?? 0) > 0 ||
-        `${label}을(를) 1명 이상 추가해주세요`,
+        validate?.(value) ??
+        (!required ||
+          (value?.length ?? 0) > 0 ||
+          `${label}을(를) 1명 이상 추가해주세요`),
     },
   });
   const companions = useWatch({ control, name }) as
@@ -130,22 +127,26 @@ export default function CompanionField({
             </div>
             <ErrorText message={fieldError(`${index}.occupation`)} />
 
-            <div className="relative">
-              <select
-                {...register(`${name}.${index}.region`, {
-                  required: '지역을 선택해주세요',
-                })}
-                className={selectClassName}
-              >
-                <option value="">지역 선택</option>
-                {REGION_OPTIONS.map(({ key, label: optionLabel }) => (
-                  <option key={key} value={key}>
-                    {optionLabel}
-                  </option>
-                ))}
-              </select>
-              <SelectArrow />
-            </div>
+            {renderRegion ? (
+              renderRegion(`${name}.${index}.region`)
+            ) : (
+              <div className="relative">
+                <select
+                  {...register(`${name}.${index}.region`, {
+                    required: '지역을 선택해주세요',
+                  })}
+                  className={selectClassName}
+                >
+                  <option value="">지역 선택</option>
+                  {REGION_OPTIONS.map(({ key, label: optionLabel }) => (
+                    <option key={key} value={key}>
+                      {optionLabel}
+                    </option>
+                  ))}
+                </select>
+                <SelectArrow />
+              </div>
+            )}
             <ErrorText message={fieldError(`${index}.region`)} />
 
             {needsSchool && (
