@@ -1,11 +1,10 @@
 import { AxiosRequestConfig, ResponseType } from 'axios';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import {
   FILE_DOWNLOAD_TIMEOUT_MS,
-  GATEWAY_URL,
   serverInstance,
 } from '@/shared/libs/http/serverInstance';
-import { tokenHandleRequest } from './tokenHandler';
+import { isFileDownloadRequest } from './proxyTarget';
 import { RequestData } from './type';
 
 export async function parseRequestData(
@@ -39,6 +38,7 @@ export async function parseRequestData(
 
 export async function sendRequest(
   req: NextRequest,
+  url: string,
   accessToken: string | undefined,
   requestData: RequestData,
   headers: Record<string, string | undefined>,
@@ -47,43 +47,15 @@ export async function sendRequest(
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
 
-  const isFileDownload =
-    req.headers.get('X-File-Download') === 'true' ||
-    req.nextUrl.pathname.includes('/excel/');
-
+  const isFileDownload = isFileDownloadRequest(req);
   const responseType: ResponseType = isFileDownload ? 'arraybuffer' : 'json';
 
-  const axiosConfig: AxiosRequestConfig = {
+  return await serverInstance.request({
+    url,
+    method: req.method as AxiosRequestConfig['method'],
+    data: requestData,
     responseType,
     headers: headers as AxiosRequestConfig['headers'],
     ...(isFileDownload && { timeout: FILE_DOWNLOAD_TIMEOUT_MS }),
-  };
-
-  return await serverInstance.request({
-    url: `${GATEWAY_URL}${req.nextUrl.pathname.replace(
-      '/api/server/token',
-      '',
-    )}`,
-    method: req.method as AxiosRequestConfig['method'],
-    params: Object.fromEntries(req.nextUrl.searchParams.entries()),
-    data: requestData,
-    ...axiosConfig,
   });
-}
-
-export async function retryRequest(
-  req: NextRequest,
-  accessToken: string,
-  body?: string | FormData,
-): Promise<NextResponse> {
-  const headers = new Headers(req.headers);
-  headers.set('Authorization', `Bearer ${accessToken}`);
-
-  const newReq = new NextRequest(req.url, {
-    method: req.method,
-    headers,
-    body: body && typeof body === 'string' ? body : undefined,
-  });
-
-  return tokenHandleRequest(newReq, body);
 }
