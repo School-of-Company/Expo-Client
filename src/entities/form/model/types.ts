@@ -1,7 +1,13 @@
-import type { FieldConditional } from '@/shared/lib/form-conditional';
+import type {
+  Companion,
+  FormType,
+  JsonData,
+  OtherJson,
+} from '@/shared/types/application/type';
 import type { ApplicationType } from '@/shared/types/exhibition/type';
+import type { DynamicFormType as BuilderDynamicFormType } from '@/shared/types/form/create/type';
 
-export type { ApplicationType };
+export type { ApplicationType, Companion, FormType, JsonData, OtherJson };
 
 /**
  * Expo Form Server DTO (OAS `/expo/forms/v3/api-docs`).
@@ -11,35 +17,7 @@ export type { ApplicationType };
 /** 폼의 참여자군. 이름이 겹치는 신청 내역 쪽 `ParticipantType`과는 값이 다르다. */
 export type FormParticipantType = 'TRAINEE' | 'STANDARD';
 
-export type FormType =
-  | 'SENTENCE'
-  | 'CHECKBOX'
-  | 'DROPDOWN'
-  | 'IMAGE'
-  | 'MULTIPLE'
-  | 'COMPANION'
-  | 'REGION';
-
-export type DynamicFormType =
-  | 'NAME'
-  | 'PHONE_NUMBER'
-  | 'TRAINING_ID'
-  | 'OCCUPATION'
-  | 'SCHOOL'
-  | 'DEFAULT';
-
-/** 선택지 맵. 키는 답변 값으로 쓰이고, 값은 보기 문구다. */
-export type JsonData = Record<
-  string,
-  string | { value: string; isAlwaysSelected: boolean }
->;
-
-export interface OtherJson {
-  hasEtc: boolean;
-  maxSelection?: number;
-  /** `parentIndex`는 문항 목록 안의 위치(0부터). `triggerValue`와 `triggerValues` 중 하나만 온다. */
-  conditional?: FieldConditional;
-}
+export type DynamicFormType = BuilderDynamicFormType | 'DEFAULT';
 
 /** 요청에 싣는 입력 필드. 응답에서는 `id`가 붙는다. */
 export interface DynamicFormItemRequest {
@@ -116,15 +94,4 @@ export interface ProgramFormResponseDto extends Omit<
   dynamicForm: DynamicFormItemResponse[];
   purpose: 'PROGRAM';
   version: number;
-}
-
-/**
- * 동행자 한 명(`COMPANION` 답변의 원소). 전화번호 없이 대표자 번호로 등록된다.
- * `occupation`은 직업 키, `region`은 지역 키이고 `school`은 소속이 필요한 직업일 때만 보낸다.
- */
-export interface Companion {
-  name: string;
-  occupation: string;
-  region: string;
-  school?: string;
 }

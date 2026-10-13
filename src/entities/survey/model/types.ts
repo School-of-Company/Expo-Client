@@ -3,6 +3,7 @@ import type {
   DynamicFormItemRequest,
   FormParticipantType,
 } from '@/entities/form/model/types';
+import type { SurveyAnswers } from '@/shared/types/application/type';
 
 /** 설문 문항. 폼 필드와 같고 `dynamicFormType`만 없다. */
 export type DynamicSurveyItemRequest = Omit<
@@ -46,8 +47,7 @@ export interface PublicSurveyResponseDto extends SurveyResponseDto {
   lotteryEnabled: boolean;
 }
 
-/** 문항 id → 답변. SENTENCE 문자열, CHECKBOX boolean, DROPDOWN 키, MULTIPLE 키 배열. */
-export type SurveyAnswers = Record<string, string | boolean | string[]>;
+export type { SurveyAnswers };
 
 export interface SubmitSurveyAnswerRequestDto {
   phoneNumber: string;

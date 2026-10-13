@@ -2,7 +2,6 @@ import { ReactNode } from 'react';
 import { UseFormRegister } from 'react-hook-form';
 import { DynamicFormItem, JsonData, OtherJson } from '../../application/type';
 import { ApplicationType } from '../../exhibition/type';
-import type { DynamicFormType as ServerDynamicFormType } from '@/entities/form/model/types';
 
 export interface Option {
   id?: string;
@@ -14,8 +13,13 @@ export interface Option {
   key?: string;
 }
 
-/** 빌더가 고르는 특수 필드. 서버 값에서 `DEFAULT`(일반 필드)를 뺀 것이다. */
-export type DynamicFormType = Exclude<ServerDynamicFormType, 'DEFAULT'>;
+/** 빌더가 고르는 특수 필드. 서버 값은 여기에 `DEFAULT`(일반 필드)가 더해진다. */
+export type DynamicFormType =
+  | 'NAME'
+  | 'PHONE_NUMBER'
+  | 'TRAINING_ID'
+  | 'OCCUPATION'
+  | 'SCHOOL';
 
 export interface FormValues {
   questions: {
