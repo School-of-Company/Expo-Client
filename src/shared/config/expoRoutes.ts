@@ -4,8 +4,16 @@ const segment = (expoId: string) => encodeURIComponent(expoId);
 // Gateway 공개 경로의 {expoId} 와 같은 규칙: 숫자 또는 UUID
 const EXPO_ID_PATTERN =
   /^(?:[0-9]+|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export const isValidExpoId = (expoId: string) => EXPO_ID_PATTERN.test(expoId);
+
+// 종이 QR 발급처럼 소문자 UUID만 받는 API용. 대문자는 소문자로 맞추고, UUID가 아니면 null
+export const toLowercaseUuid = (expoId: string) => {
+  const id = expoId.toLowerCase();
+  return UUID_PATTERN.test(id) ? id : null;
+};
 
 export const getExpoRoutes = (expoId: string) => {
   const id = segment(expoId);
