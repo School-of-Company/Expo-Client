@@ -8,7 +8,6 @@ import {
   formTypeRegistry,
 } from '@/entities/form';
 import { ArrowDown, Trash, Warning } from '@/shared/assets/icons';
-import { CheckedBoxIcon, Square } from '@/shared/assets/svg';
 import { ToggleButton } from '@/shared/ui';
 import ConditionalRuleEditor from '../ConditionalRuleEditor';
 import type { FormBuilderVariant } from '../FormBuilder';
@@ -73,8 +72,6 @@ const FieldCard = ({
   const typeOptions = BUILDER_FORM_TYPES.includes(item.formType)
     ? BUILDER_FORM_TYPES
     : [item.formType, ...BUILDER_FORM_TYPES];
-  const hasEtc = !!item.otherJson?.hasEtc;
-  const showEtc = entry.supportsEtc && variant !== 'program';
 
   const border = willBreak
     ? 'border-dashed border-error'
@@ -184,25 +181,8 @@ const FieldCard = ({
             ))}
           </select>
         )}
-        {showEtc && (
-          <button
-            type="button"
-            aria-pressed={hasEtc}
-            onClick={() =>
-              onChange({
-                ...item,
-                otherJson: {
-                  ...(item.otherJson ?? { hasEtc }),
-                  hasEtc: !hasEtc,
-                },
-              })
-            }
-            className={`${footerButton} [&_svg]:size-20`}
-          >
-            {hasEtc ? <CheckedBoxIcon /> : <Square />}
-            기타
-          </button>
-        )}
+        {/* "기타" 입력 토글은 렌더러(formAdapter, FieldRenderer)가 hasEtc를 읽을 때까지 숨긴다.
+            이미 hasEtc가 켜진 문항의 기타 행은 선택지 편집기에서 지울 수 있다. */}
         <button type="button" onClick={onDuplicate} className={footerButton}>
           복제
         </button>
