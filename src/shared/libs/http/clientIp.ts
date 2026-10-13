@@ -32,13 +32,11 @@ export const getClientIp = (req: Request): string | null => {
 /**
  * Gateway 로 넘길 클라이언트 IP 헤더. Gateway 는 이 IP 로 요청 수를 제한하므로,
  * 넘기지 않으면 모든 사용자가 Next 서버 IP 하나로 묶여 한도를 함께 쓰게 된다.
- * requireTrusted 면 앞단 구성이 설정됐을 때만 넘긴다(로그인처럼 위조한 IP 로 시도 제한을 피하면 안 되는 요청)
+ * 앞단 구성(TRUSTED_PROXY_HOPS)이 설정되지 않으면 이 값은 클라이언트가 정한 것일 수 있어
+ * (로그인 시도·문자 발송 한도를 위조한 IP 로 피할 수 있음) 넘기지 않는다
  */
-export const clientIpHeaders = (
-  req: Request,
-  { requireTrusted = false }: { requireTrusted?: boolean } = {},
-): Record<string, string> => {
-  if (requireTrusted && !isClientIpTrusted()) return {};
+export const clientIpHeaders = (req: Request): Record<string, string> => {
+  if (!isClientIpTrusted()) return {};
   const ip = getClientIp(req);
   return ip ? { 'X-Forwarded-For': ip } : {};
 };
