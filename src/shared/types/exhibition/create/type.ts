@@ -1,4 +1,7 @@
-import { ProgramPolicy } from '../../program/list/type';
+import {
+  StandardProgramRequest,
+  TrainingProgramRequest,
+} from '../../program/list/type';
 
 export interface CreateExhibitionData {
   title: string;
@@ -9,17 +12,6 @@ export interface CreateExhibitionData {
   coverImage: string;
   x: string;
   y: string;
-  addStandardProRequestDto: {
-    title: string;
-    startedAt: string;
-    endedAt: string;
-    policy?: ProgramPolicy | null;
-  }[];
-  addTrainingProRequestDto: {
-    title: string;
-    startedAt: string;
-    endedAt: string;
-    category: 'ESSENTIAL' | 'CHOICE';
-    policy?: ProgramPolicy | null;
-  }[];
+  addStandardProRequestDto: StandardProgramRequest[];
+  addTrainingProRequestDto: TrainingProgramRequest[];
 }

@@ -1,4 +1,16 @@
-import { ProgramPolicy } from '../../program/list/type';
+import {
+  ProgramPolicy,
+  StandardProgramRequest,
+  TrainingProgramRequest,
+} from '../../program/list/type';
+
+// 박람회 수정은 프로그램 전체를 교체한다. id가 null이면 새 프로그램이고,
+// 기존 프로그램은 조회한 revision을 돌려보낸다 (ExpoUpdate*ProgramRequest)
+interface ExpoUpdateProgramRef {
+  id: number | null;
+  revision: number | null;
+  policy: ProgramPolicy | null;
+}
 
 export interface AddressResponse {
   meta: {
@@ -39,21 +51,8 @@ export interface EditExhibitionData {
   coverImage: string;
   x: string;
   y: string;
-  updateStandardProRequestDto: {
-    id: number | null;
-    title: string;
-    startedAt: string;
-    endedAt: string;
-    policy: ProgramPolicy | null;
-    revision: number | null;
-  }[];
-  updateTrainingProRequestDto: {
-    id: number | null;
-    title: string;
-    startedAt: string;
-    endedAt: string;
-    category: 'ESSENTIAL' | 'CHOICE';
-    policy: ProgramPolicy | null;
-    revision: number | null;
-  }[];
+  updateStandardProRequestDto: (StandardProgramRequest &
+    ExpoUpdateProgramRef)[];
+  updateTrainingProRequestDto: (TrainingProgramRequest &
+    ExpoUpdateProgramRef)[];
 }
