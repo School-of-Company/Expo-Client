@@ -13,9 +13,14 @@ import {
 } from '@/shared/types/exhibition/check-in/type';
 import { TableForm } from '@/shared/ui/Table';
 import { CHECK_IN_PRINT_CATEGORIES } from '../../model/constants';
+import { toExitRequest } from '../../model/toExitRequest';
+import { useInvalidateEntrySummary } from '../../model/useEntrySummary';
+import { useExitUserMutation } from '../../model/useExitUserMutation';
 import { usePaperQrAttendanceMutation } from '../../model/usePaperQrAttendanceMutation';
 import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';
 import { toAttendUserRowKey, userQrPrint } from '../../model/userQrPrint';
+import EntrySummaryPanel from '../EntrySummaryPanel';
+import ScanModeToggle, { ScanMode } from '../ScanModeToggle';
 
 const QRScannerTable = ({ id }: { id: string }) => {
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
@@ -23,6 +28,9 @@ const QRScannerTable = ({ id }: { id: string }) => {
   const [paperQrCount, setPaperQrCount] = useState(0);
   const { mutateAsync: attendUser } = usePatchAttendUserMutation(id);
   const { mutateAsync: attendPaperQr } = usePaperQrAttendanceMutation(id);
+  const { mutateAsync: exitUser } = useExitUserMutation(id);
+  const invalidateSummary = useInvalidateEntrySummary(id);
+  const [mode, setMode] = useState<ScanMode>('entry');
 
   useQRScanner(setScannedQR);
 
@@ -55,7 +63,22 @@ const QRScannerTable = ({ id }: { id: string }) => {
     return null;
   };
 
+  const handleExit = async (scannedQR: QrScanData) => {
+    const request = toExitRequest(scannedQR);
+    if (!request) {
+      toast.error(
+        '퇴장 처리할 수 없는 QR입니다. 예전 참가자 QR은 퇴장을 기록하지 않습니다.',
+      );
+      return;
+    }
+    await exitUser(request);
+  };
+
   const fetchUserData = async (scannedQR: QrScanData) => {
+    if (mode === 'exit') {
+      await handleExit(scannedQR);
+      return;
+    }
     // 종이 QR은 참가자 정보가 없어 표에 넣지 않고 입장 수만 센다
     if (scannedQR.token) {
       await attendPaperQr(scannedQR.token);
@@ -86,6 +109,8 @@ const QRScannerTable = ({ id }: { id: string }) => {
     const handleScan = async () => {
       try {
         await fetchUserData(scannedQR);
+        // 처리한 건수가 바로 보이도록 집계를 다시 읽는다
+        invalidateSummary();
       } catch {
         // 실패 안내는 mutation의 onError가 띄운다
       } finally {
@@ -101,7 +126,17 @@ const QRScannerTable = ({ id }: { id: string }) => {
 
   return (
     <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-y-auto">
-      <ExhibitionCheckInHeader />
+      <div className="flex items-center justify-between gap-16 mobile:flex-col mobile:items-start">
+        <ExhibitionCheckInHeader />
+        <ScanModeToggle mode={mode} onChange={setMode} />
+      </div>
+      {mode === 'exit' && (
+        <p className="break-keep text-body2r text-main-600">
+          퇴장 모드입니다. 스캔한 QR은 퇴장으로 기록되고 아래 표에는 추가되지
+          않습니다.
+        </p>
+      )}
+      <EntrySummaryPanel expoId={id} />
       {paperQrCount > 0 && (
         <p className="text-body2r text-gray-500">
           종이 QR 입장 {paperQrCount}명 (이 화면에서 스캔한 수)
