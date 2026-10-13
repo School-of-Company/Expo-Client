@@ -8,6 +8,10 @@ const FALLBACK_FILE_NAME = 'export.xlsx';
 
 const DEFAULT_ERROR_MESSAGE = '엑셀 파일을 만들지 못했습니다.';
 
+// 브라우저가 응답을 받지 못한 경우. 서버 연결 실패(502·504)는 프록시가 문구를 담아 응답한다
+const NETWORK_ERROR_MESSAGE =
+  '네트워크 연결이 끊겨 파일을 받지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.';
+
 // 클릭 직후 URL 을 해제하면 일부 브라우저가 저장을 시작하기 전에 blob 을 잃는다
 const REVOKE_DELAY_MS = 1_000;
 
@@ -76,7 +80,11 @@ export const downloadExcelFile = async (
     );
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(await readErrorMessage(error.response?.data));
+      throw new Error(
+        error.response
+          ? await readErrorMessage(error.response.data)
+          : NETWORK_ERROR_MESSAGE,
+      );
     }
     throw error;
   }
