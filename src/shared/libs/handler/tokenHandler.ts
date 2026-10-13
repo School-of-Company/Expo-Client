@@ -1,3 +1,4 @@
+import { Readable } from 'stream';
 import { AxiosError } from 'axios';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
@@ -11,6 +12,12 @@ import {
 import { parseRequestData, sendRequest } from './request';
 import { createResponse } from './response';
 import { performTokenRefresh } from './token';
+
+// 읽지 않을 다운로드 오류 스트림은 닫아 연결이 붙잡혀 있지 않게 한다. 재시도는 새 요청으로 새 스트림을 받는다
+const discardBody = (error: AxiosError) => {
+  const data = error.response?.data;
+  if (data instanceof Readable) data.destroy();
+};
 
 export async function tokenHandleRequest(
   req: NextRequest,
@@ -60,6 +67,7 @@ export async function tokenHandleRequest(
     const axiosErr = err as AxiosError;
 
     if (axiosErr.response?.status === 401) {
+      discardBody(axiosErr);
       const newTokens = await performTokenRefresh(refreshToken);
       if (!newTokens) {
         const res = NextResponse.json(
@@ -78,10 +86,11 @@ export async function tokenHandleRequest(
       } catch (err) {
         const axiosErr = err as AxiosError;
         const status = axiosErr.response?.status;
-        // 첫 시도와 같이 처리해야 파일 다운로드의 arraybuffer 오류 본문도 문구로 풀린다
+        // 첫 시도와 같이 처리해야 파일 다운로드의 스트림 오류 본문도 문구로 풀린다
         if (status && status !== 401) {
           return handleError(err);
         }
+        discardBody(axiosErr);
         const res = NextResponse.json(
           {
             error: '토큰 재발급 후 재시도 실패',

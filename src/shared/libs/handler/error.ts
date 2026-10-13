@@ -1,10 +1,37 @@
+import { Readable } from 'stream';
 import axios, { AxiosError } from 'axios';
 import { NextResponse } from 'next/server';
 import { createErrorResponse } from './response';
 import { toServerMessage } from './serverMessage';
 
-// 파일 다운로드 요청은 arraybuffer 로 받으므로 오류 본문 { status, message } 를 직접 해석한다
-const getErrorMessage = (status: number, data: unknown): string | undefined => {
+// 오류 본문은 { status, message } 정도라 이 크기를 넘으면 더 읽지 않는다
+const MAX_ERROR_BODY_BYTES = 64 * 1024;
+
+const readStream = async (stream: Readable) => {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  // 중간에 빠져나오면 for await 가 스트림을 닫아 연결을 돌려준다
+  for await (const chunk of stream) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    chunks.push(buffer);
+    size += buffer.length;
+    if (size > MAX_ERROR_BODY_BYTES) break;
+  }
+  return Buffer.concat(chunks);
+};
+
+// 파일 다운로드 요청은 스트림(또는 arraybuffer)으로 받으므로 오류 본문 { status, message } 를 직접 해석한다
+const getErrorMessage = async (
+  status: number,
+  data: unknown,
+): Promise<string | undefined> => {
+  if (data instanceof Readable) {
+    try {
+      return getErrorMessage(status, await readStream(data));
+    } catch {
+      return toServerMessage(status, undefined);
+    }
+  }
   if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
     try {
       const text = new TextDecoder().decode(data);
@@ -47,7 +74,7 @@ export async function handleError(error: unknown): Promise<NextResponse> {
   const status = axiosError.response?.status || 500;
 
   return createErrorResponse(
-    getErrorMessage(status, axiosError.response?.data) ||
+    (await getErrorMessage(status, axiosError.response?.data)) ||
       '요청 처리 중 오류가 발생했습니다.',
     status,
   );
