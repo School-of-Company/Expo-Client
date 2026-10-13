@@ -4,7 +4,8 @@ import { serverInstance } from '@/shared/libs/http/serverInstance';
 import { toServerMessage } from './serverMessage';
 
 // 참가자 화면이 쓰는 서버 세션 쿠키만 서버로 넘긴다. 관리자 로그인 토큰 쿠키는 공개 요청에 싣지 않는다
-const FORWARDED_COOKIES = ['PARTICIPANT_SESSION', 'XSRF-TOKEN'];
+// JSESSIONID 는 Application 서버 내 일행 조회·취소가 공유하는 세션이다
+const FORWARDED_COOKIES = ['PARTICIPANT_SESSION', 'XSRF-TOKEN', 'JSESSIONID'];
 
 const pickForwardedCookies = (req: NextRequest) =>
   FORWARDED_COOKIES.flatMap((name) => {
@@ -23,6 +24,12 @@ const withSetCookies = (
       ? [setCookie]
       : [];
   values.forEach((value) => response.headers.append('set-cookie', value));
+  return response;
+};
+
+// Application 서버가 응답 헤더로 내려주는 CSRF 토큰을 브라우저로 돌려준다
+const withCsrfToken = (response: NextResponse, token: unknown) => {
+  if (typeof token === 'string') response.headers.set('x-csrf-token', token);
   return response;
 };
 
@@ -47,6 +54,7 @@ export async function baseHandleRequest(
   }
 
   const cookie = pickForwardedCookies(req);
+  const csrfToken = req.headers.get('x-csrf-token');
 
   try {
     const response = await serverInstance.request({
@@ -54,7 +62,10 @@ export async function baseHandleRequest(
       method,
       params,
       data,
-      headers: cookie ? { Cookie: cookie } : undefined,
+      headers: {
+        ...(cookie && { Cookie: cookie }),
+        ...(csrfToken && { 'X-CSRF-TOKEN': csrfToken }),
+      },
     });
 
     const setCookie = response.headers['set-cookie'];
@@ -62,9 +73,12 @@ export async function baseHandleRequest(
       return withSetCookies(new NextResponse(null, { status: 204 }), setCookie);
     }
 
-    return withSetCookies(
-      NextResponse.json(response.data, { status: response.status }),
-      setCookie,
+    return withCsrfToken(
+      withSetCookies(
+        NextResponse.json(response.data, { status: response.status }),
+        setCookie,
+      ),
+      response.headers['x-csrf-token'],
     );
   } catch (error) {
     const axiosError = error as AxiosError;
