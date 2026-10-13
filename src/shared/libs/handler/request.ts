@@ -48,14 +48,22 @@ export async function sendRequest(
   }
 
   const isFileDownload = isFileDownloadRequest(req);
-  const responseType: ResponseType = isFileDownload ? 'arraybuffer' : 'json';
+  // 파일은 메모리에 모으지 않고 받는 대로 브라우저로 흘려보낸다
+  const responseType: ResponseType = isFileDownload ? 'stream' : 'json';
 
   return await serverInstance.request({
     url,
     method: req.method as AxiosRequestConfig['method'],
     data: requestData,
     responseType,
-    headers: headers as AxiosRequestConfig['headers'],
-    ...(isFileDownload && { timeout: FILE_DOWNLOAD_TIMEOUT_MS }),
+    headers: {
+      ...headers,
+      // 압축을 풀면 Content-Length 가 실제 본문과 달라지므로 원본 그대로 받는다(XLSX 는 이미 zip 이다)
+      ...(isFileDownload && { 'Accept-Encoding': 'identity' }),
+    } as AxiosRequestConfig['headers'],
+    ...(isFileDownload && {
+      timeout: FILE_DOWNLOAD_TIMEOUT_MS,
+      decompress: false,
+    }),
   });
 }
