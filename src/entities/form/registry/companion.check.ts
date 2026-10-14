@@ -1,9 +1,12 @@
 /**
- * 자체 점검: `JITI_ALIAS="{\"@\":\"$PWD/src\"}" npx jiti src/entities/form/registry/companion.check.ts`
+ * 자체 점검: `JITI_JSX=1 JITI_ALIAS="{\"@\":\"$PWD/src\"}" npx jiti src/entities/form/registry/companion.check.ts`
  */
 import assert from 'node:assert/strict';
-import { companionModel, type CompanionValue } from './companion';
-import type { DynamicFormItem } from '@/shared/types/application/type';
+import { companionField } from './companion';
+import type {
+  Companion,
+  DynamicFormItem,
+} from '@/shared/types/application/type';
 
 const item = (
   requiredStatus: boolean,
@@ -17,81 +20,76 @@ const item = (
   otherJson:
     maxSelection === undefined ? null : { hasEtc: false, maxSelection },
 });
-const person = (patch: Partial<CompanionValue> = {}): CompanionValue => ({
+const person = (patch: Partial<Companion> = {}): Companion => ({
   name: '홍길동',
   occupation: 'GENERAL',
-  region: { sido: '광주광역시', sigungu: '북구' },
+  region: 'GWANGJU',
   ...patch,
 });
-const { validate, serialize } = companionModel;
+const { validate, toAnswer, defaultValue } = companionField;
 
-// 인원: 필수면 최소 1명, 최대는 maxSelection(없으면 4)
-assert.equal(validate([], item(true)), '동행자을(를) 1명 이상 추가해주세요');
-assert.equal(validate(undefined, item(false)), true);
+assert.deepEqual(defaultValue(item(false)), []);
+
+// 인원: 필수면 최소 1명, 최대는 maxSelection(없으면 4)이고 4를 넘지 않는다
+assert.equal(validate(item(true), [], ''), '동행자를 1명 이상 추가해주세요');
+assert.equal(validate(item(false), [], ''), undefined);
 assert.equal(
-  validate([person(), person()], item(false, 1)),
+  validate(item(false, 1), [person(), person()], ''),
   '동행자는 최대 1명입니다',
 );
+assert.equal(validate(item(false), Array(4).fill(person()), ''), undefined);
 assert.equal(
-  validate(Array(5).fill(person()), item(false)),
-  '동행자는 최대 4명입니다',
-);
-assert.equal(validate(Array(4).fill(person()), item(false)), true);
-// 폼 정의가 4명을 넘겨도 서버 상한 4명을 따른다
-assert.equal(
-  validate(Array(5).fill(person()), item(false, 10)),
+  validate(item(false, 10), Array(5).fill(person()), ''),
   '동행자는 최대 4명입니다',
 );
 
 // 사람별 항목
 assert.equal(
-  validate([person({ name: '  ' })], item(false)),
-  '동행자 1: 동행자 이름을 입력해주세요',
+  validate(item(false), [person({ name: '  ' })], ''),
+  '동행자 1: 이름을 입력해주세요',
 );
 assert.equal(
-  validate([person(), person({ occupation: '' })], item(false)),
+  validate(item(false), [person(), person({ occupation: '' })], ''),
   '동행자 2: 구분을 선택해주세요',
 );
 assert.equal(
-  validate(
-    [person({ region: { sido: '광주광역시', sigungu: '' } })],
-    item(false),
-  ),
-  '동행자 1: 시/군/구를 선택해주세요',
+  validate(item(false), [person({ region: '' })], ''),
+  '동행자 1: 지역을 선택해주세요',
 );
 // 소속은 교사·예비교사만
 assert.equal(
-  validate([person({ occupation: 'TEACHER' })], item(false)),
+  validate(item(false), [person({ occupation: 'TEACHER' })], ''),
   '동행자 1: 소속을 입력해주세요',
 );
 assert.equal(
-  validate([person({ occupation: 'TEACHER', school: '광주초' })], item(false)),
-  true,
+  validate(
+    item(false),
+    [person({ occupation: 'TEACHER', school: '광주초' })],
+    '',
+  ),
+  undefined,
 );
 
-// 직렬화: 공백 제거, 지역 문자열, 필요 없는 소속 제거
+// 답변: 공백 제거, 필요 없는 소속 제거, 0명이면 뺀다
 assert.deepEqual(
-  serialize(
+  toAnswer(
+    item(false),
     [
       person({ name: ' 홍길동 ', occupation: 'TEACHER', school: ' 광주초 ' }),
-      person({
-        name: '김일반',
-        school: '남은 값',
-        region: { sido: '세종특별자치시', sigungu: '' },
-      }),
+      person({ name: '김일반', school: '남은 값', region: 'OTHER' }),
     ],
-    item(false),
+    '',
   ),
   [
     {
       name: '홍길동',
       occupation: 'TEACHER',
-      region: '광주광역시 북구',
+      region: 'GWANGJU',
       school: '광주초',
     },
-    { name: '김일반', occupation: 'GENERAL', region: '세종특별자치시' },
+    { name: '김일반', occupation: 'GENERAL', region: 'OTHER' },
   ],
 );
-assert.deepEqual(serialize(undefined, item(false)), []);
+assert.equal(toAnswer(item(false), [], ''), undefined);
 
 console.log('companion.check: ok');
