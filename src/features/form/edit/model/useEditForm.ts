@@ -25,9 +25,6 @@ export const useEditApplicationForm = (
       queryClient.invalidateQueries({
         queryKey: [...formKeys.expo(id), type],
       });
-      queryClient.invalidateQueries({
-        queryKey: ['getEditApplicationForm', id, type],
-      });
       router.push(`/exhibition/detail/${id}`);
     },
     onError: (error: Error) => {
@@ -50,9 +47,6 @@ export const useEditSurveyForm = (
       toast.success('만족도 조사 폼이 수정되었습니다.');
       queryClient.invalidateQueries({
         queryKey: surveyKeys.detail(id, type),
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['getEditSurveyForm', id, type],
       });
       router.push(`/exhibition/detail/${id}`);
     },
