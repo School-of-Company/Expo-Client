@@ -1,12 +1,12 @@
 /**
- * 자체 점검: `JITI_ALIAS="{\"@\":\"$PWD/src\"}" npx jiti src/entities/form/registry/image.check.ts`
+ * 자체 점검: `JITI_JSX=1 JITI_ALIAS="{\"@\":\"$PWD/src\"}" npx jiti src/entities/form/registry/image.check.ts`
  */
 import assert from 'node:assert/strict';
 import {
   IMAGE_MAX_BYTES,
   IMAGE_UPLOADING,
   checkImageFile,
-  imageModel,
+  imageField,
 } from './image';
 import type { DynamicFormItem } from '@/shared/types/application/type';
 
@@ -18,30 +18,36 @@ const item = (requiredStatus: boolean): DynamicFormItem => ({
   requiredStatus,
   otherJson: null,
 });
-const { validate, serialize } = imageModel;
+const { validate, toAnswer } = imageField;
 
 // 파일 검사
-assert.equal(checkImageFile({ name: 'a.PNG', size: 1 }), true);
-assert.equal(checkImageFile({ name: 'a.webp', size: IMAGE_MAX_BYTES }), true);
-assert.notEqual(checkImageFile({ name: 'a.gif', size: 1 }), true);
-assert.notEqual(checkImageFile({ name: 'noext', size: 1 }), true);
+assert.equal(checkImageFile({ name: 'a.PNG', size: 1 }), undefined);
+assert.equal(
+  checkImageFile({ name: 'a.webp', size: IMAGE_MAX_BYTES }),
+  undefined,
+);
+assert.notEqual(checkImageFile({ name: 'a.gif', size: 1 }), undefined);
+assert.notEqual(checkImageFile({ name: 'noext', size: 1 }), undefined);
 assert.notEqual(
   checkImageFile({ name: 'a.jpg', size: IMAGE_MAX_BYTES + 1 }),
-  true,
+  undefined,
 );
 
 // 필수·업로드 중
-assert.equal(validate(undefined, item(true)), '이미지를 올려주세요');
-assert.equal(validate('', item(false)), true);
+assert.equal(validate(item(true), '', ''), '이미지를 올려주세요');
+assert.equal(validate(item(false), '', ''), undefined);
 assert.equal(
-  validate(IMAGE_UPLOADING, item(false)),
+  validate(item(false), IMAGE_UPLOADING, ''),
   '이미지를 업로드하는 중입니다',
 );
-assert.equal(validate('https://cdn/a.png', item(true)), true);
+assert.equal(validate(item(true), 'https://cdn/a.png', ''), undefined);
 
-// 직렬화
-assert.equal(serialize('https://cdn/a.png', item(true)), 'https://cdn/a.png');
-assert.equal(serialize(IMAGE_UPLOADING, item(true)), undefined);
-assert.equal(serialize('', item(false)), undefined);
+// 답변: 빈 값·업로드 중이면 뺀다(Form이 빈 문자열을 거부한다)
+assert.equal(
+  toAnswer(item(true), 'https://cdn/a.png', ''),
+  'https://cdn/a.png',
+);
+assert.equal(toAnswer(item(true), IMAGE_UPLOADING, ''), undefined);
+assert.equal(toAnswer(item(false), '', ''), undefined);
 
 console.log('image.check: ok');
