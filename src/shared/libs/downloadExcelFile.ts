@@ -32,9 +32,11 @@ export const getFileName = (
       return fallback;
     }
   }
-  // 리포트 서버는 한글 이름을 filename* 로 보내므로 filename= 에는 ASCII 이름만 온다
+  // 리포트 서버는 한글 이름을 filename* 로 보내므로 filename= 에는 ASCII 이름만 온다.
+  // 서버 배포 전처럼 한글이 '?'·대체 문자로 깨져 오면 원래 이름을 알 수 없으니 기본 이름을 쓴다
   const plain = contentDisposition.match(/filename="?([^";]+)"?/i)?.[1];
-  return (plain && sanitizeFileName(plain)) || fallback;
+  const name = plain && sanitizeFileName(plain);
+  return !name || /[?\uFFFD]/.test(name) ? fallback : name;
 };
 
 /** 오류 응답도 blob 으로 오므로 JSON { status, message } 를 읽어 서버 문구를 꺼낸다 */
