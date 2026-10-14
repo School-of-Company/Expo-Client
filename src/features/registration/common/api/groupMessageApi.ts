@@ -14,6 +14,8 @@ export interface GroupMessageFilter {
   programType?: ProgramSessionType;
   programId?: number;
   status: AdminApplicationStatus | null;
+  /** 제출 당시 제목 */
+  search?: string;
   q?: string;
   occupation?: AdminOccupation;
   sort: AdminApplicationSort;
