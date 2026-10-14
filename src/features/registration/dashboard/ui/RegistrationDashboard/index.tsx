@@ -25,6 +25,8 @@ import {
   preregisterSummaryQueryKey,
   usePreregisterSummary,
 } from '../../../common/model/preregisterSummary';
+import { activeQrQueryKey } from '../../model/activeQr';
+import { applicationPageViewsQueryKey } from '../../model/applicationPageViews';
 import {
   countOpenSessions,
   groupSessionsByProgram,
@@ -33,7 +35,6 @@ import MonitoringCards from '../MonitoringCards';
 import PreregisterBanner from '../PreregisterBanner';
 import PreregisterSessionTable from '../PreregisterSessionTable';
 import ProgramStatusTable from '../ProgramStatusTable';
-import QuickActions from '../QuickActions';
 import RecentLedgerTable from '../RecentLedgerTable';
 import SessionStatusTable from '../SessionStatusTable';
 import SummaryCards from '../SummaryCards';
@@ -87,13 +88,11 @@ const SectionLoading = () => (
 
 interface RegistrationDashboardProps {
   /** 다른 기능의 요약 영역. 화면(view)에서 넣어 준다 */
-  attendance?: ReactNode;
   recentActivity?: ReactNode;
 }
 
 /** 보는 정보는 이 화면에 모으고, 입력·발송·인쇄 같은 작업은 각 화면으로 보낸다 */
 const RegistrationDashboard = ({
-  attendance,
   recentActivity,
 }: RegistrationDashboardProps) => {
   const queryClient = useQueryClient();
@@ -121,6 +120,8 @@ const RegistrationDashboard = ({
         preregisterSummaryQueryKey(expoId),
         scheduleQueryKeys.sessions(expoId),
         ['adminApplicationActivities', expoId],
+        applicationPageViewsQueryKey(expoId),
+        activeQrQueryKey(expoId),
       ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
     );
 
@@ -147,7 +148,6 @@ const RegistrationDashboard = ({
             hasError={queries.some(({ isError }) => isError)}
           />
         </div>
-        <QuickActions />
         <SummaryCards
           expoId={expoId}
           programCount={programCount}
@@ -171,16 +171,6 @@ const RegistrationDashboard = ({
         </p>
       </div>
 
-      {attendance && (
-        <Section
-          title="실시간 입·퇴장"
-          description="행사장 입장·퇴장 처리 건수입니다. 10초마다 갱신합니다."
-          href={routes.attendance}
-        >
-          {attendance}
-        </Section>
-      )}
-
       <div className="grid grid-cols-[2fr_1fr] gap-[32px] tablet:grid-cols-1">
         <Section
           title="프로그램별 신청 현황"
@@ -196,9 +186,7 @@ const RegistrationDashboard = ({
               onRetry={() => preregister.refetch()}
             />
           ) : (
-            preregister.data && (
-              <PreregisterBanner expoId={expoId} summary={preregister.data} />
-            )
+            preregister.data && <PreregisterBanner summary={preregister.data} />
           )}
           <SegmentTabs
             ariaLabel="신청 현황 보기"

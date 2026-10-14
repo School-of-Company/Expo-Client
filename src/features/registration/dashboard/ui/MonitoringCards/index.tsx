@@ -1,10 +1,6 @@
-import { MockDataBadge } from '@/shared/ui';
 import { StatCard } from '../../../common';
-import { ACTIVE_QR_ISSUE, useActiveQrSummary } from '../../mock/activeQr';
-import {
-  APPLICATION_TRAFFIC_ISSUE,
-  useApplicationTraffic,
-} from '../../mock/applicationTraffic';
+import { useActiveQrSummary } from '../../model/activeQr';
+import { useApplicationPageViews } from '../../model/applicationPageViews';
 
 interface MonitoringCardsProps {
   expoId: string;
@@ -19,9 +15,13 @@ const MonitoringCards = ({
   openSessionCount,
   closedSessionCount,
 }: MonitoringCardsProps) => {
-  const traffic = useApplicationTraffic(expoId);
-  const activeQr = useActiveQrSummary(expoId);
-  const trafficBadge = <MockDataBadge issue={APPLICATION_TRAFFIC_ISSUE} />;
+  const { data: pageViews, isError: isPageViewsError } =
+    useApplicationPageViews(expoId);
+  const { data: activeQr, isError: isActiveQrError } =
+    useActiveQrSummary(expoId);
+  // 불러오지 못하면 '-' 로 두고 이유는 보조 문구로 알린다
+  const formatCount = (value?: number) => value?.toLocaleString() ?? '-';
+  const pageViewsError = isPageViewsError && !pageViews;
 
   return (
     <div className="grid grid-cols-1 gap-12 mobile:!grid-cols-1 tablet:grid-cols-2">
@@ -34,24 +34,33 @@ const MonitoringCards = ({
       />
       <StatCard
         label="오늘 신청화면 조회 (PV)"
-        value={traffic.today.pageViews.toLocaleString()}
+        value={formatCount(pageViews?.today.pageViews)}
         unit="회"
-        sub={`고유 접속 ${traffic.today.uniqueVisitors.toLocaleString()}명 (UV)`}
-        badge={trafficBadge}
+        sub={
+          pageViewsError
+            ? '조회 수를 불러오지 못했습니다.'
+            : `고유 방문(참고) ${formatCount(pageViews?.today.uniqueVisitors)}명 (UV)`
+        }
       />
       <StatCard
         label="누적 신청화면 조회"
-        value={traffic.total.pageViews.toLocaleString()}
+        value={formatCount(pageViews?.totalPageViews)}
         unit="회"
-        sub={`일별 UV 누적 ${traffic.total.uniqueVisitors.toLocaleString()}명`}
-        badge={trafficBadge}
+        sub={
+          pageViewsError
+            ? '조회 수를 불러오지 못했습니다.'
+            : `일별 UV 누적 ${formatCount(pageViews?.totalDailyVisitors)}명`
+        }
       />
       <StatCard
         label="활성 QR"
-        value={activeQr.activeCount.toLocaleString()}
+        value={formatCount(activeQr?.active)}
         unit="개"
-        sub="인쇄 QR 중 사용 중지하지 않은 수"
-        badge={<MockDataBadge issue={ACTIVE_QR_ISSUE} />}
+        sub={
+          isActiveQrError && !activeQr
+            ? '발급 현황을 불러오지 못했습니다.'
+            : `인쇄 QR 중 사용 중 · 중지 ${formatCount(activeQr?.revoked)}개`
+        }
       />
     </div>
   );

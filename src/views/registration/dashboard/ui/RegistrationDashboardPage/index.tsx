@@ -1,7 +1,6 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { AttendanceOverview } from '@/features/registration/attendance';
 import { RegistrationDashboard } from '@/features/registration/dashboard';
 import { RecentActivityList } from '@/features/registration/history';
 import { Header } from '@/widgets/layout';
@@ -16,7 +15,6 @@ const RegistrationDashboardPage = () => {
       <RegistrationTabs />
       <div className="flex flex-1 justify-center p-16">
         <RegistrationDashboard
-          attendance={<AttendanceOverview />}
           recentActivity={<RecentActivityList expoId={expoId} />}
         />
       </div>
