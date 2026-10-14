@@ -124,7 +124,9 @@ const GroupMessageModal = ({
       ? '보낼 신청을 선택해주세요.'
       : scope === 'SELECTED' && selectedRows.length > GROUP_MESSAGE_SELECTED_MAX
         ? `선택 신청은 최대 ${GROUP_MESSAGE_SELECTED_MAX}건까지 보낼 수 있습니다.`
-        : null;
+        : scope === 'FILTERED' && filterCount === 0
+          ? '현재 필터에 맞는 신청이 없습니다.'
+          : null;
 
   const previewMutation = useMutation({
     mutationFn: () => postGroupMessagePreview(expoId, source),
