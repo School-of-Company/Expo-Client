@@ -8,7 +8,6 @@ import { transformServerData } from '@/features/form/edit';
 import { useRegistrationExpo } from '@/features/registration/common';
 import { ArrowLeft, XMark } from '@/shared/assets/icons';
 import { withLoading } from '@/shared/hocs';
-import { ApplicationForm } from '@/shared/types/application/type';
 import { FormValues, SurveyFormRequest } from '@/shared/types/form/create/type';
 import { Button } from '@/shared/ui';
 import { ModalLayout } from '@/widgets/layout';
@@ -131,12 +130,7 @@ const SurveyManager = () => {
                 type={type}
                 mode="survey"
                 defaultValues={
-                  survey
-                    ? transformServerData(
-                        survey as unknown as ApplicationForm,
-                        'survey',
-                      )
-                    : undefined
+                  survey ? transformServerData(survey, 'survey') : undefined
                 }
                 onSubmit={handleSubmit}
                 isLoading={save.isPending}

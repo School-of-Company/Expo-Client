@@ -23,10 +23,15 @@ import type { FormParticipantType } from '@/entities/form/model/types';
 export const useSurveyQuery = (
   expoId: string,
   participationType: FormParticipantType,
+  {
+    enabled = true,
+    admin = false,
+  }: { enabled?: boolean; admin?: boolean } = {},
 ) =>
   useQuery({
-    queryKey: surveyKeys.detail(expoId, participationType),
-    queryFn: () => getSurvey(expoId, participationType),
+    queryKey: [...surveyKeys.detail(expoId, participationType), { admin }],
+    queryFn: () => getSurvey(expoId, participationType, { admin }),
+    enabled,
   });
 
 export const useCreateSurveyMutation = (expoId: string) => {

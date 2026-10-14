@@ -1,9 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { toast } from 'react-toastify';
-import { CreateSurveyRequestDto, updateSurvey } from '@/entities/survey';
+import { formKeys, updateForm, UpdateFormRequestDto } from '@/entities/form';
+import {
+  CreateSurveyRequestDto,
+  surveyKeys,
+  updateSurvey,
+} from '@/entities/survey';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
-import { editApplicationForm } from '../api/editApplicationForm';
 
 export const useEditApplicationForm = (
   id: string,
@@ -15,17 +19,11 @@ export const useEditApplicationForm = (
   return useMutation({
     mutationKey: ['editApplicationForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
-      editApplicationForm({
-        data: formattedData,
-        id,
-      }),
+      updateForm(id, formattedData as UpdateFormRequestDto),
     onSuccess: () => {
       toast.success('박람회 등록 폼이 수정되었습니다.');
       queryClient.invalidateQueries({
-        queryKey: ['getApplicationForm', id, type],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['getEditApplicationForm', id, type],
+        queryKey: [...formKeys.expo(id), type],
       });
       router.push(`/exhibition/detail/${id}`);
     },
@@ -48,10 +46,7 @@ export const useEditSurveyForm = (
     onSuccess: () => {
       toast.success('만족도 조사 폼이 수정되었습니다.');
       queryClient.invalidateQueries({
-        queryKey: ['getSurveyForm', id, type],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['getEditSurveyForm', id, type],
+        queryKey: surveyKeys.detail(id, type),
       });
       router.push(`/exhibition/detail/${id}`);
     },
