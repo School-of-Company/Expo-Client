@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
-import { DetailHeader, MockDataBadge, NavigationBar } from '@/shared/ui';
+import { MockDataBadge, NavigationBar } from '@/shared/ui';
 import SmallButton from '@/shared/ui/SmallButton';
 import {
   RefreshStatus,
@@ -136,8 +136,6 @@ const ApplicationLedger = () => {
     isLoading: isLoading && !data,
     children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px] overflow-y-auto">
-        <DetailHeader textCenter headerTitle="접수 관리대장" />
-
         <div className="space-y-16">
           <div className="flex flex-wrap items-center justify-between gap-12">
             <RefreshStatus

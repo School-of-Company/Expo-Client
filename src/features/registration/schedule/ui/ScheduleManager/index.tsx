@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { withLoading } from '@/shared/hocs';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
-import { Button, DetailHeader } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 import {
   deletePreregisterSession,
   patchPreregisterSession,
@@ -194,8 +194,6 @@ const ScheduleManager = () => {
           isAsideOpen ? 'max-w-[1200px]' : ''
         }`}
       >
-        <DetailHeader textCenter headerTitle="일정·모집 제어" />
-
         {error ? (
           <SectionError
             message={error.message}
