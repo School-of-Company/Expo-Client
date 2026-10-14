@@ -9,26 +9,35 @@ import {
   createSurvey,
   CreateSurveyRequestDto,
   deleteSurvey,
+  getSurvey,
   surveyKeys,
   updateSurvey,
 } from '@/entities/survey';
-import { getSurvey } from '../api/getSurvey';
+import { getErrorStatus } from '@/shared/libs/http/apiError';
 
 type ParticipationType = 'STANDARD' | 'TRAINEE';
 
+// useSurveyQuery 의 { admin } 와 같은 모양으로 두되 키를 나눈다. 이쪽은 설문이 없으면(404) null 을 캐시에 두기 때문이다.
+const adminSurveyKey = (expoId: string, type: ParticipationType) =>
+  [
+    ...surveyKeys.detail(expoId, type),
+    { admin: true, nullOn404: true },
+  ] as const;
+
+/** 관리자 화면용 설문 조회. 설문이 아직 없으면(404) null 을 돌려준다. */
 export const useSurvey = (expoId: string, type: ParticipationType) =>
   useQuery({
-    queryKey: surveyKeys.detail(expoId, type),
-    queryFn: () => getSurvey(expoId, type),
+    queryKey: adminSurveyKey(expoId, type),
+    queryFn: () =>
+      getSurvey(expoId, type, { admin: true }).catch((error) => {
+        if (getErrorStatus(error) === 404) return null;
+        throw error;
+      }),
   });
 
-/** 설문·공개 설문·추첨(surveyKeys.expo)과 응답 화면, 참가자 폼 목록 캐시를 비운다. */
+/** 설문·공개 설문·추첨·응답 화면과 참가자 폼 목록(모두 surveyKeys.expo 아래) 캐시를 비운다. */
 const invalidateSurveyViews = (queryClient: QueryClient, expoId: string) => {
   queryClient.invalidateQueries({ queryKey: surveyKeys.expo(expoId) });
-  queryClient.invalidateQueries({ queryKey: ['getSurveyForm', expoId] });
-  queryClient.invalidateQueries({
-    queryKey: ['applicationFormEntry', expoId],
-  });
 };
 
 // type·isEdit 는 mutate 인자로 받는다. 진행 중에 탭을 옮겨도 onSuccess 가 요청 당시 탭을 쓰게 하려고.
@@ -60,7 +69,7 @@ export const useDeleteSurvey = (expoId: string) => {
     mutationFn: (type: ParticipationType) => deleteSurvey(expoId, type),
     onSuccess: (_, type) => {
       toast.success('만족도 조사를 삭제했습니다.');
-      queryClient.setQueryData(surveyKeys.detail(expoId, type), null);
+      queryClient.setQueryData(adminSurveyKey(expoId, type), null);
       invalidateSurveyViews(queryClient, expoId);
     },
     onError: (error: Error) => toast.error(error.message),

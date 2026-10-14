@@ -6,8 +6,16 @@ export interface PreRegisterCapacity {
   sessionId: number;
   /** 남은 자리 */
   remaining: number;
-  /** 1회 신청 최대 인원(대표자 포함) */
+  /** 확정으로 받는 1회 신청 최대 인원(대표자 포함) */
   maxApplicants: number;
+  /** 대기 도입 이후 서버가 주는 값. 구형 응답에는 없다. */
+  confirmed?: number;
+  waiting?: number;
+  /**
+   * 대기로 받는 1회 신청 최대 인원(대표자 포함). 확정 자리가 모자라면 일행 전체가 대기로 접수된다.
+   * 내려주지 않으면 0(대기 불가)으로 본다.
+   */
+  maxWaitingApplicants?: number;
 }
 
 const CAPACITY_ERRORS: Record<number, string> = {

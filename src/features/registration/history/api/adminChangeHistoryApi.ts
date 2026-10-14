@@ -1,7 +1,7 @@
 import { toApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
-// Expo-Expo-Server 행사별 모집·회차 변경 처리 이력 (GET /expo/{expo_id}/admin-change-history)
+// 행사별 모집·회차 변경 처리 이력 (Application GET /application/admin/expos/{expoId}/recruitment-history)
 export type AdminChangeType =
   | 'PROGRAM_CREATE'
   | 'PROGRAM_UPDATE'
@@ -54,7 +54,7 @@ export const getAdminChangeHistory = async (
 ): Promise<AdminChangeHistoryPage> => {
   try {
     const response = await clientTokenInstance.get(
-      `/expo/${encodeURIComponent(expoId)}/admin-change-history`,
+      `/application/admin/expos/${encodeURIComponent(expoId)}/recruitment-history`,
       { params: compactParams(query) },
     );
     return response.data;

@@ -1,27 +1,21 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
+import { useFormQuery } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
-import { useGetApplicationForm } from '@/shared/queries';
 import {
-  ApplicationForm,
   DynamicFormValues,
-  FormattedApplicationData,
 } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { DetailHeader, Button } from '@/shared/ui';
-import {
-  createIdempotencyKey,
-  postApplication,
-} from '../../api/postApplication';
-import { postTrainingProgramSelection } from '../../api/postTrainingProgramSelection';
-import { extractTrainingProgramData } from '../../lib/extractTrainingProgramData';
+import { postApplication } from '../../api/postApplication';
+import { createSubmissionKeys } from '../../lib/createSubmissionKeys';
 import { getFormatter } from '../../lib/formatterService';
 
 const ApplicationFormContainer = ({ params }: { params: string }) => {
@@ -35,13 +29,11 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     data: formList,
     isLoading,
     error,
-  } = useGetApplicationForm(params, userType, applicationType) as {
-    data: ApplicationForm | undefined;
-    isLoading: boolean;
-    error: Error | null;
-  };
+  } = useFormQuery(params, userType, applicationType);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // 같은 내용의 재제출(연타·네트워크 재시도)은 같은 Idempotency-Key 로 보낸다
+  const submissionKeys = useRef(createSubmissionKeys());
 
   const formSchema = useMemo(() => {
     if (!formList) return null;
@@ -81,25 +73,14 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         return;
       }
 
-      if (userType === 'TRAINEE' && applicationType === 'PRE') {
-        const trainingProgramData = await extractTrainingProgramData(
-          dynamicFormValues,
-          allQuestions,
-          params,
-          formattedData as FormattedApplicationData,
-        );
-
-        await postTrainingProgramSelection(params, trainingProgramData);
-      } else {
-        await postApplication(
-          params,
-          'application',
-          userType,
-          applicationType,
-          formattedData,
-          createIdempotencyKey(),
-        );
-      }
+      await postApplication(
+        params,
+        'application',
+        userType,
+        applicationType,
+        formattedData,
+        submissionKeys.current.keyFor(JSON.stringify(formattedData)),
+      );
       router.push(
         `/application/success/${params}?userType=${userType}&formType=application`,
       );

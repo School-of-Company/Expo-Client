@@ -7,7 +7,10 @@ import type {
 
 /** 서버의 위치·키 참조를 빌더 내부의 UUID 참조로 바꾼다. `formUtils.toOtherJson`의 역방향. */
 export const transformServerData = (
-  data: ApplicationForm,
+  data: Pick<
+    ApplicationForm,
+    'title' | 'informationText' | 'dynamicForm' | 'dynamicSurveyResponseDto'
+  >,
   mode: 'application' | 'survey',
 ): FormValues => {
   const items =

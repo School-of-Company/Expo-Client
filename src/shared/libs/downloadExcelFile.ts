@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import { toServerMessage } from '@/shared/libs/handler/serverMessage';
+import { ApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
 const XLSX_CONTENT_TYPE =
@@ -91,11 +92,12 @@ export const downloadExcelFile = async (
     return true;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response
-          ? await readErrorMessage(error.response.data, error.response.status)
-          : NETWORK_ERROR_MESSAGE,
-      );
+      throw error.response
+        ? new ApiError(
+            await readErrorMessage(error.response.data, error.response.status),
+            error.response.status,
+          )
+        : new Error(NETWORK_ERROR_MESSAGE);
     }
     throw error;
   }

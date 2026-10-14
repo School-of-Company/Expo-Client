@@ -3,22 +3,28 @@
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
+import { useFormQuery } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
-import { useGetApplicationForm } from '@/shared/queries/useGetApplicationForm';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
 import {
-  createIdempotencyKey,
+  ApplicationSubmitError,
+  ApplicationWaitResult,
   postApplication,
 } from '../../../api/postApplication';
+import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
-import { getApplicantLimit, getCompanionLimit } from '../../model/sessionSeats';
+import {
+  getApplicantLimit,
+  getCompanionLimit,
+  isWaitingParty,
+} from '../../model/sessionSeats';
 import { usePreRegisterCapacity } from '../../model/usePreRegister';
 
 /**
@@ -38,12 +44,14 @@ const PreRegisterContainer = ({
     data: form,
     isLoading,
     error,
-  } = useGetApplicationForm(expoId, 'STANDARD', 'PRE');
+  } = useFormQuery(expoId, 'STANDARD', 'PRE');
   const { data: capacity, error: sessionError } = usePreRegisterCapacity(
     expoId,
     sessionId,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // 같은 내용을 다시 보내면(연타·네트워크 재시도·오류 뒤 재제출) 같은 키로 보낸다
+  const submissionKeys = useRef(createSubmissionKeys());
 
   const questions = useMemo(() => form?.dynamicForm ?? [], [form]);
   const schema = useMemo(
@@ -73,18 +81,38 @@ const PreRegisterContainer = ({
         questions,
         'PRE',
       )(data as DynamicFormValues & { privacyConsent: boolean });
-      await postApplication(
+      const payload = { ...formatted, ...(sessionId && { sessionId }) };
+      const result: ApplicationWaitResult | undefined = await postApplication(
         expoId,
         'application',
         'STANDARD',
         'PRE',
-        { ...formatted, ...(sessionId && { sessionId }) },
-        createIdempotencyKey(),
+        payload,
+        submissionKeys.current.keyFor(JSON.stringify(payload)),
       );
+      // 202 PROCESSING: 대기에서 승급되는 중이다. 같은 키로 다시 눌러 결과를 확인한다
+      if (result?.status === 'PROCESSING') {
+        toast.info(
+          '신청을 처리하고 있습니다. 잠시 후 다시 눌러 결과를 확인해주세요.',
+        );
+        return;
+      }
+      submissionKeys.current.reset();
+      // 서버가 대기로 접수하면(202) 확정이 아니므로 성공 페이지가 대기 접수와 순번을 안내한다
+      const waiting =
+        result?.status === 'WAITING'
+          ? `&status=${result.status}${result.position ? `&position=${encodeURIComponent(result.position)}` : ''}`
+          : '';
       router.push(
-        `/application/success/${expoId}?userType=STANDARD&formType=application`,
+        `/application/success/${expoId}?userType=STANDARD&formType=application${waiting}`,
       );
     } catch (submitError) {
+      // 취소한 대기의 같은 키 재전송은 거절된다. 다시 신청하려면 새 키가 필요하다
+      if (
+        submitError instanceof ApplicationSubmitError &&
+        submitError.code === 'WAITLIST_WITHDRAWN'
+      )
+        submissionKeys.current.reset();
       toast.error(
         submitError instanceof Error
           ? submitError.message
@@ -135,15 +163,17 @@ const PreRegisterContainer = ({
             <p
               className={`text-body2b ${canApply ? 'text-main-600' : 'text-error'}`}
             >
-              {canApply
-                ? `현재 남은 자리 ${capacity.remaining.toLocaleString()}명`
-                : '신청 마감'}
+              {!canApply
+                ? '신청 마감'
+                : capacity.remaining > 0
+                  ? `현재 남은 자리 ${capacity.remaining.toLocaleString()}명`
+                  : '정원 마감 · 대기 신청 가능'}
             </p>
             {canApply && (
               <p className="text-caption1r text-gray-600">
-                1회 최대 {capacity.maxApplicants.toLocaleString()}명, 대표자를
-                포함해 {applicantLimit?.toLocaleString()}명까지 신청할 수
-                있습니다.
+                대표자를 포함해 {applicantLimit?.toLocaleString()}명까지 신청할
+                수 있습니다. 한 일행은 나뉘지 않고 모두 확정되거나 모두 대기로
+                접수됩니다.
               </p>
             )}
             <p className="text-caption1r text-gray-500">
@@ -168,6 +198,11 @@ const PreRegisterContainer = ({
                 applicantLimit !== undefined &&
                 companionCount + 1 > applicantLimit;
 
+              const willWait =
+                !!capacity &&
+                !isOverCapacity &&
+                isWaitingParty(capacity, companionCount + 1);
+
               return (
                 <div className="mt-48 flex flex-col gap-30">
                   <PrivacyConsent
@@ -175,6 +210,13 @@ const PreRegisterContainer = ({
                     watch={methods.watch}
                     setValue={methods.setValue}
                   />
+                  {willWait && (
+                    <p className="text-body2b text-main-600">
+                      이 인원은 확정 자리가 부족해 일행 전체가 대기로
+                      접수됩니다. 대기는 자리가 나야 확정되며 최종 판정은 제출할
+                      때 서버가 합니다.
+                    </p>
+                  )}
                   {isOverCapacity && (
                     <p className="text-body2r text-error">
                       이번에 신청할 수 있는 인원은 대표자를 포함해{' '}
