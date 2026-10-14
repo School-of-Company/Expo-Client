@@ -84,7 +84,7 @@ const image: DynamicFormItem = {
 
 const items = [name, phone, motive, occupation, school, agree, image];
 
-// 항상 선택 선택지는 기본값에 들어가고, 렌더러 없는 문항(IMAGE)은 빠진다
+// 항상 선택 선택지는 기본값에 들어간다
 assert.deepEqual(getDefaultValues(items), {
   '1': '',
   '2': '',
@@ -92,6 +92,7 @@ assert.deepEqual(getDefaultValues(items), {
   '4': '',
   '5': '',
   '6': false,
+  '7': '',
 });
 
 // 보이는 필수 문항만 검증한다. 학교는 직업이 교사가 아니라 숨겨져 빠진다
@@ -99,6 +100,7 @@ assert.deepEqual(Object.keys(validateForm(items, getDefaultValues(items))), [
   '1',
   '2',
   '4',
+  '7',
 ]);
 
 // 전화번호 형식, 최대 선택 수, 고정 선택지 해제, 기타 문구 누락
@@ -115,6 +117,7 @@ assert.deepEqual(
     '2': '휴대폰 번호 형식이 올바르지 않습니다',
     '3': '고정된 선택지는 해제할 수 없습니다',
     '4': '기타 내용을 입력해주세요',
+    '7': '이미지를 올려주세요',
   },
 );
 assert.equal(
@@ -132,7 +135,7 @@ assert.deepEqual(
     '4': 'PARENT',
     '5': '남은 입력',
     '6': false,
-    '7': 'ignored',
+    '7': 'https://cdn/a.png',
   }),
   {
     '1': '홍길동',
@@ -140,6 +143,7 @@ assert.deepEqual(
     '3': ['2', '유튜브'],
     '4': 'PARENT',
     '6': false,
+    '7': 'https://cdn/a.png',
   },
 );
 
