@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
-import { DetailHeader, NavigationBar } from '@/shared/ui';
+import { NavigationBar } from '@/shared/ui';
 import {
   RegistrationTable,
   SectionError,
@@ -76,7 +76,7 @@ const HistoryLedger = () => {
   const searchParams = useSearchParams();
   // URL 의 ?page 는 1부터, 서버 페이지는 0부터
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
-  const { expoId, routes } = useRegistrationExpo();
+  const { expoId } = useRegistrationExpo();
   const [filter, setFilter] = useState<HistoryFilter>(INITIAL_HISTORY_FILTER);
 
   const { data, error, isLoading, isError, refetch } = useAdminChangeHistory(
@@ -101,12 +101,6 @@ const HistoryLedger = () => {
     isLoading: isLoading && !data,
     children: (
       <div className="flex w-full min-w-0 max-w-[1200px] flex-1 flex-col space-y-[54px]">
-        <DetailHeader
-          textCenter
-          headerTitle="행정 이력"
-          onBack={() => router.push(routes.dashboard)}
-        />
-
         <ApplicationActivitySection expoId={expoId} />
 
         <section className="space-y-16">
