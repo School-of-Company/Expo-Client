@@ -1,10 +1,15 @@
 import { toApiError } from '../libs/http/apiError';
 import clientInstance from '../libs/http/clientInstance';
+import { ApplicationType } from '../types/exhibition/type';
 import { getMockForm } from './mockForm';
 
-/** 설문은 (박람회, 참여자군) 조합당 하나라 신청방식을 받지 않는다. */
-export const getSurveyForm = async (expoId: string, userType: string) => {
-  if (expoId === 'mock') return getMockForm('survey', userType, 'PRE');
+export const getSurveyForm = async (
+  expoId: string,
+  userType: string,
+  ApplicationType: ApplicationType,
+) => {
+  if (expoId === 'mock')
+    return getMockForm('survey', userType, ApplicationType);
 
   try {
     const response = await clientInstance.get(
