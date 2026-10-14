@@ -1,7 +1,10 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { useProgramFormQuery } from '@/entities/form';
+import { getRegistrationRoutes } from '@/shared/config';
 import { Button, Input, ToggleButton } from '@/shared/ui';
 import {
   DateTimeInput,
@@ -19,6 +22,12 @@ import {
   toProgramRequest,
   validateProgramForm,
 } from '../../model/policyForm';
+import {
+  DRAFT_QUERY,
+  getFormLinkProblem,
+  saveProgramDraft,
+  toProgramKey,
+} from '../../model/programFormLink';
 import PolicyFields, { Field } from '../PolicyFields';
 import { FieldLabel } from '../ScheduleSection';
 
@@ -26,6 +35,10 @@ interface ProgramFormProps {
   expoId: string;
   /** 없으면 새 프로그램을 만든다 */
   program?: ScheduleProgram;
+  /** 묶음·공유 폼을 찾을 이 행사의 회차 */
+  programs: ScheduleProgram[];
+  /** 폼을 만들고 돌아왔을 때 이어서 편집할 값 */
+  initialForm?: ProgramFormValue;
   onClose: () => void;
 }
 
@@ -38,9 +51,21 @@ const CATEGORY_OPTIONS = [
   { value: 'CHOICE', label: '선택' },
 ];
 
-const ProgramForm = ({ expoId, program, onClose }: ProgramFormProps) => {
-  const [form, setForm] = useState<ProgramFormValue>(() =>
-    program ? toProgramForm(program) : EMPTY_PROGRAM_FORM,
+const ProgramForm = ({
+  expoId,
+  program,
+  programs,
+  initialForm,
+  onClose,
+}: ProgramFormProps) => {
+  const router = useRouter();
+  const [form, setForm] = useState<ProgramFormValue>(
+    () =>
+      initialForm ?? (program ? toProgramForm(program) : EMPTY_PROGRAM_FORM),
+  );
+  const programKey = program ? toProgramKey(program) : undefined;
+  const { data: linkedForm } = useProgramFormQuery(
+    form.hasPolicy ? form.policy.formId : '',
   );
   const { mutate: save, isPending } = useScheduleMutation(
     expoId,
@@ -60,12 +85,29 @@ const ProgramForm = ({ expoId, program, onClose }: ProgramFormProps) => {
     setForm((prev) => ({ ...prev, ...patch }));
 
   const handleSubmit = () => {
-    const error = validateProgramForm(form);
+    const error =
+      validateProgramForm(form) ??
+      (form.hasPolicy && linkedForm
+        ? getFormLinkProblem(linkedForm, expoId, form.programType, form.policy)
+        : null);
     if (error) {
       toast.error(error);
       return;
     }
     save(form);
+  };
+
+  // 지금 고치던 회차를 남겨 두고 폼을 만들러 간다. 폼을 저장하면 이 회차로 돌아와 새 폼이 연결된다
+  const handleCreateForm = () => {
+    if (!saveProgramDraft(expoId, { target: programKey ?? 'new', form })) {
+      toast.error(
+        '브라우저 저장소를 쓸 수 없어 회차 초안을 남기지 못했습니다. 폼 관리에서 폼을 먼저 만들어 주세요.',
+      );
+      return;
+    }
+    router.push(
+      `${getRegistrationRoutes(expoId).programFormNew}?${DRAFT_QUERY.returnTo}=schedule`,
+    );
   };
 
   // 서버는 policy 가 null 이면 기존 정책을 유지하므로 한 번 만든 정책은 끌 수 없다
@@ -144,8 +186,18 @@ const ProgramForm = ({ expoId, program, onClose }: ProgramFormProps) => {
       </div>
       {form.hasPolicy && (
         <PolicyFields
+          expoId={expoId}
+          programType={form.programType}
+          programs={programs}
+          programKey={programKey}
           value={form.policy}
-          onChange={(patch) => update({ policy: { ...form.policy, ...patch } })}
+          onChange={(patch) =>
+            setForm((prev) => ({
+              ...prev,
+              policy: { ...prev.policy, ...patch },
+            }))
+          }
+          onCreateForm={handleCreateForm}
         />
       )}
       <div className="grid grid-cols-2 gap-16">

@@ -6,7 +6,6 @@ import {
   getProgramForm,
   programFormKeys,
   useCreateProgramFormMutation,
-  useDeleteProgramFormMutation,
   useUpdateProgramFormMutation,
 } from '@/entities/form';
 import { getRegistrationRoutes } from '@/shared/config';
@@ -17,14 +16,19 @@ import type {
   ProgramFormVersionResponseDto,
 } from '@/entities/form';
 
-export const useCreateProgramForm = (expoId: string) => {
+/** `onCreated` 가 없으면 만든 폼의 편집 화면으로 간다 */
+export const useCreateProgramForm = (
+  expoId: string,
+  onCreated?: (formId: string) => void,
+) => {
   const router = useRouter();
   const { mutateAsync, isPending } = useCreateProgramFormMutation(expoId);
 
   const create = async (body: CreateProgramFormRequestDto) => {
     const { id } = await mutateAsync(body);
     toast.success('프로그램용 폼을 만들었습니다.');
-    router.replace(getRegistrationRoutes(expoId).programForm(id));
+    if (onCreated) onCreated(id);
+    else router.replace(getRegistrationRoutes(expoId).programForm(id));
   };
 
   return { create, isPending };
@@ -106,21 +110,4 @@ export const useEditProgramForm = (initial: ProgramFormResponseDto) => {
     reapply,
     reloadLatest,
   };
-};
-
-export const useDeleteProgramForm = (expoId: string, formId: string) => {
-  const router = useRouter();
-  const { mutate, isPending } = useDeleteProgramFormMutation(formId);
-
-  const remove = () =>
-    mutate(undefined, {
-      onSuccess: () => {
-        toast.success('프로그램용 폼을 삭제했습니다.');
-        router.replace(getRegistrationRoutes(expoId).schedule);
-      },
-      // PROGRAM_FORM_PROTECTION_PENDING 은 오류 문구가 이미 거절 이유를 안내한다
-      onError: (error) => toast.error(error.message),
-    });
-
-  return { remove, isPending };
 };
