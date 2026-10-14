@@ -20,6 +20,7 @@ import { useExitUserMutation } from '../../model/useExitUserMutation';
 import { usePaperQrAttendanceMutation } from '../../model/usePaperQrAttendanceMutation';
 import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';
 import { toAttendUserRowKey, userQrPrint } from '../../model/userQrPrint';
+import CameraScanner from '../CameraScanner';
 import EntrySummaryPanel from '../EntrySummaryPanel';
 import ManualScanInput from '../ManualScanInput';
 import ScanModeToggle, { ScanMode } from '../ScanModeToggle';
@@ -36,6 +37,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
   const invalidateSummary = useInvalidateEntrySummary(id);
   const [mode, setMode] = useState<ScanMode>('entry');
   const [lastResult, setLastResult] = useState<ScanResult | null>(null);
+  const [isCameraOn, setIsCameraOn] = useState(false);
 
   const handleInvalidQr = useCallback(
     (message: string) => setLastResult(errorResult('읽을 수 없는 QR', message)),
@@ -177,6 +179,15 @@ const QRScannerTable = ({ id }: { id: string }) => {
             직접 입력하세요.
           </p>
           <ManualScanInput onSubmit={submitScan} />
+          <button
+            type="button"
+            onClick={() => setIsCameraOn((prev) => !prev)}
+            aria-pressed={isCameraOn}
+            className="text-body2r text-main-600 underline"
+          >
+            {isCameraOn ? '카메라 끄기' : '카메라로 스캔'}
+          </button>
+          {isCameraOn && <CameraScanner onScan={submitScan} />}
         </div>
         <ScanResultCard
           mode={mode}
