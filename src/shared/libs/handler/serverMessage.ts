@@ -74,3 +74,20 @@ export const toServerCode = (data: unknown): string | undefined => {
   const code = (data as { code?: unknown } | undefined)?.code;
   return typeof code === 'string' ? code : undefined;
 };
+
+/**
+ * User 서비스 검증 오류의 `errors`({ 필드명: 사유 }). 화면이 필드마다 사유를 보여 줄 수 있게 넘긴다.
+ * Form 서비스의 zod issue 배열이나 문자열이 아닌 값은 버린다.
+ */
+export const toServerFieldErrors = (
+  data: unknown,
+): Record<string, string> | undefined => {
+  const errors = (data as { errors?: unknown } | undefined)?.errors;
+  if (!errors || typeof errors !== 'object' || Array.isArray(errors)) {
+    return undefined;
+  }
+  const entries = Object.entries(errors).filter(
+    (entry): entry is [string, string] => typeof entry[1] === 'string',
+  );
+  return entries.length ? Object.fromEntries(entries) : undefined;
+};
