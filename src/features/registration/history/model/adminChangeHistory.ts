@@ -106,6 +106,8 @@ export const getHistoryErrorMessage = (error: unknown) => {
       return '변경 이력을 조회할 권한이 없습니다.';
     case 404:
       return '박람회를 찾을 수 없습니다.';
+    case 502:
+      return '변경 이력 원천의 응답이 올바르지 않습니다. 잠시 후 다시 시도해주세요.';
     case 503:
       return '지금은 권한을 확인할 수 없거나 삭제 중인 박람회입니다. 잠시 후 다시 시도해주세요.';
     default:

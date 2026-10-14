@@ -1,6 +1,7 @@
 import { downloadExcelFile } from '@/shared/libs/downloadExcelFile';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { ReportExcelDownloadRequest } from '@/shared/types/registration/type';
+import { toReportDownloadError } from './reportTargetApi';
 
 export const postReportExcelDownload = (
   expoId: string,
@@ -15,4 +16,6 @@ export const postReportExcelDownload = (
         responseType: 'blob',
       },
     ),
-  );
+  ).catch((error) => {
+    throw toReportDownloadError(error, request.scope);
+  });
