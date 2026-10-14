@@ -1,5 +1,5 @@
-import clientInstance from '@/shared/libs/http/clientInstance';
 import { toApiError } from '@/shared/libs/http/apiError';
+import clientInstance from '@/shared/libs/http/clientInstance';
 import { ApplicationType } from '../types/exhibition/type';
 import { getMockForm } from './mockForm';
 
