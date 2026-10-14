@@ -18,7 +18,11 @@ import {
   postApplication,
 } from '../../../api/postApplication';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
-import { getApplicantLimit, getCompanionLimit } from '../../model/sessionSeats';
+import {
+  getApplicantLimit,
+  getCompanionLimit,
+  isWaitingParty,
+} from '../../model/sessionSeats';
 import { usePreRegisterCapacity } from '../../model/usePreRegister';
 
 /**
@@ -135,15 +139,17 @@ const PreRegisterContainer = ({
             <p
               className={`text-body2b ${canApply ? 'text-main-600' : 'text-error'}`}
             >
-              {canApply
-                ? `현재 남은 자리 ${capacity.remaining.toLocaleString()}명`
-                : '신청 마감'}
+              {!canApply
+                ? '신청 마감'
+                : capacity.remaining > 0
+                  ? `현재 남은 자리 ${capacity.remaining.toLocaleString()}명`
+                  : '정원 마감 · 대기 신청 가능'}
             </p>
             {canApply && (
               <p className="text-caption1r text-gray-600">
-                1회 최대 {capacity.maxApplicants.toLocaleString()}명, 대표자를
-                포함해 {applicantLimit?.toLocaleString()}명까지 신청할 수
-                있습니다.
+                대표자를 포함해 {applicantLimit?.toLocaleString()}명까지 신청할
+                수 있습니다. 한 일행은 나뉘지 않고 모두 확정되거나 모두 대기로
+                접수됩니다.
               </p>
             )}
             <p className="text-caption1r text-gray-500">
@@ -168,6 +174,11 @@ const PreRegisterContainer = ({
                 applicantLimit !== undefined &&
                 companionCount + 1 > applicantLimit;
 
+              const willWait =
+                !!capacity &&
+                !isOverCapacity &&
+                isWaitingParty(capacity, companionCount + 1);
+
               return (
                 <div className="mt-48 flex flex-col gap-30">
                   <PrivacyConsent
@@ -175,6 +186,13 @@ const PreRegisterContainer = ({
                     watch={methods.watch}
                     setValue={methods.setValue}
                   />
+                  {willWait && (
+                    <p className="text-body2b text-main-600">
+                      이 인원은 확정 자리가 부족해 일행 전체가 대기로
+                      접수됩니다. 대기는 자리가 나야 확정되며 최종 판정은 제출할
+                      때 서버가 합니다.
+                    </p>
+                  )}
                   {isOverCapacity && (
                     <p className="text-body2r text-error">
                       이번에 신청할 수 있는 인원은 대표자를 포함해{' '}
