@@ -5,6 +5,7 @@ import { ApplicationType } from '@/shared/types/exhibition/type';
 
 const URL_MAP: Record<string, string> = {
   STANDARD_PRE: '/application/pre-standard/',
+  TRAINEE_PRE: '/application/',
   STANDARD_FIELD: '/application/field/standard/',
   TRAINEE_FIELD: '/application/field/',
 };
@@ -129,6 +130,9 @@ export const postTrainingProgramApplication = async (
     csrfHeaders,
     TRAINING_APPLY_ERROR_MESSAGES,
   );
-  if (response.status !== 202) return 'CONFIRMED';
-  return response.data?.status === 'PROCESSING' ? 'PROCESSING' : 'WAITING';
+  // 서버는 대기 접수도 201 로 주고 본문 status 에 CONFIRMED/WAITING 을 담는다. 202 는 처리 중(또는 대기)이다.
+  const status = response.data?.status;
+  if (status === 'WAITING' || status === 'PROCESSING') return status;
+  if (response.status === 202) return 'WAITING';
+  return 'CONFIRMED';
 };

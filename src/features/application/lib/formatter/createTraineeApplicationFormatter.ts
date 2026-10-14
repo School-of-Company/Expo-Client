@@ -1,3 +1,4 @@
+import { isTrainingProgramQuestion } from '@/shared/model';
 import {
   DynamicFormItem,
   DynamicFormValues,
@@ -35,6 +36,7 @@ export const createTraineeApplicationFormatter = (
 
     const filteredFormItems = dynamicFormItems.filter(
       (item) =>
+        !isTrainingProgramQuestion(item.title) &&
         item.dynamicFormType !== 'NAME' &&
         item.dynamicFormType !== 'PHONE_NUMBER' &&
         item.dynamicFormType !== 'TRAINING_ID',
