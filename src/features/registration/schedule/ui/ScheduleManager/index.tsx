@@ -24,8 +24,21 @@ import {
   validateSessionForm,
 } from '../../model/sessionForm';
 import BulkPolicySection from '../BulkPolicySection';
-import ProgramSection from '../ProgramSection';
-import SessionSection, { SessionRow } from '../SessionSection';
+import CreateEntry from '../CreateEntry';
+import ProgramSection, {
+  PROGRAM_FORM_ID,
+  ProgramEditing,
+} from '../ProgramSection';
+import PromotionPolicySection from '../PromotionPolicySection';
+import SessionSection, { SESSION_FORM_ID, SessionRow } from '../SessionSection';
+
+// 상태를 바꾼 뒤 그려진 양식으로 스크롤한다
+const scrollToForm = (id: string) =>
+  requestAnimationFrame(() =>
+    document
+      .getElementById(id)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+  );
 
 /** 변경이 서버에 남아 재시도로 이어서 처리할 수 있는 실패 */
 const isRetryable = (error: unknown) => {
@@ -44,6 +57,9 @@ const ScheduleManager = () => {
   const [retryIds, setRetryIds] = useState<Set<number>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
   const isDirty = edits.size > 0;
+  const [isAsideOpen, setIsAsideOpen] = useState(true);
+  const [programEditing, setProgramEditing] = useState<ProgramEditing>(null);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
 
   useEffect(() => {
     if (!isDirty) return undefined;
@@ -166,11 +182,18 @@ const ScheduleManager = () => {
   };
 
   const error = sessionsQuery.error ?? programsQuery.error;
+  const programs = programsQuery.data ?? [];
+  const isSessionLocked = isDirty || isDeleting || isRetrying || isSaving;
 
   return withLoading({
     isLoading: sessionsQuery.isLoading || programsQuery.isLoading,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[80px] pb-[120px]">
+      // 왼쪽 메뉴를 접으면 표가 화면 너비를 모두 쓴다
+      <div
+        className={`flex w-full flex-1 flex-col space-y-[60px] pb-[120px] ${
+          isAsideOpen ? 'max-w-[1200px]' : ''
+        }`}
+      >
         <DetailHeader textCenter headerTitle="일정·모집 제어" />
 
         {error ? (
@@ -179,25 +202,75 @@ const ScheduleManager = () => {
             onRetry={() => void invalidate()}
           />
         ) : (
-          <>
-            <SessionSection
-              expoId={expoId}
-              rows={rows}
-              onChange={handleChange}
-              onDelete={handleDelete}
-              onRetry={retrySession}
-              isLocked={isDirty || isDeleting || isRetrying || isSaving}
-            />
-            <BulkPolicySection
-              expoId={expoId}
-              programs={programsQuery.data ?? []}
-              disabled={isSaving}
-            />
-            <ProgramSection
-              expoId={expoId}
-              programs={programsQuery.data ?? []}
-            />
-          </>
+          <div className="flex items-start gap-30 tablet:flex-col tablet:items-stretch">
+            <aside
+              aria-label="일괄 설정·신규 등록"
+              className={`sticky top-[96px] max-h-[calc(100vh-112px)] w-[340px] flex-none space-y-16 overflow-y-auto tablet:static tablet:block tablet:max-h-none tablet:w-full tablet:overflow-visible ${
+                isAsideOpen ? '' : 'hidden'
+              }`}
+            >
+              <BulkPolicySection
+                expoId={expoId}
+                programs={programs}
+                disabled={isSaving}
+              />
+              <PromotionPolicySection programs={programs} />
+              <CreateEntry
+                title="신규 프로그램 등록"
+                description="프로그램 마스터 표 아래에 등록 양식을 엽니다."
+                buttonLabel="프로그램 등록 양식 열기"
+                onClick={() => {
+                  setProgramEditing('new');
+                  scrollToForm(PROGRAM_FORM_ID);
+                }}
+              />
+              <CreateEntry
+                title="신규 회차 개설"
+                description={
+                  isSessionLocked
+                    ? '저장하지 않은 회차 변경이 있으면 회차를 개설할 수 없습니다.'
+                    : '회차 일정 표 아래에 개설 양식을 엽니다.'
+                }
+                buttonLabel="회차 개설 양식 열기"
+                disabled={isSessionLocked}
+                onClick={() => {
+                  setIsCreatingSession(true);
+                  scrollToForm(SESSION_FORM_ID);
+                }}
+              />
+            </aside>
+
+            <div className="min-w-0 flex-1 space-y-[60px]">
+              <div className="flex justify-end tablet:hidden">
+                <button
+                  type="button"
+                  aria-expanded={isAsideOpen}
+                  onClick={() => setIsAsideOpen((prev) => !prev)}
+                  className="rounded-sm border-1 border-solid border-gray-200 bg-white px-16 py-8 text-caption1b text-gray-500 duration-200 hover:border-main-600 hover:text-main-600"
+                >
+                  {isAsideOpen
+                    ? '표 넓게 보기 · 왼쪽 메뉴 접기'
+                    : '왼쪽 메뉴 펼치기'}
+                </button>
+              </div>
+              <ProgramSection
+                expoId={expoId}
+                programs={programs}
+                editing={programEditing}
+                onEditingChange={setProgramEditing}
+              />
+              <SessionSection
+                expoId={expoId}
+                rows={rows}
+                onChange={handleChange}
+                onDelete={handleDelete}
+                onRetry={retrySession}
+                isLocked={isSessionLocked}
+                isCreating={isCreatingSession}
+                onCreatingChange={setIsCreatingSession}
+              />
+            </div>
+          </div>
         )}
 
         {isDirty && (
@@ -212,7 +285,7 @@ const ScheduleManager = () => {
                   변경 취소
                 </Button>
                 <Button disabled={isSaving} onClick={handleSave}>
-                  {isSaving ? '저장 중...' : '변경 내용 저장'}
+                  {isSaving ? '저장 중...' : '변경 내용 일괄저장'}
                 </Button>
               </div>
             </div>
