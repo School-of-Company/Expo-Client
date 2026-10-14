@@ -11,6 +11,7 @@ import {
 } from '../../../common';
 import {
   getLedgerErrorMessage,
+  getSummaryErrorMessage,
   isParticipantSourceError,
   LEDGER_REFRESH_MS,
   useCurrentSessions,
@@ -99,7 +100,10 @@ const RegistrationDashboard = () => {
       <Section title="프로그램 신청 현황">
         {summary.isError && !summary.data ? (
           <SectionError
-            message="신청 현황을 불러오지 못했습니다. 출석 집계 원천이 응답하지 않으면 현황 전체가 실패할 수 있습니다."
+            message={getSummaryErrorMessage(
+              summary.error,
+              '신청 현황을 불러오지 못했습니다. 출석 집계 원천이 응답하지 않으면 현황 전체가 실패할 수 있습니다.',
+            )}
             onRetry={() => summary.refetch()}
           />
         ) : summary.data ? (
@@ -139,7 +143,10 @@ const RegistrationDashboard = () => {
       <Section title="사전등록 현황">
         {preregister.isError && !preregister.data ? (
           <SectionError
-            message="사전등록 인원을 불러오지 못했습니다."
+            message={getSummaryErrorMessage(
+              preregister.error,
+              '사전등록 인원을 불러오지 못했습니다.',
+            )}
             onRetry={() => preregister.refetch()}
           />
         ) : preregister.data ? (
@@ -207,7 +214,7 @@ const RegistrationDashboard = () => {
             )}
             <SessionStatusTable
               sessions={sessions.data}
-              summaries={summary.data?.sessions ?? []}
+              summaries={summary.data?.sessions ?? null}
             />
           </>
         ) : (

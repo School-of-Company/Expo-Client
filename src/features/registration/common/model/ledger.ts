@@ -196,6 +196,8 @@ export const useLedgerSummary = (expoId: string, filter?: LedgerFilter) =>
       }),
     placeholderData: keepPreviousData,
     refetchInterval: LEDGER_REFRESH_MS,
+    // 실패는 화면의 상태별 문구로 알린다. 서버 원문 전역 토스트는 30초마다 반복되므로 끈다
+    meta: { silent: true },
   });
 
 /** 관리자 원장은 참가자 원천(User) 조회가 하나라도 실패하면 전체를 502 로 거절한다 */
@@ -211,6 +213,27 @@ const LEDGER_ERROR_MESSAGE: Record<number, string> = {
 
 export const getLedgerErrorMessage = (error: unknown, fallback: string) =>
   LEDGER_ERROR_MESSAGE[getErrorStatus(error) ?? 0] ?? fallback;
+
+/**
+ * 집계 조회 실패 문구. 출석·사전등록 원천 장애는 서버가 오류로 주므로
+ * 0명으로 바꿔 보여 주지 않고 이 문구만 보인다
+ */
+export const getSummaryErrorMessage = (error: unknown, fallback: string) => {
+  switch (getErrorStatus(error)) {
+    case 401:
+      return '로그인이 만료되었습니다. 다시 로그인해주세요.';
+    case 403:
+      return '이 행사의 신청 조회 권한(APPLICATION_READ)이 없습니다.';
+    case 409:
+      return '삭제된 행사라 집계를 볼 수 없습니다.';
+    case 502:
+      return '집계 원천 응답에 문제가 있어 현황을 표시하지 않습니다. 잠시 후 다시 시도해주세요.';
+    case 503:
+      return '집계 원천에 연결할 수 없어 현황을 표시하지 않습니다. 잠시 후 다시 시도해주세요.';
+    default:
+      return fallback;
+  }
+};
 
 const RECENT_APPLICATION_COUNT = 10;
 
