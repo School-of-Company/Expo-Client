@@ -19,6 +19,7 @@ const ALLOWED_ROOTS = new Set([
   'surveys',
   'trainee',
   'training',
+  'walk-in-counts',
 ]);
 
 // 인코딩된 구분자(%2F, %5C)와 점(%2E)은 Gateway 가 풀어 경로를 바꿀 수 있어 받지 않는다
