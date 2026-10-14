@@ -52,12 +52,17 @@ const ExpoDetailLayout = ({
       </div>
 
       <div className="w-full space-y-36">
-        <div className="relative h-[360px] w-full">
+        {/* 포스터·배너 비율이 제각각이라 높이를 고정해 자르지 않고 원본 비율로 전부 보여 준다.
+            세로로 아주 긴 이미지는 최대 높이 안에서 가운데 맞춘다 */}
+        <div className="flex w-full justify-center overflow-hidden rounded-md bg-gray-100">
           <Image
             src={safeSrc}
             alt="expoImage"
-            fill
-            className="rounded-md object-cover"
+            width={0}
+            height={0}
+            sizes="(max-width: 1200px) 100vw, 1200px"
+            priority
+            className="h-auto max-h-[640px] w-auto max-w-full object-contain mobile:max-h-[480px]"
           />
         </div>
 
