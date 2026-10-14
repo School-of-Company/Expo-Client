@@ -26,7 +26,8 @@ export interface WalkInCounts {
 
 export interface EntrySummary {
   expoId: string;
-  date: string;
+  // 박람회 전체 기간(all=true)이면 null
+  date: string | null;
   // 집계한 시각(시간대 없는 지역 일시)
   generatedAt: string;
   registered: { standard: number; trainee: number };
@@ -41,4 +42,8 @@ export interface EntrySummary {
     // QR 로 입장했고 아직 퇴장하지 않은 수. 간편입장은 포함하지 않는다
     stillInside: number;
   };
+  // 조회한 날짜와 상관없이 지금부터 10분 전까지의 입장 수
+  recentEntered10m: number;
+  // 서로 다른 QR 수(등록 QR + 종이 QR). 전체 기간이면 다른 날 같은 QR 을 한 번만 센다
+  uniqueQr: number;
 }

@@ -37,7 +37,7 @@ const AttendanceMonitor = () => {
         </nav>
       </div>
 
-      <AttendanceOverview detailed />
+      <AttendanceOverview />
     </div>
   );
 };
