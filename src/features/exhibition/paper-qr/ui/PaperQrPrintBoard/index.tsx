@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useExpoDetail } from '@/shared/queries';
-import { getPaperQrMockData, PaperQrCode } from '../../mock/paperQrMock';
-import { PaperQrBatch } from '../../model/issuePaperQrTokens';
+import { getQrTokens, PaperQrItem } from '../../api/qrTokensApi';
 import PaperQrIssueCard from '../PaperQrIssueCard';
 import PaperQrOutputList from '../PaperQrOutputList';
 import PaperQrReprintCard, {
@@ -12,7 +11,7 @@ import PaperQrReprintCard, {
   PaperQrReprintDraft,
 } from '../PaperQrReprintCard';
 
-type OutputSource = 'issued' | 'sample';
+type OutputSource = 'issued' | 'lookup';
 
 const toPositive = (value: string, fallback: number) => {
   const number = Number(value);
@@ -21,9 +20,9 @@ const toPositive = (value: string, fallback: number) => {
 
 const PaperQrPrintBoard = ({ expoId }: { expoId: string }) => {
   const { data: expoDetail } = useExpoDetail(expoId);
-  // 재조회 API가 없어 인쇄를 다시 할 수 있도록 이 화면에서만 메모리에 둔다
-  const [issuedBatches, setIssuedBatches] = useState<PaperQrBatch[]>([]);
-  const [sampleCodes, setSampleCodes] = useState<PaperQrCode[] | null>(null);
+  const [issuedItems, setIssuedItems] = useState<PaperQrItem[]>([]);
+  const [lookupItems, setLookupItems] = useState<PaperQrItem[] | null>(null);
+  const [isLookingUp, setIsLookingUp] = useState(false);
   const [source, setSource] = useState<OutputSource>('issued');
   const [draft, setDraft] = useState<PaperQrReprintDraft>({
     category: 'ADULT',
@@ -31,21 +30,30 @@ const PaperQrPrintBoard = ({ expoId }: { expoId: string }) => {
     count: '30',
   });
 
-  const lookup = (next: PaperQrReprintDraft) => {
+  const lookup = async (next: PaperQrReprintDraft) => {
     const start = toPositive(next.start, 1);
     const count = Math.min(toPositive(next.count, 30), MAX_REPRINT_LOOKUP);
-    const codes = getPaperQrMockData()
-      .codes.filter(
-        ({ category, serial }) => category === next.category && serial >= start,
-      )
-      .slice(0, count);
-    if (codes.length === 0) {
-      toast.info('조회된 QR이 없습니다.');
-      return;
+    setIsLookingUp(true);
+    try {
+      const items = await getQrTokens(expoId, {
+        category: next.category,
+        fromSerial: start,
+        count,
+      });
+      if (items.length === 0) {
+        toast.info('조회된 QR이 없습니다.');
+        return;
+      }
+      setDraft({ ...next, start: String(start), count: String(count) });
+      setLookupItems(items);
+      setSource('lookup');
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'QR을 조회하지 못했습니다.',
+      );
+    } finally {
+      setIsLookingUp(false);
     }
-    setDraft({ ...next, start: String(start), count: String(count) });
-    setSampleCodes(codes);
-    setSource('sample');
   };
 
   const handleNextLookup = () => {
@@ -54,17 +62,27 @@ const PaperQrPrintBoard = ({ expoId }: { expoId: string }) => {
     lookup({ ...draft, start: String(start + count) });
   };
 
-  const handleIssued = (batches: PaperQrBatch[]) => {
-    setIssuedBatches(batches);
+  const handleIssued = (items: PaperQrItem[]) => {
+    setIssuedItems(items);
     setSource('issued');
   };
 
-  const hasIssued = issuedBatches.length > 0;
+  // 무효화한 코드가 출력 목록에 있으면 바로 인쇄 제외로 바꾼다
+  const handleRevoked = (code: string) => {
+    const markRevoked = (items: PaperQrItem[]) =>
+      items.map((item) =>
+        item.code === code ? { ...item, revoked: true } : item,
+      );
+    setIssuedItems(markRevoked);
+    setLookupItems((prev) => prev && markRevoked(prev));
+  };
+
+  const hasIssued = issuedItems.length > 0;
   const output =
-    source === 'sample' && sampleCodes
-      ? { kind: 'sample' as const, codes: sampleCodes }
+    source === 'lookup' && lookupItems
+      ? { kind: 'lookup' as const, items: lookupItems }
       : hasIssued
-        ? { kind: 'issued' as const, batches: issuedBatches }
+        ? { kind: 'issued' as const, items: issuedItems }
         : null;
 
   const tabClass = (active: boolean) =>
@@ -81,13 +99,16 @@ const PaperQrPrintBoard = ({ expoId }: { expoId: string }) => {
           onIssued={handleIssued}
         />
         <PaperQrReprintCard
+          expoId={expoId}
           draft={draft}
+          isLookingUp={isLookingUp}
           onDraftChange={setDraft}
           onLookup={() => lookup(draft)}
+          onRevoked={handleRevoked}
         />
       </div>
 
-      {hasIssued && sampleCodes && (
+      {hasIssued && lookupItems && (
         <div className="flex gap-8" role="tablist">
           <button
             type="button"
@@ -101,9 +122,9 @@ const PaperQrPrintBoard = ({ expoId }: { expoId: string }) => {
           <button
             type="button"
             role="tab"
-            aria-selected={source === 'sample'}
-            className={tabClass(source === 'sample')}
-            onClick={() => setSource('sample')}
+            aria-selected={source === 'lookup'}
+            className={tabClass(source === 'lookup')}
+            onClick={() => setSource('lookup')}
           >
             다시 인쇄 조회 결과
           </button>

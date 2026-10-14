@@ -1,12 +1,10 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Button, Input, MockDataBadge } from '@/shared/ui';
-import {
-  getPaperQrMockData,
-  PAPER_QR_MOCK_ISSUE,
-} from '../../mock/paperQrMock';
+import { Button, Input } from '@/shared/ui';
+import { PaperQrItem } from '../../api/qrTokensApi';
 import {
   getCategoryLabel,
   MAX_TOKENS_PER_ISSUE,
@@ -14,16 +12,17 @@ import {
   PAPER_QR_CATEGORIES,
   PaperQrCategory,
 } from '../../model/constants';
+import { issuePaperQrTokens } from '../../model/issuePaperQrTokens';
 import {
-  issuePaperQrTokens,
-  PaperQrBatch,
-} from '../../model/issuePaperQrTokens';
+  paperQrSummaryQueryKey,
+  usePaperQrSummary,
+} from '../../model/usePaperQrSummary';
 
 interface PaperQrIssueCardProps {
   expoId: string;
   // 출력 목록에 아직 방금 발급한 QR이 있으면 덮기 전에 묻는다
   hasIssued: boolean;
-  onIssued: (batches: PaperQrBatch[]) => void;
+  onIssued: (items: PaperQrItem[]) => void;
 }
 
 const toCount = (value: string) => {
@@ -45,12 +44,20 @@ const PaperQrIssueCard = ({
   // 일부만 발급되고 실패했을 때 화면에 남겨 두는 안내
   const [partialNotice, setPartialNotice] = useState<string | null>(null);
 
-  const issueStatus = getPaperQrMockData()
-    .issueStatus.map(
-      ({ category, activeCount }) =>
-        `${getCategoryLabel(category)} ACTIVE ${activeCount}`,
-    )
-    .join(' · ');
+  const queryClient = useQueryClient();
+  const summary = usePaperQrSummary(expoId);
+  const issueStatus = summary.data
+    ? summary.data.length > 0
+      ? summary.data
+          .map(
+            ({ category, active, revoked }) =>
+              `${getCategoryLabel(category)} 사용 중 ${active}${revoked > 0 ? ` · 중지 ${revoked}` : ''}`,
+          )
+          .join(' / ')
+      : '발급한 QR 없음'
+    : summary.isError
+      ? '불러오지 못했습니다'
+      : '불러오는 중';
 
   const requested = PAPER_QR_CATEGORIES.map(({ value }) => ({
     category: value,
@@ -71,7 +78,7 @@ const PaperQrIssueCard = ({
     if (
       hasIssued &&
       !window.confirm(
-        '방금 발급한 QR 출력 목록이 새로 발급한 QR로 바뀝니다. 이전 QR은 다시 볼 수 없습니다. 인쇄를 마쳤다면 계속해 주세요.',
+        '방금 발급한 QR 출력 목록이 새로 발급한 QR로 바뀝니다. 이전 QR은 연번으로 다시 조회할 수 있습니다. 계속할까요?',
       )
     ) {
       return;
@@ -79,11 +86,13 @@ const PaperQrIssueCard = ({
     setIsIssuing(true);
     setPartialNotice(null);
     try {
-      const { batches, error } = await issuePaperQrTokens(expoId, requested);
-      const issued = batches.reduce(
-        (sum, { tokens }) => sum + tokens.length,
-        0,
-      );
+      const { items, error } = await issuePaperQrTokens(expoId, requested);
+      const issued = items.length;
+      if (issued > 0) {
+        void queryClient.invalidateQueries({
+          queryKey: paperQrSummaryQueryKey(expoId),
+        });
+      }
       if (error) {
         if (issued === 0) {
           toast.error(error.message);
@@ -98,7 +107,7 @@ const PaperQrIssueCard = ({
           `종이 QR ${total}장을 발급했습니다. 출력 목록에서 인쇄해 주세요.`,
         );
       }
-      onIssued(batches);
+      onIssued(items);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : '종이 QR 발급에 실패했습니다.',
@@ -113,15 +122,12 @@ const PaperQrIssueCard = ({
       <div className="space-y-8">
         <p className="text-h3b text-black">새 QR 발급</p>
         <p className="break-keep text-caption1r text-gray-500">
-          한 장은 하루에 한 번 입장할 수 있습니다. 발급한 QR은 다시 볼 수 없으니
-          발급 후 출력 목록에서 바로 인쇄해 주세요.
+          한 장은 하루에 한 번 입장할 수 있습니다. 발급한 QR은 오른쪽에서
+          연번으로 다시 조회해 인쇄할 수 있습니다.
         </p>
-        <div className="flex flex-wrap items-center gap-8">
-          <p className="text-caption1r text-gray-600">
-            현재 발급 현황 {issueStatus}
-          </p>
-          <MockDataBadge issue={PAPER_QR_MOCK_ISSUE} />
-        </div>
+        <p className="text-caption1r text-gray-600">
+          현재 발급 현황 {issueStatus}
+        </p>
       </div>
 
       <div className="space-y-12">
