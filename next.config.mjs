@@ -26,10 +26,10 @@ const nextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           // 인증한 전화번호가 리다이렉트 쿼리에 실리므로 다른 출처로는 경로·쿼리를 보내지 않는다
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          // QR 스캐너는 키보드 입력 방식이라 카메라·위치를 쓰지 않는다
+          // 체크인 화면의 카메라 QR 스캔만 같은 출처에서 카메라를 쓴다. 마이크·위치는 쓰지 않는다
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(self), microphone=(), geolocation=()',
           },
         ],
       },
