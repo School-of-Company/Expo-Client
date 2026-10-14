@@ -42,6 +42,7 @@ export const getRegistrationRoutes = (expoId: string) => {
     applications: `${base}/applications`,
     schedule: `${base}/schedule`,
     history: `${base}/history`,
+    attendance: `${base}/attendance`,
     operations: `${base}/operations`,
     programFormNew: `${base}/program-forms/new`,
     programForm: (formId: string) =>
