@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import {
+  useSurveyLotteryQuery,
+  useUpdateSurveyLotteryMutation,
+} from '@/entities/survey';
 import { withLoading } from '@/shared/hocs';
 import { Button, ToggleButton } from '@/shared/ui';
 import {
   MAX_LOTTERY_NUMBERS,
   parseLotteryNumbers,
 } from '../../model/parseLotteryNumbers';
-import {
-  useSurveyLottery,
-  useUpdateSurveyLottery,
-} from '../../model/useSurveyLottery';
 
 const LotterySettingsForm = ({ expoId }: { expoId: string }) => {
-  const { data, isLoading, error } = useSurveyLottery(expoId);
-  const { mutate, isPending } = useUpdateSurveyLottery(expoId);
+  const { data, isLoading, error } = useSurveyLotteryQuery(expoId);
+  const { mutate, isPending } = useUpdateSurveyLotteryMutation(expoId);
   const [enabled, setEnabled] = useState(false);
   const [numbersInput, setNumbersInput] = useState('');
   const [surveyUrl, setSurveyUrl] = useState('');

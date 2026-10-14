@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
+import { submitSurveyAnswer } from '@/entities/survey';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
@@ -11,7 +12,6 @@ import { withLoading } from '@/shared/hocs';
 import { useGetSurveyForm } from '@/shared/queries';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button, DetailHeader } from '@/shared/ui';
-import { postSurveyAnswer } from '../../api/postSurveyAnswer';
 import { createSurveyFormatter } from '../../lib/createSurveyFormatter';
 import SurveySubmitted from '../SurveySubmitted';
 
@@ -63,7 +63,7 @@ const SurveyAnswerContainer = ({ expoId }: { expoId: string }) => {
     setIsSubmitting(true);
     try {
       const format = createSurveyFormatter(questions, phoneNumber);
-      await postSurveyAnswer(
+      await submitSurveyAnswer(
         expoId,
         userType,
         format({ ...(values as DynamicFormValues), privacyConsent }),

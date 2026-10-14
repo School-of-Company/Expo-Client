@@ -1,21 +1,20 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import { DropdownField, Occupation, OCCUPATION_OPTIONS } from '@/entities/form';
+import {
+  PublicSurveyAnswerResponseDto,
+  submitPublicSurveyAnswer,
+  usePublicSurveyQuery,
+} from '@/entities/survey';
 import { buildSurveyAnswers } from '@/features/application/lib/process/buildSurveyAnswers';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
 import { Button, DetailHeader, Input } from '@/shared/ui';
-import { getPublicSurvey } from '../../api/getPublicSurvey';
-import {
-  postPublicSurveyAnswer,
-  PublicSurveyAnswerResult,
-} from '../../api/postPublicSurveyAnswer';
 import SurveySubmitted from '../SurveySubmitted';
 
 const occupationOptions = OCCUPATION_OPTIONS.map(({ key, label }) => ({
@@ -32,12 +31,10 @@ const isValidPhoneNumber = (value: string) => /^01\d{8,9}$/.test(value);
 const PublicSurveyContainer = ({ expoId }: { expoId: string }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [result, setResult] = useState<PublicSurveyAnswerResult | null>(null);
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['getPublicSurvey', expoId],
-    queryFn: () => getPublicSurvey(expoId),
-    retry: false,
-  });
+  const [result, setResult] = useState<PublicSurveyAnswerResponseDto | null>(
+    null,
+  );
+  const { data, isLoading, error } = usePublicSurveyQuery(expoId);
 
   const formSchema = useMemo(
     () =>
@@ -71,7 +68,7 @@ const PublicSurveyContainer = ({ expoId }: { expoId: string }) => {
 
     setIsSubmitting(true);
     try {
-      const answerResult = await postPublicSurveyAnswer(expoId, {
+      const answerResult = await submitPublicSurveyAnswer(expoId, {
         answers: buildSurveyAnswers(
           values,
           data.dynamicSurveyResponseDto ?? [],

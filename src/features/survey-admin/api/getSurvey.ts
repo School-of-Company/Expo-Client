@@ -1,30 +1,24 @@
-import axios from 'axios';
+import { toFormError } from '@/entities/form/lib/errors';
+import { getErrorStatus } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
-import { ApplicationForm } from '@/shared/types/application/type';
+import type { SurveyResponseDto } from '@/entities/survey';
 
-export type SurveyDetail = ApplicationForm & {
-  id: string;
-  /** 지금까지 쌓인 답변 수. 0보다 크면 수정 시 답변 연결이 끊긴다. */
-  totalAnswers: number;
-};
-
-/** 설문이 아직 없으면(404) null을 돌려준다. */
+/**
+ * 관리자 화면용 설문 조회. 공개 프록시는 관리자 토큰을 넘기지 않아 401이 나므로 토큰 프록시로 부른다.
+ * 설문이 아직 없으면(404) null을 돌려준다.
+ */
 export const getSurvey = async (
   expoId: string,
   type: 'STANDARD' | 'TRAINEE',
-): Promise<SurveyDetail | null> => {
+): Promise<SurveyResponseDto | null> => {
   try {
-    const response = await clientTokenInstance.get<SurveyDetail>(
-      `/surveys/${expoId}?type=${type}`,
+    const response = await clientTokenInstance.get<SurveyResponseDto>(
+      `/surveys/${expoId}`,
+      { params: { type } },
     );
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      if (error.response.status === 404) return null;
-      throw new Error(
-        error.response.data?.error || '만족도 조사를 불러오지 못했습니다.',
-      );
-    }
-    throw error;
+    if (getErrorStatus(error) === 404) return null;
+    throw toFormError(error, '만족도 조사를 불러오지 못했습니다.');
   }
 };

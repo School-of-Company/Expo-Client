@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { createSurveyForm } from '@/features/survey-admin/api/createSurveyForm';
+import { createSurvey, CreateSurveyRequestDto } from '@/entities/survey';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 
 export const useCreateSurveyForm = (
@@ -14,7 +14,7 @@ export const useCreateSurveyForm = (
   return useMutation({
     mutationKey: ['createSurveyForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
-      createSurveyForm({ data: formattedData, id }),
+      createSurvey(id, formattedData as CreateSurveyRequestDto),
     onSuccess: () => {
       toast.success('만족도 조사 폼이 생성되었습니다.');
       router.push(`/exhibition/detail/${id}`);

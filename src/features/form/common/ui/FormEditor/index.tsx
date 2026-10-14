@@ -174,6 +174,10 @@ const FormEditor = ({
             })}
             textCenter={true}
             hideBack={hideBack}
+            fallbackHref={`/exhibition/detail/${expoId}`}
+            heading={`${type === 'TRAINEE' ? '연수자' : '참가자'} ${
+              mode === 'survey' ? '설문' : '신청 폼'
+            } ${defaultValues ? '수정' : '만들기'}`}
           />
           <div className="space-y-12">
             <div className="w-full space-y-12">
