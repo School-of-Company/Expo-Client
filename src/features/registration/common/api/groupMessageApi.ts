@@ -3,21 +3,23 @@ import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import {
   AdminApplicationSort,
   AdminApplicationStatus,
-  AdminOccupation,
   ProgramSessionType,
 } from './ledgerApi';
 
 // Expo-Application-Server AdminGroupMessageController (docs/admin-group-messaging.md)
 
-/** 원장과 같은 필터. status 를 생략하면 모든 상태 */
+/**
+ * 원장과 같은 필터. status 를 생략하면 모든 상태.
+ * 이름·번호(q)와 직업은 서버가 적용할 수 없어 400 으로 거절하므로 받지 않는다
+ */
 export interface GroupMessageFilter {
   programType?: ProgramSessionType;
   programId?: number;
-  status?: AdminApplicationStatus;
+  status?: AdminApplicationStatus[];
+  /** 제출 당시 회차 시작일(KST, YYYY-MM-DD) */
+  eventDate?: string;
   /** 제출 당시 제목 */
   search?: string;
-  q?: string;
-  occupation?: AdminOccupation;
   sort: AdminApplicationSort;
 }
 
