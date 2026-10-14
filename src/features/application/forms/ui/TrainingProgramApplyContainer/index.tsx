@@ -23,17 +23,20 @@ import {
   ProgramApplyOutcome,
   getProgramFormId,
 } from '../../model/trainingProgramApply';
+import { useMyApplications } from '../../model/useMyApplications';
 import type { TrainingProgramItem } from '@/shared/types/program/list/type';
 
 const ProgramApplyForm = ({
   expoId,
   program,
   formId,
+  participants,
   onResult,
 }: {
   expoId: string;
   program: TrainingProgramItem;
   formId: string;
+  participants: { participantId: number; name: string }[];
   onResult: (outcome: ProgramApplyOutcome) => void;
 }) => {
   const {
@@ -46,6 +49,9 @@ const ProgramApplyForm = ({
     retry: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [participantId, setParticipantId] = useState(
+    participants[0]?.participantId,
+  );
   // 같은 내용의 재시도(연타·네트워크 오류 뒤)는 같은 Idempotency-Key 로 보낸다
   const submissionKeys = useRef(createSubmissionKeys());
   const schema = useMemo(
@@ -57,6 +63,13 @@ const ProgramApplyForm = ({
   const onSubmit = async (
     data: RendererFormValues & { privacyConsent?: boolean },
   ) => {
+    if (participantId === undefined) {
+      onResult({
+        kind: 'FAILED',
+        message: '신청할 참가자를 선택해주세요',
+      });
+      return;
+    }
     if (!form || !data.privacyConsent) {
       onResult({
         kind: 'FAILED',
@@ -66,7 +79,10 @@ const ProgramApplyForm = ({
     }
     setIsSubmitting(true);
     try {
-      const payload = buildProgramApplyPayload(form, data as DynamicFormValues);
+      const payload = {
+        ...buildProgramApplyPayload(form, data as DynamicFormValues),
+        participantId,
+      };
       const result = await postTrainingProgramApplication(
         expoId,
         String(program.id),
@@ -105,6 +121,23 @@ const ProgramApplyForm = ({
       onSubmit={onSubmit}
       renderFooter={(methods) => (
         <div className="mt-24 flex flex-col gap-24">
+          <label className="flex flex-col gap-8 text-body2b">
+            신청할 참가자
+            <select
+              className="rounded-sm border-1 border-solid border-gray-200 p-12 text-body2r"
+              value={participantId ?? ''}
+              onChange={(e) => setParticipantId(Number(e.target.value))}
+            >
+              {participants.map((participant) => (
+                <option
+                  key={participant.participantId}
+                  value={participant.participantId}
+                >
+                  {participant.name}
+                </option>
+              ))}
+            </select>
+          </label>
           <PrivacyConsent
             content={form?.informationText ?? ''}
             watch={methods.watch}
@@ -133,6 +166,16 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
     queryFn: () => getTrainingProgram(expoId),
     retry: false,
   });
+  // 서버는 세션이 소유한 확정 사전등록 참가자만 프로그램 신청을 받는다
+  const { participants, applications } = useMyApplications(expoId);
+  const eligible = participants.filter((participant) =>
+    applications.some(
+      (a) =>
+        a.type === 'PREREGISTER' &&
+        a.status === 'CONFIRMED' &&
+        a.participantId === participant.participantId,
+    ),
+  );
   const [openId, setOpenId] = useState<number | null>(null);
   const [outcomes, setOutcomes] = useState<Record<number, ProgramApplyOutcome>>(
     {},
@@ -187,6 +230,7 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
                   expoId={expoId}
                   program={program}
                   formId={formId}
+                  participants={eligible}
                   onResult={(next) =>
                     setOutcomes((prev) => ({ ...prev, [program.id]: next }))
                   }
