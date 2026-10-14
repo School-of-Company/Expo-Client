@@ -5,6 +5,7 @@ import {
   AuthExpiredError,
   callWithAdminToken,
 } from '@/shared/libs/handler/adminTokenRequest';
+import { RefreshUnavailableError } from '@/shared/libs/handler/refreshAccessToken';
 import { serverInstance } from '@/shared/libs/http/serverInstance';
 
 export async function DELETE() {
@@ -23,6 +24,12 @@ export async function DELETE() {
           { error: error.message, status: 401, isRefreshError: true },
           { status: 401 },
         ),
+      );
+    }
+    if (error instanceof RefreshUnavailableError) {
+      return NextResponse.json(
+        { error: error.message, status: 503 },
+        { status: 503 },
       );
     }
     const status = isAxiosError(error) ? error.response?.status || 500 : 500;

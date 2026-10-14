@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { toFormError } from '@/entities/form/lib/errors';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 
@@ -13,9 +13,6 @@ export const createApplicationForm = async ({
     const response = await clientTokenInstance.post(`/forms/${id}`, data);
     return response;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '박람회 등록 폼 생성 실패');
-    }
-    throw error;
+    throw toFormError(error, '박람회 등록 폼 생성 실패');
   }
 };

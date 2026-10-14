@@ -1,22 +1,13 @@
 import axios from 'axios';
 import clientInstance from '@/shared/libs/http/clientInstance';
-import {
-  FormattedApplicationData,
-  FormattedSurveyData,
-} from '@/shared/types/application/type';
+import { FormattedApplicationData } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 
-const URL_MAP: Record<'application' | 'survey', Record<string, string>> = {
-  application: {
-    STANDARD_PRE: '/application/pre-standard/',
-    TRAINEE_PRE: '/application/',
-    STANDARD_FIELD: '/application/field/standard/',
-    TRAINEE_FIELD: '/application/field/',
-  },
-  survey: {
-    STANDARD: '/surveys/answer/standard/',
-    TRAINEE: '/surveys/answer/trainee/',
-  },
+const URL_MAP: Record<string, string> = {
+  STANDARD_PRE: '/application/pre-standard/',
+  TRAINEE_PRE: '/application/',
+  STANDARD_FIELD: '/application/field/standard/',
+  TRAINEE_FIELD: '/application/field/',
 };
 
 const MAX_NETWORK_RETRIES = 2;
@@ -31,21 +22,16 @@ export const createIdempotencyKey = () => crypto.randomUUID();
 
 export const postApplication = async (
   params: string,
-  formType: 'application' | 'survey',
+  formType: 'application',
   userType: 'STANDARD' | 'TRAINEE',
   applicationType: ApplicationType,
-  data: FormattedApplicationData | FormattedSurveyData,
+  data: FormattedApplicationData,
   idempotencyKey?: string,
 ) => {
-  const baseUrl = URL_MAP[formType] || {};
-  const key =
-    formType === 'application' ? `${userType}_${applicationType}` : userType;
-
-  const url = `${baseUrl[key] || '/api/application/'}${params}`;
-  const headers =
-    formType === 'application' && idempotencyKey
-      ? { 'Idempotency-Key': idempotencyKey }
-      : undefined;
+  const url = `${URL_MAP[`${userType}_${applicationType}`] || '/api/application/'}${params}`;
+  const headers = idempotencyKey
+    ? { 'Idempotency-Key': idempotencyKey }
+    : undefined;
 
   for (let attempt = 0; ; attempt++) {
     try {
@@ -61,10 +47,7 @@ export const postApplication = async (
 
       if (error.response) {
         const { status, data: body } = error.response;
-        const fallback =
-          formType === 'application'
-            ? APPLICATION_ERROR_MESSAGES[status] || '폼 등록 실패'
-            : '폼 등록 실패';
+        const fallback = APPLICATION_ERROR_MESSAGES[status] || '폼 등록 실패';
         throw new Error(body?.error || body?.message || fallback);
       }
 

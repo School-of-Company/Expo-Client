@@ -1,4 +1,4 @@
-import { PublicSurveyContainer } from '@/features/application';
+import { PublicSurveyContainer } from '@/features/survey-answer';
 
 const PublicSurveyPage = ({ expoId }: { expoId: string }) => {
   return (

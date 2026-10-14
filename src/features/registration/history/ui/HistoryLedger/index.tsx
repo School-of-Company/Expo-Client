@@ -11,7 +11,6 @@ import {
   useRegistrationExpo,
 } from '../../../common';
 import { AdminChangeHistoryItem } from '../../api/adminChangeHistoryApi';
-import { GroupMessageHistoryItem } from '../../api/groupMessageHistoryApi';
 import {
   formatOccurredAt,
   getChangeTypeLabel,
@@ -24,57 +23,9 @@ import {
   isHistoryRangeInvalid,
   useAdminChangeHistory,
 } from '../../model/adminChangeHistory';
-import {
-  getMessageHistoryErrorMessage,
-  getMessageTypeLabel,
-  useGroupMessageHistory,
-} from '../../model/groupMessageHistory';
+import ApplicationActivitySection from '../ApplicationActivitySection';
+import GroupMessageHistorySection from '../GroupMessageHistorySection';
 import HistoryFilters from '../HistoryFilters';
-
-// 신청 이력은 공개 조회 API가 생기기 전까지 임시 이력을 보여 주지 않는다
-const PENDING_SOURCES = [
-  {
-    title: '신청·취소·승급 이력',
-    source: 'Application',
-    status: '공개 관리자 조회 API 구현 중 (Expo-Application-Server#93)',
-  },
-];
-
-type MessageRow = GroupMessageHistoryItem & { id: string };
-
-const MESSAGE_COLUMNS: TableColumn<MessageRow>[] = [
-  {
-    key: 'occurredAt',
-    label: '처리 일시',
-    flex: 1.4,
-    render: ({ occurredAt }) => formatOccurredAt(occurredAt),
-  },
-  {
-    key: 'type',
-    label: '유형',
-    render: ({ type }) => getMessageTypeLabel(type),
-  },
-  {
-    key: 'target',
-    label: '대상',
-    flex: 1.6,
-    render: ({ targetScope: { kind, applicationCount } }) =>
-      applicationCount === null ? kind : `${kind} · 신청 ${applicationCount}건`,
-  },
-  {
-    key: 'counts',
-    label: '결과',
-    flex: 2,
-    render: ({ counts }) =>
-      `전체 ${counts.total} · 전달 ${counts.delivered} · 실패 ${counts.failed} · 미확인 ${counts.unknown} · 누락 ${counts.missing}`,
-  },
-  { key: 'status', label: '상태', render: ({ status }) => status },
-  {
-    key: 'adminId',
-    label: '처리자',
-    render: ({ adminId }) => `관리자 #${adminId}`,
-  },
-];
 
 const COLUMNS: TableColumn<AdminChangeHistoryItem>[] = [
   {
@@ -95,16 +46,18 @@ const COLUMNS: TableColumn<AdminChangeHistoryItem>[] = [
   {
     key: 'target',
     label: '대상',
-    render: ({ targetType, targetId }) =>
-      `${getTargetTypeLabel(targetType)} #${targetId}`,
+    render: ({ targetType, targetId }) => (
+      // 매핑이 없는 유형은 PREREGISTER_SESSION 처럼 공백 없는 긴 원문이라 칸 안에서 줄바꿈한다
+      <p className="break-words">
+        {getTargetTypeLabel(targetType)} #{targetId}
+      </p>
+    ),
   },
   {
     key: 'summary',
     label: '내용',
     flex: 3,
-    render: ({ summary }) => (
-      <p className="break-words text-left">{summary || '-'}</p>
-    ),
+    render: ({ summary }) => <p className="break-words">{summary || '-'}</p>,
   },
   {
     key: 'adminId',
@@ -123,7 +76,7 @@ const HistoryLedger = () => {
   const searchParams = useSearchParams();
   // URL 의 ?page 는 1부터, 서버 페이지는 0부터
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
-  const { expoId } = useRegistrationExpo();
+  const { expoId, routes } = useRegistrationExpo();
   const [filter, setFilter] = useState<HistoryFilter>(INITIAL_HISTORY_FILTER);
 
   const { data, error, isLoading, isError, refetch } = useAdminChangeHistory(
@@ -132,26 +85,27 @@ const HistoryLedger = () => {
     page - 1,
   );
   const isRangeInvalid = isHistoryRangeInvalid(filter);
-  const message = useGroupMessageHistory(expoId, filter, !isRangeInvalid);
-  const messageRows: MessageRow[] = (message.data?.pages ?? [])
-    .flatMap(({ items }) => items)
-    .map((item) => ({ ...item, id: item.eventId }));
   const totalCount = data?.totalElements ?? 0;
   const totalPage = getHistoryTotalPage(totalCount);
 
   const handleFilterChange = useCallback(
     (next: HistoryFilter) => {
       setFilter(next);
-      router.replace('?');
+      // 1페이지로 돌아갈 때만 주소를 바꾼다. 매번 바꾸면 라우터가 서버에 화면을 다시 요청한다
+      if (searchParams.get('page')) router.replace('?');
     },
-    [router],
+    [router, searchParams],
   );
 
   return withLoading({
     isLoading: isLoading && !data,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px]">
-        <DetailHeader textCenter headerTitle="행정 이력" />
+      <div className="flex w-full min-w-0 max-w-[1200px] flex-1 flex-col space-y-[54px]">
+        <DetailHeader
+          textCenter
+          headerTitle="행정 이력"
+          onBack={() => router.push(routes.dashboard)}
+        />
 
         <section className="space-y-16">
           <div className="space-y-6">
@@ -195,60 +149,9 @@ const HistoryLedger = () => {
           )}
         </section>
 
-        <section className="space-y-16">
-          <div className="space-y-6">
-            <p className="text-body1b text-black">그룹 문자 발송 이력</p>
-            <p className="text-caption1r text-gray-400">
-              Notification 원천의 처리 이력입니다. 위 기간(시작 포함·종료
-              미포함)만 적용되며 본문·전화번호는 표시하지 않습니다.
-            </p>
-          </div>
+        <ApplicationActivitySection expoId={expoId} />
 
-          {isRangeInvalid ? null : message.isError && !message.data ? (
-            <SectionError
-              message={getMessageHistoryErrorMessage(message.error)}
-              onRetry={() => message.refetch()}
-            />
-          ) : (
-            <RegistrationTable
-              columns={MESSAGE_COLUMNS}
-              rows={messageRows}
-              emptyText="조건에 맞는 문자 발송 이력이 없습니다."
-              footerText="불러온 문자 이력"
-              footerCount={messageRows.length}
-              minWidth="900px"
-            >
-              {message.isError && (
-                <SectionError
-                  message={getMessageHistoryErrorMessage(message.error)}
-                  onRetry={() => message.fetchNextPage()}
-                />
-              )}
-              {message.hasNextPage && (
-                <div className="flex justify-center">
-                  <button
-                    type="button"
-                    disabled={message.isFetchingNextPage}
-                    onClick={() => message.fetchNextPage()}
-                    className="text-body2r text-main-600 underline"
-                  >
-                    {message.isFetchingNextPage ? '불러오는 중...' : '더 보기'}
-                  </button>
-                </div>
-              )}
-            </RegistrationTable>
-          )}
-        </section>
-
-        <ul className="space-y-12 rounded-sm border-1 border-solid border-gray-200 px-30 py-20 mobile:px-16">
-          {PENDING_SOURCES.map(({ title, source, status }) => (
-            <li key={title} className="flex flex-wrap items-baseline gap-12">
-              <span className="text-body2b text-black">{title}</span>
-              <span className="text-caption1r text-gray-400">{source}</span>
-              <span className="text-caption1r text-gray-500">{status}</span>
-            </li>
-          ))}
-        </ul>
+        <GroupMessageHistorySection expoId={expoId} />
       </div>
     ),
   });

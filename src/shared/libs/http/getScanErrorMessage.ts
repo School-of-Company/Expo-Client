@@ -1,4 +1,8 @@
 import axios from 'axios';
+import {
+  toServerMessage,
+  toStatusMessage,
+} from '@/shared/libs/handler/serverMessage';
 
 // 스캔 API는 오류를 { status, message }로 돌려주지만 Next 프록시가 { error, status }로 바꿔 전달한다
 // (토큰 재발급 뒤 재시도 응답만 원본 그대로). 둘 다 읽어 서버 문구가 있으면 보여 주고,
@@ -14,13 +18,12 @@ export const getScanErrorMessage = (error: unknown, fallback: string) => {
   if (!error.response) return NETWORK_ERROR_MESSAGE;
 
   const { status, data } = error.response;
-  const text = [data?.error, data?.message].find(
-    (value): value is string => typeof value === 'string' && value !== '',
-  );
-  const message = text ?? null;
+  // 영문 문구(Gateway "Service Unavailable" 등)는 상태별 한국어 문구로 바뀐다
+  const message = toServerMessage(status, data);
   if (!message) return fallback;
+  if (!RETRYABLE_STATUSES.includes(status)) return message;
 
-  return RETRYABLE_STATUSES.includes(status)
-    ? `${message} 잠시 후 다시 스캔해 주세요.`
-    : message;
+  // 상태별 공통 문구에는 이미 재시도 안내가 있어, 대체 문구에 스캔 재시도 안내를 붙인다
+  const base = message === toStatusMessage(status) ? fallback : message;
+  return `${base} 잠시 후 다시 스캔해 주세요.`;
 };

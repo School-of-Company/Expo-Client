@@ -12,11 +12,10 @@ export const patchStandardAttendance = async ({
   try {
     await clientTokenInstance.patch(
       `/attendance/standard/${encodeURIComponent(programId)}`,
-      {
-        expoId,
-        participantId,
-        code,
-      },
+      // code가 없으면 키 자체를 빼고 보낸다
+      code === undefined
+        ? { expoId, participantId }
+        : { expoId, participantId, code },
     );
   } catch (error) {
     if (axios.isAxiosError(error)) {

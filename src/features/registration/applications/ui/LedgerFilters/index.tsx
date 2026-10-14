@@ -16,6 +16,7 @@ import {
   OCCUPATION_LABEL,
   PROGRAM_TYPE_LABEL,
   Q_MAX_LENGTH,
+  SEARCH_MAX_LENGTH,
   toSessionKey,
 } from '../../../common/model/ledger';
 
@@ -38,25 +39,32 @@ const LedgerFilters = ({
   const update = (patch: Partial<LedgerFilter>) =>
     onChange({ ...filter, ...patch });
   const [keyword, setKeyword] = useState(filter.q);
+  const [title, setTitle] = useState(filter.search);
 
   // 초기화처럼 바깥에서 검색어가 바뀌면 입력칸도 맞춘다
   useEffect(() => setKeyword(filter.q), [filter.q]);
+  useEffect(() => setTitle(filter.search), [filter.search]);
 
   useEffect(() => {
-    if (keyword === filter.q) return undefined;
+    if (keyword === filter.q && title === filter.search) return undefined;
     const timer = setTimeout(
-      () => onChange({ ...filter, q: keyword }),
+      () => onChange({ ...filter, q: keyword, search: title }),
       SEARCH_DEBOUNCE_MS,
     );
     return () => clearTimeout(timer);
-  }, [keyword, filter, onChange]);
+  }, [keyword, title, filter, onChange]);
 
   return (
-    <div className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_auto] items-center gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
+    <div className="grid grid-cols-[2fr_2fr_2fr_1fr_1fr_1fr_auto] items-center gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
       <SearchInput
         placeholder="참가자 이름·번호로 검색"
         value={keyword}
         onChange={(value) => setKeyword(value.slice(0, Q_MAX_LENGTH))}
+      />
+      <SearchInput
+        placeholder="제출 당시 제목으로 검색"
+        value={title}
+        onChange={(value) => setTitle(value.slice(0, SEARCH_MAX_LENGTH))}
       />
       <RegistrationSelect
         ariaLabel="회차"

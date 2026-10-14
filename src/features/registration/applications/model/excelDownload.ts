@@ -4,7 +4,6 @@ import {
   ReportExcelScope,
   ReportExcelTemplate,
 } from '@/shared/types/registration/type';
-import { REPORT_TARGET_MAX_COUNT } from '../../common/api/reportTargetApi';
 import {
   LedgerFilter,
   LedgerRow,
@@ -12,6 +11,9 @@ import {
 } from '../../common/model/ledger';
 
 export const SELECTED_MAX_COUNT = 1000;
+
+// 리포트 서버가 현재 필터 전체 다운로드를 받는 최대 건수. 넘으면 413 으로 거절한다
+export const FILTER_MAX_COUNT = 10_000;
 
 export const EXCEL_TEMPLATE_OPTIONS: {
   value: ReportExcelTemplate;
@@ -49,8 +51,8 @@ interface ExcelDownloadPlanParams {
   scope: ReportExcelScope;
   selectedRows: LedgerRow[];
   filter: LedgerFilter;
-  /** 현재 필터 전체 건수 (서버 기준) */
-  filterCount: number;
+  /** 대장에 보이는 현재 필터 결과 건수. 모르면 비워 둔다 */
+  filterCount?: number;
 }
 
 export interface ExcelDownloadPlan {
@@ -146,21 +148,21 @@ export const ATTENDANCE_FILTER_BLOCKER =
 const planFilter = (
   template: ReportExcelTemplate,
   filter: LedgerFilter,
-  filterCount: number,
+  filterCount: number | undefined,
   blockers: string[],
 ): ReportExcelDownloadRequest | null => {
-  if (filterCount > REPORT_TARGET_MAX_COUNT) {
-    blockers.push(
-      `현재 필터 대상이 ${filterCount}건입니다. 한 번에 최대 ${REPORT_TARGET_MAX_COUNT}건까지 받을 수 있으니 필터를 좁혀주세요.`,
-    );
-  }
   // 필터에는 연수자 조건이 없어 다른 연수자의 신청이 섞이면 서버가 거절한다
   if (template === 'ATTENDANCE') {
     blockers.push(ATTENDANCE_FILTER_BLOCKER);
     return null;
   }
 
-  // Report 필터에는 참가자 이름·번호와 직업 조건이 없다. 조용히 빼면 화면과 다른 대상이 나간다
+  // Report 필터에는 제출 당시 제목, 참가자 이름·번호와 직업 조건이 없다. 조용히 빼면 화면과 다른 대상이 나간다
+  if (filter.search.trim()) {
+    blockers.push(
+      '제목 검색은 다운로드 필터에 없습니다. 검색어를 지우거나 신청을 선택해서 받아주세요.',
+    );
+  }
   if (filter.q.trim()) {
     blockers.push(
       '이름·번호 검색은 다운로드 필터에 없습니다. 검색어를 지우거나 신청을 선택해서 받아주세요.',
@@ -177,6 +179,18 @@ const planFilter = (
 
   if (template === 'TRAINEE' && session?.programType === 'STANDARD') {
     blockers.push('연수자 명단은 연수 회차만 필터할 수 있습니다.');
+  }
+  // 연수자 명단은 서버가 연수 신청만 세므로, 회차를 연수로 고르지 않았으면 대장 건수와 달라 막지 않는다
+  const isCountComparable =
+    template !== 'TRAINEE' || session?.programType === 'TRAINING';
+  if (
+    isCountComparable &&
+    filterCount !== undefined &&
+    filterCount > FILTER_MAX_COUNT
+  ) {
+    blockers.push(
+      `현재 필터 전체는 최대 ${FILTER_MAX_COUNT.toLocaleString('ko-KR')}건까지 받을 수 있습니다. 필터를 좁혀주세요.`,
+    );
   }
   if (template === 'PROGRAM') {
     if (!session) {

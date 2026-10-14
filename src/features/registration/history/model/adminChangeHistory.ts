@@ -26,9 +26,11 @@ export const CHANGE_TYPE_STYLE: Record<AdminChangeType, string> = {
   SESSION_DELETE: 'text-error',
 };
 
+// 서버가 이력에 남기는 대상 유형 (Expo-Expo-Server history.record 호출부)
 const TARGET_TYPE_LABEL: Record<string, string> = {
-  PROGRAM: '프로그램',
-  SESSION: '회차',
+  STANDARD: '일반 프로그램',
+  TRAINING: '연수 프로그램',
+  PREREGISTER_SESSION: '사전등록 회차',
 };
 
 const isChangeType = (type: string): type is AdminChangeType =>
@@ -58,7 +60,7 @@ export const INITIAL_HISTORY_FILTER: HistoryFilter = {
   to: null,
 };
 
-export const toUtcIso = (local: string | null) =>
+const toUtcIso = (local: string | null) =>
   local ? new Date(local).toISOString() : undefined;
 
 export const isHistoryRangeInvalid = ({ from, to }: HistoryFilter) =>

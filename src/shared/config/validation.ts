@@ -22,3 +22,18 @@ export const SMS_CODE_PATTERN = {
   value: /^\d{4}$/,
   message: '4자리 숫자를 입력해주세요.',
 };
+
+// Expo 서버 프로그램·사전등록 회차 요청의 @CodePointLength(max = 50) 와 같은 규칙.
+// 이모지처럼 UTF-16 두 칸을 쓰는 문자도 한 글자로 세야 하므로 length 대신 Array.from 으로 코드 포인트 수를 센다
+export const PROGRAM_TITLE_MAX_LENGTH = 50;
+
+export const isProgramTitleTooLong = (title: string) =>
+  Array.from(title).length > PROGRAM_TITLE_MAX_LENGTH;
+
+// Expo 서버 프로그램 요청은 시작이 종료보다 빨라야 한다 (같으면 400).
+// 두 값이 모두 'yyyy-MM-dd HH:mm' 형식일 때만 비교하고, 형식 오류는 DATE_TIME_PATTERN 이 따로 알려준다.
+// 자릿수가 고정된 형식이라 문자열 비교가 곧 시간순 비교다
+export const isDateTimeRangeInvalid = (startedAt: string, endedAt: string) =>
+  DATE_TIME_PATTERN.value.test(startedAt) &&
+  DATE_TIME_PATTERN.value.test(endedAt) &&
+  startedAt >= endedAt;

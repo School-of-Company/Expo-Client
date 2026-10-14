@@ -1,12 +1,18 @@
-import { toRoleAuthority } from '@/shared/config';
+import { USER_AUTHORITY, toRoleAuthority } from '@/shared/config';
 
 // Swagger ScanEntryReqDto.authority: ROLE_STANDARD | ROLE_TRAINEE
-type AttendAuthority = ReturnType<typeof toRoleAuthority>;
+type StandardAuthority = ReturnType<
+  typeof toRoleAuthority<typeof USER_AUTHORITY.STANDARD>
+>;
+type TraineeAuthority = ReturnType<
+  typeof toRoleAuthority<typeof USER_AUTHORITY.TRAINEE>
+>;
 
-// 일반 참가자는 participantId + code(또는 예전 QR의 phoneNumber), 연수자는 phoneNumber로 찾는다
+// 일반 참가자는 participantId + code(또는 예전 QR의 phoneNumber), 연수자는 서버가 phoneNumber를 꼭 요구한다
 export type AttendUserQrRequest =
-  | { authority: AttendAuthority; participantId: number; code: string }
-  | { authority: AttendAuthority; phoneNumber: string };
+  | { authority: StandardAuthority; participantId: number; code: string }
+  | { authority: StandardAuthority; phoneNumber: string }
+  | { authority: TraineeAuthority; phoneNumber: string };
 
 // 연수자 전원과 교사만 값이 있고 그 외는 null
 export interface AttendUserBadge {
