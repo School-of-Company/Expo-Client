@@ -41,6 +41,9 @@ export const getRegistrationRoutes = (expoId: string) => {
     schedule: `${base}/schedule`,
     history: `${base}/history`,
     operations: `${base}/operations`,
+    programFormNew: `${base}/program-forms/new`,
+    programForm: (formId: string) =>
+      `${base}/program-forms/${encodeURIComponent(formId)}`,
     survey: `${base}/survey`,
   };
 };
