@@ -23,22 +23,9 @@ import {
   isHistoryRangeInvalid,
   useAdminChangeHistory,
 } from '../../model/adminChangeHistory';
+import ApplicationActivitySection from '../ApplicationActivitySection';
+import GroupMessageHistorySection from '../GroupMessageHistorySection';
 import HistoryFilters from '../HistoryFilters';
-
-// 신청·문자 이력은 출처 서비스의 공개 조회 API가 생기기 전까지 임시 이력을 보여 주지 않는다
-const PENDING_SOURCES = [
-  {
-    title: '신청·취소·승급 이력',
-    source: 'Application',
-    status: '공개 관리자 조회 API 구현 중 (Expo-Application-Server#93)',
-  },
-  {
-    title: '그룹 문자 발송 이력',
-    source: 'Notification',
-    status:
-      '내부 이력 API 구현 완료(Expo-Notification-Server#43), Application 공개 경로 연결 전',
-  },
-];
 
 const COLUMNS: TableColumn<AdminChangeHistoryItem>[] = [
   {
@@ -162,15 +149,9 @@ const HistoryLedger = () => {
           )}
         </section>
 
-        <ul className="space-y-12 rounded-sm border-1 border-solid border-gray-200 px-30 py-20 mobile:px-16">
-          {PENDING_SOURCES.map(({ title, source, status }) => (
-            <li key={title} className="flex flex-wrap items-baseline gap-12">
-              <span className="text-body2b text-black">{title}</span>
-              <span className="text-caption1r text-gray-400">{source}</span>
-              <span className="text-caption1r text-gray-500">{status}</span>
-            </li>
-          ))}
-        </ul>
+        <ApplicationActivitySection expoId={expoId} />
+
+        <GroupMessageHistorySection expoId={expoId} />
       </div>
     ),
   });

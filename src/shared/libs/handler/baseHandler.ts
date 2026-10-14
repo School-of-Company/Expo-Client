@@ -1,5 +1,6 @@
 import { AxiosError } from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
+import { clientIpHeaders } from '@/shared/libs/http/clientIp';
 import { serverInstance } from '@/shared/libs/http/serverInstance';
 import { toUpstreamFailure } from './error';
 import { forbiddenPathResponse, toGatewayUrl } from './proxyTarget';
@@ -17,7 +18,7 @@ const FORWARDED_HEADERS = ['Idempotency-Key', 'X-XSRF-TOKEN', 'X-CSRF-TOKEN'];
 const RETURNED_HEADERS = ['x-csrf-token'];
 
 const pickForwardedHeaders = (req: NextRequest) => {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = clientIpHeaders(req);
   FORWARDED_HEADERS.forEach((name) => {
     const value = req.headers.get(name);
     if (value) headers[name] = value;
