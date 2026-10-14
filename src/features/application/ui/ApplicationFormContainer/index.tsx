@@ -4,13 +4,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useMemo, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
+import { useFormQuery } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
-import { useGetApplicationForm } from '@/shared/queries';
 import {
-  ApplicationForm,
   DynamicFormValues,
   FormattedApplicationData,
 } from '@/shared/types/application/type';
@@ -33,11 +32,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     data: formList,
     isLoading,
     error,
-  } = useGetApplicationForm(params, userType, applicationType) as {
-    data: ApplicationForm | undefined;
-    isLoading: boolean;
-    error: Error | null;
-  };
+  } = useFormQuery(params, userType, applicationType);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   // 같은 내용의 재제출(연타·네트워크 재시도)은 같은 Idempotency-Key 로 보낸다

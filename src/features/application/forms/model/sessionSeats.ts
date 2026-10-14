@@ -18,3 +18,10 @@ export const getApplicantLimit = (c: PreRegisterCapacity): number =>
 /** 대표자를 제외하고 추가할 수 있는 동행자 수. */
 export const getCompanionLimit = (c: PreRegisterCapacity): number =>
   Math.max(0, getApplicantLimit(c) - 1);
+
+/** 이 인원으로 제출하면 일행 전체가 대기로 접수되는가. 한 일행은 나뉘지 않는다. */
+export const isWaitingParty = (
+  c: PreRegisterCapacity,
+  partySize: number,
+): boolean =>
+  partySize > getConfirmedLimit(c) && partySize <= getWaitingLimit(c);

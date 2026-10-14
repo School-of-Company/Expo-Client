@@ -73,10 +73,11 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
                   applicationType,
                   form,
                 }) => {
-                  const status = getFormPeriodStatus(
-                    form.startDate,
-                    form.endDate,
-                  );
+                  // 설문에는 신청 기간이 없다
+                  const hasPeriod = 'startDate' in form;
+                  const status = hasPeriod
+                    ? getFormPeriodStatus(form.startDate, form.endDate)
+                    : 'OPEN';
 
                   return (
                     <ApplicationFormCard
@@ -84,7 +85,11 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
                       category={audience}
                       title={form.title}
                       description={form.informationText}
-                      period={`${formatFormPeriod(form.startDate)} ~ ${formatFormPeriod(form.endDate)}`}
+                      period={
+                        hasPeriod
+                          ? `${formatFormPeriod(form.startDate)} ~ ${formatFormPeriod(form.endDate)}`
+                          : '-'
+                      }
                       statusLabel={FORM_PERIOD_STATUS_LABEL[status]}
                       isOpen={status === 'OPEN'}
                       buttonLabel={
