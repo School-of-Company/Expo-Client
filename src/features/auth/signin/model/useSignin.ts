@@ -5,9 +5,6 @@ import { toast } from 'react-toastify';
 import { SignInData } from '@/shared/types/signin/type';
 import { postSignin, SigninError } from '../api/postSignin';
 
-// 잠금 시간은 서버 설정이라 Retry-After가 없을 때만 쓰는 짧은 재시도 대기 시간이다.
-const DEFAULT_LOCK_SECONDS = 30;
-
 // 서버는 같은 닉네임으로 여러 번 실패하면 분 단위로 잠그므로 남은 시간을 분으로 올려 안내한다
 const toLockMessage = (seconds?: number) =>
   seconds
@@ -38,7 +35,8 @@ export const useSignin = () => {
     onError: (error: Error) => {
       if (error instanceof SigninError && error.status === 429) {
         toast.error(toLockMessage(error.retryAfterSeconds));
-        lock(error.retryAfterSeconds ?? DEFAULT_LOCK_SECONDS);
+        // 서버 잠금은 실패 횟수에 따라 길어지는데 Retry-After 가 없으면 길이를 모르므로 버튼은 잠그지 않는다
+        if (error.retryAfterSeconds) lock(error.retryAfterSeconds);
         return;
       }
       toast.error(error.message);
