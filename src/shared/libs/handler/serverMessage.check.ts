@@ -37,3 +37,19 @@ assert.equal(
 assert.equal(toServerCode({ message: 'x' }), undefined);
 
 console.log('serverMessage checks passed');
+
+// Application 서버 ProblemDetail: 한국어 detail 은 보여 주고 영문 detail 은 버린다
+assert.equal(
+  toServerMessage(409, {
+    status: 409,
+    detail: '미리보기 이후 대상이 변경되었습니다.',
+  }),
+  '미리보기 이후 대상이 변경되었습니다.',
+);
+assert.equal(
+  toServerMessage(400, {
+    status: 400,
+    detail: 'Invalid admin group message request',
+  }),
+  undefined,
+);
