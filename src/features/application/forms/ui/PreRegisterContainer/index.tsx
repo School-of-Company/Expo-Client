@@ -77,7 +77,7 @@ const PreRegisterContainer = ({
         questions,
         'PRE',
       )(data as DynamicFormValues & { privacyConsent: boolean });
-      await postApplication(
+      const result = await postApplication(
         expoId,
         'application',
         'STANDARD',
@@ -85,8 +85,13 @@ const PreRegisterContainer = ({
         { ...formatted, ...(sessionId && { sessionId }) },
         createIdempotencyKey(),
       );
+      // 서버가 대기로 접수하면(202) 확정이 아니므로 성공 페이지가 대기 접수와 순번을 안내한다
+      const waiting =
+        result?.status === 'WAITING' || result?.status === 'PROCESSING'
+          ? `&status=${result.status}${result.position ? `&position=${encodeURIComponent(result.position)}` : ''}`
+          : '';
       router.push(
-        `/application/success/${expoId}?userType=STANDARD&formType=application`,
+        `/application/success/${expoId}?userType=STANDARD&formType=application${waiting}`,
       );
     } catch (submitError) {
       toast.error(
