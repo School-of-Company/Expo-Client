@@ -11,6 +11,7 @@ import { useTimer } from '@/shared/model';
 import { Button, Input } from '@/shared/ui';
 import { getExpoId } from '../../lib/getExpoId';
 import { getRedirectPath } from '../../lib/getRedirectPath';
+import { useLogoutParticipantSession } from '../../model/useLogoutParticipantSession';
 import { useParticipantSession } from '../../model/useParticipantSession';
 import { useSendVerificationSms } from '../../model/useSendVerificationSms';
 import { useVerifySmsCode } from '../../model/useVerifySmsCode';
@@ -69,6 +70,9 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
     },
   );
 
+  const { mutate: logoutSession, isPending: isLoggingOut } =
+    useLogoutParticipantSession(expoId);
+
   const handleSendSms = async () => {
     const isValid = await trigger('phoneNumber');
     if (isValid) sendSms(getValues('phoneNumber'));
@@ -113,12 +117,22 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
           <p className="text-body2r text-black">
             이미 인증되어 있습니다. ({formatExpiresAt(session.expiresAt)}까지)
           </p>
-          <Button
-            width="120px"
-            onClick={() => router.replace(getRedirectPath(redirect))}
-          >
-            계속하기
-          </Button>
+          <div className="flex shrink-0 gap-8">
+            <Button
+              width="140px"
+              variant="white"
+              onClick={() => logoutSession()}
+              disabled={isLoggingOut}
+            >
+              다른 번호로 인증
+            </Button>
+            <Button
+              width="120px"
+              onClick={() => router.replace(getRedirectPath(redirect))}
+            >
+              계속하기
+            </Button>
+          </div>
         </div>
       )}
 
