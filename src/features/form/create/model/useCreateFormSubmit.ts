@@ -4,7 +4,7 @@ import { transformFormData } from '../../common/model/formUtils';
 import { useCreateApplicationForm } from './useCreateApplicationForm';
 import { useCreateSurveyForm } from './useCreateSurveyForm';
 
-export const useCreateFormMutation = (
+export const useCreateFormSubmit = (
   id: string,
   type: 'STANDARD' | 'TRAINEE',
   mode: 'application' | 'survey',

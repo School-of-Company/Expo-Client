@@ -18,6 +18,8 @@ export const usePreregisterSummary = (expoId: string) =>
     queryKey: preregisterSummaryQueryKey(expoId),
     queryFn: () => getAdminPreregisterSummary(expoId),
     refetchInterval: LEDGER_REFRESH_MS,
+    // 실패는 섹션의 상태별 문구로 알리므로 서버 원문 전역 토스트는 끈다
+    meta: { silent: true },
   });
 
 /** 대기 승급이 멈춘 사유. 모르는 값은 그대로 보여 준다 */

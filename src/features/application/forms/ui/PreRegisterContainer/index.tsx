@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
+import { useFormQuery } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
-import { useGetApplicationForm } from '@/shared/queries/useGetApplicationForm';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
 import {
@@ -18,23 +18,8 @@ import {
   postApplication,
 } from '../../../api/postApplication';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
-import {
-  getCompanionLimit,
-  getRemainingSeats,
-  getSessionStatus,
-} from '../../model/sessionSeats';
-import { usePreRegisterSession } from '../../model/usePreRegister';
-
-const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토'];
-const pad = (value: number) => String(value).padStart(2, '0');
-const time = (date: Date) =>
-  `${pad(date.getHours())}:${pad(date.getMinutes())}`;
-
-/** "10월 31일 (토) 09:30 ~ 12:30" */
-const formatSession = (startedAt: string, endedAt: string) => {
-  const start = new Date(startedAt);
-  return `${start.getMonth() + 1}월 ${start.getDate()}일 (${WEEKDAY[start.getDay()]}) ${time(start)} ~ ${time(new Date(endedAt))}`;
-};
+import { getApplicantLimit, getCompanionLimit } from '../../model/sessionSeats';
+import { usePreRegisterCapacity } from '../../model/usePreRegister';
 
 /**
  * 사전등록 신청. 입력 항목은 Form 서비스의 일반 참가자 사전 폼 정의를 그대로 그리고,
@@ -53,8 +38,8 @@ const PreRegisterContainer = ({
     data: form,
     isLoading,
     error,
-  } = useGetApplicationForm(expoId, 'STANDARD', 'PRE');
-  const { data: session, error: sessionError } = usePreRegisterSession(
+  } = useFormQuery(expoId, 'STANDARD', 'PRE');
+  const { data: capacity, error: sessionError } = usePreRegisterCapacity(
     expoId,
     sessionId,
   );
@@ -66,9 +51,9 @@ const PreRegisterContainer = ({
     [form, questions],
   );
 
-  const status = session ? getSessionStatus(session) : null;
-  const remainingSeats = session ? getRemainingSeats(session) : undefined;
-  const companionLimit = session ? getCompanionLimit(session) : undefined;
+  const applicantLimit = capacity ? getApplicantLimit(capacity) : undefined;
+  const companionLimit = capacity ? getCompanionLimit(capacity) : undefined;
+  const canApply = applicantLimit === undefined || applicantLimit > 0;
   const companionFieldId = schema?.items.find(
     (item) => item.type === 'COMPANION',
   )?.id;
@@ -105,9 +90,9 @@ const PreRegisterContainer = ({
           ? submitError.message
           : '사전등록에 실패했습니다',
       );
-      // 제출 사이에 자리가 줄어 거절됐을 수 있으므로 회차 현황을 다시 받는다
+      // 제출 시 서버가 정원을 다시 판정해 일행 전체를 거절했을 수 있으므로 잔여석을 다시 받는다
       queryClient.invalidateQueries({
-        queryKey: ['preRegisterSession', expoId, sessionId],
+        queryKey: ['preRegisterCapacity', expoId, sessionId],
       });
     } finally {
       setIsSubmitting(false);
@@ -136,41 +121,35 @@ const PreRegisterContainer = ({
         {sessionError && (
           <div className="flex flex-col gap-8 rounded-sm border-1 border-solid border-error bg-white p-24">
             <p className="text-body2b text-error">
-              회차 정보를 불러오지 못했습니다
+              잔여석을 불러오지 못했습니다
             </p>
             <p className="text-body2r text-gray-600">
-              {sessionError.message} 남은 자리와 마감 여부를 확인할 수 없어
-              신청을 진행할 수 없습니다. 잠시 후 다시 시도하거나 다른 회차를
-              선택해 주세요.
+              {sessionError.message} 남은 자리를 확인할 수 없어 신청을 진행할 수
+              없습니다. 잠시 후 다시 시도하거나 다른 회차를 선택해 주세요.
             </p>
           </div>
         )}
 
-        {session && status && (
+        {capacity && (
           <div className="flex flex-col gap-8 rounded-sm border-1 border-solid border-main-300 bg-main-100 p-24">
-            <p className="text-body1b text-black">{session.title}</p>
-            <ul className="flex flex-col gap-4 text-body2r text-gray-600">
-              <li>
-                일시 · {formatSession(session.startedAt, session.endedAt)}
-              </li>
-              <li>
-                장소 · {session.place} · 정원{' '}
-                {session.capacity.toLocaleString()}명 / 대기{' '}
-                {session.waitingCapacity.toLocaleString()}명
-              </li>
-            </ul>
             <p
-              className={`text-body2b ${status.canApply ? 'text-main-600' : 'text-error'}`}
+              className={`text-body2b ${canApply ? 'text-main-600' : 'text-error'}`}
             >
-              {status.label}
+              {canApply
+                ? `현재 남은 자리 ${capacity.remaining.toLocaleString()}명`
+                : '신청 마감'}
             </p>
-            {status.canApply && remainingSeats !== undefined && (
+            {canApply && (
               <p className="text-caption1r text-gray-600">
-                이 회차는 남은 자리가 {remainingSeats.toLocaleString()}명입니다.
-                대표자를 포함해 {remainingSeats.toLocaleString()}명까지 신청할
-                수 있습니다.
+                1회 최대 {capacity.maxApplicants.toLocaleString()}명, 대표자를
+                포함해 {applicantLimit?.toLocaleString()}명까지 신청할 수
+                있습니다.
               </p>
             )}
+            <p className="text-caption1r text-gray-500">
+              화면의 남은 자리는 안내용입니다. 제출할 때 서버가 정원을 다시
+              확인하며, 자리가 부족하면 일행 전체의 신청이 거절됩니다.
+            </p>
           </div>
         )}
 
@@ -184,10 +163,10 @@ const PreRegisterContainer = ({
                 ? ((methods.watch(companionFieldId) as unknown[] | undefined)
                     ?.length ?? 0)
                 : 0;
-              // 회차를 바꾸면 이미 추가한 동행자가 새 회차의 남은 자리를 넘을 수 있다
+              // 회차를 바꾸면 이미 추가한 동행자가 새 회차의 상한을 넘을 수 있다
               const isOverCapacity =
-                remainingSeats !== undefined &&
-                companionCount + 1 > remainingSeats;
+                applicantLimit !== undefined &&
+                companionCount + 1 > applicantLimit;
 
               return (
                 <div className="mt-48 flex flex-col gap-30">
@@ -198,9 +177,9 @@ const PreRegisterContainer = ({
                   />
                   {isOverCapacity && (
                     <p className="text-body2r text-error">
-                      이 회차는 남은 자리가{' '}
-                      {(remainingSeats ?? 0).toLocaleString()}명입니다. 인원을
-                      줄이거나 다른 회차를 선택해 주세요.
+                      이번에 신청할 수 있는 인원은 대표자를 포함해{' '}
+                      {(applicantLimit ?? 0).toLocaleString()}명까지입니다.
+                      인원을 줄이거나 다른 회차를 선택해 주세요.
                     </p>
                   )}
 
@@ -217,7 +196,8 @@ const PreRegisterContainer = ({
                         disabled={
                           isSubmitting ||
                           !!sessionError ||
-                          status?.canApply === false ||
+                          !capacity ||
+                          !canApply ||
                           isOverCapacity
                         }
                       >

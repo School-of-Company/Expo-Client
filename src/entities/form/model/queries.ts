@@ -22,10 +22,14 @@ export const useFormQuery = (
   expoId: string,
   participantType: FormParticipantType,
   applicationType: ApplicationType,
+  { admin = false }: { admin?: boolean } = {},
 ) =>
   useQuery({
-    queryKey: formKeys.detail(expoId, participantType, applicationType),
-    queryFn: () => getForm(expoId, participantType, applicationType),
+    queryKey: [
+      ...formKeys.detail(expoId, participantType, applicationType),
+      { admin },
+    ],
+    queryFn: () => getForm(expoId, participantType, applicationType, { admin }),
   });
 
 export const useCreateFormMutation = (expoId: string) => {

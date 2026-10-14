@@ -10,15 +10,19 @@ import type {
   UpdateFormRequestDto,
 } from '../model/types';
 
-/** 일반 신청 폼. 조회는 참가자 화면도 쓰므로 로그인 없이 호출한다. */
+/**
+ * 일반 신청 폼. 조회는 참가자 화면도 쓰므로 기본은 로그인 없이 호출한다.
+ * 관리자 화면은 `admin`으로 토큰 프록시를 탄다. 공개 프록시는 관리자 토큰을 넘기지 않아 401이 난다.
+ */
 
 export const getForm = (
   expoId: string,
   participantType: FormParticipantType,
   applicationType: ApplicationType,
+  { admin = false }: { admin?: boolean } = {},
 ) =>
   formRequest<FormResponseDto>(
-    clientInstance.get(`/forms/${expoId}`, {
+    (admin ? clientTokenInstance : clientInstance).get(`/forms/${expoId}`, {
       params: { type: participantType, applicationType },
     }),
     '폼을 불러오지 못했습니다.',
