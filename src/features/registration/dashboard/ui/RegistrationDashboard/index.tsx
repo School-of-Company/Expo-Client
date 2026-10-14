@@ -191,7 +191,7 @@ const RegistrationDashboard = () => {
             )}
             <SessionStatusTable
               sessions={sessions.data}
-              summaries={summary.data?.sessions ?? []}
+              summaries={summary.data?.sessions ?? null}
             />
           </>
         ) : (

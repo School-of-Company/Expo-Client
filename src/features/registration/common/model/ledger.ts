@@ -187,6 +187,8 @@ export const useLedgerSummary = (expoId: string, filter?: LedgerFilter) =>
       }),
     placeholderData: keepPreviousData,
     refetchInterval: LEDGER_REFRESH_MS,
+    // 실패는 화면의 상태별 문구로 알린다. 서버 원문 전역 토스트는 30초마다 반복되므로 끈다
+    meta: { silent: true },
   });
 
 /** 관리자 원장은 참가자 원천(User) 조회가 하나라도 실패하면 전체를 502 로 거절한다 */
@@ -200,6 +202,7 @@ export const usePreregistrationSummary = (expoId: string) =>
     queryKey: ['adminPreregistrationSummary', expoId],
     queryFn: () => getPreregistrationSummary(expoId),
     refetchInterval: LEDGER_REFRESH_MS,
+    meta: { silent: true },
   });
 
 /**

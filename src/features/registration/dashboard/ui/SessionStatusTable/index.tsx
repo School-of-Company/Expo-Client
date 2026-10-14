@@ -27,7 +27,15 @@ interface SessionStatusRow {
   endedAt: string | null;
   policy: ProgramSessionPolicy | null;
   summary: AdminSessionSummary | null;
+  /** 집계 조회가 실패한 상태. 0건과 구분해 '-' 로 보인다 */
+  isSummaryUnavailable: boolean;
 }
+
+/** 집계 조회가 실패했으면 '-', 회차에 접수가 없으면 0 */
+const count = (
+  { summary, isSummaryUnavailable }: SessionStatusRow,
+  pick: (summary: AdminSessionSummary) => number | undefined,
+) => (isSummaryUnavailable ? '-' : ((summary && pick(summary)) ?? 0));
 
 const COLUMNS: TableColumn<SessionStatusRow>[] = [
   {
@@ -64,9 +72,9 @@ const COLUMNS: TableColumn<SessionStatusRow>[] = [
     key: 'confirmed',
     label: '확정',
     flex: 0.7,
-    render: ({ summary }) => (
+    render: (row) => (
       <span className="text-main-600">
-        {summary?.statusCounts.CONFIRMED ?? 0}
+        {count(row, (s) => s.statusCounts.CONFIRMED)}
       </span>
     ),
   },
@@ -74,19 +82,19 @@ const COLUMNS: TableColumn<SessionStatusRow>[] = [
     key: 'waiting',
     label: '대기',
     flex: 0.7,
-    render: ({ summary }) => summary?.statusCounts.WAITING ?? 0,
+    render: (row) => count(row, (s) => s.statusCounts.WAITING),
   },
   {
     key: 'cancelled',
     label: '취소',
     flex: 0.7,
-    render: ({ summary }) => summary?.statusCounts.CANCELLED ?? 0,
+    render: (row) => count(row, (s) => s.statusCounts.CANCELLED),
   },
   {
     key: 'participants',
     label: '고유 참가자',
     flex: 0.9,
-    render: ({ summary }) => summary?.uniqueParticipants ?? 0,
+    render: (row) => count(row, (s) => s.uniqueParticipants),
   },
   {
     key: 'attendance',
@@ -110,7 +118,8 @@ const COLUMNS: TableColumn<SessionStatusRow>[] = [
 
 interface SessionStatusTableProps {
   sessions: ProgramSessionDefinition[];
-  summaries: AdminSessionSummary[];
+  /** null 이면 집계 조회 실패 */
+  summaries: AdminSessionSummary[] | null;
 }
 
 /** 현재 회차(정원)와 회차별 신청·출석 집계를 합친다. 삭제된 과거 회차도 집계가 있으면 남긴다 */
@@ -122,8 +131,10 @@ const SessionStatusTable = ({
   const { routes } = useRegistrationExpo();
 
   const rows = useMemo(() => {
+    const isSummaryUnavailable = summaries === null;
+    const list = summaries ?? [];
     const summaryByKey = new Map(
-      summaries.map((summary) => [
+      list.map((summary) => [
         toSessionKey({
           programType: summary.programType,
           id: summary.programId,
@@ -141,10 +152,11 @@ const SessionStatusTable = ({
         endedAt: session.endedAt,
         policy: session.policy ?? null,
         summary: summaryByKey.get(key) ?? null,
+        isSummaryUnavailable,
       };
     });
     const currentKeys = new Set(current.map(({ id }) => id));
-    const removed: SessionStatusRow[] = summaries
+    const removed: SessionStatusRow[] = list
       .filter(
         ({ programType, programId }) =>
           !currentKeys.has(toSessionKey({ programType, id: programId })),
@@ -160,6 +172,7 @@ const SessionStatusTable = ({
         endedAt: null,
         policy: null,
         summary,
+        isSummaryUnavailable,
       }));
     return [...current, ...removed].sort((a, b) =>
       (a.startedAt ?? '9').localeCompare(b.startedAt ?? '9'),
