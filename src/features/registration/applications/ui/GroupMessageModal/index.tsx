@@ -71,11 +71,17 @@ const GroupMessageModal = ({
   const [channel, setChannel] = useState<GroupMessageChannel>('SMS');
   const [body, setBody] = useState('');
   const [templateId, setTemplateId] = useState('');
+  // 같은 제출은 같은 멱등 키를 쓴다. 미리보기가 새로 만들어지거나 재시도가 성공하면 바꾼다
   const [preview, setPreview] = useState<{
     source: GroupMessageSource;
     result: GroupMessagePreview;
+    executeKey: string;
+    retryKey: string;
   } | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  // 재시도 대상 지문이 어긋나 관리자가 대상을 다시 확인해야 하는 상태
+  const [retryStale, setRetryStale] = useState(false);
 
   const config = useGroupMessageConfig(expoId);
   const job = useGroupMessageJob(expoId, jobId);
@@ -89,11 +95,8 @@ const GroupMessageModal = ({
 
   const channels = config.data?.enabled ? config.data.channels : {};
   const smsEnabled = channels.SMS?.enabled === true;
-  const kakaoTemplates = channels.KAKAO?.enabled
-    ? (channels.KAKAO.templates ?? [])
-    : [];
-  // 승인 템플릿이 하나도 없으면 카카오는 고를 수 없다
-  const kakaoEnabled = kakaoTemplates.length > 0;
+  const kakaoEnabled = channels.KAKAO?.enabled === true;
+  const kakaoTemplates = kakaoEnabled ? (channels.KAKAO?.templates ?? []) : [];
   const template = kakaoTemplates.find(({ id }) => id === templateId);
 
   // SMS 가 꺼져 있고 카카오만 쓸 수 있으면 카카오로 시작한다
@@ -107,8 +110,8 @@ const GroupMessageModal = ({
         ? { kind: 'SELECTED', applicationIds: selectedRows.map(({ id }) => id) }
         : { kind: 'FILTERED', filter: toGroupMessageFilter(filter) };
     return channel === 'SMS'
-      ? { scope: target, channel: 'SMS', body }
-      : { scope: target, channel: 'KAKAO', templateId };
+      ? { scope: target, channel: 'SMS', body, fallbackToSms: false }
+      : { scope: target, channel: 'KAKAO', templateId, fallbackToSms: false };
   }, [scope, selectedRows, filter, channel, body, templateId]);
   const hasContent = channel === 'SMS' ? body.trim() !== '' : !!template;
   // 미리보기 뒤에 범위나 문구가 바뀌면 그 미리보기로는 보낼 수 없다
@@ -121,11 +124,22 @@ const GroupMessageModal = ({
       ? '보낼 신청을 선택해주세요.'
       : scope === 'SELECTED' && selectedRows.length > GROUP_MESSAGE_SELECTED_MAX
         ? `선택 신청은 최대 ${GROUP_MESSAGE_SELECTED_MAX}건까지 보낼 수 있습니다.`
-        : null;
+        : scope === 'FILTERED' && filterCount === 0
+          ? '현재 필터에 맞는 신청이 없습니다.'
+          : null;
 
   const previewMutation = useMutation({
     mutationFn: () => postGroupMessagePreview(expoId, source),
-    onSuccess: (result) => setPreview({ source, result }),
+    onSuccess: (result) => {
+      setPreview({
+        source,
+        result,
+        executeKey: crypto.randomUUID(),
+        retryKey: crypto.randomUUID(),
+      });
+      setNotice(null);
+      setRetryStale(false);
+    },
   });
 
   const executeMutation = useMutation({
@@ -133,7 +147,7 @@ const GroupMessageModal = ({
       postGroupMessageJob(expoId, preview!.result.previewId, {
         source: preview!.source,
         targetFingerprint: preview!.result.targetFingerprint,
-        idempotencyKey: crypto.randomUUID(),
+        idempotencyKey: preview!.executeKey,
       }),
     onSuccess: (result) => setJobId(result.jobId),
     onError: (error) => {
@@ -146,15 +160,28 @@ const GroupMessageModal = ({
       postGroupMessageRetry(expoId, jobId!, {
         source: preview!.source,
         targetFingerprint: preview!.result.targetFingerprint,
-        idempotencyKey: crypto.randomUUID(),
+        idempotencyKey: preview!.retryKey,
       }),
     onSuccess: (result) => {
       queryClient.setQueryData(['groupMessageJob', expoId, jobId], result);
+      setPreview((prev) =>
+        prev ? { ...prev, retryKey: crypto.randomUUID() } : prev,
+      );
+    },
+    onError: (error) => {
+      if (getErrorStatus(error) === 409) setRetryStale(true);
     },
   });
 
   const handleSend = () => {
-    if (!preview || !isPreviewCurrent) return;
+    if (!preview || !isPreviewCurrent || executeMutation.isPending) return;
+    if (Date.parse(preview.result.expiresAt) <= Date.now()) {
+      setPreview(null);
+      setNotice(
+        '미리보기 유효 시간이 지났습니다. 미리보기를 다시 만들어 주세요.',
+      );
+      return;
+    }
     const { recipientCount, messageCount } = preview.result;
     if (
       !window.confirm(
@@ -162,12 +189,27 @@ const GroupMessageModal = ({
       )
     )
       return;
+    setNotice(null);
     executeMutation.mutate();
+  };
+
+  const handleRetry = () => {
+    if (!preview || retryMutation.isPending) return;
+    if (
+      !window.confirm(
+        `확정 실패 ${jobData?.counts.failed ?? 0}건을 다시 보낼까요? 보낸 뒤에는 취소할 수 없습니다.`,
+      )
+    )
+      return;
+    retryMutation.mutate();
   };
 
   const isEditable = jobId === null;
   const mutationError =
     previewMutation.error ?? executeMutation.error ?? retryMutation.error;
+  // Notification 서버는 작업을 만들 때 저장한 fingerprint 와만 비교해서, 새 미리보기로는 재시도가 통과하지 못한다
+  const retryStaleMessage =
+    '대상이 바뀌어 이 작업은 재시도할 수 없습니다. 창을 닫고 필요한 대상만 새로 선택해 발송해 주세요.';
 
   const renderConfigGate = () => {
     if (config.isLoading) {
@@ -287,7 +329,7 @@ const GroupMessageModal = ({
                       </span>
                       {!enabled && (
                         <span className="ml-auto text-caption1r text-gray-400">
-                          {value === 'KAKAO' ? '승인 템플릿 없음' : '사용 불가'}
+                          사용 불가
                         </span>
                       )}
                     </button>
@@ -368,6 +410,11 @@ const GroupMessageModal = ({
                     </option>
                   ))}
                 </select>
+                {kakaoTemplates.length === 0 && (
+                  <p role="status" className="text-caption1r text-gray-500">
+                    선택할 수 있는 승인 템플릿이 없습니다.
+                  </p>
+                )}
                 {template && <KakaoTemplatePanel template={template} />}
               </section>
             )}
@@ -448,9 +495,11 @@ const GroupMessageModal = ({
               </section>
             )}
 
-            {mutationError && (
+            {(notice || mutationError) && (
               <p role="alert" className="text-body2r text-error">
-                {errorMessage(mutationError)}
+                {retryStale
+                  ? retryStaleMessage
+                  : (notice ?? errorMessage(mutationError))}
               </p>
             )}
 
@@ -478,11 +527,12 @@ const GroupMessageModal = ({
               </div>
             ) : (
               isJobFinal &&
-              (jobData?.counts.failed ?? 0) > 0 && (
+              (jobData?.counts.failed ?? 0) > 0 &&
+              !retryStale && (
                 <Button
                   variant="white"
                   disabled={retryMutation.isPending}
-                  onClick={() => retryMutation.mutate()}
+                  onClick={handleRetry}
                 >
                   {retryMutation.isPending
                     ? '재시도 요청 중...'

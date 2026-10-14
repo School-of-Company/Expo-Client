@@ -45,7 +45,7 @@ export const toGroupMessageFilter = (
   const search = filter.search.trim();
   return {
     ...(parseSessionKey(filter.session) ?? {}),
-    status: filter.status || null,
+    ...(filter.status && { status: filter.status }),
     ...(search && { search }),
     ...(q && { q }),
     ...(filter.occupation && { occupation: filter.occupation }),
