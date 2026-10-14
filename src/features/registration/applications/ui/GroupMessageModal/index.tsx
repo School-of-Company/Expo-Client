@@ -207,8 +207,9 @@ const GroupMessageModal = ({
   const isEditable = jobId === null;
   const mutationError =
     previewMutation.error ?? executeMutation.error ?? retryMutation.error;
+  // Notification 서버는 작업을 만들 때 저장한 fingerprint 와만 비교해서, 새 미리보기로는 재시도가 통과하지 못한다
   const retryStaleMessage =
-    '재시도 대상이 바뀌었습니다. 대상을 다시 확인한 뒤 재시도해 주세요.';
+    '대상이 바뀌어 이 작업은 재시도할 수 없습니다. 창을 닫고 필요한 대상만 새로 선택해 발송해 주세요.';
 
   const renderConfigGate = () => {
     if (config.isLoading) {
@@ -526,23 +527,16 @@ const GroupMessageModal = ({
               </div>
             ) : (
               isJobFinal &&
-              (jobData?.counts.failed ?? 0) > 0 && (
+              (jobData?.counts.failed ?? 0) > 0 &&
+              !retryStale && (
                 <Button
                   variant="white"
-                  disabled={
-                    retryMutation.isPending || previewMutation.isPending
-                  }
-                  onClick={
-                    retryStale ? () => previewMutation.mutate() : handleRetry
-                  }
+                  disabled={retryMutation.isPending}
+                  onClick={handleRetry}
                 >
                   {retryMutation.isPending
                     ? '재시도 요청 중...'
-                    : retryStale
-                      ? previewMutation.isPending
-                        ? '확인하는 중...'
-                        : '대상 다시 확인'
-                      : `실패 ${jobData?.counts.failed}건 재시도`}
+                    : `실패 ${jobData?.counts.failed}건 재시도`}
                 </Button>
               )
             )}
