@@ -32,12 +32,9 @@ export const useSurvey = (expoId: string, type: ParticipationType) =>
       }),
   });
 
-/** 설문·공개 설문·추첨·응답 화면(surveyKeys.expo)과 참가자 폼 목록 캐시를 비운다. */
+/** 설문·공개 설문·추첨·응답 화면과 참가자 폼 목록(모두 surveyKeys.expo 아래) 캐시를 비운다. */
 const invalidateSurveyViews = (queryClient: QueryClient, expoId: string) => {
   queryClient.invalidateQueries({ queryKey: surveyKeys.expo(expoId) });
-  queryClient.invalidateQueries({
-    queryKey: ['applicationFormEntry', expoId],
-  });
 };
 
 // type·isEdit 는 mutate 인자로 받는다. 진행 중에 탭을 옮겨도 onSuccess 가 요청 당시 탭을 쓰게 하려고.
