@@ -176,7 +176,7 @@ export default function CompanionField({
         className="rounded-sm border-1 border-dashed border-gray-300 px-16 py-12 text-body2b text-gray-700 disabled:cursor-not-allowed disabled:text-gray-400"
       >
         {maxCount === 0
-          ? '이 회차는 대표자 한 명만 신청할 수 있습니다'
+          ? '이 회차는 동행자를 추가할 수 없습니다'
           : fields.length >= maxCount
             ? `동행자는 최대 ${maxCount}명입니다`
             : `+ 동행자 추가 (${fields.length}/${maxCount})`}
