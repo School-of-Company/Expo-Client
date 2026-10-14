@@ -1,4 +1,10 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { toast } from 'react-toastify';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import {
   AdminApplicationQuery,
@@ -8,11 +14,11 @@ import {
   AdminOccupation,
   getAdminApplications,
   getAdminApplicationSummary,
-  getAdminCurrentSessions,
+  postAdminApplicationCancellation,
   ProgramSessionDefinition,
   ProgramSessionType,
 } from '../api/ledgerApi';
-import { getPreregistrationSummary } from '../api/preregistrationSummaryApi';
+import { getAllCurrentSessions } from '../api/sessionApi';
 import { formatDateWithWeekday } from '../lib/format';
 
 export const LEDGER_PAGE_SIZE = 20;
@@ -65,10 +71,8 @@ export interface LedgerRow {
   phoneNumber: string | null;
   notificationPhoneNumber: string | null;
   occupation: AdminOccupation | null;
-  /** 참가자 원천(User)에서 받지 못한 행 */
-  isParticipantMissing: boolean;
-  /** 대표자면 true, 동행자면 false. 참가자 정보가 없으면 null */
-  isRepresentative: boolean | null;
+  /** 대표자면 true, 동행자면 false */
+  isRepresentative: boolean;
   linkedTraineeId: number | null;
 }
 
@@ -83,15 +87,12 @@ export const toLedgerRow = (row: AdminApplicationRow): LedgerRow => ({
   title: row.definition?.title || `회차 ${row.programId}`,
   startedAt: row.definition?.startedAt ?? null,
   endedAt: row.definition?.endedAt ?? null,
-  name: row.participant?.name ?? '-',
-  phoneNumber: row.participant?.phoneNumber ?? null,
-  notificationPhoneNumber: row.participant?.notificationPhoneNumber ?? null,
-  occupation: row.participant?.occupation ?? null,
-  isParticipantMissing: row.participant === null,
-  isRepresentative: row.participant
-    ? row.participant.representativeId === null
-    : null,
-  linkedTraineeId: row.participant?.linkedTraineeId ?? null,
+  name: row.participant.name,
+  phoneNumber: row.participant.phoneNumber,
+  notificationPhoneNumber: row.participant.notificationPhoneNumber,
+  occupation: row.participant.occupation,
+  isRepresentative: row.participant.representativeId === null,
+  linkedTraineeId: row.participant.linkedTraineeId,
 });
 
 /** 회차 선택 값은 `${programType}:${programId}` */
@@ -119,6 +120,8 @@ export const parseSessionKey = (
 export interface LedgerFilter {
   session: string;
   status: AdminApplicationStatus | '';
+  /** 제출 당시 제목 */
+  search: string;
   /** 참가자 이름·번호 */
   q: string;
   occupation: AdminOccupation | '';
@@ -128,6 +131,7 @@ export interface LedgerFilter {
 export const INITIAL_LEDGER_FILTER: LedgerFilter = {
   session: '',
   status: '',
+  search: '',
   q: '',
   occupation: '',
   sort: 'CREATED_DESC',
@@ -135,15 +139,20 @@ export const INITIAL_LEDGER_FILTER: LedgerFilter = {
 
 export const Q_MAX_LENGTH = 50;
 
+// Swagger 에 제한이 없어 서버가 400 으로 거절하지 않을 값으로 임의로 둔 상한
+export const SEARCH_MAX_LENGTH = 100;
+
 export const toLedgerQuery = (
   filter: LedgerFilter,
   page: number,
 ): AdminApplicationQuery => {
   const session = parseSessionKey(filter.session);
   const q = filter.q.trim();
+  const search = filter.search.trim();
   return {
     ...(session ?? {}),
     status: filter.status || undefined,
+    search: search || undefined,
     q: q || undefined,
     occupation: filter.occupation || undefined,
     sort: filter.sort,
@@ -165,7 +174,7 @@ export const useLedger = (expoId: string, filter: LedgerFilter, page: number) =>
 export const useCurrentSessions = (expoId: string) =>
   useQuery({
     queryKey: ['adminCurrentSessions', expoId],
-    queryFn: () => getAdminCurrentSessions(expoId),
+    queryFn: () => getAllCurrentSessions(expoId),
     refetchInterval: LEDGER_REFRESH_MS,
   });
 
@@ -192,18 +201,18 @@ export const useLedgerSummary = (expoId: string, filter?: LedgerFilter) =>
   });
 
 /** 관리자 원장은 참가자 원천(User) 조회가 하나라도 실패하면 전체를 502 로 거절한다 */
-export const getLedgerErrorMessage = (error: unknown, fallback: string) =>
-  getErrorStatus(error) === 502
-    ? '참가자 정보를 불러오지 못해 목록을 표시하지 않습니다. 잠시 후 다시 시도해주세요.'
-    : fallback;
+export const isParticipantSourceError = (error: unknown) =>
+  getErrorStatus(error) === 502;
 
-export const usePreregistrationSummary = (expoId: string) =>
-  useQuery({
-    queryKey: ['adminPreregistrationSummary', expoId],
-    queryFn: () => getPreregistrationSummary(expoId),
-    refetchInterval: LEDGER_REFRESH_MS,
-    meta: { silent: true },
-  });
+const LEDGER_ERROR_MESSAGE: Record<number, string> = {
+  400: '조회 조건이 올바르지 않습니다. 필터를 확인해주세요.',
+  401: '로그인이 만료되었습니다. 다시 로그인해주세요.',
+  403: '이 행사의 접수 원장을 조회할 권한이 없습니다.',
+  502: '참가자 정보를 일부 불러오지 못해 목록을 표시하지 않습니다(부분 장애). 잠시 후 다시 시도해주세요.',
+};
+
+export const getLedgerErrorMessage = (error: unknown, fallback: string) =>
+  LEDGER_ERROR_MESSAGE[getErrorStatus(error) ?? 0] ?? fallback;
 
 /**
  * 집계 조회 실패 문구. 출석·사전등록 원천 장애는 서버가 오류로 주므로
@@ -254,6 +263,60 @@ export const useApplicationDetail = (expoId: string, applicationId: string) =>
       return items[0] ?? null;
     },
   });
+
+/** 서버가 관리자 취소를 받아 주는 상태. 취소된 신청은 다시 취소할 대상이 아니다 */
+export const isCancellableStatus = (status: AdminApplicationStatus) =>
+  status === 'CONFIRMED' || status === 'WAITING';
+
+/**
+ * 관리자 취소 실패 안내. 서버 사유(입장·마감·상태 변경 등)는 프록시를 거치며 공통 문구가 되므로
+ * 상태로 나눠 안내한다
+ */
+const getCancellationErrorMessage = (error: unknown) => {
+  switch (getErrorStatus(error)) {
+    case 403:
+      return '이 행사의 신청을 취소할 권한이 없습니다.';
+    case 404:
+      return '신청을 찾을 수 없습니다. 원장에서 삭제되었거나 다른 행사의 신청입니다.';
+    case 409:
+      return '지금은 취소할 수 없습니다. 참가자가 이미 입장했거나 취소 기간이 끝났거나 신청 상태가 바뀌었습니다.';
+    case 502:
+    case 503:
+      return '참가자·출석 연동을 확인하지 못해 취소하지 않았습니다. 잠시 후 다시 시도해주세요.';
+    default:
+      return error instanceof Error
+        ? error.message
+        : '신청을 취소하지 못했습니다.';
+  }
+};
+
+/**
+ * 관리자 신청 취소. 확정 취소는 대기자 자동 승급으로 다른 신청 상태도 바뀌므로
+ * 성공·실패와 상관없이 원장·상세·현황·처리 이력을 다시 읽는다
+ */
+export const useCancelApplication = (expoId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (applicationId: string) =>
+      postAdminApplicationCancellation(expoId, applicationId),
+    onSuccess: () => {
+      toast.success('신청을 취소했습니다.');
+    },
+    onError: (error) => {
+      toast.error(getCancellationErrorMessage(error));
+    },
+    onSettled: () =>
+      Promise.all(
+        [
+          // 목록·최근 신청·상세가 모두 이 키 아래에 있다
+          ['adminApplications', expoId],
+          ['adminApplicationSummary', expoId],
+          ['adminCurrentSessions', expoId],
+          ['adminChangeHistory', expoId],
+        ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+      ),
+  });
+};
 
 const timeOf = (dateTime: string) => dateTime.slice(11, 16);
 

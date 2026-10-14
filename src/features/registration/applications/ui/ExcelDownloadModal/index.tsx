@@ -77,8 +77,15 @@ const ExcelDownloadModal = ({
   const { mutate: download, isPending } = useReportExcelDownload(onClose);
 
   const plan = useMemo(
-    () => buildExcelDownloadPlan({ template, scope, selectedRows, filter }),
-    [template, scope, selectedRows, filter],
+    () =>
+      buildExcelDownloadPlan({
+        template,
+        scope,
+        selectedRows,
+        filter,
+        filterCount,
+      }),
+    [template, scope, selectedRows, filter, filterCount],
   );
 
   const { blockers } = plan;

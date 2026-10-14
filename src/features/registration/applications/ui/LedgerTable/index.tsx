@@ -18,22 +18,19 @@ const COLUMNS: TableColumn<LedgerRow>[] = [
     key: 'name',
     label: '이름',
     flex: 1.2,
-    render: (row) =>
-      row.isParticipantMissing ? (
-        <p className="text-gray-400">참가자 정보 없음</p>
-      ) : (
-        <>
-          <p className="truncate text-black">{row.name}</p>
-          <p className="text-caption2r">
-            {row.isRepresentative ? '대표' : '동행'}
-            {row.occupation && ` · ${OCCUPATION_LABEL[row.occupation]}`}
-          </p>
-          {/* 연수 연결은 직업과 섞지 않고 따로 표시한다 */}
-          {row.linkedTraineeId !== null && (
-            <p className="text-caption2r text-main-600">연수 연결</p>
-          )}
-        </>
-      ),
+    render: (row) => (
+      <>
+        <p className="truncate text-black">{row.name}</p>
+        <p className="text-caption2r">
+          {row.isRepresentative ? '대표' : '동행'}
+          {row.occupation && ` · ${OCCUPATION_LABEL[row.occupation]}`}
+        </p>
+        {/* 연수 연결은 직업과 섞지 않고 따로 표시한다 */}
+        {row.linkedTraineeId !== null && (
+          <p className="text-caption2r text-main-600">연수 연결</p>
+        )}
+      </>
+    ),
   },
   {
     key: 'phone',

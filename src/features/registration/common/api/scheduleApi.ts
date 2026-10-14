@@ -128,6 +128,25 @@ export const retryPreregisterSessionChange = async (
   }
 };
 
+/**
+ * 신청 이력이 있어 Application 에서 대기가 미적용인 회차에 Expo 현재 대기 정원을 적용한다.
+ * expected 는 관리자가 확인한 회차 waitingCapacity 이며 Application 이 관찰한 값과 다르면 409 이다
+ */
+export const putPreregisterWaitingCapacity = async (
+  expoId: string,
+  sessionId: number,
+  expected: number,
+): Promise<void> => {
+  try {
+    await clientTokenInstance.put(
+      `${sessionPath(expoId, sessionId)}/waiting-capacity`,
+      { expected },
+    );
+  } catch (error) {
+    throw toApiError(error, '대기 정원을 적용하지 못했습니다.');
+  }
+};
+
 export const getSchedulePrograms = async (
   expoId: string,
 ): Promise<ScheduleProgram[]> => {

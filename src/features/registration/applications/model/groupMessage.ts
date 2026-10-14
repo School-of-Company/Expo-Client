@@ -37,14 +37,16 @@ const FINAL_JOB_STATUSES: GroupMessageJobStatus[] = [
 export const isFinalJobStatus = (status: GroupMessageJobStatus) =>
   FINAL_JOB_STATUSES.includes(status);
 
-/** 그룹 문자의 필터 전체 범위는 원장 필터를 그대로 받는다(이름·번호, 직업 포함) */
+/** 그룹 문자의 필터 전체 범위는 원장 필터를 그대로 받는다(제목, 이름·번호, 직업 포함) */
 export const toGroupMessageFilter = (
   filter: LedgerFilter,
 ): GroupMessageFilter => {
   const q = filter.q.trim();
+  const search = filter.search.trim();
   return {
     ...(parseSessionKey(filter.session) ?? {}),
     status: filter.status || null,
+    ...(search && { search }),
     ...(q && { q }),
     ...(filter.occupation && { occupation: filter.occupation }),
     sort: filter.sort,

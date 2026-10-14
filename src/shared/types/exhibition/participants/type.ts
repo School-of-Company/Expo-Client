@@ -13,13 +13,7 @@ export interface Trainee {
   applicationType: ApplicationType;
 }
 
-export interface TraineeResponse {
-  info: {
-    totalPage: number;
-    totalElement: number;
-  };
-  participants: Trainee[];
-}
+export type TraineeResponse = Trainee[];
 
 export interface participants {
   id: number;

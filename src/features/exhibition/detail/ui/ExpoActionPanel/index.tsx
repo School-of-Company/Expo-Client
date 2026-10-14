@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { ExpoAction, getExpoActions } from '@/entities/exhibition';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
 import { Share } from '@/shared/assets/svg';
-import { COLORS, getRegistrationRoutes } from '@/shared/config';
+import { COLORS } from '@/shared/config';
 import { Button } from '@/shared/ui';
 
 interface ExpoActionPanelProps {
@@ -96,13 +96,6 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
                 )}
               </>
             )}
-            <Button
-              onClick={() =>
-                router.push(getRegistrationRoutes(params).dashboard)
-              }
-            >
-              박람회 관리
-            </Button>
           </div>
         </div>
         {!isMobile && (

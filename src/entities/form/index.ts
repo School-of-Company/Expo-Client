@@ -28,3 +28,15 @@ export { formTypeRegistry } from './model/registry';
 export type { FormTypeEntry, FieldEditorProps } from './model/registry';
 export { FORM_TYPE_SPEC, BUILDER_FORM_TYPES } from './model/formTypes';
 export type { FormType, FormTypeSpec } from './model/formTypes';
+export * from './model/types';
+export { formKeys, programFormKeys } from './api/keys';
+export { createForm, deleteForm, getForm, updateForm } from './api/forms';
+export {
+  createProgramForm,
+  deleteProgramForm,
+  getProgramForm,
+  updateProgramForm,
+} from './api/programForms';
+export * from './model/queries';
+export { FORM_ERROR_MESSAGES, formRequest, toFormError } from './lib/errors';
+export type { ErrorResponseDto } from './lib/errors';

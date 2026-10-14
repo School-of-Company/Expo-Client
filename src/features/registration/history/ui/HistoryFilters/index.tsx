@@ -18,7 +18,7 @@ const HistoryFilters = ({ filter, onChange, onReset }: HistoryFiltersProps) => {
     onChange({ ...filter, ...patch });
 
   return (
-    <div className="grid grid-cols-[1fr_2fr_2fr_auto] items-end gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,2fr)_auto] items-end gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
       <RegistrationSelect
         ariaLabel="변경 유형"
         value={filter.type}
