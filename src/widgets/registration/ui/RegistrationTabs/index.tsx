@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useLogout } from '@/features/auth/logout';
 import { useRegistrationExpo } from '@/features/registration/common';
 import { getExpoRoutes } from '@/shared/config';
 
@@ -10,11 +9,6 @@ import { getExpoRoutes } from '@/shared/config';
 const RegistrationTabs = () => {
   const pathname = usePathname();
   const { expoId, expo, routes } = useRegistrationExpo();
-  const {
-    mutate: logout,
-    isPending: isLogoutPending,
-    isSuccess: isLogoutSuccess,
-  } = useLogout();
 
   const tabs = [
     { href: routes.dashboard, label: '대시보드', exact: true },
@@ -60,24 +54,14 @@ const RegistrationTabs = () => {
               );
             })}
           </nav>
-          <div className="flex shrink-0 items-center gap-16 mobile:justify-end">
-            <Link
-              href={getExpoRoutes(expoId).applicationForms}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="whitespace-nowrap text-body2r text-main-600 underline mobile:text-caption1r"
-            >
-              사용자 신청화면
-            </Link>
-            <button
-              type="button"
-              onClick={() => logout()}
-              disabled={isLogoutPending || isLogoutSuccess}
-              className="whitespace-nowrap text-body2r text-gray-500 underline disabled:text-gray-300 mobile:text-caption1r"
-            >
-              로그아웃
-            </button>
-          </div>
+          <Link
+            href={getExpoRoutes(expoId).applicationForms}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 whitespace-nowrap text-body2r text-main-600 underline mobile:self-end mobile:text-caption1r"
+          >
+            사용자 신청화면
+          </Link>
         </div>
       </div>
     </div>
