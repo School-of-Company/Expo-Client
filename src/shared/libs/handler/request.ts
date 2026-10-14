@@ -1,5 +1,6 @@
 import { AxiosRequestConfig, ResponseType } from 'axios';
 import { NextRequest } from 'next/server';
+import { clientIpHeaders } from '@/shared/libs/http/clientIp';
 import {
   FILE_DOWNLOAD_TIMEOUT_MS,
   serverInstance,
@@ -58,6 +59,7 @@ export async function sendRequest(
     responseType,
     headers: {
       ...headers,
+      ...clientIpHeaders(req),
       // 압축을 풀면 Content-Length 가 실제 본문과 달라지므로 원본 그대로 받는다(XLSX 는 이미 zip 이다)
       ...(isFileDownload && { 'Accept-Encoding': 'identity' }),
     } as AxiosRequestConfig['headers'],

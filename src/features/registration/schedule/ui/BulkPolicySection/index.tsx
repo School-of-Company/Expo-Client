@@ -8,10 +8,9 @@ import {
   patchScheduleProgram,
   ProgramPolicy,
   ScheduleProgram,
-  toOffsetDateTime,
   useInvalidateSchedule,
 } from '../../../common';
-import { withPolicyPatch } from '../../model/policyForm';
+import { toPolicyDateTime, withPolicyPatch } from '../../model/policyForm';
 import { Field } from '../PolicyFields';
 import ScheduleSection from '../ScheduleSection';
 
@@ -45,13 +44,13 @@ const BulkPolicySection = ({
   const handleApply = async () => {
     const patch: Partial<ProgramPolicy> = {
       ...(applicationStartedAt && {
-        applicationStartedAt: toOffsetDateTime(applicationStartedAt),
+        applicationStartedAt: toPolicyDateTime(applicationStartedAt),
       }),
       ...(applicationEndedAt && {
-        applicationEndedAt: toOffsetDateTime(applicationEndedAt),
+        applicationEndedAt: toPolicyDateTime(applicationEndedAt),
       }),
       ...(promotionEndedAt && {
-        promotionEndedAt: toOffsetDateTime(promotionEndedAt),
+        promotionEndedAt: toPolicyDateTime(promotionEndedAt),
       }),
     };
     if (Object.keys(patch).length === 0) {

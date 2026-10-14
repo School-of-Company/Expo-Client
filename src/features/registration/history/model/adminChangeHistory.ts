@@ -29,6 +29,7 @@ export const CHANGE_TYPE_STYLE: Record<AdminChangeType, string> = {
 const TARGET_TYPE_LABEL: Record<string, string> = {
   PROGRAM: '프로그램',
   SESSION: '회차',
+  PREREGISTER_SESSION: '사전등록 회차',
 };
 
 const isChangeType = (type: string): type is AdminChangeType =>

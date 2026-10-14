@@ -1,6 +1,6 @@
 import { buildSurveyAnswers } from '@/features/application/lib/process/buildSurveyAnswers';
 import { DynamicFormValues } from '@/shared/types/application/type';
-import { ProgramForm } from '@/shared/types/form/program/type';
+import type { ProgramFormResponseDto as ProgramForm } from '@/entities/form/model/types';
 
 /**
  * 프로그램 신청 제출 payload. 폼을 불러온 시점의 `version` 을 같이 보내서,

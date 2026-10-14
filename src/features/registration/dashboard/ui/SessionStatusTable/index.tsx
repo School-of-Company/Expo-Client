@@ -113,7 +113,7 @@ interface SessionStatusTableProps {
   summaries: AdminSessionSummary[];
 }
 
-/** 현재 회차(정원)와 회차별 신청·출석 집계를 합친다. 삭제된 과거 회차도 집계가 있으면 남긴다 */
+/** 현재 회차(정원)와 회차별 신청·출석 집계를 합친다. 삭제된 과거 회차는 현재 회차 API 에 없으므로 원장 이력 집계로만 남긴다 */
 const SessionStatusTable = ({
   sessions,
   summaries,
@@ -155,7 +155,7 @@ const SessionStatusTable = ({
           id: summary.programId,
         }),
         programType: summary.programType,
-        title: `회차 ${summary.programId} (현재 회차에 없음)`,
+        title: `회차 ${summary.programId} (삭제된 회차 · 원장 이력)`,
         startedAt: null,
         endedAt: null,
         policy: null,

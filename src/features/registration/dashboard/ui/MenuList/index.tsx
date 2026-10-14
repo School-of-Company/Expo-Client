@@ -14,7 +14,7 @@ const MenuList = () => {
     {
       href: routes.applications,
       title: '접수 관리대장',
-      description: '신청 원장 조회·필터·상세, 그룹 문자, Excel 출력',
+      description: '신청 원장 조회·필터·상세·취소, 그룹 문자, Excel 출력',
     },
     {
       href: routes.schedule,
@@ -24,7 +24,12 @@ const MenuList = () => {
     {
       href: routes.history,
       title: '행정 이력',
-      description: '신청·발송·모집 변경 처리 이력 (서버 연결 준비 중)',
+      description: '신청·발송·모집 변경 처리 이력',
+    },
+    {
+      href: routes.survey,
+      title: '만족도 조사',
+      description: '일반·연수자 설문 문항 편집·삭제, 경품 추첨 설정',
     },
   ];
 

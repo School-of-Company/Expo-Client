@@ -32,6 +32,7 @@ const FormEditor = ({
   onSubmit,
   isLoading,
   isSuccess,
+  hideBack,
 }: {
   expoId: string;
   type: 'STANDARD' | 'TRAINEE';
@@ -40,6 +41,7 @@ const FormEditor = ({
   onSubmit: (data: FormValues) => void;
   isLoading: boolean;
   isSuccess: boolean;
+  hideBack?: boolean;
 }) => {
   const { control, handleSubmit, register, setValue, watch } =
     useForm<FormValues>({
@@ -171,6 +173,11 @@ const FormEditor = ({
               required: '제목을 입력해주세요.',
             })}
             textCenter={true}
+            hideBack={hideBack}
+            fallbackHref={`/exhibition/detail/${expoId}`}
+            heading={`${type === 'TRAINEE' ? '연수자' : '참가자'} ${
+              mode === 'survey' ? '설문' : '신청 폼'
+            } ${defaultValues ? '수정' : '만들기'}`}
           />
           <div className="space-y-12">
             <div className="w-full space-y-12">
