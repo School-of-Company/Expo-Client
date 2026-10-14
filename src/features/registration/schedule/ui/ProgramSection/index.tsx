@@ -17,6 +17,8 @@ import {
   formatDefinitionSchedule,
   PROGRAM_TYPE_LABEL,
 } from '../../../common/model/ledger';
+import { ProgramForm as ProgramFormValue } from '../../model/policyForm';
+import { toProgramKey } from '../../model/programFormLink';
 import ProgramForm from '../ProgramForm';
 import ScheduleSection from '../ScheduleSection';
 
@@ -31,6 +33,8 @@ interface ProgramSectionProps {
   /** 넘기면 수정·등록 양식을 밖에서 연다. 없으면 표 안에서 관리한다 */
   editing?: ProgramEditing;
   onEditingChange?: (editing: ProgramEditing) => void;
+  /** 폼을 만들고 돌아왔을 때 열린 양식에 채울 회차 초안 */
+  draftForm?: ProgramFormValue;
 }
 
 /** 연수·일반 프로그램 ID 는 서로 겹칠 수 있어 표 행 키를 구분한다 */
@@ -38,9 +42,6 @@ interface ProgramRow {
   id: string;
   program: ScheduleProgram;
 }
-
-const toRowId = ({ programType, id }: ScheduleProgram) =>
-  `${programType}-${id}`;
 
 const formatPeriod = (program: ScheduleProgram) => {
   const start = fromOffsetDateTime(program.policy?.applicationStartedAt);
@@ -54,6 +55,7 @@ const ProgramSection = ({
   programs,
   editing: controlledEditing,
   onEditingChange,
+  draftForm,
 }: ProgramSectionProps) => {
   const [ownEditing, setOwnEditing] = useState<ProgramEditing>(null);
   const editing =
@@ -125,10 +127,24 @@ const ProgramSection = ({
       key: 'capacity',
       label: '정원 / 대기',
       flex: 0.7,
-      render: ({ program }) =>
-        program.policy
-          ? `${program.policy.capacity ?? '-'} / ${program.policy.waitingCapacity ?? 0}`
-          : '-',
+      render: ({ program }) => {
+        if (!program.policy) return '-';
+        const { capacity, waitingCapacity, channels } = program.policy;
+        const total = `${capacity ?? '-'} / ${waitingCapacity ?? 0}`;
+        // 채널이 있으면 신청 구분별 정원을 함께 보여 준다
+        return channels?.length ? (
+          <p
+            className="truncate"
+            title={channels
+              .map((c) => `${c.name} ${c.capacity} / ${c.waitingCapacity}`)
+              .join(', ')}
+          >
+            {total} · 채널 {channels.length}
+          </p>
+        ) : (
+          total
+        );
+      },
     },
     {
       key: 'status',
@@ -180,7 +196,7 @@ const ProgramSection = ({
   ];
 
   const rows: ProgramRow[] = programs.map((program) => ({
-    id: toRowId(program),
+    id: toProgramKey(program),
     program,
   }));
 
@@ -216,9 +232,11 @@ const ProgramSection = ({
         {editing ? (
           <div id={PROGRAM_FORM_ID} className="scroll-mt-[96px]">
             <ProgramForm
-              key={editing === 'new' ? 'new' : toRowId(editing)}
+              key={editing === 'new' ? 'new' : toProgramKey(editing)}
               expoId={expoId}
               program={editing === 'new' ? undefined : editing}
+              programs={programs}
+              initialForm={draftForm}
               onClose={() => setEditing(null)}
             />
           </div>
