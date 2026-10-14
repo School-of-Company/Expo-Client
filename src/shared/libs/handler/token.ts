@@ -1,6 +1,10 @@
 import { createHash, randomUUID } from 'crypto';
 import { redis } from '@/shared/libs/redis/redis';
-import { REFRESH_TIMEOUT_MS, refreshAccessToken } from './refreshAccessToken';
+import {
+  REFRESH_TIMEOUT_MS,
+  RefreshUnavailableError,
+  refreshAccessToken,
+} from './refreshAccessToken';
 import { RefreshTokenResult } from './type';
 
 // 재발급 요청이 끝나기 전에 락이 풀리면 이미 무효가 된 refresh token 으로 다시 재발급하게 된다.
@@ -25,23 +29,27 @@ const readResult = async (key: string): Promise<RefreshTokenResult | null> => {
   return accessToken && refreshToken ? { accessToken, refreshToken } : null;
 };
 
-// 다른 요청이 재발급 중이면 결과를 기다린다. 락이 사라졌는데 결과가 없으면 재발급에 실패한 것이다
+// 다른 요청이 재발급 중이면 결과를 기다린다. 락이 사라졌는데 결과가 없으면 재발급이 실패한 것이라 재시도하게 한다
 const waitForResult = async (
   resultKey: string,
   lockKey: string,
-): Promise<RefreshTokenResult | null> => {
+): Promise<RefreshTokenResult> => {
   const start = Date.now();
   try {
     while (Date.now() - start < WAIT_MS) {
       const result = await readResult(resultKey);
       if (result) return result;
-      if (!(await redis.exists(lockKey))) return readResult(resultKey);
+      if (!(await redis.exists(lockKey))) {
+        const last = await readResult(resultKey);
+        if (last) return last;
+        break;
+      }
       await sleep(POLL_INTERVAL_MS);
     }
   } catch {
     // 기다리는 중 Redis 를 못 쓰게 되면 재발급 결과를 알 수 없다
   }
-  return null;
+  throw new RefreshUnavailableError();
 };
 
 /**
