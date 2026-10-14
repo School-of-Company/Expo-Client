@@ -21,7 +21,7 @@
 | `BASE_URL` | Gateway 주소 | Next 서버가 부르는 Gateway. 없으면 `NEXT_PUBLIC_BASE_URL`을 씁니다. |
 | `TRUSTED_PROXY_HOPS` | Next 앞에서 `X-Forwarded-For`를 덧붙이는 프록시 수(예: nginx 하나면 `1`, CloudFront → ALB면 `2`) | 이 값이 있어야 Next 프록시가 사용자 IP를 Gateway에 넘깁니다. Gateway는 그 IP로 로그인·인증번호·문자 발송 요청 수를 제한합니다. **설정하지 않으면** IP를 넘기지 않아 모든 사용자가 Next 서버 IP 하나로 묶입니다(위조한 IP로 한도를 피하지 못하게 하기 위한 기본값). 앞단 구성이 바뀌면 함께 바꿔야 합니다. |
 
-헤더의 **미래교육박람회** 메뉴는 `NEXT_PUBLIC_FUTURE_EDU_EXPO_ID`(박람회 UUID)를 넣으면 그 박람회 대시보드로 바로 가고, 없으면 제목에 '미래교육박람회'가 들어간 박람회를 찾아 들어갑니다. 행사가 끝나면 `src/entities/layout/Header/model/navigationItems.ts`에서 메뉴 한 줄을 지우고, 박람회 상세의 '사전등록 관리'로 같은 화면을 씁니다.
+헤더의 **미래교육박람회** 메뉴는 `NEXT_PUBLIC_FUTURE_EDU_EXPO_ID`(박람회 UUID)를 넣으면 그 박람회 대시보드로 바로 가고, 없으면 제목에 '미래교육박람회'가 들어간 박람회를 찾아 들어갑니다. 행사가 끝나면 `src/entities/layout/Header/model/navigationItems.ts`에서 메뉴 한 줄을 지웁니다.
 
 ## Contributing
 
