@@ -22,6 +22,8 @@ import {
   GROUP_MESSAGE_VARIABLES,
   isFinalJobStatus,
   JOB_STATUS_LABEL,
+  loadLastGroupMessageJob,
+  saveLastGroupMessageJob,
   toGroupMessageFilter,
   useGroupMessageConfig,
   useGroupMessageJob,
@@ -75,7 +77,8 @@ const GroupMessageModal = ({
     source: GroupMessageSource;
     result: GroupMessagePreview;
   } | null>(null);
-  const [jobId, setJobId] = useState<string | null>(null);
+  const [last, setLast] = useState(() => loadLastGroupMessageJob(expoId));
+  const jobId = last?.jobId ?? null;
 
   const config = useGroupMessageConfig(expoId);
   const job = useGroupMessageJob(expoId, jobId);
@@ -135,7 +138,15 @@ const GroupMessageModal = ({
         targetFingerprint: preview!.result.targetFingerprint,
         idempotencyKey: crypto.randomUUID(),
       }),
-    onSuccess: (result) => setJobId(result.jobId),
+    onSuccess: (result) => {
+      const next = {
+        jobId: result.jobId,
+        source: preview!.source,
+        targetFingerprint: preview!.result.targetFingerprint,
+      };
+      saveLastGroupMessageJob(expoId, next);
+      setLast(next);
+    },
     onError: (error) => {
       if (getErrorStatus(error) === 409) setPreview(null);
     },
@@ -144,8 +155,8 @@ const GroupMessageModal = ({
   const retryMutation = useMutation({
     mutationFn: () =>
       postGroupMessageRetry(expoId, jobId!, {
-        source: preview!.source,
-        targetFingerprint: preview!.result.targetFingerprint,
+        source: last!.source,
+        targetFingerprint: last!.targetFingerprint,
         idempotencyKey: crypto.randomUUID(),
       }),
     onSuccess: (result) => {
@@ -163,6 +174,14 @@ const GroupMessageModal = ({
     )
       return;
     executeMutation.mutate();
+  };
+
+  // 보관한 대상이 오래돼 재시도가 거절되면 처음부터 대상을 다시 확인하게 한다
+  const retryStale = getErrorStatus(retryMutation.error) === 409;
+  const resetJob = () => {
+    saveLastGroupMessageJob(expoId, null);
+    retryMutation.reset();
+    setLast(null);
   };
 
   const isEditable = jobId === null;
@@ -478,7 +497,12 @@ const GroupMessageModal = ({
               </div>
             ) : (
               isJobFinal &&
-              (jobData?.counts.failed ?? 0) > 0 && (
+              (jobData?.counts.failed ?? 0) > 0 &&
+              (retryStale ? (
+                <Button variant="white" onClick={resetJob}>
+                  대상 다시 확인
+                </Button>
+              ) : (
                 <Button
                   variant="white"
                   disabled={retryMutation.isPending}
@@ -488,7 +512,7 @@ const GroupMessageModal = ({
                     ? '재시도 요청 중...'
                     : `실패 ${jobData?.counts.failed}건 재시도`}
                 </Button>
-              )
+              ))
             )}
           </>
         )}
