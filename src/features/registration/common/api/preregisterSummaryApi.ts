@@ -3,15 +3,31 @@ import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
 // Expo-Application-Server AdminPreregisterSummaryController 응답 형식
 
-/** 사전등록 회차별 확정·취소 고유 참가자와 User 확정 전 예약 */
+/** 대기가 있는데 승급하지 않는 저장 기준 사유. 서버가 새 값을 더할 수 있어 string 도 받는다 */
+export type PreregisterPromotionBlockedReason =
+  | 'CLOSED'
+  | 'SESSION_STARTED'
+  | 'HEAD_TOO_LARGE'
+  | (string & {});
+
+/** 사전등록 회차별 확정·취소 고유 참가자, User 확정 전 예약과 대기 상태 */
 export interface AdminPreregisterSessionSummary {
   sessionId: number;
   confirmedParticipants: number;
   cancelledParticipants: number;
-  /** 현행 정책상 항상 0 */
+  /** 대기 일행 인원 합 */
   waitingParticipants: number;
   pendingReservations: number;
   pendingApplicants: number;
+  /** 대기 일행 수 */
+  waitingReservations: number;
+  /** 대기 선두 일행 인원. 빈 확정석보다 크면 엄격 FIFO 로 승급이 멈춘다 */
+  waitingHeadApplicants: number | null;
+  /** 저장된 정원 기준 빈 확정석 */
+  freeConfirmedSeats: number | null;
+  /** Application 이 적용한 대기 정원. null 이면 미적용이라 채택해야 한다 */
+  appliedWaitingCapacity: number | null;
+  promotionBlockedReason: PreregisterPromotionBlockedReason | null;
 }
 
 /**
@@ -22,7 +38,7 @@ export interface AdminPreregisterSummary {
   expoId: string;
   confirmedUniqueParticipants: number;
   cancelledUniqueParticipants: number;
-  /** 현행 정책상 항상 0 */
+  /** User 저장 전 대기 일행 인원 합 */
   waitingParticipants: number;
   /** User 확정 전 예약 건수 */
   pendingReservations: number;
