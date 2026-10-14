@@ -1,7 +1,3 @@
-'use client';
-
-import { useMemo } from 'react';
-import { MockDataBadge } from '@/shared/ui';
 import {
   formatDateTime,
   maskPhoneNumber,
@@ -17,13 +13,6 @@ import {
   LedgerRow,
   OCCUPATION_LABEL,
 } from '../../../common/model/ledger';
-import {
-  APPLICATION_META_ISSUE,
-  ApplicationMeta,
-  getApplicationMeta,
-} from '../../mock/applicationMeta';
-
-type RecentLedgerRow = LedgerRow & { meta: ApplicationMeta };
 
 const STATUS_TONE: Record<AdminApplicationStatus, StatusBadgeTone> = {
   CONFIRMED: 'main',
@@ -31,12 +20,12 @@ const STATUS_TONE: Record<AdminApplicationStatus, StatusBadgeTone> = {
   CANCELLED: 'error',
 };
 
-const COLUMNS: TableColumn<RecentLedgerRow>[] = [
+const COLUMNS: TableColumn<LedgerRow>[] = [
   {
     key: 'receiptNumber',
     label: '접수번호',
     flex: 0.7,
-    render: ({ meta }) => meta.receiptNumber,
+    render: ({ receiptNumber }) => `#${receiptNumber}`,
   },
   {
     key: 'participant',
@@ -51,15 +40,10 @@ const COLUMNS: TableColumn<RecentLedgerRow>[] = [
     ),
   },
   {
-    key: 'affiliation',
-    label: '구분 / 소속',
-    flex: 1.2,
-    render: ({ occupation, meta }) => (
-      <>
-        <p>{occupation ? OCCUPATION_LABEL[occupation] : '-'}</p>
-        <p className="truncate text-caption2r">{meta.affiliation}</p>
-      </>
-    ),
+    key: 'occupation',
+    label: '직업',
+    render: ({ occupation }) =>
+      occupation ? OCCUPATION_LABEL[occupation] : '-',
   },
   {
     key: 'program',
@@ -73,12 +57,6 @@ const COLUMNS: TableColumn<RecentLedgerRow>[] = [
         </p>
       </>
     ),
-  },
-  {
-    key: 'channel',
-    label: '채널',
-    flex: 0.6,
-    render: ({ meta }) => meta.channel,
   },
   {
     key: 'status',
@@ -97,33 +75,17 @@ const COLUMNS: TableColumn<RecentLedgerRow>[] = [
   },
 ];
 
-/** 최근 접수. 접수번호·소속·채널은 원장에 아직 없어 예시 값이다 */
-const RecentLedgerTable = ({ rows }: { rows: LedgerRow[] }) => {
-  const tableRows = useMemo(
-    () =>
-      rows.map((row, index) => ({ ...row, meta: getApplicationMeta(index) })),
-    [rows],
-  );
-
-  return (
-    <>
-      <div className="mb-8 flex flex-wrap items-center gap-8">
-        <p className="text-caption1r text-gray-400">
-          접수번호·소속·채널은 서버 연결 전 예시 값입니다.
-        </p>
-        <MockDataBadge issue={APPLICATION_META_ISSUE} />
-      </div>
-      <RegistrationTable
-        columns={COLUMNS}
-        rows={tableRows}
-        emptyText="아직 신청이 없습니다."
-        footerText="최근 신청"
-        footerCount={tableRows.length}
-        maxHeight="none"
-        minWidth="960px"
-      />
-    </>
-  );
-};
+/** 최근 접수 */
+const RecentLedgerTable = ({ rows }: { rows: LedgerRow[] }) => (
+  <RegistrationTable
+    columns={COLUMNS}
+    rows={rows}
+    emptyText="아직 신청이 없습니다."
+    footerText="최근 신청"
+    footerCount={rows.length}
+    maxHeight="none"
+    minWidth="840px"
+  />
+);
 
 export default RecentLedgerTable;

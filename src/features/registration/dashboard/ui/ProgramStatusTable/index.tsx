@@ -1,32 +1,26 @@
 'use client';
 
 import { useMemo } from 'react';
-import { MockDataBadge } from '@/shared/ui';
 import { RegistrationTable, TableColumn } from '../../../common';
 import {
   AdminSessionSummary,
   ProgramSessionDefinition,
 } from '../../../common/api/ledgerApi';
 import { PROGRAM_TYPE_LABEL } from '../../../common/model/ledger';
-import { getProgramCode, PROGRAM_CODE_ISSUE } from '../../mock/programCode';
 import {
   groupSessionsByProgram,
   ProgramGroup,
 } from '../../model/programGroups';
 
-type ProgramStatusRow = ProgramGroup & { code: string };
-
-const COLUMNS: TableColumn<ProgramStatusRow>[] = [
+const COLUMNS: TableColumn<ProgramGroup>[] = [
   {
     key: 'program',
     label: '프로그램',
     flex: 2.6,
-    render: ({ title, code, programType }) => (
+    render: ({ title, programType }) => (
       <>
         <p className="truncate text-black">{title}</p>
-        <p className="text-caption2r">
-          {code} · {PROGRAM_TYPE_LABEL[programType]}
-        </p>
+        <p className="text-caption2r">{PROGRAM_TYPE_LABEL[programType]}</p>
       </>
     ),
   },
@@ -77,23 +71,16 @@ const ProgramStatusTable = ({
   sessions,
   summaries,
 }: ProgramStatusTableProps) => {
-  const rows = useMemo(() => {
-    const indexByType = { STANDARD: 0, TRAINING: 0 };
-    return groupSessionsByProgram(sessions, summaries).map((group) => ({
-      ...group,
-      code: getProgramCode(group.programType, indexByType[group.programType]++),
-    }));
-  }, [sessions, summaries]);
+  const rows = useMemo(
+    () => groupSessionsByProgram(sessions, summaries),
+    [sessions, summaries],
+  );
 
   return (
     <>
-      <div className="mb-8 flex flex-wrap items-center gap-8">
-        <p className="text-caption1r text-gray-400">
-          구분과 이름이 같은 회차를 한 프로그램으로 묶었습니다. 프로그램 코드는
-          임시 번호입니다.
-        </p>
-        <MockDataBadge issue={PROGRAM_CODE_ISSUE} />
-      </div>
+      <p className="mb-8 text-caption1r text-gray-400">
+        구분과 이름이 같은 회차를 한 프로그램으로 묶었습니다.
+      </p>
       <RegistrationTable
         columns={COLUMNS}
         rows={rows}
