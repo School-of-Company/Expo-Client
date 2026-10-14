@@ -22,6 +22,11 @@ export const getPreRegisterCapacity = async (
   expoId: string,
   sessionId: string,
 ): Promise<PreRegisterCapacity> => {
+  // 회차 목록 공개 API 가 없어 링크의 sessionId 로만 회차를 안다
+  if (!sessionId)
+    throw new Error(
+      '회차가 지정되지 않았습니다. 안내받은 링크로 다시 접속해 주세요.',
+    );
   // 서버는 양수 int64 만 받는다(0 이하는 400). 아니면 요청하지 않고 400 과 같이 안내한다
   if (!/^[1-9]\d*$/.test(sessionId)) throw new Error(CAPACITY_ERRORS[400]);
   try {
