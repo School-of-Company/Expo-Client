@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
+import { toServerMessage } from '@/shared/libs/handler/serverMessage';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
 const XLSX_CONTENT_TYPE =
@@ -66,15 +67,15 @@ export const getFileName = (
   return !name || /[?\uFFFD]/.test(name) ? fallback : name;
 };
 
-/** 오류 응답도 blob 으로 오므로 JSON { status, message } 를 읽어 서버 문구를 꺼낸다 */
-export const readErrorMessage = async (data: unknown) => {
+/**
+ * 오류 응답도 blob 으로 오므로 JSON({ message } · { error } · ProblemDetail { detail })을 읽어 서버 문구를 꺼낸다.
+ * 영문뿐이면 상태별 한국어 문구를 쓴다
+ */
+export const readErrorMessage = async (data: unknown, status = 0) => {
   if (!(data instanceof Blob)) return DEFAULT_ERROR_MESSAGE;
   try {
     const body = JSON.parse(await data.text());
-    const message = body?.message ?? body?.error;
-    return typeof message === 'string' && message
-      ? message
-      : DEFAULT_ERROR_MESSAGE;
+    return toServerMessage(status, body) ?? DEFAULT_ERROR_MESSAGE;
   } catch {
     return DEFAULT_ERROR_MESSAGE;
   }
@@ -120,7 +121,7 @@ export const downloadExcelFile = async (
     if (axios.isAxiosError(error)) {
       throw new Error(
         error.response
-          ? await readErrorMessage(error.response.data)
+          ? await readErrorMessage(error.response.data, error.response.status)
           : NETWORK_ERROR_MESSAGE,
       );
     }
