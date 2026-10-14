@@ -9,11 +9,21 @@ export const metadata: Metadata = {
 
 const page = ({
   params,
+  searchParams,
 }: {
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 }) => {
-  return <ApplicationPage params={params.id} />;
+  return (
+    <ApplicationPage
+      params={params.id}
+      formType={
+        typeof searchParams.formType === 'string'
+          ? searchParams.formType
+          : undefined
+      }
+    />
+  );
 };
 
 export default page;
