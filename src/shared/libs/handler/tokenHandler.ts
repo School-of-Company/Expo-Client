@@ -9,6 +9,7 @@ import {
   isFileDownloadRequest,
   toGatewayUrl,
 } from './proxyTarget';
+import { RefreshUnavailableError } from './refreshAccessToken';
 import { parseRequestData, sendRequest } from './request';
 import { createResponse } from './response';
 import { performTokenRefresh } from './token';
@@ -68,7 +69,18 @@ export async function tokenHandleRequest(
 
     if (axiosErr.response?.status === 401) {
       discardBody(axiosErr);
-      const newTokens = await performTokenRefresh(refreshToken);
+      let newTokens: Awaited<ReturnType<typeof performTokenRefresh>>;
+      try {
+        newTokens = await performTokenRefresh(refreshToken);
+      } catch (refreshError) {
+        if (!(refreshError instanceof RefreshUnavailableError))
+          throw refreshError;
+        // 일시 장애는 쿠키를 지키고 재시도하게 한다
+        return NextResponse.json(
+          { error: refreshError.message, status: 503 },
+          { status: 503 },
+        );
+      }
       if (!newTokens) {
         const res = NextResponse.json(
           {
