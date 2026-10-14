@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { toApiError } from '../libs/http/apiError';
 import clientInstance from '../libs/http/clientInstance';
 import { ApplicationType } from '../types/exhibition/type';
 import { getMockForm } from './mockForm';
@@ -17,11 +17,6 @@ export const getSurveyForm = async (
     );
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(
-        error.response.data.error || '만족도 조사 폼 불러오기 실패',
-      );
-    }
-    throw error;
+    throw toApiError(error, '만족도 조사 폼 불러오기 실패');
   }
 };
