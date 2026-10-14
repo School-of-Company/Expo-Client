@@ -107,6 +107,8 @@ const HistoryLedger = () => {
           onBack={() => router.push(routes.dashboard)}
         />
 
+        <ApplicationActivitySection expoId={expoId} />
+
         <section className="space-y-16">
           <div className="space-y-6">
             <p className="text-body1b text-black">모집 변경 이력</p>
@@ -148,8 +150,6 @@ const HistoryLedger = () => {
             </RegistrationTable>
           )}
         </section>
-
-        <ApplicationActivitySection expoId={expoId} />
 
         <GroupMessageHistorySection expoId={expoId} />
       </div>
