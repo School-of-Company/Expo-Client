@@ -16,6 +16,7 @@ import {
   LEDGER_REFRESH_MS,
   LedgerFilter,
   getLedgerErrorMessage,
+  isParticipantSourceError,
   LedgerRow,
   parseSessionKey,
   useCurrentSessions,
@@ -120,7 +121,7 @@ const ApplicationLedger = () => {
           onReset={() => handleFilterChange(INITIAL_LEDGER_FILTER)}
         />
 
-        {isError && !data ? (
+        {isError && (!data || isParticipantSourceError(error)) ? (
           <SectionError
             message={getLedgerErrorMessage(
               error,

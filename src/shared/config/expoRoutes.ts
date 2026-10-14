@@ -34,13 +34,16 @@ export const getExpoRoutes = (expoId: string) => {
 };
 
 export const getRegistrationRoutes = (expoId: string) => {
-  const base = `/admin/future-edu-expo/${segment(expoId)}`;
+  const base = `/admin/registration/${segment(expoId)}`;
   return {
     dashboard: base,
     applications: `${base}/applications`,
     schedule: `${base}/schedule`,
     history: `${base}/history`,
     operations: `${base}/operations`,
+    programFormNew: `${base}/program-forms/new`,
+    programForm: (formId: string) =>
+      `${base}/program-forms/${encodeURIComponent(formId)}`,
     survey: `${base}/survey`,
   };
 };

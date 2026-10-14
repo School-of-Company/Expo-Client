@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { XMark } from '@/shared/assets/icons';
 import {
   DATE_TIME_PATTERN,
+  isDateTimeRangeInvalid,
   isProgramTitleTooLong,
   PROGRAM_TITLE_MAX_LENGTH,
 } from '@/shared/config/validation';
@@ -92,6 +93,11 @@ const ExpoInput = ({
                   {...register(`${fieldName}.${index}.endedAt`, {
                     required: '연수 종료 일과 시간을 입력해주세요.',
                     pattern: DATE_TIME_PATTERN,
+                    validate: (endedAt, formValues) =>
+                      !isDateTimeRangeInvalid(
+                        formValues[fieldName][index]?.startedAt ?? '',
+                        endedAt,
+                      ) || '프로그램 종료 일시는 시작 일시보다 늦어야 합니다.',
                   })}
                 />
               </div>

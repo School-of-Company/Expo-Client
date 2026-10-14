@@ -6,6 +6,7 @@ import { Button, Loading } from '@/shared/ui';
 import { formatDateTime, SectionError } from '../../../common';
 import {
   formatDefinitionSchedule,
+  getLedgerErrorMessage,
   isCancellableStatus,
   LEDGER_STATUS_LABEL,
   LEDGER_STATUS_STYLE,
@@ -29,13 +30,45 @@ const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
   </div>
 );
 
+// 답변은 임의 JSON 이라 값 모양을 가정하지 않고 문자열로 풀어 보여 준다
+const toAnswerText = (value: unknown) =>
+  typeof value === 'string' ? value : JSON.stringify(value);
+
+const AnswerSection = ({
+  title,
+  answers,
+}: {
+  title: string;
+  answers: Record<string, unknown> | null;
+}) => {
+  const entries = Object.entries(answers ?? {});
+  return (
+    <section className="space-y-[10px]">
+      <p className="text-h3b text-black">{title}</p>
+      {entries.length === 0 ? (
+        <p className="text-body2r text-gray-400">답변이 없습니다.</p>
+      ) : (
+        <dl className="space-y-8">
+          {entries.map(([key, value]) => (
+            <Field
+              key={key}
+              label={key}
+              value={<span className="break-all">{toAnswerText(value)}</span>}
+            />
+          ))}
+        </dl>
+      )}
+    </section>
+  );
+};
+
 /** 신청 한 건을 원장에서 다시 조회해 최신 상태와 상태 변경 이력을 보여 준다 */
 const ApplicationDetailModal = ({
   expoId,
   applicationId,
   onClose,
 }: ApplicationDetailModalProps) => {
-  const { data, isLoading, isError, refetch } = useApplicationDetail(
+  const { data, error, isLoading, isError, refetch } = useApplicationDetail(
     expoId,
     applicationId,
   );
@@ -61,7 +94,7 @@ const ApplicationDetailModal = ({
 
   const handleCancel = () => {
     if (!row) return;
-    const target = row.isParticipantMissing ? '이 참가자' : `${row.name}님`;
+    const target = `${row.name}님`;
     // 확정 취소는 빈 자리로 대기자가 자동 승급된다
     const promotion =
       row.status === 'CONFIRMED' ? ' 대기자가 있으면 자동으로 확정됩니다.' : '';
@@ -85,7 +118,10 @@ const ApplicationDetailModal = ({
     if (isError) {
       return (
         <SectionError
-          message="신청 상세를 불러오지 못했습니다."
+          message={getLedgerErrorMessage(
+            error,
+            '신청 상세를 불러오지 못했습니다.',
+          )}
           onRetry={() => refetch()}
         />
       );
@@ -102,32 +138,24 @@ const ApplicationDetailModal = ({
         <section className="space-y-[10px]">
           <p className="text-h3b text-black">참가자</p>
           <dl className="space-y-8">
-            {row.isParticipantMissing ? (
-              <Field label="이름" value="참가자 정보 없음" />
-            ) : (
-              <>
-                <Field label="이름" value={row.name} />
-                <Field
-                  label="구분"
-                  value={row.isRepresentative ? '대표자' : '동행자'}
-                />
-                <Field
-                  label="직업"
-                  value={
-                    row.occupation ? OCCUPATION_LABEL[row.occupation] : '-'
-                  }
-                />
-                {/* 연수 연결은 직업과 섞지 않고 따로 표시한다 */}
-                <Field
-                  label="연수 연결"
-                  value={
-                    row.linkedTraineeId !== null
-                      ? `연결됨 (연수자 ${row.linkedTraineeId})`
-                      : '없음'
-                  }
-                />
-              </>
-            )}
+            <Field label="이름" value={row.name} />
+            <Field
+              label="구분"
+              value={row.isRepresentative ? '대표자' : '동행자'}
+            />
+            <Field
+              label="직업"
+              value={row.occupation ? OCCUPATION_LABEL[row.occupation] : '-'}
+            />
+            {/* 연수 연결은 직업과 섞지 않고 따로 표시한다 */}
+            <Field
+              label="연수 연결"
+              value={
+                row.linkedTraineeId !== null
+                  ? `연결됨 (연수자 ${row.linkedTraineeId})`
+                  : '없음'
+              }
+            />
             <Field label="개인 번호" value={row.phoneNumber ?? '없음'} />
             <Field
               label="대표 수신 번호"
@@ -135,6 +163,11 @@ const ApplicationDetailModal = ({
             />
           </dl>
         </section>
+
+        <AnswerSection
+          title="참가자 등록 답변 (현재)"
+          answers={data?.participant.information ?? null}
+        />
 
         <section className="space-y-[10px]">
           <p className="text-h3b text-black">신청</p>
@@ -162,6 +195,8 @@ const ApplicationDetailModal = ({
             />
           </dl>
         </section>
+
+        <AnswerSection title="신청 당시 답변" answers={data?.answers ?? null} />
 
         <section className="space-y-[10px]">
           <p className="text-h3b text-black">상태 변경 이력</p>

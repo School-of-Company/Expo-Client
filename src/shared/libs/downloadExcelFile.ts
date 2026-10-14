@@ -1,38 +1,12 @@
 import axios, { AxiosResponse } from 'axios';
+import { toServerMessage } from '@/shared/libs/handler/serverMessage';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
 const XLSX_CONTENT_TYPE =
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
-// 서버 파일명을 쓸 수 없을 때의 이름
+// 서버 파일명을 쓸 수 없을 때의 이름. 헤더가 없으면 프록시도 같은 이름을 넣는다
 const FALLBACK_FILE_NAME = 'export.xlsx';
-
-// 리포트 서버 일부는 Content-Disposition 의 filename= 에 한글을 그대로 넣는다(filename* 없이).
-// 서블릿 컨테이너는 헤더를 ISO-8859-1 로 써서 한글이 '?' 로 바뀌므로, 그때 쓸 이름을 경로별로 둔다
-const FALLBACK_FILE_NAMES: [RegExp, string][] = [
-  [/^\/excel\/trainee\//, '연수자_출석부.xlsx'],
-  [/^\/excel\/standard\//, '참가자_명단.xlsx'],
-  [/^\/excel\/program\//, '프로그램_참가자_명단.xlsx'],
-  [/^\/excel\/[^/]+$/, '교원연수자_정보.xlsx'],
-];
-
-const getFallbackFileName = (path: string) =>
-  FALLBACK_FILE_NAMES.find(([pattern]) => pattern.test(path))?.[1] ??
-  FALLBACK_FILE_NAME;
-
-// UTF-8 바이트를 ISO-8859-1 로 읽어 깨진 문자열이면 되살린다. 되살릴 수 없으면 그대로 둔다
-const repairLatin1 = (value: string) => {
-  if (!Array.from(value).some((char) => char.charCodeAt(0) >= 0x80))
-    return value;
-  if (Array.from(value).some((char) => char.charCodeAt(0) > 0xff)) return value;
-  try {
-    return new TextDecoder('utf-8', { fatal: true }).decode(
-      Uint8Array.from(value, (char) => char.charCodeAt(0)),
-    );
-  } catch {
-    return value;
-  }
-};
 
 // 경로 구분자는 저장 이름에서 뺀다(제어 문자는 브라우저가 저장할 때 정리한다)
 const sanitizeFileName = (value: string) => value.replace(/[\\/]/g, '_').trim();
@@ -59,22 +33,22 @@ export const getFileName = (
       return fallback;
     }
   }
+  // 리포트 서버는 한글 이름을 filename* 로 보내므로 filename= 에는 ASCII 이름만 온다.
+  // 서버 배포 전처럼 한글이 '?'·대체 문자로 깨져 오면 원래 이름을 알 수 없으니 기본 이름을 쓴다
   const plain = contentDisposition.match(/filename="?([^";]+)"?/i)?.[1];
-  if (!plain) return fallback;
-  const name = sanitizeFileName(repairLatin1(plain));
-  // 한글이 '?'·대체 문자로 바뀌었으면 원래 이름을 알 수 없다
+  const name = plain && sanitizeFileName(plain);
   return !name || /[?\uFFFD]/.test(name) ? fallback : name;
 };
 
-/** 오류 응답도 blob 으로 오므로 JSON { status, message } 를 읽어 서버 문구를 꺼낸다 */
-export const readErrorMessage = async (data: unknown) => {
+/**
+ * 오류 응답도 blob 으로 오므로 JSON({ message } · { error } · ProblemDetail { detail })을 읽어 서버 문구를 꺼낸다.
+ * 영문뿐이면 상태별 한국어 문구를 쓴다
+ */
+export const readErrorMessage = async (data: unknown, status = 0) => {
   if (!(data instanceof Blob)) return DEFAULT_ERROR_MESSAGE;
   try {
     const body = JSON.parse(await data.text());
-    const message = body?.message ?? body?.error;
-    return typeof message === 'string' && message
-      ? message
-      : DEFAULT_ERROR_MESSAGE;
+    return toServerMessage(status, body) ?? DEFAULT_ERROR_MESSAGE;
   } catch {
     return DEFAULT_ERROR_MESSAGE;
   }
@@ -98,7 +72,6 @@ export const saveBlob = (blob: Blob, fileName: string) => {
  */
 export const downloadExcelFile = async (
   request: () => Promise<AxiosResponse<Blob>>,
-  fallbackFileName = FALLBACK_FILE_NAME,
 ): Promise<boolean> => {
   try {
     const response: AxiosResponse<Blob> | undefined = await request();
@@ -113,14 +86,14 @@ export const downloadExcelFile = async (
 
     saveBlob(
       response.data,
-      getFileName(response.headers['content-disposition'], fallbackFileName),
+      getFileName(response.headers['content-disposition']),
     );
     return true;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(
         error.response
-          ? await readErrorMessage(error.response.data)
+          ? await readErrorMessage(error.response.data, error.response.status)
           : NETWORK_ERROR_MESSAGE,
       );
     }
@@ -132,12 +105,10 @@ export type ExcelDownloadParams = Record<string, string | number>;
 
 /** 관리자 엑셀 GET 다운로드(`/excel/...`). 실패하면 서버 문구를 담은 Error 를 던진다 */
 export const downloadExcel = (path: string, params?: ExcelDownloadParams) =>
-  downloadExcelFile(
-    () =>
-      clientTokenInstance.get<Blob>(path, {
-        params,
-        headers: { 'X-File-Download': 'true' },
-        responseType: 'blob',
-      }),
-    getFallbackFileName(path),
+  downloadExcelFile(() =>
+    clientTokenInstance.get<Blob>(path, {
+      params,
+      headers: { 'X-File-Download': 'true' },
+      responseType: 'blob',
+    }),
   );

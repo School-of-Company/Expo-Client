@@ -9,13 +9,19 @@ interface Props {
   headerTitle: string;
   /** 지정하면 router.back() 대신 쓴다. 직접 열어 이전 기록이 없는 화면에서 쓴다 */
   onBack?: () => void;
+  className?: string;
 }
 
-const DetailHeader = ({ textCenter = false, headerTitle, onBack }: Props) => {
+const DetailHeader = ({
+  textCenter = false,
+  headerTitle,
+  onBack,
+  className = '',
+}: Props) => {
   const router = useRouter();
 
   return (
-    <div className="flex items-center">
+    <div className={`flex items-center ${className}`}>
       <label
         className="hover:cursor-pointer"
         onClick={onBack ?? (() => router.back())}
