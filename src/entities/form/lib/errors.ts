@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toServerMessage } from '@/shared/libs/handler/serverMessage';
 import { ApiError } from '@/shared/libs/http/apiError';
 
 /** Form 서버 오류 본문. 프록시를 거치면 `{ error, status, code }`로 온다. */
@@ -32,7 +33,7 @@ export const FORM_ERROR_MESSAGES: Record<string, string> = {
 
 /**
  * axios 오류를 화면 문구가 담긴 ApiError로 바꾼다.
- * 아는 코드면 매핑 문구, 모르면 서버 문구, 그것도 없으면 `fallback`을 쓴다.
+ * 아는 코드면 매핑 문구, 모르면 서버 한국어 문구(영문뿐이면 상태별 문구), 그것도 없으면 `fallback`을 쓴다.
  */
 export const toFormError = (error: unknown, fallback: string): Error => {
   if (!axios.isAxiosError(error) || !error.response) {
@@ -42,10 +43,9 @@ export const toFormError = (error: unknown, fallback: string): Error => {
   const { status, data } = error.response;
   const code: string | undefined = data?.code;
   const known = code && FORM_ERROR_MESSAGES[code];
-  const message = known || data?.error || data?.message;
 
   return new ApiError(
-    typeof message === 'string' && message ? message : fallback,
+    known || toServerMessage(status, data) || fallback,
     status,
     code,
   );
