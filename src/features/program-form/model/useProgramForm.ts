@@ -31,43 +31,50 @@ export const useCreateProgramForm = (expoId: string) => {
 };
 
 /**
- * 낙관적 락으로 저장한다. 캐시의 `version` 을 `expectedVersion` 으로 보내고, 성공하면 새 `version` 으로 캐시를 고친다.
+ * 낙관적 락으로 저장한다. 편집기를 그린 시점의 폼(`base`)을 따로 들고 그 `version` 을 `expectedVersion` 으로 보낸다.
+ * 쿼리 캐시는 포커스·무효화로 다시 받아질 수 있어서, 캐시 version 을 쓰면 남의 수정을 409 없이 덮어쓴다.
+ * `base` 는 최신본을 불러올 때와 저장에 성공할 때만 바뀐다.
  * FORM_VERSION_CONFLICT 는 오류로 던지지 않고 `conflict` 에 내 값을 남겨 모달이 고르게 한다.
  */
-export const useEditProgramForm = (formId: string) => {
+export const useEditProgramForm = (initial: ProgramFormResponseDto) => {
+  const formId = initial.id;
   const queryClient = useQueryClient();
-  const queryKey = programFormKeys.detail(formId);
+  const [base, setBase] = useState(initial);
   const [conflict, setConflict] = useState<CreateProgramFormRequestDto | null>(
     null,
   );
-  // 성공하면 이 mutation 이 본문을 다시 받는다(invalidate). 편집 중인 값은 건드리지 않는다
   const { mutateAsync: patch, isPending } =
     useUpdateProgramFormMutation(formId);
 
   const fetchLatest = () =>
     queryClient.fetchQuery({
-      queryKey,
+      queryKey: programFormKeys.detail(formId),
       queryFn: () => getProgramForm(formId),
       staleTime: 0,
     });
 
-  const onSaved = ({ version }: ProgramFormVersionResponseDto) => {
-    // 다시 받기 전에 또 저장해도 새 version 을 보내도록 먼저 고친다
-    queryClient.setQueryData<ProgramFormResponseDto>(
-      queryKey,
-      (old) => old && { ...old, version },
-    );
+  // 보낸 값이 새 기준이 된다. 기간도 바꿔야 다음 저장에서 손대지 않은 기간을 그대로 보낸다
+  const onSaved = (
+    values: CreateProgramFormRequestDto,
+    { version }: ProgramFormVersionResponseDto,
+  ) => {
+    setBase((prev) => ({
+      ...prev,
+      startDate: values.startDate,
+      endDate: values.endDate,
+      version,
+    }));
     setConflict(null);
     toast.success('저장했습니다.');
   };
 
   /** 충돌이 아닌 오류(제목 중복, 기간 축소 등)는 던져서 편집 화면이 필드 옆에 보여 준다. */
   const save = async (values: CreateProgramFormRequestDto) => {
-    const expectedVersion =
-      queryClient.getQueryData<ProgramFormResponseDto>(queryKey)?.version;
-    if (expectedVersion === undefined) return;
     try {
-      onSaved(await patch({ ...values, expectedVersion }));
+      onSaved(
+        values,
+        await patch({ ...values, expectedVersion: base.version }),
+      );
     } catch (error) {
       if (!isVersionConflict(error)) throw error;
       setConflict(values);
@@ -77,7 +84,7 @@ export const useEditProgramForm = (formId: string) => {
   const reapply = async () => {
     if (!conflict) return;
     try {
-      onSaved(await reapplyMine(conflict, { fetchLatest, patch }));
+      onSaved(conflict, await reapplyMine(conflict, { fetchLatest, patch }));
     } catch (error) {
       // 또 충돌이면 모달을 그대로 두고 다시 고르게 한다
       if (!isVersionConflict(error)) setConflict(null);
@@ -85,14 +92,14 @@ export const useEditProgramForm = (formId: string) => {
     }
   };
 
-  /** 내 변경을 버리고 최신본으로 바꾼다. 화면은 받은 최신본으로 편집기를 다시 그린다. */
+  /** 내 변경을 버리고 최신본을 새 기준으로 삼는다. 화면은 이 값으로 편집기를 다시 그린다. */
   const reloadLatest = async () => {
-    const latest = await fetchLatest();
+    setBase(await fetchLatest());
     setConflict(null);
-    return latest;
   };
 
   return {
+    base,
     save,
     isPending,
     hasConflict: conflict !== null,

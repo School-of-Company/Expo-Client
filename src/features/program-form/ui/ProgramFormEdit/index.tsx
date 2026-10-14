@@ -12,6 +12,7 @@ import ProgramFormEditor, {
   ProgramFormBuilderSlotProps,
 } from '../ProgramFormEditor';
 import VersionConflictModal from '../VersionConflictModal';
+import type { ProgramFormResponseDto } from '@/entities/form';
 
 interface Props {
   expoId: string;
@@ -21,16 +22,6 @@ interface Props {
 
 const ProgramFormEdit = ({ expoId, formId, renderBuilder }: Props) => {
   const { data, isError } = useProgramFormQuery(formId);
-  const { save, isPending, hasConflict, reapply, reloadLatest } =
-    useEditProgramForm(formId);
-  const { remove, isPending: isDeleting } = useDeleteProgramForm(
-    expoId,
-    formId,
-  );
-  // 편집기는 처음 값으로만 채워지므로, 최신본을 불러오면 key 를 바꿔 다시 그린다.
-  // 저장 성공 때는 바꾸지 않는다(캐시 본문이 다시 받아지기 전이라 옛 값으로 돌아간다)
-  const [editorKey, setEditorKey] = useState(0);
-  const [isReloading, setIsReloading] = useState(false);
 
   if (isError) {
     // 이유는 전역 쿼리 오류 토스트가 안내한다
@@ -39,6 +30,31 @@ const ProgramFormEdit = ({ expoId, formId, renderBuilder }: Props) => {
     );
   }
   if (!data) return <Loading />;
+
+  // 처음 받은 폼으로 편집을 시작한다. 이후 캐시가 다시 받아져도 편집 기준(version)은 바뀌지 않는다
+  return (
+    <ProgramFormEditBody
+      expoId={expoId}
+      initial={data}
+      renderBuilder={renderBuilder}
+    />
+  );
+};
+
+const ProgramFormEditBody = ({
+  expoId,
+  initial,
+  renderBuilder,
+}: Omit<Props, 'formId'> & { initial: ProgramFormResponseDto }) => {
+  const { base, save, isPending, hasConflict, reapply, reloadLatest } =
+    useEditProgramForm(initial);
+  const { remove, isPending: isDeleting } = useDeleteProgramForm(
+    expoId,
+    initial.id,
+  );
+  // 편집기는 처음 값으로만 채워지므로, 최신본을 불러오면 key 를 바꿔 다시 그린다
+  const [editorKey, setEditorKey] = useState(0);
+  const [isReloading, setIsReloading] = useState(false);
 
   const handleReload = async () => {
     setIsReloading(true);
@@ -56,8 +72,8 @@ const ProgramFormEdit = ({ expoId, formId, renderBuilder }: Props) => {
     <>
       <ProgramFormEditor
         key={editorKey}
-        defaultValues={toProgramFormValues(data)}
-        baseForm={data}
+        defaultValues={toProgramFormValues(base)}
+        baseForm={base}
         submitLabel="저장"
         isPending={isPending}
         renderBuilder={renderBuilder}
