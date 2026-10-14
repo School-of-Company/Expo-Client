@@ -11,14 +11,11 @@ import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
 import {
   DynamicFormValues,
-  FormattedApplicationData,
 } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { DetailHeader, Button } from '@/shared/ui';
 import { postApplication } from '../../api/postApplication';
-import { postTrainingProgramSelection } from '../../api/postTrainingProgramSelection';
 import { createSubmissionKeys } from '../../lib/createSubmissionKeys';
-import { extractTrainingProgramData } from '../../lib/extractTrainingProgramData';
 import { getFormatter } from '../../lib/formatterService';
 
 const ApplicationFormContainer = ({ params }: { params: string }) => {
@@ -76,25 +73,14 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         return;
       }
 
-      if (userType === 'TRAINEE' && applicationType === 'PRE') {
-        const trainingProgramData = await extractTrainingProgramData(
-          dynamicFormValues,
-          allQuestions,
-          params,
-          formattedData as FormattedApplicationData,
-        );
-
-        await postTrainingProgramSelection(params, trainingProgramData);
-      } else {
-        await postApplication(
-          params,
-          'application',
-          userType,
-          applicationType,
-          formattedData,
-          submissionKeys.current.keyFor(JSON.stringify(formattedData)),
-        );
-      }
+      await postApplication(
+        params,
+        'application',
+        userType,
+        applicationType,
+        formattedData,
+        submissionKeys.current.keyFor(JSON.stringify(formattedData)),
+      );
       router.push(
         `/application/success/${params}?userType=${userType}&formType=application`,
       );

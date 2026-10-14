@@ -98,10 +98,12 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
                           : `${current.label}하기`
                       }
                       href={
-                        // 일반 사전등록은 참가자 선택 페이지로, 나머지는 기존 동적 폼으로
+                        // 일반 사전등록은 참가자 선택 페이지로, 연수 사전신청은 프로그램별 신청으로, 나머지는 기존 동적 폼으로
                         key === 'pre-standard'
                           ? `/application/forms/${expoId}/pre-register`
-                          : `/application/${expoId}?formType=${formType}&userType=${userType}&applicationType=${applicationType}`
+                          : key === 'pre-trainee'
+                            ? `/application/forms/${expoId}/training`
+                            : `/application/${expoId}?formType=${formType}&userType=${userType}&applicationType=${applicationType}`
                       }
                     />
                   );
