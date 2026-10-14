@@ -7,10 +7,14 @@ export const PAPER_QR_CATEGORIES: {
   // 라벨에 크게 찍는 글. 구분 없음은 찍지 않는다
   printLabel: string | null;
 }[] = [
-  { value: 'ADULT', label: '어른', printLabel: '어른' },
-  { value: 'CHILD', label: '아이', printLabel: '아이' },
+  { value: 'ADULT', label: '성인', printLabel: '어른' },
+  { value: 'CHILD', label: '어린이', printLabel: '아이' },
   { value: 'GENERAL', label: '구분 없음', printLabel: null },
 ];
+
+export const getCategoryLabel = (category: PaperQrCategory) =>
+  PAPER_QR_CATEGORIES.find((item) => item.value === category)?.label ??
+  '구분 없음';
 
 // 발급 API가 한 번에 받는 최대 장수
 export const MAX_TOKENS_PER_REQUEST = 1000;

@@ -9,9 +9,7 @@ import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
-import {
-  DynamicFormValues,
-} from '@/shared/types/application/type';
+import { DynamicFormValues } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { DetailHeader, Button } from '@/shared/ui';
 import { postApplication } from '../../api/postApplication';

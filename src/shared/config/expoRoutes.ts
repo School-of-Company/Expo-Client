@@ -30,6 +30,8 @@ export const getExpoRoutes = (expoId: string) => {
     program: `/program/${id}?navigation=standard`,
     paperQr: `/exhibition/paper-qr/${id}`,
     lottery: `/exhibition/lottery/${id}`,
+    // 참가자가 보는 신청 폼 모음
+    applicationForms: `/application/forms/${id}`,
   };
 };
 
@@ -40,6 +42,7 @@ export const getRegistrationRoutes = (expoId: string) => {
     applications: `${base}/applications`,
     schedule: `${base}/schedule`,
     history: `${base}/history`,
+    attendance: `${base}/attendance`,
     operations: `${base}/operations`,
     programFormNew: `${base}/program-forms/new`,
     programForm: (formId: string) =>

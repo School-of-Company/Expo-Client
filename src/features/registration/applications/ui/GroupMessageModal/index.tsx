@@ -29,6 +29,7 @@ import {
   useGroupMessageConfig,
   useGroupMessageJob,
 } from '../../model/groupMessage';
+import { MESSAGE_TEMPLATES } from '../../model/messageTemplates';
 import GroupMessageJobItems from '../GroupMessageJobItems';
 import KakaoTemplatePanel from '../KakaoTemplatePanel';
 
@@ -223,6 +224,17 @@ const GroupMessageModal = ({
   };
 
   const isEditable = jobId === null;
+
+  // 작성 중인 내용이 있으면 덮어쓰기 전에 묻는다
+  const handleTemplateClick = (templateBody: string) => {
+    if (
+      body.trim() !== '' &&
+      body !== templateBody &&
+      !window.confirm('작성 중인 내용을 예시 문구로 바꿀까요?')
+    )
+      return;
+    setBody(templateBody.slice(0, GROUP_MESSAGE_MAX_LENGTH));
+  };
   const mutationError =
     previewMutation.error ?? executeMutation.error ?? retryMutation.error;
   // Notification 서버는 작업을 만들 때 저장한 fingerprint 와만 비교해서, 새 미리보기로는 재시도가 통과하지 못한다
@@ -368,6 +380,22 @@ const GroupMessageModal = ({
                 >
                   내용
                 </label>
+                <div className="flex flex-wrap items-center gap-8">
+                  <span className="text-caption1r text-gray-400">
+                    예시 문구
+                  </span>
+                  {MESSAGE_TEMPLATES.map((template) => (
+                    <button
+                      key={template.label}
+                      type="button"
+                      disabled={!isEditable}
+                      onClick={() => handleTemplateClick(template.body)}
+                      className="rounded-full bg-main-100 px-12 py-4 text-caption1r text-main-600 hover:bg-main-200"
+                    >
+                      {template.label}
+                    </button>
+                  ))}
+                </div>
                 <textarea
                   id="group-message-body"
                   value={body}
@@ -404,6 +432,10 @@ const GroupMessageModal = ({
                 <p className="text-caption1r text-gray-500">
                   변수를 쓰면 신청별로 문구를 만들고, 변수가 없으면 같은
                   번호에는 한 번만 보냅니다.
+                </p>
+                <p className="text-caption1r text-error">
+                  {'{장소}'}는 사전등록 회차에만 있어 프로그램 신청자는 발송에서
+                  빠집니다.
                 </p>
               </section>
             ) : (

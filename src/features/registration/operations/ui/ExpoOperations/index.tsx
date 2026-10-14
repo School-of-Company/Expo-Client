@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { ExpoAction, getExpoActions } from '@/entities/exhibition';
 import { ArrowRight } from '@/shared/assets/icons';
-import { DetailHeader } from '@/shared/ui';
 import { useRegistrationExpo } from '../../../common';
 
 const CARD_CLASS =
@@ -25,16 +24,11 @@ interface ExpoOperationsProps {
 
 /** 박람회 상세 패널(ExpoActionPanel)과 같은 운영 기능을 카드로 모은다 */
 const ExpoOperations = ({ onOpenModal }: ExpoOperationsProps) => {
-  const { expoId, expo } = useRegistrationExpo();
+  const { expoId } = useRegistrationExpo();
   const actions: ExpoAction[] = Object.values(getExpoActions(expoId));
 
   return (
     <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px]">
-      <DetailHeader
-        textCenter
-        headerTitle={expo ? `${expo.title} 운영` : '박람회 운영'}
-      />
-
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         {actions.map((action) =>
           'href' in action ? (

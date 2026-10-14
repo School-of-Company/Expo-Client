@@ -1,12 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
 import { FormEditor } from '@/features/form/common';
 import { transformFormData } from '@/features/form/common/model/formUtils';
 import { transformServerData } from '@/features/form/edit';
 import { useRegistrationExpo } from '@/features/registration/common';
-import { ArrowLeft, XMark } from '@/shared/assets/icons';
+import { XMark } from '@/shared/assets/icons';
 import { withLoading } from '@/shared/hocs';
 import { FormValues, SurveyFormRequest } from '@/shared/types/form/create/type';
 import { Button } from '@/shared/ui';
@@ -26,7 +25,7 @@ const TABS: { key: ParticipationType; label: string }[] = [
 ];
 
 const SurveyManager = () => {
-  const { expoId, routes } = useRegistrationExpo();
+  const { expoId } = useRegistrationExpo();
   const [type, setType] = useState<ParticipationType>('STANDARD');
   const [pending, setPending] = useState<SurveyFormRequest | null>(null);
 
@@ -64,13 +63,6 @@ const SurveyManager = () => {
 
   return (
     <div className="flex w-full max-w-[816px] flex-col gap-36">
-      <Link href={routes.dashboard} className="flex w-fit items-center gap-8">
-        <ArrowLeft size={32} />
-        <span className="text-h2r text-black mobile:text-body1r">
-          만족도 조사
-        </span>
-      </Link>
-
       <div className="flex flex-wrap items-center justify-between gap-16">
         <div role="tablist" className="flex flex-wrap gap-12">
           {TABS.map((tab) => {
