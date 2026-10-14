@@ -4,7 +4,11 @@ import { clientIpHeaders } from '@/shared/libs/http/clientIp';
 import { serverInstance } from '@/shared/libs/http/serverInstance';
 import { toUpstreamFailure } from './error';
 import { forbiddenPathResponse, toGatewayUrl } from './proxyTarget';
-import { toServerCode, toServerMessage } from './serverMessage';
+import {
+  toServerCode,
+  toServerFieldErrors,
+  toServerMessage,
+} from './serverMessage';
 
 // 참가자 화면이 쓰는 서버 세션 쿠키만 서버로 넘긴다. 관리자 로그인 토큰 쿠키는 공개 요청에 싣지 않는다.
 // JSESSIONID 는 참가자 신청 취소의 CSRF 토큰이 묶인 세션이다
@@ -118,6 +122,7 @@ export async function baseHandleRequest(
           error: message,
           status,
           code: toServerCode(axiosError.response?.data),
+          errors: toServerFieldErrors(axiosError.response?.data),
         },
         { status },
       ),
