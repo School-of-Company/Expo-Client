@@ -10,6 +10,8 @@ export const useLogoutParticipantSession = (expoId: string) => {
     mutationFn: deleteParticipantSession,
     onSuccess: () => {
       toast.success('인증을 해제했습니다. 다른 번호로 인증해주세요.');
+      // 앞사람 신청 내역이 다음 사람에게 보이지 않도록 다시 불러오는 대신 지운다(박람회 구분 없이)
+      queryClient.removeQueries({ queryKey: ['myApplications'] });
       return queryClient.invalidateQueries({
         queryKey: ['participantSession', expoId],
       });
