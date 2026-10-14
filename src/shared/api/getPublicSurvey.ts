@@ -1,11 +1,18 @@
 import axios from 'axios';
 import clientInstance from '../libs/http/clientInstance';
-import { ApplicationForm } from '../types/application/type';
+import type { DynamicFormItem } from '../types/application/type';
 
-export type PublicSurvey = ApplicationForm & {
+/** 공개 설문 응답(`PublicSurveyResponseDto`). */
+export interface PublicSurvey {
+  id: string;
   expoId: string;
+  title: string;
+  informationText: string;
+  participationType: 'STANDARD' | 'TRAINEE';
+  totalAnswers: number;
+  dynamicSurveyResponseDto: DynamicFormItem[];
   lotteryEnabled: boolean;
-};
+}
 
 export const getPublicSurvey = async (
   expoId: string,
