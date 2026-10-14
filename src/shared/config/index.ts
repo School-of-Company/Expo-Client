@@ -8,3 +8,4 @@ export {
   normalizeExpoId,
   toLowercaseUuid,
 } from './expoRoutes';
+export { FUTURE_EDU_EXPO_ID, FUTURE_EDU_EXPO_PATH } from './futureEduExpo';
