@@ -21,6 +21,7 @@ import {
   GROUP_MESSAGE_SELECTED_MAX,
   GROUP_MESSAGE_VARIABLES,
   isFinalJobStatus,
+  isGoneJobError,
   JOB_STATUS_LABEL,
   loadLastGroupMessageJob,
   saveLastGroupMessageJob,
@@ -183,6 +184,12 @@ const GroupMessageModal = ({
     retryMutation.reset();
     setLast(null);
   };
+
+  // 보관한 작업을 조회할 수 없으면(만료·소유자 변경) 보관분을 비워 새로 보낼 수 있게 한다
+  const jobGone = isGoneJobError(job.error);
+  useEffect(() => {
+    if (jobGone) resetJob();
+  }, [jobGone]);
 
   const isEditable = jobId === null;
   const mutationError =
@@ -496,23 +503,24 @@ const GroupMessageModal = ({
                 </Button>
               </div>
             ) : (
-              isJobFinal &&
-              (jobData?.counts.failed ?? 0) > 0 &&
-              (retryStale ? (
-                <Button variant="white" onClick={resetJob}>
-                  대상 다시 확인
-                </Button>
-              ) : (
-                <Button
-                  variant="white"
-                  disabled={retryMutation.isPending}
-                  onClick={() => retryMutation.mutate()}
-                >
-                  {retryMutation.isPending
-                    ? '재시도 요청 중...'
-                    : `실패 ${jobData?.counts.failed}건 재시도`}
-                </Button>
-              ))
+              isJobFinal && (
+                <div className="grid grid-cols-2 gap-12">
+                  {(jobData?.counts.failed ?? 0) > 0 && !retryStale && (
+                    <Button
+                      variant="white"
+                      disabled={retryMutation.isPending}
+                      onClick={() => retryMutation.mutate()}
+                    >
+                      {retryMutation.isPending
+                        ? '재시도 요청 중...'
+                        : `실패 ${jobData?.counts.failed}건 재시도`}
+                    </Button>
+                  )}
+                  <Button variant="white" onClick={resetJob}>
+                    {retryStale ? '대상 다시 확인' : '새로 보내기'}
+                  </Button>
+                </div>
+              )
             )}
           </>
         )}

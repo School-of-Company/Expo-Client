@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { getErrorStatus } from '@/shared/libs/http/apiError';
 import {
   getGroupMessageConfig,
   getGroupMessageJob,
@@ -60,6 +61,11 @@ export const useGroupMessageConfig = (expoId: string) =>
     queryFn: () => getGroupMessageConfig(expoId),
   });
 
+export const isGoneJobError = (error: unknown) => {
+  const status = getErrorStatus(error);
+  return status === 404 || status === 409;
+};
+
 const JOB_POLL_MS = 3 * 1000;
 
 /** 작업이 끝날 때까지 진행 상태를 다시 조회한다 */
@@ -69,6 +75,8 @@ export const useGroupMessageJob = (expoId: string, jobId: string | null) =>
     queryFn: () => getGroupMessageJob(expoId, jobId!),
     enabled: jobId !== null,
     refetchInterval: (query) => {
+      // 보관 작업이 만료(404)되거나 다른 관리자 소유(409)면 더 조회하지 않는다
+      if (isGoneJobError(query.state.error)) return false;
       const status = query.state.data?.status;
       return status && isFinalJobStatus(status) ? false : JOB_POLL_MS;
     },
