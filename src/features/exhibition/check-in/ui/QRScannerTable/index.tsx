@@ -24,6 +24,7 @@ import EntrySummaryPanel from '../EntrySummaryPanel';
 import ManualScanInput from '../ManualScanInput';
 import ScanModeToggle, { ScanMode } from '../ScanModeToggle';
 import ScanResultCard from '../ScanResultCard';
+import WalkInPanel from '../WalkInPanel';
 
 const QRScannerTable = ({ id }: { id: string }) => {
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
@@ -183,6 +184,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
           isProcessing={scannedQR !== null}
         />
       </section>
+      <WalkInPanel expoId={id} />
       <EntrySummaryPanel expoId={id} />
       {paperQrCount > 0 && (
         <p className="text-body2r text-gray-500">
