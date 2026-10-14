@@ -35,6 +35,15 @@ export const postParticipantAuthCode = async (
   }
 };
 
+/** 세션 쿠키를 지운다. 현장 공용 기기에서 앞사람 인증을 끝내고 다른 번호로 인증할 때 쓴다(204) */
+export const deleteParticipantSession = async () => {
+  try {
+    await clientInstance.delete('/participant-auth/session');
+  } catch (error) {
+    throw toError(error, '인증을 해제하지 못했습니다.');
+  }
+};
+
 export const postParticipantAuthVerify = async (
   expoId: string,
   phoneNumber: string,
