@@ -13,6 +13,7 @@ export interface Option {
   key?: string;
 }
 
+/** 빌더가 고르는 특수 필드. 서버 값은 여기에 `DEFAULT`(일반 필드)가 더해진다. */
 export type DynamicFormType =
   | 'NAME'
   | 'PHONE_NUMBER'
@@ -75,7 +76,7 @@ export interface SurveyFormRequest {
   dynamicSurveyRequestDto: DynamicFieldRequest[];
   informationText: string;
   title: string;
-  /** 경품 추첨 설정. 설정 화면은 `/surveys/{expoId}/lottery` 를 따로 쓴다. */
+  /** PATCH는 통째로 교체한다. 수정할 때 빠지면 서버 기본값으로 돌아갈 수 있다. */
   lotteryEnabled?: boolean;
   lotteryNumbers?: number[];
 }

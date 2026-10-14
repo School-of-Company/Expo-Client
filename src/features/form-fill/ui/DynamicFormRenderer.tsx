@@ -73,9 +73,9 @@ export default function DynamicFormRenderer({
       )}
       className="space-y-20"
     >
-      {dynamicForm.map((item) => {
+      {dynamicForm.map((item, index) => {
         const definition = fieldRegistry[item.formType];
-        if (!definition || !isFieldVisible(item, dynamicForm, values)) {
+        if (!definition || !isFieldVisible(dynamicForm, values, index)) {
           return null;
         }
         const id = String(item.id);

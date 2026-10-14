@@ -95,7 +95,7 @@ const PolicyFields = ({ value, onChange }: PolicyFieldsProps) => {
           />
         </Field>
       </div>
-      <Field label="신청 가능 직업 (비우면 제한 없음)">
+      <Field label="신청 가능 직업 (하나 이상)">
         <div className="flex flex-wrap gap-8">
           {OCCUPATIONS.map((occupation) => {
             const isSelected = value.allowedOccupations.includes(occupation);
@@ -118,7 +118,7 @@ const PolicyFields = ({ value, onChange }: PolicyFieldsProps) => {
         </div>
       </Field>
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
-        <Field label="프로그램 폼 ID (선택)">
+        <Field label="프로그램 폼 ID">
           <Input
             placeholder="프로그램 폼을 만든 뒤 받은 ID"
             value={value.formId}

@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import { createErrorResponse } from './response';
 import { toServerCode, toServerMessage } from './serverMessage';
 
-// 오류 본문은 { status, message } 정도라 이 크기를 넘으면 더 읽지 않는다
+// 오류 본문은 { code, message } 정도라 이 크기를 넘으면 더 읽지 않는다
 const MAX_ERROR_BODY_BYTES = 64 * 1024;
 
 const readStream = async (stream: Readable) => {
@@ -20,27 +20,23 @@ const readStream = async (stream: Readable) => {
   return Buffer.concat(chunks);
 };
 
-// 파일 다운로드 요청은 스트림(또는 arraybuffer)으로 받으므로 오류 본문 { status, message } 를 직접 해석한다
-const getErrorMessage = async (
-  status: number,
-  data: unknown,
-): Promise<string | undefined> => {
+// 파일 다운로드 요청은 스트림(또는 arraybuffer)으로 받으므로 오류 본문 { code, message } 를 직접 해석한다
+const parseBody = async (data: unknown): Promise<unknown> => {
   if (data instanceof Readable) {
     try {
-      return getErrorMessage(status, await readStream(data));
+      return parseBody(await readStream(data));
     } catch {
-      return toServerMessage(status, undefined);
+      return undefined;
     }
   }
   if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
     try {
-      const text = new TextDecoder().decode(data);
-      return getErrorMessage(status, JSON.parse(text));
+      return JSON.parse(new TextDecoder().decode(data));
     } catch {
-      return toServerMessage(status, undefined);
+      return undefined;
     }
   }
-  return toServerMessage(status, data);
+  return data;
 };
 
 const TIMEOUT_CODES = ['ECONNABORTED', 'ETIMEDOUT'];
@@ -72,12 +68,12 @@ export async function handleError(error: unknown): Promise<NextResponse> {
 
   const axiosError = error as AxiosError;
   const status = axiosError.response?.status || 500;
+  const body = await parseBody(axiosError.response?.data);
 
   return createErrorResponse(
-    (await getErrorMessage(status, axiosError.response?.data)) ||
-      '요청 처리 중 오류가 발생했습니다.',
+    toServerMessage(status, body) || '요청 처리 중 오류가 발생했습니다.',
     status,
     false,
-    toServerCode(axiosError.response?.data),
+    toServerCode(body),
   );
 }

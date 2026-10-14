@@ -1,4 +1,4 @@
-import { toFormError } from '@/features/form/common/api/formErrors';
+import { toFormError } from '@/entities/form/lib/errors';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 

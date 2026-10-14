@@ -31,8 +31,8 @@ export const toServerMessage = (
   return message;
 };
 
-/** 서버 오류 본문의 `code`(ErrorResponseDto). 화면이 409 종류를 구분하려면 이 값이 필요하다. */
+/** 서버 오류 본문의 `code`(예: FORM_NOT_FOUND). 화면이 코드로 문구를 고를 수 있게 그대로 넘긴다. */
 export const toServerCode = (data: unknown): string | undefined => {
   const code = (data as { code?: unknown } | undefined)?.code;
-  return typeof code === 'string' && code ? code : undefined;
+  return typeof code === 'string' ? code : undefined;
 };

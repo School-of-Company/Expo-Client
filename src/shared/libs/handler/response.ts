@@ -60,7 +60,7 @@ export function createErrorResponse(
       error: message,
       status: status,
       isRefreshError: isRefreshError,
-      ...(code && { code }),
+      code,
     },
     { status },
   );

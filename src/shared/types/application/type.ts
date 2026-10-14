@@ -1,5 +1,15 @@
 import { ApplicationType } from '../exhibition/type';
 import { DynamicFormType } from '../form/create/type';
+import type { FieldConditional } from '@/shared/lib/form-conditional';
+
+export type FormType =
+  | 'SENTENCE'
+  | 'CHECKBOX'
+  | 'DROPDOWN'
+  | 'IMAGE'
+  | 'MULTIPLE'
+  | 'COMPANION'
+  | 'REGION';
 
 /** 선택지 맵. 키는 답변 값으로 쓰이고, 값은 보기 문구다. */
 export type JsonData = Record<
@@ -11,24 +21,13 @@ export interface OtherJson {
   hasEtc: boolean;
   maxSelection?: number;
   /** `parentIndex`는 문항 목록 안의 위치(0부터). `triggerValue`와 `triggerValues` 중 하나만 온다. */
-  conditional?: {
-    parentIndex: number;
-    triggerValue?: string;
-    triggerValues?: string[];
-  };
+  conditional?: FieldConditional;
 }
 
 export interface DynamicFormItem {
   id: number;
   title: string;
-  formType:
-    | 'SENTENCE'
-    | 'CHECKBOX'
-    | 'DROPDOWN'
-    | 'IMAGE'
-    | 'MULTIPLE'
-    | 'COMPANION'
-    | 'REGION';
+  formType: FormType;
   jsonData: JsonData;
   requiredStatus: boolean;
   otherJson: OtherJson | null;
@@ -36,20 +35,16 @@ export interface DynamicFormItem {
   dynamicFormType?: DynamicFormType | 'DEFAULT';
 }
 
-/**
- * 폼 조회(`GET /forms/{expoId}`)와 설문 조회(`GET /surveys/{expoId}`) 응답.
- * 두 응답이 필드 이름을 달리 쓴다: 폼은 `participantType`·`applicationType`·`dynamicForm`,
- * 설문은 `participationType`·`totalAnswers`·`dynamicSurveyResponseDto`.
- */
+/** 폼(FormResponseDto)과 설문(SurveyResponseDto)을 함께 담는 화면용 모양. */
 export interface ApplicationForm {
   id?: string;
   expoId?: string;
+  applicationType?: ApplicationType;
   title: string;
   informationText: string;
   startDate: string;
   endDate: string;
   participantType: 'STANDARD' | 'TRAINEE';
-  applicationType?: 'PRE' | 'FIELD';
   dynamicForm?: DynamicFormItem[];
   /** 설문 응답에만 있다. */
   participationType?: 'STANDARD' | 'TRAINEE';
@@ -74,12 +69,6 @@ export type FormattedApplicationData = {
   trainingId?: string;
 };
 
-export interface FormattedSurveyData {
-  phoneNumber: string;
-  personalInformationStatus: boolean;
-  answers: SurveyAnswers;
-}
-
 /** 문항 id → 답변. SENTENCE 문자열, CHECKBOX boolean, DROPDOWN 키, MULTIPLE 키 배열. */
 export type SurveyAnswers = Record<string, string | boolean | string[]>;
 
@@ -92,6 +81,12 @@ export interface Companion {
   occupation: string;
   region: string;
   school?: string;
+}
+
+export interface FormattedSurveyData {
+  phoneNumber: string;
+  personalInformationStatus: boolean;
+  answers: SurveyAnswers;
 }
 
 export type DynamicFormValues = {

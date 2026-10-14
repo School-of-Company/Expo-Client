@@ -1,5 +1,6 @@
 import { AxiosError } from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
+import { clientIpHeaders } from '@/shared/libs/http/clientIp';
 import { serverInstance } from '@/shared/libs/http/serverInstance';
 import { toUpstreamFailure } from './error';
 import { forbiddenPathResponse, toGatewayUrl } from './proxyTarget';
@@ -17,7 +18,7 @@ const FORWARDED_HEADERS = ['Idempotency-Key', 'X-XSRF-TOKEN', 'X-CSRF-TOKEN'];
 const RETURNED_HEADERS = ['x-csrf-token'];
 
 const pickForwardedHeaders = (req: NextRequest) => {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = clientIpHeaders(req);
   FORWARDED_HEADERS.forEach((name) => {
     const value = req.headers.get(name);
     if (value) headers[name] = value;
@@ -110,11 +111,14 @@ export async function baseHandleRequest(
     const message =
       toServerMessage(status, axiosError.response?.data) ||
       '요청을 처리하는 중 오류가 발생했습니다.';
-    const code = toServerCode(axiosError.response?.data);
 
     return withSetCookies(
       NextResponse.json(
-        { error: message, status, ...(code && { code }) },
+        {
+          error: message,
+          status,
+          code: toServerCode(axiosError.response?.data),
+        },
         { status },
       ),
       axiosError.response?.headers?.['set-cookie'],
