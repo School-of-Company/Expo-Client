@@ -14,6 +14,7 @@ const RegistrationTabs = () => {
     { href: routes.dashboard, label: '대시보드', exact: true },
     { href: routes.applications, label: '접수대장' },
     { href: routes.schedule, label: '일정·모집' },
+    { href: routes.programForms, label: '프로그램 폼' },
     { href: routes.attendance, label: '실시간 입·퇴장' },
     { href: routes.history, label: '행정 이력' },
     { href: routes.operations, label: '박람회 운영' },
