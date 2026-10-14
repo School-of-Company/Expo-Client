@@ -17,9 +17,12 @@ import { getErrorStatus } from '@/shared/libs/http/apiError';
 
 type ParticipationType = 'STANDARD' | 'TRAINEE';
 
-// 응답 화면(useSurveyQuery)과 키를 나눈다. 이쪽은 설문이 없으면(404) null 을 캐시에 두기 때문이다.
+// useSurveyQuery 의 { admin } 와 같은 모양으로 두되 키를 나눈다. 이쪽은 설문이 없으면(404) null 을 캐시에 두기 때문이다.
 const adminSurveyKey = (expoId: string, type: ParticipationType) =>
-  [...surveyKeys.detail(expoId, type), 'admin'] as const;
+  [
+    ...surveyKeys.detail(expoId, type),
+    { admin: true, nullOn404: true },
+  ] as const;
 
 /** 관리자 화면용 설문 조회. 설문이 아직 없으면(404) null 을 돌려준다. */
 export const useSurvey = (expoId: string, type: ParticipationType) =>
