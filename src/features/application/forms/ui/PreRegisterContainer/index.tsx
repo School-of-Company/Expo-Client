@@ -20,7 +20,11 @@ import {
 } from '../../../api/postApplication';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
-import { getApplicantLimit, getCompanionLimit } from '../../model/sessionSeats';
+import {
+  getApplicantLimit,
+  getCompanionLimit,
+  getWaitingLimit,
+} from '../../model/sessionSeats';
 import { usePreRegisterCapacity } from '../../model/usePreRegister';
 
 /**
@@ -158,14 +162,13 @@ const PreRegisterContainer = ({
               {canApply
                 ? capacity.remaining > 0
                   ? `현재 남은 자리 ${capacity.remaining.toLocaleString()}명`
-                  : `확정 자리가 모두 찼습니다. 대기 ${(capacity.waitingRemaining ?? 0).toLocaleString()}명까지 접수합니다.`
+                  : `확정 자리가 모두 찼습니다. 대기로 ${getWaitingLimit(capacity).toLocaleString()}명까지 접수합니다.`
                 : '신청 마감'}
             </p>
             {canApply && (
               <p className="text-caption1r text-gray-600">
-                1회 최대 {capacity.maxApplicants.toLocaleString()}명, 대표자를
-                포함해 {applicantLimit?.toLocaleString()}명까지 신청할 수
-                있습니다.
+                대표자를 포함해 {applicantLimit?.toLocaleString()}명까지 신청할
+                수 있습니다.
               </p>
             )}
             <p className="text-caption1r text-gray-500">
