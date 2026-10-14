@@ -1,7 +1,10 @@
 export const getSuccessMessage = (
   userType: string | null,
   formType: string | null,
+  result?: string | null,
 ): string => {
+  if (result === 'waiting')
+    return '대기 접수되었습니다. 자리가 나면 대표자 번호로 QR을 보내드립니다.';
   if (userType === 'STANDARD') {
     if (formType === 'application') return '참가자 등록이 완료되었습니다.';
     if (formType === 'survey')

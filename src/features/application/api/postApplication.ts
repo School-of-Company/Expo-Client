@@ -14,9 +14,38 @@ const MAX_NETWORK_RETRIES = 2;
 
 const APPLICATION_ERROR_MESSAGES: Record<number, string> = {
   400: '신청 기간이 아니거나 입력한 답변이 올바르지 않습니다.',
-  409: '이미 등록된 전화번호입니다.',
+  401: '인증이 만료되었습니다. 다시 인증한 뒤 신청해주세요.',
+  403: '이 신청을 할 권한이 없습니다. 다시 인증해주세요.',
+  404: '신청서나 회차를 찾을 수 없습니다. 안내받은 링크를 다시 확인해주세요.',
+  409: '이미 신청했거나 신청 정보가 바뀌었습니다. 내 신청을 확인한 뒤 다시 시도해주세요.',
+  429: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
+  502: '서버 응답에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
   503: '일시적으로 등록할 수 없습니다. 잠시 후 다시 시도해주세요.',
 };
+
+// 서버 오류 코드로 상태 코드보다 구체적으로 안내한다
+const APPLICATION_ERROR_CODE_MESSAGES: Record<string, string> = {
+  WAITLIST_WITHDRAWN:
+    '취소한 대기 신청입니다. 다시 신청하려면 처음부터 새로 신청해주세요.',
+};
+
+/** 제출 실패. 화면이 인증 만료(401)·키 교체가 필요한 코드를 구분할 수 있게 상태와 코드를 남긴다. */
+export class ApplicationSubmitError extends Error {
+  constructor(
+    message: string,
+    readonly status?: number,
+    readonly code?: string,
+  ) {
+    super(message);
+  }
+}
+
+/** 사전등록 대기 제출(202) 응답. 201 확정은 본문이 없다. */
+export interface ApplicationWaitResult {
+  status: 'WAITING' | 'PROCESSING';
+  sessionId?: number;
+  position?: number;
+}
 
 export const createIdempotencyKey = () => crypto.randomUUID();
 
@@ -47,8 +76,16 @@ export const postApplication = async (
 
       if (error.response) {
         const { status, data: body } = error.response;
+        const code = typeof body?.code === 'string' ? body.code : undefined;
         const fallback = APPLICATION_ERROR_MESSAGES[status] || '폼 등록 실패';
-        throw new Error(body?.error || body?.message || fallback);
+        throw new ApplicationSubmitError(
+          (code && APPLICATION_ERROR_CODE_MESSAGES[code]) ||
+            body?.error ||
+            body?.message ||
+            fallback,
+          status,
+          code,
+        );
       }
 
       throw error;
