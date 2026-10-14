@@ -9,7 +9,7 @@ import { ExpoValid } from '@/shared/types/admin/type';
 
 interface Props {
   id: string;
-  coverImage: string;
+  coverImage: string | null;
   title: string;
   description: string;
   startedDay: string;
@@ -88,7 +88,7 @@ const ExpoListItem = ({
   // 주소 형식이 맞아도 불러오지 못하면(권한·삭제 등) 기본 이미지로 바꾼다
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const safeSrc =
-    isValidSrc(coverImage) && coverImage !== failedSrc
+    coverImage && isValidSrc(coverImage) && coverImage !== failedSrc
       ? coverImage
       : DefaultExpo;
 

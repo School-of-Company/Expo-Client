@@ -1,4 +1,4 @@
-import { LotterySettingsForm } from '@/features/exhibition/lottery';
+import { LotterySettingsForm } from '@/features/survey-admin';
 import { Header } from '@/widgets/layout';
 
 const ExhibitionLotteryPage = ({ id }: { id: string }) => {

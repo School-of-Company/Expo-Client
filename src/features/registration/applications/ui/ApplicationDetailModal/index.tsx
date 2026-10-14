@@ -2,17 +2,19 @@
 
 import { useEffect } from 'react';
 import { XMark } from '@/shared/assets/icons';
-import { Loading } from '@/shared/ui';
+import { Button, Loading } from '@/shared/ui';
 import { formatDateTime, SectionError } from '../../../common';
 import {
   formatDefinitionSchedule,
   getLedgerErrorMessage,
+  isCancellableStatus,
   LEDGER_STATUS_LABEL,
   LEDGER_STATUS_STYLE,
   OCCUPATION_LABEL,
   PROGRAM_TYPE_LABEL,
   toLedgerRow,
   useApplicationDetail,
+  useCancelApplication,
 } from '../../../common/model/ledger';
 
 interface ApplicationDetailModalProps {
@@ -70,6 +72,7 @@ const ApplicationDetailModal = ({
     expoId,
     applicationId,
   );
+  const cancellation = useCancelApplication(expoId);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -88,6 +91,21 @@ const ApplicationDetailModal = ({
   const history = data
     ? [...data.history].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     : [];
+
+  const handleCancel = () => {
+    if (!row) return;
+    const target = `${row.name}님`;
+    // 확정 취소는 빈 자리로 대기자가 자동 승급된다
+    const promotion =
+      row.status === 'CONFIRMED' ? ' 대기자가 있으면 자동으로 확정됩니다.' : '';
+    if (
+      !window.confirm(
+        `${target}의 '${row.title}' 신청을 취소할까요?${promotion} 취소한 신청은 되돌릴 수 없습니다.`,
+      )
+    )
+      return;
+    cancellation.mutate(row.id);
+  };
 
   const renderBody = () => {
     if (isLoading) {
@@ -199,6 +217,22 @@ const ApplicationDetailModal = ({
             </ol>
           )}
         </section>
+
+        {isCancellableStatus(row.status) && (
+          <section className="space-y-[10px]">
+            <p className="text-caption1r text-gray-400">
+              이미 입장한 참가자이거나 취소 기간이 끝났으면 서버가 취소를
+              거절합니다.
+            </p>
+            <Button
+              variant="white"
+              disabled={cancellation.isPending}
+              onClick={handleCancel}
+            >
+              {cancellation.isPending ? '취소하는 중...' : '신청 취소'}
+            </Button>
+          </section>
+        )}
       </>
     );
   };
