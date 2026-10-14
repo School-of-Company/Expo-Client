@@ -18,7 +18,7 @@ export type ProgramOccupation =
   | 'PRE_SERVICE_TEACHER';
 
 // 프로그램 모집 정책 (ProgramPolicyRequest, 조회 응답도 같은 클래스를 쓴다).
-// Swagger에는 required 표시가 없지만 서버는 Kotlin non-null 이라 groupId 외에는 모두 필수다.
+// Swagger에도 required 로 표시되듯 groupId 외에는 모두 필수다.
 // null·키 누락·빈 직업 목록은 400 이다(Expo-Expo-Server ProgramPolicyRequest.kt).
 // 일시는 UTC 오프셋이 있는 ISO 8601 이다
 export interface ProgramPolicy {

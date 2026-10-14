@@ -1,4 +1,8 @@
 import {
+  isProgramTitleTooLong,
+  PROGRAM_TITLE_MAX_LENGTH,
+} from '@/shared/config/validation';
+import {
   fromOffsetDateTime,
   PreregisterSession,
   PreregisterSessionDefinition,
@@ -42,6 +46,8 @@ export const toSessionForm = (session: PreregisterSession): SessionForm => ({
 /** 보내기 전에 서버가 400 으로 거절할 값을 막는다. 문제가 없으면 null */
 export const validateSessionForm = (form: SessionForm): string | null => {
   if (!form.title.trim()) return '회차명을 입력해주세요.';
+  if (isProgramTitleTooLong(form.title.trim()))
+    return `회차명은 ${PROGRAM_TITLE_MAX_LENGTH}자 이하로 입력해주세요.`;
   if (!form.place.trim()) return '장소를 입력해주세요.';
   if (!form.startedAt || !form.endedAt) return '시작·종료 일시를 입력해주세요.';
   if (form.startedAt >= form.endedAt)
