@@ -9,3 +9,4 @@ export { default as AddItemButton } from './AddItemButton';
 export { default as DetailHeader } from './DetailHeader';
 export { default as DetailHeaderEditable } from './DetailHeaderEditable';
 export { default as NavigationBar } from './NavigationBar';
+export { default as MockDataBadge } from './MockDataBadge';
