@@ -6,7 +6,17 @@ export type ProgramSessionType = 'STANDARD' | 'TRAINING';
 
 export type AdminApplicationStatus = 'CONFIRMED' | 'WAITING' | 'CANCELLED';
 
-export type AdminApplicationSort = 'CREATED_DESC' | 'CREATED_ASC';
+export type AdminApplicationSort =
+  | 'CREATED_DESC'
+  | 'CREATED_ASC'
+  | 'RECEIPT_DESC'
+  | 'RECEIPT_ASC'
+  /** 제출 당시 제목 */
+  | 'PROGRAM_ASC'
+  | 'PROGRAM_DESC'
+  /** 제출 당시 회차 일시 */
+  | 'SESSION_ASC'
+  | 'SESSION_DESC';
 
 export type AdminOccupation =
   | 'KINDERGARTEN_STUDENT'
@@ -85,6 +95,8 @@ export interface AdminParticipantDetail {
 
 export interface AdminApplicationRow {
   applicationId: string;
+  /** 박람회별 접수번호. 1부터 결번 없이 늘고 바뀌지 않는다 */
+  receiptNumber: number;
   participantId: number;
   traineeId: number | null;
   programType: ProgramSessionType;
@@ -120,7 +132,10 @@ export interface AdminApplicationQuery {
   programType?: ProgramSessionType;
   programId?: number;
   groupId?: string;
-  status?: AdminApplicationStatus;
+  /** 쉼표로 여러 상태(CONFIRMED,WAITING) */
+  status?: string;
+  /** 제출 당시 회차 시작일(KST, YYYY-MM-DD) */
+  eventDate?: string;
   /** 제출 당시 제목 */
   search?: string;
   /** ISO 일시. from 포함, until 제외 */
