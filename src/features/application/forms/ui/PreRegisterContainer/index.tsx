@@ -18,10 +18,7 @@ import {
   postApplication,
 } from '../../../api/postApplication';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
-import {
-  getApplicantLimit,
-  getCompanionLimit,
-} from '../../model/sessionSeats';
+import { getApplicantLimit, getCompanionLimit } from '../../model/sessionSeats';
 import { usePreRegisterCapacity } from '../../model/usePreRegister';
 
 /**
