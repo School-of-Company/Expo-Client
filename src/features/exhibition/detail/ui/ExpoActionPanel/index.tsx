@@ -101,7 +101,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
                 router.push(getRegistrationRoutes(params).dashboard)
               }
             >
-              박람회 관리
+              사전등록 관리
             </Button>
           </div>
         </div>
