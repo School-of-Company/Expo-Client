@@ -17,10 +17,11 @@ export const useExpoManageQueries = (
 ) => {
   const isTrainee = userType === 'TRAINEE';
 
+  // 연수자는 날짜와 상관없이 전체 목록을 받으므로 날짜 선택을 기다리지 않는다
   const traineeQueries = useQuery<TraineeResponse, Error>({
-    queryKey: ['traineeData', id, page, date],
-    queryFn: () => getTraineeExpoManageData(id, page, date),
-    enabled: isTrainee && enabled,
+    queryKey: ['traineeData', id],
+    queryFn: () => getTraineeExpoManageData(id),
+    enabled: isTrainee,
   });
 
   const participantQueries = useQuery<ParticipantResponse, Error>({
