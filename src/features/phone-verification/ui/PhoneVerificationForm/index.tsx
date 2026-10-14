@@ -11,6 +11,7 @@ import { useTimer } from '@/shared/model';
 import { Button, Input } from '@/shared/ui';
 import { getExpoId } from '../../lib/getExpoId';
 import { getRedirectPath } from '../../lib/getRedirectPath';
+import { useLogoutParticipantSession } from '../../model/useLogoutParticipantSession';
 import { useParticipantSession } from '../../model/useParticipantSession';
 import { useSendVerificationSms } from '../../model/useSendVerificationSms';
 import { useVerifySmsCode } from '../../model/useVerifySmsCode';
@@ -36,7 +37,8 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect');
-  const { data: session } = useParticipantSession(expoId);
+  const { data: sessionState } = useParticipantSession(expoId);
+  const session = sessionState?.session;
   const {
     register,
     handleSubmit,
@@ -68,6 +70,9 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
       router.replace(getRedirectPath(redirect, phoneNumber));
     },
   );
+
+  const { mutate: logoutSession, isPending: isLoggingOut } =
+    useLogoutParticipantSession(expoId);
 
   const handleSendSms = async () => {
     const isValid = await trigger('phoneNumber');
@@ -105,6 +110,15 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
         </p>
       </div>
 
+      {sessionState?.expired && (
+        <p
+          role="status"
+          className="rounded-sm border-1 border-solid border-gray-200 px-20 py-16 text-body2r text-gray-500"
+        >
+          인증 시간이 지났습니다. 다시 인증해 주세요.
+        </p>
+      )}
+
       {session && (
         <div
           role="status"
@@ -113,12 +127,22 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
           <p className="text-body2r text-black">
             이미 인증되어 있습니다. ({formatExpiresAt(session.expiresAt)}까지)
           </p>
-          <Button
-            width="120px"
-            onClick={() => router.replace(getRedirectPath(redirect))}
-          >
-            계속하기
-          </Button>
+          <div className="flex shrink-0 gap-8">
+            <Button
+              width="140px"
+              variant="white"
+              onClick={() => logoutSession()}
+              disabled={isLoggingOut}
+            >
+              다른 번호로 인증
+            </Button>
+            <Button
+              width="120px"
+              onClick={() => router.replace(getRedirectPath(redirect))}
+            >
+              계속하기
+            </Button>
+          </div>
         </div>
       )}
 

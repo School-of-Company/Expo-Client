@@ -5,15 +5,12 @@ import {
   TraineeResponse,
 } from '@/shared/types/exhibition/participants/type';
 
+// 서버(GET /trainee/{expoId})는 이름 필터만 받고 행사 전체 연수자를 배열로 돌려준다. 날짜·페이지 구분은 없다
 export const getTraineeExpoManageData = async (
   id: string,
-  page: number,
-  date: string,
 ): Promise<TraineeResponse> => {
   try {
-    const response = await clientTokenInstance.get(`/trainee/${id}`, {
-      params: { page: page - 1, size: 7, date },
-    });
+    const response = await clientTokenInstance.get(`/trainee/${id}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
