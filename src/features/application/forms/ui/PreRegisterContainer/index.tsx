@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
+import { useFormQuery } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
-import { useGetApplicationForm } from '@/shared/queries/useGetApplicationForm';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
 import {
@@ -53,7 +53,7 @@ const PreRegisterContainer = ({
     data: form,
     isLoading,
     error,
-  } = useGetApplicationForm(expoId, 'STANDARD', 'PRE');
+  } = useFormQuery(expoId, 'STANDARD', 'PRE');
   const { data: session, error: sessionError } = usePreRegisterSession(
     expoId,
     sessionId,

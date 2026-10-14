@@ -4,12 +4,11 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
-import { submitSurveyAnswer } from '@/entities/survey';
+import { submitSurveyAnswer, useSurveyQuery } from '@/entities/survey';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
-import { useGetSurveyForm } from '@/shared/queries';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button, DetailHeader } from '@/shared/ui';
 import { createSurveyFormatter } from '../../lib/createSurveyFormatter';
@@ -36,12 +35,9 @@ const SurveyAnswerContainer = ({ expoId }: { expoId: string }) => {
     );
   }, [expoId, pathname, phoneNumber, rawUserType, router, searchParams]);
 
-  const { data, isLoading, error } = useGetSurveyForm(
-    expoId,
-    userType,
-    'PRE',
-    isUserType(rawUserType) && !!phoneNumber,
-  );
+  const { data, isLoading, error } = useSurveyQuery(expoId, userType, {
+    enabled: isUserType(rawUserType) && !!phoneNumber,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 

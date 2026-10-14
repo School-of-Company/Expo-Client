@@ -9,13 +9,17 @@ import type {
 } from '../model/types';
 import type { FormParticipantType } from '@/entities/form/model/types';
 
-/** 응답 페이지가 surveyId를 모르므로 (박람회, 참여자군)으로 찾는다. 로그인 없이 호출한다. */
+/**
+ * 응답 페이지가 surveyId를 모르므로 (박람회, 참여자군)으로 찾는다. 기본은 로그인 없이 호출한다.
+ * 관리자 화면은 `admin`으로 토큰 프록시를 탄다. 공개 프록시는 관리자 토큰을 넘기지 않아 401이 난다.
+ */
 export const getSurvey = (
   expoId: string,
   participationType: FormParticipantType,
+  { admin = false }: { admin?: boolean } = {},
 ) =>
   formRequest<SurveyResponseDto>(
-    clientInstance.get(`/surveys/${expoId}`, {
+    (admin ? clientTokenInstance : clientInstance).get(`/surveys/${expoId}`, {
       params: { type: participationType },
     }),
     '만족도 조사를 불러오지 못했습니다.',
