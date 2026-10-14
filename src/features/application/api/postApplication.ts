@@ -5,7 +5,6 @@ import { ApplicationType } from '@/shared/types/exhibition/type';
 
 const URL_MAP: Record<string, string> = {
   STANDARD_PRE: '/application/pre-standard/',
-  TRAINEE_PRE: '/application/',
   STANDARD_FIELD: '/application/field/standard/',
   TRAINEE_FIELD: '/application/field/',
 };
@@ -47,35 +46,34 @@ export interface ApplicationWaitResult {
   position?: number;
 }
 
-export const postApplication = async (
-  params: string,
-  formType: 'application',
-  userType: 'STANDARD' | 'TRAINEE',
-  applicationType: ApplicationType,
-  data: FormattedApplicationData,
+const submit = async (
+  url: string,
+  data: unknown,
   idempotencyKey?: string,
+  extraHeaders?: Record<string, string>,
+  messages: Record<number, string> = APPLICATION_ERROR_MESSAGES,
 ) => {
-  const url = `${URL_MAP[`${userType}_${applicationType}`] || '/api/application/'}${params}`;
-  const headers = idempotencyKey
-    ? { 'Idempotency-Key': idempotencyKey }
-    : undefined;
+  const headers = {
+    ...extraHeaders,
+    ...(idempotencyKey && { 'Idempotency-Key': idempotencyKey }),
+  };
+  const retryable = !!idempotencyKey;
 
   for (let attempt = 0; ; attempt++) {
     try {
-      const response = await clientInstance.post(url, data, { headers });
-      return response.data;
+      return await clientInstance.post(url, data, { headers });
     } catch (error) {
       if (!axios.isAxiosError(error)) throw error;
 
       // 응답을 받지 못한 네트워크 오류는 같은 Idempotency-Key로 재시도합니다.
-      if (!error.response && headers && attempt < MAX_NETWORK_RETRIES) {
+      if (!error.response && retryable && attempt < MAX_NETWORK_RETRIES) {
         continue;
       }
 
       if (error.response) {
         const { status, data: body } = error.response;
         const code = typeof body?.code === 'string' ? body.code : undefined;
-        const fallback = APPLICATION_ERROR_MESSAGES[status] || '폼 등록 실패';
+        const fallback = messages[status] || '폼 등록 실패';
         throw new ApplicationSubmitError(
           (code && APPLICATION_ERROR_CODE_MESSAGES[code]) ||
             body?.error ||
@@ -89,4 +87,48 @@ export const postApplication = async (
       throw error;
     }
   }
+};
+
+export const postApplication = async (
+  params: string,
+  formType: 'application',
+  userType: 'STANDARD' | 'TRAINEE',
+  applicationType: ApplicationType,
+  data: FormattedApplicationData,
+  idempotencyKey?: string,
+) => {
+  const url = `${URL_MAP[`${userType}_${applicationType}`] || '/api/application/'}${params}`;
+  return (await submit(url, data, idempotencyKey)).data;
+};
+
+// 연수 프로그램별 신청의 상태 코드 안내. 서버 본문의 error/message 가 있으면 그쪽이 우선한다.
+// TODO(api): 409(같은 묶음 활성 신청·폼 버전 변경)와 403(허용 직업 아님) 을 본문 code 로 가르는지는
+// Application #43 계약 확정 전이라 모른다. 지금은 상태 코드 문구에 두 경우를 함께 적는다.
+const TRAINING_APPLY_ERROR_MESSAGES: Record<number, string> = {
+  ...APPLICATION_ERROR_MESSAGES,
+  403: '이 연수를 신청할 수 없는 대상입니다(허용되지 않은 직업이거나 인증이 필요합니다). 안내를 확인하거나 다시 인증해주세요.',
+  409: '같은 묶음의 다른 연수를 이미 신청했거나, 정원·대기가 마감됐거나, 신청서가 바뀌었습니다. 내 신청을 확인하고 신청서를 다시 불러온 뒤 시도해주세요.',
+};
+
+/** 프로그램별 신청 결과. 201 은 확정, 202 는 대기(또는 처리 중). */
+export type TrainingApplyResult = 'CONFIRMED' | 'WAITING' | 'PROCESSING';
+
+// TODO(api): 경로는 이슈 #370 계약. 요청 본문 키(formVersion/answers)와 202 본문의 status 값은
+// Application #43 에서 확정되기 전까지 미확인이다.
+export const postTrainingProgramApplication = async (
+  expoId: string,
+  programId: string,
+  payload: unknown,
+  csrfHeaders: Record<string, string>,
+  idempotencyKey: string,
+): Promise<TrainingApplyResult> => {
+  const response = await submit(
+    `/application/expos/${encodeURIComponent(expoId)}/program-sessions/TRAINING/${encodeURIComponent(programId)}/applications`,
+    payload,
+    idempotencyKey,
+    csrfHeaders,
+    TRAINING_APPLY_ERROR_MESSAGES,
+  );
+  if (response.status !== 202) return 'CONFIRMED';
+  return response.data?.status === 'PROCESSING' ? 'PROCESSING' : 'WAITING';
 };

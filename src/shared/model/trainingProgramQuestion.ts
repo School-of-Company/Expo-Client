@@ -11,6 +11,3 @@ export const formatTrainingProgramOption = (
   endTime: string,
   title: string,
 ): string => `[${startTime} ~ ${endTime}] ${title}`;
-
-export const extractTrainingProgramTitle = (option: string): string =>
-  option.replace(/^\[[\d:~\s]+\]\s*/, '').trim();
