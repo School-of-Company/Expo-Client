@@ -13,7 +13,6 @@ import { Header } from '@/widgets/layout';
 
 // 미래교육박람회 전용 대시보드. 박람회 ID 를 정해 두면(NEXT_PUBLIC_FUTURE_EDU_EXPO_ID) 바로 그 박람회로,
 // 없으면 박람회 목록에서 제목에 '미래교육박람회'가 들어간 박람회를 찾아 들어간다.
-// 행사가 끝나 이 메뉴를 지우면 박람회 상세의 '사전등록 관리'로 같은 화면을 쓸 수 있다
 const CONFIGURED_EXPO_ID = FUTURE_EDU_EXPO_ID;
 const TITLE_KEYWORD = '미래교육박람회';
 const PAGE_SIZE = 100;
@@ -66,8 +65,7 @@ const FutureEduExpoEntryPage = () => {
             미래교육박람회를 찾지 못했습니다.
           </p>
           <p className="break-keep text-body2r text-gray-500">
-            제목에 &apos;미래교육박람회&apos;가 들어간 박람회가 없습니다. 박람회
-            상세의 &apos;사전등록 관리&apos;에서 같은 화면을 열 수 있습니다.
+            제목에 &apos;미래교육박람회&apos;가 들어간 박람회가 없습니다.
           </p>
           <Link href="/" className="text-body2r text-main-600 underline">
             박람회 목록으로
