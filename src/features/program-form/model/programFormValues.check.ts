@@ -6,9 +6,9 @@ import {
   toProgramFormRequest,
   toProgramFormValues,
 } from './programFormValues.ts';
-import type { ProgramForm } from '@/shared/types/form/program/type';
+import type { ProgramFormResponseDto } from '@/entities/form';
 
-const form: ProgramForm = {
+const form: ProgramFormResponseDto = {
   id: 'form-1',
   expoId: 'expo-1',
   title: ' 제목 ',

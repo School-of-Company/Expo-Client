@@ -23,13 +23,13 @@ const eachActiveField = (
     etc: string,
   ) => void,
 ) => {
-  for (const item of items) {
+  items.forEach((item, index) => {
     const definition = fieldRegistry[item.formType];
-    if (!definition || !isFieldVisible(item, items, values)) continue;
+    if (!definition || !isFieldVisible(items, values, index)) return;
     const id = String(item.id);
     const etc = values[etcKey(id)];
     fn(item, definition, values[id], typeof etc === 'string' ? etc : '');
-  }
+  });
 };
 
 export const getDefaultValues = (items: DynamicFormItem[]): FillValues =>

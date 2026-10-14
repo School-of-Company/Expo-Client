@@ -1,39 +1,33 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import {
-  createProgramForm,
-  deleteProgramForm,
-  editProgramForm,
   getProgramForm,
-} from '@/features/form/program';
+  programFormKeys,
+  useCreateProgramFormMutation,
+  useDeleteProgramFormMutation,
+  useUpdateProgramFormMutation,
+} from '@/entities/form';
 import { getRegistrationRoutes } from '@/shared/config';
 import { isVersionConflict, reapplyMine } from './versionConflict';
 import type {
-  ProgramForm,
-  ProgramFormMutationResult,
-  ProgramFormRequest,
-} from '@/shared/types/form/program/type';
-
-export const programFormQueryKey = (formId: string) => ['programForm', formId];
-
-export const useProgramFormQuery = (formId: string) =>
-  useQuery({
-    queryKey: programFormQueryKey(formId),
-    queryFn: () => getProgramForm(formId),
-  });
+  CreateProgramFormRequestDto,
+  ProgramFormResponseDto,
+  ProgramFormVersionResponseDto,
+} from '@/entities/form';
 
 export const useCreateProgramForm = (expoId: string) => {
   const router = useRouter();
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: (body: ProgramFormRequest) => createProgramForm(expoId, body),
-    onSuccess: ({ id }) => {
-      toast.success('프로그램용 폼을 만들었습니다.');
-      router.replace(getRegistrationRoutes(expoId).programForm(id));
-    },
-  });
-  return { create: mutateAsync, isPending };
+  const { mutateAsync, isPending } = useCreateProgramFormMutation(expoId);
+
+  const create = async (body: CreateProgramFormRequestDto) => {
+    const { id } = await mutateAsync(body);
+    toast.success('프로그램용 폼을 만들었습니다.');
+    router.replace(getRegistrationRoutes(expoId).programForm(id));
+  };
+
+  return { create, isPending };
 };
 
 /**
@@ -42,13 +36,13 @@ export const useCreateProgramForm = (expoId: string) => {
  */
 export const useEditProgramForm = (formId: string) => {
   const queryClient = useQueryClient();
-  const queryKey = programFormQueryKey(formId);
-  const [conflict, setConflict] = useState<ProgramFormRequest | null>(null);
-
-  const { mutateAsync: patch, isPending } = useMutation({
-    mutationFn: (body: Parameters<typeof editProgramForm>[1]) =>
-      editProgramForm(formId, body),
-  });
+  const queryKey = programFormKeys.detail(formId);
+  const [conflict, setConflict] = useState<CreateProgramFormRequestDto | null>(
+    null,
+  );
+  // 성공하면 이 mutation 이 본문을 다시 받는다(invalidate). 편집 중인 값은 건드리지 않는다
+  const { mutateAsync: patch, isPending } =
+    useUpdateProgramFormMutation(formId);
 
   const fetchLatest = () =>
     queryClient.fetchQuery({
@@ -57,21 +51,20 @@ export const useEditProgramForm = (formId: string) => {
       staleTime: 0,
     });
 
-  const onSaved = ({ version }: ProgramFormMutationResult) => {
-    queryClient.setQueryData<ProgramForm>(
+  const onSaved = ({ version }: ProgramFormVersionResponseDto) => {
+    // 다시 받기 전에 또 저장해도 새 version 을 보내도록 먼저 고친다
+    queryClient.setQueryData<ProgramFormResponseDto>(
       queryKey,
       (old) => old && { ...old, version },
     );
-    // 응답에는 id·version 만 오므로 본문은 다시 받아 맞춘다. 편집 중인 값은 건드리지 않는다
-    queryClient.invalidateQueries({ queryKey });
     setConflict(null);
     toast.success('저장했습니다.');
   };
 
   /** 충돌이 아닌 오류(제목 중복, 기간 축소 등)는 던져서 편집 화면이 필드 옆에 보여 준다. */
-  const save = async (values: ProgramFormRequest) => {
+  const save = async (values: CreateProgramFormRequestDto) => {
     const expectedVersion =
-      queryClient.getQueryData<ProgramForm>(queryKey)?.version;
+      queryClient.getQueryData<ProgramFormResponseDto>(queryKey)?.version;
     if (expectedVersion === undefined) return;
     try {
       onSaved(await patch({ ...values, expectedVersion }));
@@ -109,17 +102,18 @@ export const useEditProgramForm = (formId: string) => {
 };
 
 export const useDeleteProgramForm = (expoId: string, formId: string) => {
-  const queryClient = useQueryClient();
   const router = useRouter();
-  const { mutate, isPending } = useMutation({
-    mutationFn: () => deleteProgramForm(formId),
-    onSuccess: () => {
-      queryClient.removeQueries({ queryKey: programFormQueryKey(formId) });
-      toast.success('프로그램용 폼을 삭제했습니다.');
-      router.replace(getRegistrationRoutes(expoId).schedule);
-    },
-    // PROGRAM_FORM_PROTECTION_PENDING 은 오류 문구가 이미 거절 이유를 안내한다
-    onError: (error) => toast.error(error.message),
-  });
-  return { remove: mutate, isPending };
+  const { mutate, isPending } = useDeleteProgramFormMutation(formId);
+
+  const remove = () =>
+    mutate(undefined, {
+      onSuccess: () => {
+        toast.success('프로그램용 폼을 삭제했습니다.');
+        router.replace(getRegistrationRoutes(expoId).schedule);
+      },
+      // PROGRAM_FORM_PROTECTION_PENDING 은 오류 문구가 이미 거절 이유를 안내한다
+      onError: (error) => toast.error(error.message),
+    });
+
+  return { remove, isPending };
 };

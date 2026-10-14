@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { FormBuilder } from '@/features/form-builder';
 import {
   ProgramFormBuilderSlotProps,
@@ -17,6 +17,8 @@ const renderBuilder = (props: ProgramFormBuilderSlotProps) => (
 const ProgramFormEditPage = () => {
   const { expoId, formId } = useParams<{ expoId: string; formId: string }>();
 
+  const router = useRouter();
+
   return (
     <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
@@ -24,7 +26,7 @@ const ProgramFormEditPage = () => {
         <div className="w-full max-w-[1000px] space-y-[30px]">
           <DetailHeader
             className="gap-12"
-            backHref={getRegistrationRoutes(expoId).dashboard}
+            onBack={() => router.push(getRegistrationRoutes(expoId).dashboard)}
             headerTitle="프로그램용 폼 수정"
           />
           <ProgramFormEdit

@@ -1,9 +1,9 @@
 import type {
-  ProgramForm,
-  ProgramFormMutationResult,
-  ProgramFormPatchRequest,
-  ProgramFormRequest,
-} from '@/shared/types/form/program/type';
+  ProgramFormResponseDto,
+  ProgramFormVersionResponseDto,
+  UpdateProgramFormRequestDto,
+  CreateProgramFormRequestDto,
+} from '@/entities/form';
 
 /** 다른 관리자가 먼저 저장해 `expectedVersion` 이 낡았을 때 서버가 주는 코드 */
 export const FORM_VERSION_CONFLICT = 'FORM_VERSION_CONFLICT';
@@ -13,8 +13,10 @@ export const isVersionConflict = (error: unknown) =>
   (error as { code?: unknown } | null)?.code === FORM_VERSION_CONFLICT;
 
 interface ReapplyDeps {
-  fetchLatest: () => Promise<ProgramForm>;
-  patch: (body: ProgramFormPatchRequest) => Promise<ProgramFormMutationResult>;
+  fetchLatest: () => Promise<ProgramFormResponseDto>;
+  patch: (
+    body: UpdateProgramFormRequestDto,
+  ) => Promise<ProgramFormVersionResponseDto>;
 }
 
 /**
@@ -22,7 +24,7 @@ interface ReapplyDeps {
  * 그사이 또 누가 저장하면 다시 FORM_VERSION_CONFLICT 로 실패하고, 호출한 쪽이 모달을 유지한다.
  */
 export const reapplyMine = async (
-  values: ProgramFormRequest,
+  values: CreateProgramFormRequestDto,
   { fetchLatest, patch }: ReapplyDeps,
 ) => {
   const latest = await fetchLatest();

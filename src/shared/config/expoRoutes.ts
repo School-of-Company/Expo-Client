@@ -44,5 +44,6 @@ export const getRegistrationRoutes = (expoId: string) => {
     programFormNew: `${base}/program-forms/new`,
     programForm: (formId: string) =>
       `${base}/program-forms/${encodeURIComponent(formId)}`,
+    survey: `${base}/survey`,
   };
 };

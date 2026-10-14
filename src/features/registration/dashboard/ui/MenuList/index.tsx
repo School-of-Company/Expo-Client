@@ -26,6 +26,11 @@ const MenuList = () => {
       title: '행정 이력',
       description: '신청·발송·모집 변경 처리 이력',
     },
+    {
+      href: routes.survey,
+      title: '만족도 조사',
+      description: '일반·연수자 설문 문항 편집·삭제, 경품 추첨 설정',
+    },
   ];
 
   return (

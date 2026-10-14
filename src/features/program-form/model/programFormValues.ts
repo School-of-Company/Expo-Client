@@ -1,9 +1,9 @@
 import { format } from 'date-fns';
-import type { DynamicFormItem } from '@/shared/types/application/type';
 import type {
-  ProgramForm,
-  ProgramFormRequest,
-} from '@/shared/types/form/program/type';
+  ProgramFormResponseDto,
+  CreateProgramFormRequestDto,
+} from '@/entities/form';
+import type { DynamicFormItem } from '@/shared/types/application/type';
 
 /** 편집 화면 값. 기간은 `<input type="datetime-local">` 형식(로컬 시각)으로 들고 있는다. */
 export interface ProgramFormValues {
@@ -29,7 +29,9 @@ export const EMPTY_PROGRAM_FORM_VALUES: ProgramFormValues = {
   dynamicForm: [],
 };
 
-export const toProgramFormValues = (form: ProgramForm): ProgramFormValues => ({
+export const toProgramFormValues = (
+  form: ProgramFormResponseDto,
+): ProgramFormValues => ({
   title: form.title,
   informationText: form.informationText,
   participantType: form.participantType ?? '',
@@ -45,8 +47,8 @@ export const toProgramFormValues = (form: ProgramForm): ProgramFormValues => ({
  */
 export const toProgramFormRequest = (
   values: ProgramFormValues,
-  base?: Pick<ProgramForm, 'startDate' | 'endDate'>,
-): ProgramFormRequest => {
+  base?: Pick<ProgramFormResponseDto, 'startDate' | 'endDate'>,
+): CreateProgramFormRequestDto => {
   const toIso = (local: string, original?: string) =>
     original && toLocalInput(original) === local
       ? original

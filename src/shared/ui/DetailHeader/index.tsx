@@ -7,16 +7,16 @@ import { ArrowLeft } from '@/shared/assets/icons';
 interface Props {
   textCenter?: boolean;
   headerTitle: string;
+  /** 지정하면 router.back() 대신 쓴다. 직접 열어 이전 기록이 없는 화면에서 쓴다 */
+  onBack?: () => void;
   className?: string;
-  /** 주면 브라우저 기록 대신 이 경로로 간다. URL 로 바로 들어와 이전 기록이 없을 때도 동작한다. */
-  backHref?: string;
 }
 
 const DetailHeader = ({
   textCenter = false,
   headerTitle,
+  onBack,
   className = '',
-  backHref,
 }: Props) => {
   const router = useRouter();
 
@@ -24,7 +24,7 @@ const DetailHeader = ({
     <div className={`flex items-center ${className}`}>
       <label
         className="hover:cursor-pointer"
-        onClick={() => (backHref ? router.push(backHref) : router.back())}
+        onClick={onBack ?? (() => router.back())}
       >
         <ArrowLeft size={32} />
       </label>

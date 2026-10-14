@@ -46,16 +46,18 @@ const COLUMNS: TableColumn<AdminChangeHistoryItem>[] = [
   {
     key: 'target',
     label: '대상',
-    render: ({ targetType, targetId }) =>
-      `${getTargetTypeLabel(targetType)} #${targetId}`,
+    render: ({ targetType, targetId }) => (
+      // 매핑이 없는 유형은 PREREGISTER_SESSION 처럼 공백 없는 긴 원문이라 칸 안에서 줄바꿈한다
+      <p className="break-words">
+        {getTargetTypeLabel(targetType)} #{targetId}
+      </p>
+    ),
   },
   {
     key: 'summary',
     label: '내용',
     flex: 3,
-    render: ({ summary }) => (
-      <p className="break-words text-left">{summary || '-'}</p>
-    ),
+    render: ({ summary }) => <p className="break-words">{summary || '-'}</p>,
   },
   {
     key: 'adminId',
@@ -74,7 +76,7 @@ const HistoryLedger = () => {
   const searchParams = useSearchParams();
   // URL 의 ?page 는 1부터, 서버 페이지는 0부터
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
-  const { expoId } = useRegistrationExpo();
+  const { expoId, routes } = useRegistrationExpo();
   const [filter, setFilter] = useState<HistoryFilter>(INITIAL_HISTORY_FILTER);
 
   const { data, error, isLoading, isError, refetch } = useAdminChangeHistory(
@@ -89,16 +91,21 @@ const HistoryLedger = () => {
   const handleFilterChange = useCallback(
     (next: HistoryFilter) => {
       setFilter(next);
-      router.replace('?');
+      // 1페이지로 돌아갈 때만 주소를 바꾼다. 매번 바꾸면 라우터가 서버에 화면을 다시 요청한다
+      if (searchParams.get('page')) router.replace('?');
     },
-    [router],
+    [router, searchParams],
   );
 
   return withLoading({
     isLoading: isLoading && !data,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px]">
-        <DetailHeader textCenter headerTitle="행정 이력" />
+      <div className="flex w-full min-w-0 max-w-[1200px] flex-1 flex-col space-y-[54px]">
+        <DetailHeader
+          textCenter
+          headerTitle="행정 이력"
+          onBack={() => router.push(routes.dashboard)}
+        />
 
         <section className="space-y-16">
           <div className="space-y-6">

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-/** 서버 응답 상태를 보존하는 오류. 재시도·화면 분기에서 상태로 판단할 수 있다 */
+/** 서버 응답 상태와 오류 코드를 보존하는 오류. 재시도·화면 분기에서 상태나 코드로 판단할 수 있다 */
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -23,12 +23,8 @@ export const toApiError = (error: unknown, fallback: string): unknown => {
   return new ApiError(
     typeof message === 'string' && message ? message : fallback,
     status,
-    typeof data?.code === 'string' ? data.code : undefined,
   );
 };
-
-export const getErrorCode = (error: unknown): string | undefined =>
-  error instanceof ApiError ? error.code : undefined;
 
 export const getErrorStatus = (error: unknown): number | undefined => {
   if (error instanceof ApiError) return error.status;

@@ -5,18 +5,18 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { validateProgramForm } from '@/features/form/program';
 import { ArrowDown } from '@/shared/assets/icons';
-import { getErrorCode } from '@/shared/libs/http/apiError';
+import { ApiError } from '@/shared/libs/http/apiError';
 import { Button, Input } from '@/shared/ui';
 import {
   EMPTY_PROGRAM_FORM_VALUES,
   ProgramFormValues,
   toProgramFormRequest,
 } from '../../model/programFormValues';
-import type { DynamicFormItem } from '@/shared/types/application/type';
 import type {
-  ProgramForm,
-  ProgramFormRequest,
-} from '@/shared/types/form/program/type';
+  ProgramFormResponseDto,
+  CreateProgramFormRequestDto,
+} from '@/entities/form';
+import type { DynamicFormItem } from '@/shared/types/application/type';
 
 export interface ProgramFormBuilderSlotProps {
   value: DynamicFormItem[];
@@ -26,9 +26,9 @@ export interface ProgramFormBuilderSlotProps {
 interface Props {
   defaultValues?: ProgramFormValues;
   /** 수정 중인 폼. 손대지 않은 기간을 초 단위까지 원래 값으로 보내는 데 쓴다. */
-  baseForm?: ProgramForm;
+  baseForm?: ProgramFormResponseDto;
   /** 실패하면 던진다. 제목 중복·기간 축소는 해당 필드 옆에 보여 준다. */
-  onSubmit: (body: ProgramFormRequest) => Promise<void>;
+  onSubmit: (body: CreateProgramFormRequestDto) => Promise<void>;
   isPending: boolean;
   submitLabel: string;
   /**
@@ -94,7 +94,7 @@ const ProgramFormEditor = ({
       await onSubmit(toProgramFormRequest(values, baseForm));
     } catch (error) {
       const message = (error as Error).message;
-      switch (getErrorCode(error)) {
+      switch (error instanceof ApiError ? error.code : undefined) {
         case 'PROGRAM_FORM_TITLE_DUPLICATED':
           setError('title', { message }, { shouldFocus: true });
           break;

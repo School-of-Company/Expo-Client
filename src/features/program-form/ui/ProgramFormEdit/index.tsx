@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useProgramFormQuery } from '@/entities/form';
 import { Button, Loading } from '@/shared/ui';
 import { toProgramFormValues } from '../../model/programFormValues';
 import {
   useDeleteProgramForm,
   useEditProgramForm,
-  useProgramFormQuery,
 } from '../../model/useProgramForm';
 import ProgramFormEditor, {
   ProgramFormBuilderSlotProps,

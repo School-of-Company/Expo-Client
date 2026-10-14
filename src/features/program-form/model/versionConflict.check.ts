@@ -7,12 +7,12 @@
 import assert from 'node:assert/strict';
 import { isVersionConflict, reapplyMine } from './versionConflict.ts';
 import type {
-  ProgramForm,
-  ProgramFormPatchRequest,
-  ProgramFormRequest,
-} from '@/shared/types/form/program/type';
+  ProgramFormResponseDto,
+  UpdateProgramFormRequestDto,
+  CreateProgramFormRequestDto,
+} from '@/entities/form';
 
-const body = (title: string): ProgramFormRequest => ({
+const body = (title: string): CreateProgramFormRequestDto => ({
   title,
   informationText: '',
   participantType: null,
@@ -22,7 +22,7 @@ const body = (title: string): ProgramFormRequest => ({
 });
 
 const createFakeServer = () => {
-  let form: ProgramForm = {
+  let form: ProgramFormResponseDto = {
     id: 'form-1',
     expoId: 'expo-1',
     ...body('처음 제목'),
@@ -33,7 +33,10 @@ const createFakeServer = () => {
   };
   return {
     fetchLatest: async () => structuredClone(form),
-    patch: async ({ expectedVersion, ...values }: ProgramFormPatchRequest) => {
+    patch: async ({
+      expectedVersion,
+      ...values
+    }: UpdateProgramFormRequestDto) => {
       if (expectedVersion !== form.version) {
         // 프록시를 거친 뒤 ApiError 가 들고 있는 모양
         throw Object.assign(new Error('충돌'), {
