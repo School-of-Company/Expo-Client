@@ -69,8 +69,11 @@ export type FormattedApplicationData = {
   trainingId?: string;
 };
 
-/** 문항 id → 답변. SENTENCE 문자열, CHECKBOX boolean, DROPDOWN 키, MULTIPLE 키 배열. */
-export type SurveyAnswers = Record<string, string | boolean | string[]>;
+/** 문항 id → 답변. SENTENCE·IMAGE·REGION 문자열, CHECKBOX boolean, DROPDOWN 키, MULTIPLE 키 배열, COMPANION 동행자 배열. */
+export type SurveyAnswers = Record<
+  string,
+  string | boolean | string[] | Companion[]
+>;
 
 /**
  * 동행자 한 명(`COMPANION` 답변의 원소). 전화번호 없이 대표자 번호로 등록된다.

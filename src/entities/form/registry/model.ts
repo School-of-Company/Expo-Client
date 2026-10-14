@@ -1,8 +1,11 @@
-import type { DynamicFormItem } from '@/shared/types/application/type';
+import type {
+  Companion,
+  DynamicFormItem,
+} from '@/shared/types/application/type';
 import type { ComponentType } from 'react';
 
-export type FieldValue = string | boolean | string[] | undefined;
-export type AnswerValue = string | boolean | string[];
+export type FieldValue = string | boolean | string[] | Companion[] | undefined;
+export type AnswerValue = string | boolean | string[] | Companion[];
 
 /** "기타" 선택지 값. 직접 입력한 문구는 `etcKey(id)` 필드에 따로 둔다. */
 export const ETC_KEY = '__etc__';
