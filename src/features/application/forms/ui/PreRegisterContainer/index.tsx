@@ -156,7 +156,9 @@ const PreRegisterContainer = ({
               className={`text-body2b ${canApply ? 'text-main-600' : 'text-error'}`}
             >
               {canApply
-                ? `현재 남은 자리 ${capacity.remaining.toLocaleString()}명`
+                ? capacity.remaining > 0
+                  ? `현재 남은 자리 ${capacity.remaining.toLocaleString()}명`
+                  : `확정 자리가 모두 찼습니다. 대기 ${(capacity.waitingRemaining ?? 0).toLocaleString()}명까지 접수합니다.`
                 : '신청 마감'}
             </p>
             {canApply && (

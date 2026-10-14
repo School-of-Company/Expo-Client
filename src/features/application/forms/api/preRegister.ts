@@ -8,6 +8,11 @@ export interface PreRegisterCapacity {
   remaining: number;
   /** 1회 신청 최대 인원(대표자 포함) */
   maxApplicants: number;
+  /** 대기 도입 이후 서버가 주는 값. 구형 응답에는 없다. */
+  confirmed?: number;
+  waiting?: number;
+  /** 대기석 남은 자리. 확정석이 차도 이만큼은 대기로 접수한다 */
+  waitingRemaining?: number;
 }
 
 const CAPACITY_ERRORS: Record<number, string> = {
