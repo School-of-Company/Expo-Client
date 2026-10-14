@@ -36,7 +36,8 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect');
-  const { data: session } = useParticipantSession(expoId);
+  const { data: sessionState } = useParticipantSession(expoId);
+  const session = sessionState?.session;
   const {
     register,
     handleSubmit,
@@ -104,6 +105,15 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
           신청할 수 있습니다.
         </p>
       </div>
+
+      {sessionState?.expired && (
+        <p
+          role="status"
+          className="rounded-sm border-1 border-solid border-gray-200 px-20 py-16 text-body2r text-gray-500"
+        >
+          인증 시간이 지났습니다. 다시 인증해 주세요.
+        </p>
+      )}
 
       {session && (
         <div

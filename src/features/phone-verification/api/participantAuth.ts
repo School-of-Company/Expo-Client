@@ -52,18 +52,27 @@ export const postParticipantAuthVerify = async (
   }
 };
 
-/** 유효한 세션이 없으면(SESSION_REQUIRED·SESSION_EXPIRED, 401) null */
+export interface ParticipantSessionState {
+  /** 유효한 세션이 없으면 null */
+  session: ParticipantSession | null;
+  /** 세션이 있었지만 만료됨(401 SESSION_EXPIRED). 쿠키가 없으면(SESSION_REQUIRED) false */
+  expired: boolean;
+}
+
 export const getParticipantSession = async (
   expoId: string,
-): Promise<ParticipantSession | null> => {
+): Promise<ParticipantSessionState> => {
   try {
     const { data } = await clientInstance.get('/participant-auth/session', {
       params: { expoId },
     });
-    return data;
+    return { session: data, expired: false };
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
-      return null;
+      return {
+        session: null,
+        expired: error.response.data?.code === 'SESSION_EXPIRED',
+      };
     }
     throw toError(error, '인증 상태를 확인하지 못했습니다.');
   }
