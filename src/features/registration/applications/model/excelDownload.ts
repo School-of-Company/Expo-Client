@@ -12,6 +12,9 @@ import {
 
 export const SELECTED_MAX_COUNT = 1000;
 
+// 리포트 서버가 현재 필터 전체 다운로드를 받는 최대 건수. 넘으면 413 으로 거절한다
+export const FILTER_MAX_COUNT = 10_000;
+
 export const EXCEL_TEMPLATE_OPTIONS: {
   value: ReportExcelTemplate;
   label: string;
@@ -48,6 +51,8 @@ interface ExcelDownloadPlanParams {
   scope: ReportExcelScope;
   selectedRows: LedgerRow[];
   filter: LedgerFilter;
+  /** 대장에 보이는 현재 필터 결과 건수. 모르면 비워 둔다 */
+  filterCount?: number;
 }
 
 export interface ExcelDownloadPlan {
@@ -143,6 +148,7 @@ export const ATTENDANCE_FILTER_BLOCKER =
 const planFilter = (
   template: ReportExcelTemplate,
   filter: LedgerFilter,
+  filterCount: number | undefined,
   blockers: string[],
 ): ReportExcelDownloadRequest | null => {
   // 필터에는 연수자 조건이 없어 다른 연수자의 신청이 섞이면 서버가 거절한다
@@ -168,6 +174,18 @@ const planFilter = (
 
   if (template === 'TRAINEE' && session?.programType === 'STANDARD') {
     blockers.push('연수자 명단은 연수 회차만 필터할 수 있습니다.');
+  }
+  // 연수자 명단은 서버가 연수 신청만 세므로, 회차를 연수로 고르지 않았으면 대장 건수와 달라 막지 않는다
+  const isCountComparable =
+    template !== 'TRAINEE' || session?.programType === 'TRAINING';
+  if (
+    isCountComparable &&
+    filterCount !== undefined &&
+    filterCount > FILTER_MAX_COUNT
+  ) {
+    blockers.push(
+      `현재 필터 전체는 최대 ${FILTER_MAX_COUNT.toLocaleString('ko-KR')}건까지 받을 수 있습니다. 필터를 좁혀주세요.`,
+    );
   }
   if (template === 'PROGRAM') {
     if (!session) {
@@ -203,12 +221,13 @@ export const buildExcelDownloadPlan = ({
   scope,
   selectedRows,
   filter,
+  filterCount,
 }: ExcelDownloadPlanParams): ExcelDownloadPlan => {
   const blockers: string[] = [];
   const request =
     scope === 'SELECTED'
       ? planSelected(template, selectedRows, blockers)
-      : planFilter(template, filter, blockers);
+      : planFilter(template, filter, filterCount, blockers);
 
   return { request: blockers.length === 0 ? request : null, blockers };
 };
