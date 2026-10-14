@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import { useFormQuery } from '@/entities/form';
@@ -14,9 +14,11 @@ import { withLoading } from '@/shared/hocs';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
 import {
-  createIdempotencyKey,
+  ApplicationSubmitError,
+  ApplicationWaitResult,
   postApplication,
 } from '../../../api/postApplication';
+import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
 import {
   getApplicantLimit,
@@ -48,6 +50,8 @@ const PreRegisterContainer = ({
     sessionId,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // 같은 내용을 다시 보내면(연타·네트워크 재시도·오류 뒤 재제출) 같은 키로 보낸다
+  const submissionKeys = useRef(createSubmissionKeys());
 
   const questions = useMemo(() => form?.dynamicForm ?? [], [form]);
   const schema = useMemo(
@@ -77,23 +81,38 @@ const PreRegisterContainer = ({
         questions,
         'PRE',
       )(data as DynamicFormValues & { privacyConsent: boolean });
-      const result = await postApplication(
+      const payload = { ...formatted, ...(sessionId && { sessionId }) };
+      const result: ApplicationWaitResult | undefined = await postApplication(
         expoId,
         'application',
         'STANDARD',
         'PRE',
-        { ...formatted, ...(sessionId && { sessionId }) },
-        createIdempotencyKey(),
+        payload,
+        submissionKeys.current.keyFor(JSON.stringify(payload)),
       );
+      // 202 PROCESSING: 대기에서 승급되는 중이다. 같은 키로 다시 눌러 결과를 확인한다
+      if (result?.status === 'PROCESSING') {
+        toast.info(
+          '신청을 처리하고 있습니다. 잠시 후 다시 눌러 결과를 확인해주세요.',
+        );
+        return;
+      }
+      submissionKeys.current.reset();
       // 서버가 대기로 접수하면(202) 확정이 아니므로 성공 페이지가 대기 접수와 순번을 안내한다
       const waiting =
-        result?.status === 'WAITING' || result?.status === 'PROCESSING'
+        result?.status === 'WAITING'
           ? `&status=${result.status}${result.position ? `&position=${encodeURIComponent(result.position)}` : ''}`
           : '';
       router.push(
         `/application/success/${expoId}?userType=STANDARD&formType=application${waiting}`,
       );
     } catch (submitError) {
+      // 취소한 대기의 같은 키 재전송은 거절된다. 다시 신청하려면 새 키가 필요하다
+      if (
+        submitError instanceof ApplicationSubmitError &&
+        submitError.code === 'WAITLIST_WITHDRAWN'
+      )
+        submissionKeys.current.reset();
       toast.error(
         submitError instanceof Error
           ? submitError.message

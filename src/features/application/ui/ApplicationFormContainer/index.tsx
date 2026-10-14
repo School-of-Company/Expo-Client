@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import { useFormQuery } from '@/entities/form';
@@ -15,11 +15,9 @@ import {
 } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { DetailHeader, Button } from '@/shared/ui';
-import {
-  createIdempotencyKey,
-  postApplication,
-} from '../../api/postApplication';
+import { postApplication } from '../../api/postApplication';
 import { postTrainingProgramSelection } from '../../api/postTrainingProgramSelection';
+import { createSubmissionKeys } from '../../lib/createSubmissionKeys';
 import { extractTrainingProgramData } from '../../lib/extractTrainingProgramData';
 import { getFormatter } from '../../lib/formatterService';
 
@@ -37,6 +35,8 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
   } = useFormQuery(params, userType, applicationType);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // 같은 내용의 재제출(연타·네트워크 재시도)은 같은 Idempotency-Key 로 보낸다
+  const submissionKeys = useRef(createSubmissionKeys());
 
   const formSchema = useMemo(() => {
     if (!formList) return null;
@@ -92,7 +92,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
           userType,
           applicationType,
           formattedData,
-          createIdempotencyKey(),
+          submissionKeys.current.keyFor(JSON.stringify(formattedData)),
         );
       }
       router.push(
