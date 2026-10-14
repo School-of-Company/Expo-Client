@@ -47,8 +47,6 @@ export interface ApplicationWaitResult {
   position?: number;
 }
 
-export const createIdempotencyKey = () => crypto.randomUUID();
-
 export const postApplication = async (
   params: string,
   formType: 'application',
