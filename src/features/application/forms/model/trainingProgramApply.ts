@@ -1,12 +1,11 @@
 import type { TrainingProgramItem } from '@/shared/types/program/list/type';
 
 /**
- * 연수 프로그램별 신청에서 서버 계약이 아직 확정되지 않은 부분을 한곳에 모았다.
- * TODO(api): 참가자용 공개 프로그램/회차 목록과 프로그램-폼 연결은 Expo-Application-Server#43 에서 확정된다.
- * 지금은 프로그램 응답에 `formId` 가 실리면 그 폼을 쓰고, 없으면 신청할 수 없는 프로그램으로 본다.
+ * 프로그램-폼 연결은 프로그램 응답의 `policy.formId` 다(ProgramPolicy). 정책이 없는 기존 프로그램은 신청할 수 없다.
+ * TODO(api): 참가자용 공개 프로그램/회차 목록 계약은 Expo-Application-Server#43 에서 확정된다.
  */
 export const getProgramFormId = (program: TrainingProgramItem) =>
-  (program as TrainingProgramItem & { formId?: string }).formId;
+  program.policy?.formId || undefined;
 
 /** 프로그램 하나의 제출 결과. 한 프로그램의 실패가 다른 프로그램의 성공 표시를 가리지 않게 따로 둔다. */
 export type ProgramApplyOutcome =
