@@ -194,3 +194,26 @@ export const getAdminCurrentSessions = async (
     throw toApiError(error, '회차 목록을 불러오지 못했습니다.');
   }
 };
+
+export interface AdminCancellationResult {
+  applicationId: string;
+  status: 'CANCELLED';
+}
+
+/**
+ * 관리자 신청 취소. 이미 취소된 신청은 다시 보내도 200 이다.
+ * 서버가 취소 권한(APPLICATION_CANCEL)·취소 마감·입장 여부를 다시 검사하고, 확정 취소면 대기자를 자동 승급한다
+ */
+export const postAdminApplicationCancellation = async (
+  expoId: string,
+  applicationId: string,
+): Promise<AdminCancellationResult> => {
+  try {
+    const response = await clientTokenInstance.post(
+      `${basePath(expoId)}/${encodeURIComponent(applicationId)}/cancellation`,
+    );
+    return response.data;
+  } catch (error) {
+    throw toApiError(error, '신청을 취소하지 못했습니다.');
+  }
+};

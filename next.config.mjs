@@ -1,6 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  // 박람회별 사전등록 관리는 /admin/registration/{id} 로 옮겼다. 예전 주소·즐겨찾기는 새 주소로 보낸다
+  async redirects() {
+    return [
+      {
+        source: '/admin/future-edu-expo/:expoId/:path*',
+        destination: '/admin/registration/:expoId/:path*',
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       // 모든 경로 공통 보안 헤더. 스크립트·스타일 CSP는 카카오맵·GA 등 외부 스크립트가 깨지므로 frame-ancestors만 둔다

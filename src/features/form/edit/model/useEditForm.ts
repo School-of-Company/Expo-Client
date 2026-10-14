@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { toast } from 'react-toastify';
+import { CreateSurveyRequestDto, updateSurvey } from '@/entities/survey';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 import { editApplicationForm } from '../api/editApplicationForm';
-import { editSurveyForm } from '../api/editSurveyForm';
 
 export const useEditApplicationForm = (
   id: string,
@@ -44,10 +44,7 @@ export const useEditSurveyForm = (
   return useMutation({
     mutationKey: ['editSurveyForm', id, type],
     mutationFn: (formattedData: CreateFormRequest) =>
-      editSurveyForm({
-        data: formattedData,
-        id,
-      }),
+      updateSurvey(id, formattedData as CreateSurveyRequestDto),
     onSuccess: () => {
       toast.success('만족도 조사 폼이 수정되었습니다.');
       queryClient.invalidateQueries({

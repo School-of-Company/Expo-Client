@@ -4,6 +4,7 @@ import {
   parseExpiresAt,
   setAuthCookies,
 } from '@/shared/libs/cookie/setAuthCookies';
+import { clientIpHeaders } from '@/shared/libs/http/clientIp';
 import { serverInstance } from '@/shared/libs/http/serverInstance';
 import { SignInData } from '@/shared/types/signin/type';
 
@@ -12,7 +13,10 @@ const INVALID_CREDENTIALS_MESSAGE = '닉네임 또는 비밀번호가 일치하�
 export async function POST(request: Request) {
   const body: SignInData = await request.json();
   try {
-    const { data } = await serverInstance.post('/auth/signin', body);
+    // 로그인 시도 제한이 사용자별로 걸리도록 클라이언트 IP 를 넘긴다(TRUSTED_PROXY_HOPS 설정 시)
+    const { data } = await serverInstance.post('/auth/signin', body, {
+      headers: clientIpHeaders(request),
+    });
 
     setAuthCookies({
       accessToken: data.accessToken,

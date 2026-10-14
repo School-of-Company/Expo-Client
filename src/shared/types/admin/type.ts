@@ -1,6 +1,7 @@
 export interface ExpoItem extends Record<string, unknown> {
   id: string;
-  coverImage: string;
+  // 대표 이미지가 없는 박람회는 null 이다
+  coverImage: string | null;
   title: string;
   description: string;
   startedDay: string;

@@ -7,9 +7,11 @@ export const useGetSurveyForm = (
   id: string,
   userType: 'STANDARD' | 'TRAINEE',
   ApplicationType: ApplicationType,
+  enabled = true,
 ) => {
   return useQuery<ApplicationForm, Error>({
     queryKey: ['getSurveyForm', id, userType, ApplicationType],
     queryFn: () => getSurveyForm(id, userType, ApplicationType),
+    enabled,
   });
 };
