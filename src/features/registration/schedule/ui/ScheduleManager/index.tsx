@@ -29,7 +29,6 @@ import ProgramSection, {
   PROGRAM_FORM_ID,
   ProgramEditing,
 } from '../ProgramSection';
-import PromotionPolicySection from '../PromotionPolicySection';
 import SessionSection, { SESSION_FORM_ID, SessionRow } from '../SessionSection';
 
 // 상태를 바꾼 뒤 그려진 양식으로 스크롤한다
@@ -212,7 +211,6 @@ const ScheduleManager = () => {
                 programs={programs}
                 disabled={isSaving}
               />
-              <PromotionPolicySection programs={programs} />
               <CreateEntry
                 title="신규 프로그램 등록"
                 description="프로그램 마스터 표 아래에 등록 양식을 엽니다."
