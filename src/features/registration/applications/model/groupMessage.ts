@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
+import { getErrorStatus } from '@/shared/libs/http/apiError';
 import {
   getGroupMessageConfig,
   getGroupMessageJob,
   GroupMessageFilter,
   GroupMessageJobStatus,
+  GroupMessageSource,
 } from '../../common/api/groupMessageApi';
 import { LedgerFilter, parseSessionKey } from '../../common/model/ledger';
 
@@ -59,6 +61,11 @@ export const useGroupMessageConfig = (expoId: string) =>
     queryFn: () => getGroupMessageConfig(expoId),
   });
 
+export const isGoneJobError = (error: unknown) => {
+  const status = getErrorStatus(error);
+  return status === 404 || status === 409;
+};
+
 const JOB_POLL_MS = 3 * 1000;
 
 /** 작업이 끝날 때까지 진행 상태를 다시 조회한다 */
@@ -68,7 +75,41 @@ export const useGroupMessageJob = (expoId: string, jobId: string | null) =>
     queryFn: () => getGroupMessageJob(expoId, jobId!),
     enabled: jobId !== null,
     refetchInterval: (query) => {
+      // 보관 작업이 만료(404)되거나 다른 관리자 소유(409)면 더 조회하지 않는다
+      if (isGoneJobError(query.state.error)) return false;
       const status = query.state.data?.status;
       return status && isFinalJobStatus(status) ? false : JOB_POLL_MS;
     },
   });
+
+/** 모달을 닫았다 열어도 마지막 발송 작업을 이어 보도록 세션 스토리지에 둔다. 서버에 jobId 목록 API 가 없다 */
+export interface LastGroupMessageJob {
+  jobId: string;
+  source: GroupMessageSource;
+  targetFingerprint: string;
+}
+
+const lastJobKey = (expoId: string) => `groupMessageLastJob:${expoId}`;
+
+export const loadLastGroupMessageJob = (
+  expoId: string,
+): LastGroupMessageJob | null => {
+  try {
+    const raw = sessionStorage.getItem(lastJobKey(expoId));
+    return raw ? (JSON.parse(raw) as LastGroupMessageJob) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveLastGroupMessageJob = (
+  expoId: string,
+  last: LastGroupMessageJob | null,
+) => {
+  try {
+    if (last) sessionStorage.setItem(lastJobKey(expoId), JSON.stringify(last));
+    else sessionStorage.removeItem(lastJobKey(expoId));
+  } catch {
+    // 스토리지를 못 쓰면 이번 모달 안에서만 추적한다
+  }
+};

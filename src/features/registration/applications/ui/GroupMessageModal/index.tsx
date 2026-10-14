@@ -21,7 +21,10 @@ import {
   GROUP_MESSAGE_SELECTED_MAX,
   GROUP_MESSAGE_VARIABLES,
   isFinalJobStatus,
+  isGoneJobError,
   JOB_STATUS_LABEL,
+  loadLastGroupMessageJob,
+  saveLastGroupMessageJob,
   toGroupMessageFilter,
   useGroupMessageConfig,
   useGroupMessageJob,
@@ -76,12 +79,12 @@ const GroupMessageModal = ({
     source: GroupMessageSource;
     result: GroupMessagePreview;
     executeKey: string;
-    retryKey: string;
   } | null>(null);
-  const [jobId, setJobId] = useState<string | null>(null);
+  const [last, setLast] = useState(() => loadLastGroupMessageJob(expoId));
+  const jobId = last?.jobId ?? null;
   const [notice, setNotice] = useState<string | null>(null);
-  // 재시도 대상 지문이 어긋나 관리자가 대상을 다시 확인해야 하는 상태
-  const [retryStale, setRetryStale] = useState(false);
+  // 재시도는 같은 키로 다시 보내야 중복 발송이 없다. 성공하면 바꾼다
+  const [retryKey, setRetryKey] = useState(() => crypto.randomUUID());
 
   const config = useGroupMessageConfig(expoId);
   const job = useGroupMessageJob(expoId, jobId);
@@ -135,10 +138,8 @@ const GroupMessageModal = ({
         source,
         result,
         executeKey: crypto.randomUUID(),
-        retryKey: crypto.randomUUID(),
       });
       setNotice(null);
-      setRetryStale(false);
     },
   });
 
@@ -149,7 +150,15 @@ const GroupMessageModal = ({
         targetFingerprint: preview!.result.targetFingerprint,
         idempotencyKey: preview!.executeKey,
       }),
-    onSuccess: (result) => setJobId(result.jobId),
+    onSuccess: (result) => {
+      const next = {
+        jobId: result.jobId,
+        source: preview!.source,
+        targetFingerprint: preview!.result.targetFingerprint,
+      };
+      saveLastGroupMessageJob(expoId, next);
+      setLast(next);
+    },
     onError: (error) => {
       if (getErrorStatus(error) === 409) setPreview(null);
     },
@@ -158,18 +167,13 @@ const GroupMessageModal = ({
   const retryMutation = useMutation({
     mutationFn: () =>
       postGroupMessageRetry(expoId, jobId!, {
-        source: preview!.source,
-        targetFingerprint: preview!.result.targetFingerprint,
-        idempotencyKey: preview!.retryKey,
+        source: last!.source,
+        targetFingerprint: last!.targetFingerprint,
+        idempotencyKey: retryKey,
       }),
     onSuccess: (result) => {
       queryClient.setQueryData(['groupMessageJob', expoId, jobId], result);
-      setPreview((prev) =>
-        prev ? { ...prev, retryKey: crypto.randomUUID() } : prev,
-      );
-    },
-    onError: (error) => {
-      if (getErrorStatus(error) === 409) setRetryStale(true);
+      setRetryKey(crypto.randomUUID());
     },
   });
 
@@ -193,8 +197,22 @@ const GroupMessageModal = ({
     executeMutation.mutate();
   };
 
+  // 보관한 대상이 오래돼 재시도가 거절되면 처음부터 대상을 다시 확인하게 한다
+  const retryStale = getErrorStatus(retryMutation.error) === 409;
+  const resetJob = () => {
+    saveLastGroupMessageJob(expoId, null);
+    retryMutation.reset();
+    setLast(null);
+  };
+
+  // 보관한 작업을 조회할 수 없으면(만료·소유자 변경) 보관분을 비워 새로 보낼 수 있게 한다
+  const jobGone = isGoneJobError(job.error);
+  useEffect(() => {
+    if (jobGone) resetJob();
+  }, [jobGone]);
+
   const handleRetry = () => {
-    if (!preview || retryMutation.isPending) return;
+    if (!last || retryMutation.isPending) return;
     if (
       !window.confirm(
         `확정 실패 ${jobData?.counts.failed ?? 0}건을 다시 보낼까요? 보낸 뒤에는 취소할 수 없습니다.`,
@@ -526,18 +544,23 @@ const GroupMessageModal = ({
                 </Button>
               </div>
             ) : (
-              isJobFinal &&
-              (jobData?.counts.failed ?? 0) > 0 &&
-              !retryStale && (
-                <Button
-                  variant="white"
-                  disabled={retryMutation.isPending}
-                  onClick={handleRetry}
-                >
-                  {retryMutation.isPending
-                    ? '재시도 요청 중...'
-                    : `실패 ${jobData?.counts.failed}건 재시도`}
-                </Button>
+              isJobFinal && (
+                <div className="grid grid-cols-2 gap-12">
+                  {(jobData?.counts.failed ?? 0) > 0 && !retryStale && (
+                    <Button
+                      variant="white"
+                      disabled={retryMutation.isPending}
+                      onClick={handleRetry}
+                    >
+                      {retryMutation.isPending
+                        ? '재시도 요청 중...'
+                        : `실패 ${jobData?.counts.failed}건 재시도`}
+                    </Button>
+                  )}
+                  <Button variant="white" onClick={resetJob}>
+                    {retryStale ? '대상 다시 확인' : '새로 보내기'}
+                  </Button>
+                </div>
               )
             )}
           </>
