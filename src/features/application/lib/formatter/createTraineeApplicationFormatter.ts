@@ -23,9 +23,11 @@ export const createTraineeApplicationFormatter = (
     const phoneField = dynamicFormItems.find(
       (item) => item.dynamicFormType === 'PHONE_NUMBER',
     );
-    const phoneValue = phoneField
-      ? (resolveFieldValue(data, phoneField) as string | undefined)
+    const rawPhone = phoneField
+      ? resolveFieldValue(data, phoneField)
       : undefined;
+    const phoneValue =
+      typeof rawPhone === 'string' ? rawPhone.replace(/[\s-]/g, '') : undefined;
 
     const traineeIdField = dynamicFormItems.find(
       (item) => item.dynamicFormType === 'TRAINING_ID',
