@@ -1,6 +1,6 @@
 import { ScheduleProgram, toOffsetDateTime } from '../../common';
 import { ProgramSessionType } from '../../common/api/ledgerApi';
-import { PolicyForm, ProgramForm } from './policyForm';
+import { PolicyForm, ProgramForm, toProgramForm } from './policyForm';
 import type {
   FormParticipantType,
   ProgramFormResponseDto,
@@ -51,7 +51,7 @@ export const getProgramGroups = (
 ): ProgramGroup[] => {
   const groups = new Map<string, ScheduleProgram[]>();
   programs.forEach((program) => {
-    const groupId = program.policy?.groupId ?? program.groupId;
+    const groupId = getProgramGroupId(program);
     if (!groupId) return;
     groups.set(groupId, [...(groups.get(groupId) ?? []), program]);
   });
@@ -59,6 +59,24 @@ export const getProgramGroups = (
     groupId,
     programs: members,
   }));
+};
+
+/** 묶음 ID. 정책 쪽 값이 우선이다 */
+export const getProgramGroupId = (program: ScheduleProgram) =>
+  program.policy?.groupId ?? program.groupId;
+
+/**
+ * 같은 묶음에 새 회차를 추가할 때의 초안. 구분·이름·폼·정원·모집 조건은 그대로 두고,
+ * 회차마다 다른 일정은 비우고 마감 여부는 모집 중으로 되돌린다
+ */
+export const toGroupSessionForm = (program: ScheduleProgram): ProgramForm => {
+  const form = toProgramForm(program);
+  return {
+    ...form,
+    startedAt: null,
+    endedAt: null,
+    policy: { ...form.policy, closed: false },
+  };
 };
 
 const sameId = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
