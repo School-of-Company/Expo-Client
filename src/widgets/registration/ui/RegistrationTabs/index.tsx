@@ -16,6 +16,7 @@ const RegistrationTabs = () => {
     { href: routes.schedule, label: '일정·모집' },
     { href: routes.programForms, label: '프로그램 폼' },
     { href: routes.attendance, label: '실시간 입·퇴장' },
+    { href: routes.participants, label: '참가자 검색' },
     { href: routes.history, label: '행정 이력' },
     { href: routes.operations, label: '박람회 운영' },
     { href: routes.survey, label: '만족도 조사' },
