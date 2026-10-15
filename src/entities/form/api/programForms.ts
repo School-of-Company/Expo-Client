@@ -3,6 +3,7 @@ import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { formRequest } from '../lib/errors';
 import type {
   CreateProgramFormRequestDto,
+  ProgramFormListItemDto,
   ProgramFormResponseDto,
   ProgramFormVersionResponseDto,
   UpdateProgramFormRequestDto,
@@ -17,6 +18,13 @@ export const getProgramForm = (formId: string) =>
   formRequest<ProgramFormResponseDto>(
     clientInstance.get(`/forms/by-id/${formId}`),
     '프로그램 폼을 불러오지 못했습니다.',
+  );
+
+/** 이 행사의 프로그램용 폼만 생성순으로 준다. 등록용 폼·설문은 없다(Expo-Form-Server#141) */
+export const getProgramFormList = (expoId: string) =>
+  formRequest<ProgramFormListItemDto[]>(
+    clientTokenInstance.get(`/forms/expos/${expoId}/program-forms`),
+    '프로그램 폼 목록을 불러오지 못했습니다.',
   );
 
 export const createProgramForm = (

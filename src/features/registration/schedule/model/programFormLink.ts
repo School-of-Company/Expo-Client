@@ -26,14 +26,6 @@ export const FORM_PARTICIPANT_LABEL: Record<FormParticipantType, string> = {
   TRAINEE: '교원 연수자',
 };
 
-/** 이 행사 회차가 쓰는 폼 ID. 행사별 폼 목록 API 가 생기기 전까지 고를 수 있는 폼의 출처다 */
-export const getLinkedFormIds = (programs: ScheduleProgram[]) =>
-  Array.from(
-    new Set(
-      programs.flatMap(({ policy }) => (policy?.formId ? [policy.formId] : [])),
-    ),
-  );
-
 /** 이 폼을 쓰는 회차. 폼을 고치면 이 회차들이 모두 영향을 받는다 */
 export const getProgramsUsingForm = (
   programs: ScheduleProgram[],

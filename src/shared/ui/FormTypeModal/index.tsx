@@ -1,16 +1,18 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { XMark } from '@/shared/assets/icons';
+import { getRegistrationRoutes } from '@/shared/config';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import Button from '../Button';
 import SelectDateInput from '../SelectDateInput';
 
 const CATEGORIES = {
   EXHIBITION: '박람회',
-  FORM: '폼',
+  FORM: '등록용 폼',
   SURVEY: '만족도 조사',
 };
 
@@ -192,11 +194,28 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   return (
     <div className="w-[656px] rounded-sm bg-white p-28">
       <div className="flex flex-col gap-[90px]">
-        <div className="flex w-full justify-between">
-          <p className="text-h2b mobile:text-body1b">{text}</p>
-          <label className="hover:cursor-pointer" onClick={onClose}>
-            <XMark />
-          </label>
+        <div className="flex flex-col gap-12">
+          <div className="flex w-full justify-between">
+            <p className="text-h2b mobile:text-body1b">{text}</p>
+            <label className="hover:cursor-pointer" onClick={onClose}>
+              <XMark />
+            </label>
+          </div>
+          {/* 여기서 만드는 폼은 사전·현장 등록용이다. 프로그램·연수 신청 폼은 회차에 연결하는 별도 폼이다 */}
+          {(modalType === 'formcreate' || modalType === 'edit') && (
+            <p className="text-caption1r text-gray-500">
+              여기서는 사전·현장 등록용 폼과 만족도 조사를 다룹니다.
+              프로그램·연수 신청 폼은{' '}
+              <Link
+                href={getRegistrationRoutes(params).programForms}
+                className="text-main-600 underline"
+                onClick={onClose}
+              >
+                프로그램 폼 관리
+              </Link>
+              에서 만들고 일정·모집의 회차에 연결합니다.
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-12">
           {!(startDate && endDate) && (
