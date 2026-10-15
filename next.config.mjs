@@ -1,6 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  // 박람회별 사전등록 관리는 /admin/registration/{id} 로 옮겼다. 예전 주소·즐겨찾기는 새 주소로 보낸다
+  async redirects() {
+    return [
+      {
+        source: '/admin/future-edu-expo/:expoId/:path*',
+        destination: '/admin/registration/:expoId/:path*',
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       // 모든 경로 공통 보안 헤더. 스크립트·스타일 CSP는 카카오맵·GA 등 외부 스크립트가 깨지므로 frame-ancestors만 둔다
@@ -16,10 +26,10 @@ const nextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           // 인증한 전화번호가 리다이렉트 쿼리에 실리므로 다른 출처로는 경로·쿼리를 보내지 않는다
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          // QR 스캐너는 키보드 입력 방식이라 카메라·위치를 쓰지 않는다
+          // 체크인 화면의 카메라 QR 스캔만 같은 출처에서 카메라를 쓴다. 마이크·위치는 쓰지 않는다
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(self), microphone=(), geolocation=()',
           },
         ],
       },

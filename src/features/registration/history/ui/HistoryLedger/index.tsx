@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
-import { DetailHeader, NavigationBar } from '@/shared/ui';
+import { NavigationBar } from '@/shared/ui';
 import {
   RegistrationTable,
   SectionError,
@@ -23,22 +23,9 @@ import {
   isHistoryRangeInvalid,
   useAdminChangeHistory,
 } from '../../model/adminChangeHistory';
+import ApplicationActivitySection from '../ApplicationActivitySection';
+import GroupMessageHistorySection from '../GroupMessageHistorySection';
 import HistoryFilters from '../HistoryFilters';
-
-// 신청·문자 이력은 출처 서비스의 공개 조회 API가 생기기 전까지 임시 이력을 보여 주지 않는다
-const PENDING_SOURCES = [
-  {
-    title: '신청·취소·승급 이력',
-    source: 'Application',
-    status: '공개 관리자 조회 API 구현 중 (Expo-Application-Server#93)',
-  },
-  {
-    title: '그룹 문자 발송 이력',
-    source: 'Notification',
-    status:
-      '내부 이력 API 구현 완료(Expo-Notification-Server#43), Application 공개 경로 연결 전',
-  },
-];
 
 const COLUMNS: TableColumn<AdminChangeHistoryItem>[] = [
   {
@@ -59,16 +46,18 @@ const COLUMNS: TableColumn<AdminChangeHistoryItem>[] = [
   {
     key: 'target',
     label: '대상',
-    render: ({ targetType, targetId }) =>
-      `${getTargetTypeLabel(targetType)} #${targetId}`,
+    render: ({ targetType, targetId }) => (
+      // 매핑이 없는 유형은 PREREGISTER_SESSION 처럼 공백 없는 긴 원문이라 칸 안에서 줄바꿈한다
+      <p className="break-words">
+        {getTargetTypeLabel(targetType)} #{targetId}
+      </p>
+    ),
   },
   {
     key: 'summary',
     label: '내용',
     flex: 3,
-    render: ({ summary }) => (
-      <p className="break-words text-left">{summary || '-'}</p>
-    ),
+    render: ({ summary }) => <p className="break-words">{summary || '-'}</p>,
   },
   {
     key: 'adminId',
@@ -102,16 +91,17 @@ const HistoryLedger = () => {
   const handleFilterChange = useCallback(
     (next: HistoryFilter) => {
       setFilter(next);
-      router.replace('?');
+      // 1페이지로 돌아갈 때만 주소를 바꾼다. 매번 바꾸면 라우터가 서버에 화면을 다시 요청한다
+      if (searchParams.get('page')) router.replace('?');
     },
-    [router],
+    [router, searchParams],
   );
 
   return withLoading({
     isLoading: isLoading && !data,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px]">
-        <DetailHeader textCenter headerTitle="행정 이력" />
+      <div className="flex w-full min-w-0 max-w-[1200px] flex-1 flex-col space-y-[54px]">
+        <ApplicationActivitySection expoId={expoId} />
 
         <section className="space-y-16">
           <div className="space-y-6">
@@ -155,15 +145,7 @@ const HistoryLedger = () => {
           )}
         </section>
 
-        <ul className="space-y-12 rounded-sm border-1 border-solid border-gray-200 px-30 py-20 mobile:px-16">
-          {PENDING_SOURCES.map(({ title, source, status }) => (
-            <li key={title} className="flex flex-wrap items-baseline gap-12">
-              <span className="text-body2b text-black">{title}</span>
-              <span className="text-caption1r text-gray-400">{source}</span>
-              <span className="text-caption1r text-gray-500">{status}</span>
-            </li>
-          ))}
-        </ul>
+        <GroupMessageHistorySection expoId={expoId} />
       </div>
     ),
   });

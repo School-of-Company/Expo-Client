@@ -1,5 +1,15 @@
 import { ApplicationType } from '../exhibition/type';
 import { DynamicFormType } from '../form/create/type';
+import type { FieldConditional } from '@/shared/lib/form-conditional';
+
+export type FormType =
+  | 'SENTENCE'
+  | 'CHECKBOX'
+  | 'DROPDOWN'
+  | 'IMAGE'
+  | 'MULTIPLE'
+  | 'COMPANION'
+  | 'REGION';
 
 /** 선택지 맵. 키는 답변 값으로 쓰이고, 값은 보기 문구다. */
 export type JsonData = Record<
@@ -11,24 +21,13 @@ export interface OtherJson {
   hasEtc: boolean;
   maxSelection?: number;
   /** `parentIndex`는 문항 목록 안의 위치(0부터). `triggerValue`와 `triggerValues` 중 하나만 온다. */
-  conditional?: {
-    parentIndex: number;
-    triggerValue?: string;
-    triggerValues?: string[];
-  };
+  conditional?: FieldConditional;
 }
 
 export interface DynamicFormItem {
   id: number;
   title: string;
-  formType:
-    | 'SENTENCE'
-    | 'CHECKBOX'
-    | 'DROPDOWN'
-    | 'IMAGE'
-    | 'MULTIPLE'
-    | 'COMPANION'
-    | 'REGION';
+  formType: FormType;
   jsonData: JsonData;
   requiredStatus: boolean;
   otherJson: OtherJson | null;
@@ -36,13 +35,21 @@ export interface DynamicFormItem {
   dynamicFormType?: DynamicFormType | 'DEFAULT';
 }
 
+/** 폼(FormResponseDto)과 설문(SurveyResponseDto)을 함께 담는 화면용 모양. */
 export interface ApplicationForm {
+  id?: string;
+  expoId?: string;
+  applicationType?: ApplicationType;
   title: string;
   informationText: string;
   startDate: string;
   endDate: string;
   participantType: 'STANDARD' | 'TRAINEE';
   dynamicForm?: DynamicFormItem[];
+  /** 설문 응답에만 있다. */
+  participationType?: 'STANDARD' | 'TRAINEE';
+  /** 설문 응답에만 있다. 문항을 바꾸면 기존 답변과 연결이 끊기므로 경고 기준으로 쓴다. */
+  totalAnswers?: number;
   dynamicSurveyResponseDto?: DynamicFormItem[];
 }
 
@@ -55,21 +62,18 @@ export type ApplicationFormValues = {
 export type FormattedApplicationData = {
   informationJson: string;
   /** 사전등록에서 고른 회차. 신청 서비스가 정원을 이 회차 기준으로 판정한다. */
-  sessionId?: string;
+  sessionId?: number;
   personalInformationStatus?: boolean;
   name?: string;
   phoneNumber?: string;
   trainingId?: string;
 };
 
-export interface FormattedSurveyData {
-  phoneNumber: string;
-  personalInformationStatus: boolean;
-  answers: SurveyAnswers;
-}
-
-/** 문항 id → 답변. SENTENCE 문자열, CHECKBOX boolean, DROPDOWN 키, MULTIPLE 키 배열. */
-export type SurveyAnswers = Record<string, string | boolean | string[]>;
+/** 문항 id → 답변. SENTENCE·IMAGE·REGION 문자열, CHECKBOX boolean, DROPDOWN 키, MULTIPLE 키 배열, COMPANION 동행자 배열. */
+export type SurveyAnswers = Record<
+  string,
+  string | boolean | string[] | Companion[]
+>;
 
 /**
  * 동행자 한 명(`COMPANION` 답변의 원소). 전화번호 없이 대표자 번호로 등록된다.
@@ -80,6 +84,12 @@ export interface Companion {
   occupation: string;
   region: string;
   school?: string;
+}
+
+export interface FormattedSurveyData {
+  phoneNumber: string;
+  personalInformationStatus: boolean;
+  answers: SurveyAnswers;
 }
 
 export type DynamicFormValues = {

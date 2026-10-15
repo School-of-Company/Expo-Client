@@ -1,33 +1,24 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
+import { useFormQuery } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
-import {
-  ApplicationForm,
-  DynamicFormValues,
-  FormattedApplicationData,
-} from '@/shared/types/application/type';
+import { DynamicFormValues } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { DetailHeader, Button } from '@/shared/ui';
-import {
-  createIdempotencyKey,
-  postApplication,
-} from '../../api/postApplication';
-import { postTrainingProgramSelection } from '../../api/postTrainingProgramSelection';
-import { extractTrainingProgramData } from '../../lib/extractTrainingProgramData';
+import { postApplication } from '../../api/postApplication';
+import { createSubmissionKeys } from '../../lib/createSubmissionKeys';
 import { getFormatter } from '../../lib/formatterService';
-import { useGetForm } from '../../model/useGetForm';
 
 const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const formType = searchParams.get('formType') as 'application' | 'survey';
   const userType = searchParams.get('userType') as 'STANDARD' | 'TRAINEE';
   const applicationType = (searchParams.get('applicationType') ||
     'PRE') as ApplicationType;
@@ -36,19 +27,15 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     data: formList,
     isLoading,
     error,
-  } = useGetForm(params, userType, formType, applicationType) as {
-    data: ApplicationForm | undefined;
-    isLoading: boolean;
-    error: Error | null;
-  };
+  } = useFormQuery(params, userType, applicationType);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // 같은 내용의 재제출(연타·네트워크 재시도)은 같은 Idempotency-Key 로 보낸다
+  const submissionKeys = useRef(createSubmissionKeys());
 
   const formSchema = useMemo(() => {
     if (!formList) return null;
-    const questions =
-      formList.dynamicForm || formList.dynamicSurveyResponseDto || [];
-    return adaptDynamicFormToSchema(questions, formList.title);
+    return adaptDynamicFormToSchema(formList.dynamicForm ?? [], formList.title);
   }, [formList]);
 
   const onSubmit = async (
@@ -64,16 +51,9 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     try {
       const { privacyConsent, ...rest } = data;
       const dynamicFormValues = rest as DynamicFormValues;
-      const allQuestions =
-        formList?.dynamicForm || formList?.dynamicSurveyResponseDto || [];
+      const allQuestions = formList?.dynamicForm ?? [];
 
-      const formatter = getFormatter(
-        formType,
-        userType,
-        allQuestions,
-        searchParams.get('phoneNumber'),
-        applicationType,
-      );
+      const formatter = getFormatter(userType, allQuestions, applicationType);
 
       const formattedData = formatter({
         ...dynamicFormValues,
@@ -81,7 +61,6 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
       } as DynamicFormValues & { privacyConsent: boolean });
 
       if (
-        formType === 'application' &&
         userType === 'STANDARD' &&
         applicationType === 'FIELD' &&
         !('phoneNumber' in formattedData && formattedData.phoneNumber)
@@ -92,40 +71,17 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         return;
       }
 
-      if (
-        formType === 'application' &&
-        userType === 'TRAINEE' &&
-        applicationType === 'PRE'
-      ) {
-        const trainingProgramData = await extractTrainingProgramData(
-          dynamicFormValues,
-          allQuestions,
-          params,
-          formattedData as FormattedApplicationData,
-        );
-
-        await postTrainingProgramSelection(params, trainingProgramData);
-      } else {
-        await postApplication(
-          params,
-          formType,
-          userType,
-          applicationType,
-          formattedData,
-          createIdempotencyKey(),
-        );
-      }
-      if (formType === 'survey') {
-        router.push(
-          `/application/success/${params}?formType=survey&userType=${userType}`,
-        );
-      }
-
-      if (formType === 'application') {
-        router.push(
-          `/application/success/${params}?userType=${userType}&formType=${formType}`,
-        );
-      }
+      await postApplication(
+        params,
+        'application',
+        userType,
+        applicationType,
+        formattedData,
+        submissionKeys.current.keyFor(JSON.stringify(formattedData)),
+      );
+      router.push(
+        `/application/success/${params}?userType=${userType}&formType=application`,
+      );
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : '폼 등록에 실패했습니다',

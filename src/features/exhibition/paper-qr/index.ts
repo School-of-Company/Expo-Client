@@ -1,1 +1,1 @@
-export { default as PaperQrIssueForm } from './ui/PaperQrIssueForm';
+export { default as PaperQrPrintBoard } from './ui/PaperQrPrintBoard';

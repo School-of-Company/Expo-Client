@@ -9,7 +9,6 @@ export { isValidSrc } from './isValidSrc';
 export {
   isTrainingProgramQuestion,
   formatTrainingProgramOption,
-  extractTrainingProgramTitle,
 } from './trainingProgramQuestion';
 export { useTimer } from './useTimer';
 export { useExcelDownload } from './useExcelDownload';

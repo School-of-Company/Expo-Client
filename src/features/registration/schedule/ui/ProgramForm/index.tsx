@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Button, Input, ToggleButton } from '@/shared/ui';
+import { Button, Input, MockDataBadge, ToggleButton } from '@/shared/ui';
 import {
   DateTimeInput,
   patchScheduleProgram,
@@ -19,6 +19,7 @@ import {
   toProgramRequest,
   validateProgramForm,
 } from '../../model/policyForm';
+import { toCount } from '../../model/sessionForm';
 import PolicyFields, { Field } from '../PolicyFields';
 import { FieldLabel } from '../ScheduleSection';
 
@@ -38,10 +39,22 @@ const CATEGORY_OPTIONS = [
   { value: 'CHOICE', label: '선택' },
 ];
 
+/** 서버가 아직 받지 않는 입력(Expo-Expo-Server#110). 저장할 때 보내지 않는다 */
+interface ProgramExtraForm {
+  code: string;
+  maxSessionsPerUser: number;
+  place: string;
+}
+
 const ProgramForm = ({ expoId, program, onClose }: ProgramFormProps) => {
   const [form, setForm] = useState<ProgramFormValue>(() =>
     program ? toProgramForm(program) : EMPTY_PROGRAM_FORM,
   );
+  const [extra, setExtra] = useState<ProgramExtraForm>({
+    code: '',
+    maxSessionsPerUser: 1,
+    place: '',
+  });
   const { mutate: save, isPending } = useScheduleMutation(
     expoId,
     (value: ProgramFormValue) =>
@@ -112,6 +125,50 @@ const ProgramForm = ({ expoId, program, onClose }: ProgramFormProps) => {
             />
           </Field>
         )}
+      </div>
+      <div className="space-y-16 rounded-sm border-1 border-dashed border-gray-200 px-20 py-16">
+        <div className="flex flex-wrap items-center gap-8">
+          <MockDataBadge issue="Expo-Expo-Server#110" />
+          <p className="text-caption1r text-gray-500">
+            서버 연결 후 저장됩니다. 지금은 아래 값을 보내지 않습니다.
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-16 mobile:grid-cols-1">
+          <Field label="프로그램 코드">
+            <Input
+              placeholder="예: TRAIN_SAMSUNG"
+              value={extra.code}
+              onChange={(e) =>
+                setExtra((prev) => ({
+                  ...prev,
+                  code: e.target.value.toUpperCase(),
+                }))
+              }
+            />
+          </Field>
+          <Field label="1인 최대 회차">
+            <Input
+              type="number"
+              min={1}
+              value={extra.maxSessionsPerUser}
+              onChange={(e) =>
+                setExtra((prev) => ({
+                  ...prev,
+                  maxSessionsPerUser: toCount(e.target.value),
+                }))
+              }
+            />
+          </Field>
+          <Field label="장소 (선택)">
+            <Input
+              placeholder="장소를 입력해주세요."
+              value={extra.place}
+              onChange={(e) =>
+                setExtra((prev) => ({ ...prev, place: e.target.value }))
+              }
+            />
+          </Field>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         <Field label="시작">

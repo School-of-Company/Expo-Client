@@ -2,16 +2,15 @@
 
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Button } from '@/shared/ui';
+import { Button, MockDataBadge } from '@/shared/ui';
 import {
   DateTimeInput,
   patchScheduleProgram,
   ProgramPolicy,
   ScheduleProgram,
-  toOffsetDateTime,
   useInvalidateSchedule,
 } from '../../../common';
-import { withPolicyPatch } from '../../model/policyForm';
+import { toPolicyDateTime, withPolicyPatch } from '../../model/policyForm';
 import { Field } from '../PolicyFields';
 import ScheduleSection from '../ScheduleSection';
 
@@ -45,13 +44,13 @@ const BulkPolicySection = ({
   const handleApply = async () => {
     const patch: Partial<ProgramPolicy> = {
       ...(applicationStartedAt && {
-        applicationStartedAt: toOffsetDateTime(applicationStartedAt),
+        applicationStartedAt: toPolicyDateTime(applicationStartedAt),
       }),
       ...(applicationEndedAt && {
-        applicationEndedAt: toOffsetDateTime(applicationEndedAt),
+        applicationEndedAt: toPolicyDateTime(applicationEndedAt),
       }),
       ...(promotionEndedAt && {
-        promotionEndedAt: toOffsetDateTime(promotionEndedAt),
+        promotionEndedAt: toPolicyDateTime(promotionEndedAt),
       }),
     };
     if (Object.keys(patch).length === 0) {
@@ -103,10 +102,11 @@ const BulkPolicySection = ({
 
   return (
     <ScheduleSection
-      title="모집 일정 일괄 적용"
-      description={`모집 정책이 있는 프로그램 ${targets.length}개에 같은 일시를 넣습니다. 비워 둔 항목은 바꾸지 않습니다. 프로그램별 값은 아래 표에서 따로 바꿀 수 있습니다.`}
+      variant="aside"
+      title="신청기간 일괄 설정"
+      description={`모집 정책이 있는 프로그램 ${targets.length}개에 같은 일시를 넣습니다. 비워 둔 항목은 바꾸지 않습니다.`}
     >
-      <div className="grid grid-cols-3 gap-[28px] mobile:grid-cols-1 tablet:grid-cols-1">
+      <div className="space-y-16">
         <Field label="모집 시작">
           <DateTimeInput
             value={applicationStartedAt}
@@ -126,12 +126,27 @@ const BulkPolicySection = ({
           />
         </Field>
       </div>
+      <p className="text-caption1r text-gray-500">
+        현장신청은 변경하지 않습니다.
+      </p>
       <Button
         disabled={disabled || isApplying || targets.length === 0}
         onClick={handleApply}
       >
         {isApplying ? '적용 중...' : '정책 있는 프로그램 전체에 적용'}
       </Button>
+      <div className="space-y-8">
+        <Button variant="white" disabled>
+          신청기간 일괄 해제
+        </Button>
+        <div className="flex items-start gap-8">
+          <MockDataBadge issue="Expo-Expo-Server#111" />
+          <p className="text-caption1r text-gray-500">
+            지금은 서버가 모집 일시를 모두 요구해 해제할 수 없습니다. 서버 연결
+            후 사용할 수 있습니다.
+          </p>
+        </div>
+      </div>
     </ScheduleSection>
   );
 };

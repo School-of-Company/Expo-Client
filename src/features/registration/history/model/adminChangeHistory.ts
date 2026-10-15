@@ -26,9 +26,11 @@ export const CHANGE_TYPE_STYLE: Record<AdminChangeType, string> = {
   SESSION_DELETE: 'text-error',
 };
 
+// 서버가 이력에 남기는 대상 유형 (Expo-Expo-Server history.record 호출부)
 const TARGET_TYPE_LABEL: Record<string, string> = {
-  PROGRAM: '프로그램',
-  SESSION: '회차',
+  STANDARD: '일반 프로그램',
+  TRAINING: '연수 프로그램',
+  PREREGISTER_SESSION: '사전등록 회차',
 };
 
 const isChangeType = (type: string): type is AdminChangeType =>
@@ -104,6 +106,8 @@ export const getHistoryErrorMessage = (error: unknown) => {
       return '변경 이력을 조회할 권한이 없습니다.';
     case 404:
       return '박람회를 찾을 수 없습니다.';
+    case 502:
+      return '변경 이력 원천의 응답이 올바르지 않습니다. 잠시 후 다시 시도해주세요.';
     case 503:
       return '지금은 권한을 확인할 수 없거나 삭제 중인 박람회입니다. 잠시 후 다시 시도해주세요.';
     default:

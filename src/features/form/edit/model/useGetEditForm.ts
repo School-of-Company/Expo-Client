@@ -1,4 +1,5 @@
-import { useGetApplicationForm, useGetSurveyForm } from '@/shared/queries';
+import { useFormQuery } from '@/entities/form';
+import { useSurveyQuery } from '@/entities/survey';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 
 export const useGetEditForm = (
@@ -8,7 +9,7 @@ export const useGetEditForm = (
   applicationType: ApplicationType,
 ) => {
   if (formType === 'application') {
-    return useGetApplicationForm(id, userType, applicationType);
+    return useFormQuery(id, userType, applicationType, { admin: true });
   }
-  return useGetSurveyForm(id, userType, applicationType);
+  return useSurveyQuery(id, userType, { admin: true });
 };

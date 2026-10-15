@@ -3,38 +3,29 @@
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
+import { useFormQuery } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
-import { useGetApplicationForm } from '@/shared/queries/useGetApplicationForm';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
 import {
-  createIdempotencyKey,
+  ApplicationSubmitError,
+  ApplicationWaitResult,
   postApplication,
 } from '../../../api/postApplication';
+import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
 import {
+  getApplicantLimit,
   getCompanionLimit,
-  getRemainingSeats,
-  getSessionStatus,
+  isWaitingParty,
 } from '../../model/sessionSeats';
-import { usePreRegisterSession } from '../../model/usePreRegister';
-
-const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토'];
-const pad = (value: number) => String(value).padStart(2, '0');
-const time = (date: Date) =>
-  `${pad(date.getHours())}:${pad(date.getMinutes())}`;
-
-/** "10월 31일 (토) 09:30 ~ 12:30" */
-const formatSession = (startedAt: string, endedAt: string) => {
-  const start = new Date(startedAt);
-  return `${start.getMonth() + 1}월 ${start.getDate()}일 (${WEEKDAY[start.getDay()]}) ${time(start)} ~ ${time(new Date(endedAt))}`;
-};
+import { usePreRegisterCapacity } from '../../model/usePreRegister';
 
 /**
  * 사전등록 신청. 입력 항목은 Form 서비스의 일반 참가자 사전 폼 정의를 그대로 그리고,
@@ -53,12 +44,14 @@ const PreRegisterContainer = ({
     data: form,
     isLoading,
     error,
-  } = useGetApplicationForm(expoId, 'STANDARD', 'PRE');
-  const { data: session, error: sessionError } = usePreRegisterSession(
+  } = useFormQuery(expoId, 'STANDARD', 'PRE');
+  const { data: capacity, error: sessionError } = usePreRegisterCapacity(
     expoId,
     sessionId,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // 같은 내용을 다시 보내면(연타·네트워크 재시도·오류 뒤 재제출) 같은 키로 보낸다
+  const submissionKeys = useRef(createSubmissionKeys());
 
   const questions = useMemo(() => form?.dynamicForm ?? [], [form]);
   const schema = useMemo(
@@ -66,9 +59,9 @@ const PreRegisterContainer = ({
     [form, questions],
   );
 
-  const status = session ? getSessionStatus(session) : null;
-  const remainingSeats = session ? getRemainingSeats(session) : undefined;
-  const companionLimit = session ? getCompanionLimit(session) : undefined;
+  const applicantLimit = capacity ? getApplicantLimit(capacity) : undefined;
+  const companionLimit = capacity ? getCompanionLimit(capacity) : undefined;
+  const canApply = applicantLimit === undefined || applicantLimit > 0;
   const companionFieldId = schema?.items.find(
     (item) => item.type === 'COMPANION',
   )?.id;
@@ -82,32 +75,59 @@ const PreRegisterContainer = ({
       return;
     }
 
+    // 서버는 일반 사전등록의 회차 ID를 양수 숫자로 필수로 받는다
+    const session = Number(sessionId);
+    if (!Number.isInteger(session) || session <= 0) {
+      toast.error('신청할 회차를 선택해주세요');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const formatted = createStandardApplicationFormatter(
         questions,
         'PRE',
       )(data as DynamicFormValues & { privacyConsent: boolean });
-      await postApplication(
+      const payload = { ...formatted, sessionId: session };
+      const result: ApplicationWaitResult | undefined = await postApplication(
         expoId,
         'application',
         'STANDARD',
         'PRE',
-        { ...formatted, ...(sessionId && { sessionId }) },
-        createIdempotencyKey(),
+        payload,
+        submissionKeys.current.keyFor(JSON.stringify(payload)),
       );
+      // 202 PROCESSING: 대기에서 승급되는 중이다. 같은 키로 다시 눌러 결과를 확인한다
+      if (result?.status === 'PROCESSING') {
+        toast.info(
+          '신청을 처리하고 있습니다. 잠시 후 다시 눌러 결과를 확인해주세요.',
+        );
+        return;
+      }
+      submissionKeys.current.reset();
+      // 서버가 대기로 접수하면(202) 확정이 아니므로 성공 페이지가 대기 접수와 순번을 안내한다
+      const waiting =
+        result?.status === 'WAITING'
+          ? `&status=${result.status}${result.position ? `&position=${encodeURIComponent(result.position)}` : ''}`
+          : '';
       router.push(
-        `/application/success/${expoId}?userType=STANDARD&formType=application`,
+        `/application/success/${expoId}?userType=STANDARD&formType=application${waiting}`,
       );
     } catch (submitError) {
+      // 취소한 대기의 같은 키 재전송은 거절된다. 다시 신청하려면 새 키가 필요하다
+      if (
+        submitError instanceof ApplicationSubmitError &&
+        submitError.code === 'WAITLIST_WITHDRAWN'
+      )
+        submissionKeys.current.reset();
       toast.error(
         submitError instanceof Error
           ? submitError.message
           : '사전등록에 실패했습니다',
       );
-      // 제출 사이에 자리가 줄어 거절됐을 수 있으므로 회차 현황을 다시 받는다
+      // 제출 시 서버가 정원을 다시 판정해 일행 전체를 거절했을 수 있으므로 잔여석을 다시 받는다
       queryClient.invalidateQueries({
-        queryKey: ['preRegisterSession', expoId, sessionId],
+        queryKey: ['preRegisterCapacity', expoId, sessionId],
       });
     } finally {
       setIsSubmitting(false);
@@ -136,41 +156,37 @@ const PreRegisterContainer = ({
         {sessionError && (
           <div className="flex flex-col gap-8 rounded-sm border-1 border-solid border-error bg-white p-24">
             <p className="text-body2b text-error">
-              회차 정보를 불러오지 못했습니다
+              잔여석을 불러오지 못했습니다
             </p>
             <p className="text-body2r text-gray-600">
-              {sessionError.message} 남은 자리와 마감 여부를 확인할 수 없어
-              신청을 진행할 수 없습니다. 잠시 후 다시 시도하거나 다른 회차를
-              선택해 주세요.
+              {sessionError.message} 남은 자리를 확인할 수 없어 신청을 진행할 수
+              없습니다. 잠시 후 다시 시도하거나 다른 회차를 선택해 주세요.
             </p>
           </div>
         )}
 
-        {session && status && (
+        {capacity && (
           <div className="flex flex-col gap-8 rounded-sm border-1 border-solid border-main-300 bg-main-100 p-24">
-            <p className="text-body1b text-black">{session.title}</p>
-            <ul className="flex flex-col gap-4 text-body2r text-gray-600">
-              <li>
-                일시 · {formatSession(session.startedAt, session.endedAt)}
-              </li>
-              <li>
-                장소 · {session.place} · 정원{' '}
-                {session.capacity.toLocaleString()}명 / 대기{' '}
-                {session.waitingCapacity.toLocaleString()}명
-              </li>
-            </ul>
             <p
-              className={`text-body2b ${status.canApply ? 'text-main-600' : 'text-error'}`}
+              className={`text-body2b ${canApply ? 'text-main-600' : 'text-error'}`}
             >
-              {status.label}
+              {!canApply
+                ? '신청 마감'
+                : capacity.remaining > 0
+                  ? `현재 남은 자리 ${capacity.remaining.toLocaleString()}명`
+                  : '정원 마감 · 대기 신청 가능'}
             </p>
-            {status.canApply && remainingSeats !== undefined && (
+            {canApply && (
               <p className="text-caption1r text-gray-600">
-                이 회차는 남은 자리가 {remainingSeats.toLocaleString()}명입니다.
-                대표자를 포함해 {remainingSeats.toLocaleString()}명까지 신청할
-                수 있습니다.
+                대표자를 포함해 {applicantLimit?.toLocaleString()}명까지 신청할
+                수 있습니다. 한 일행은 나뉘지 않고 모두 확정되거나 모두 대기로
+                접수됩니다.
               </p>
             )}
+            <p className="text-caption1r text-gray-500">
+              화면의 남은 자리는 안내용입니다. 제출할 때 서버가 정원을 다시
+              확인하며, 자리가 부족하면 일행 전체의 신청이 거절됩니다.
+            </p>
           </div>
         )}
 
@@ -184,10 +200,15 @@ const PreRegisterContainer = ({
                 ? ((methods.watch(companionFieldId) as unknown[] | undefined)
                     ?.length ?? 0)
                 : 0;
-              // 회차를 바꾸면 이미 추가한 동행자가 새 회차의 남은 자리를 넘을 수 있다
+              // 회차를 바꾸면 이미 추가한 동행자가 새 회차의 상한을 넘을 수 있다
               const isOverCapacity =
-                remainingSeats !== undefined &&
-                companionCount + 1 > remainingSeats;
+                applicantLimit !== undefined &&
+                companionCount + 1 > applicantLimit;
+
+              const willWait =
+                !!capacity &&
+                !isOverCapacity &&
+                isWaitingParty(capacity, companionCount + 1);
 
               return (
                 <div className="mt-48 flex flex-col gap-30">
@@ -196,11 +217,18 @@ const PreRegisterContainer = ({
                     watch={methods.watch}
                     setValue={methods.setValue}
                   />
+                  {willWait && (
+                    <p className="text-body2b text-main-600">
+                      이 인원은 확정 자리가 부족해 일행 전체가 대기로
+                      접수됩니다. 대기는 자리가 나야 확정되며 최종 판정은 제출할
+                      때 서버가 합니다.
+                    </p>
+                  )}
                   {isOverCapacity && (
                     <p className="text-body2r text-error">
-                      이 회차는 남은 자리가{' '}
-                      {(remainingSeats ?? 0).toLocaleString()}명입니다. 인원을
-                      줄이거나 다른 회차를 선택해 주세요.
+                      이번에 신청할 수 있는 인원은 대표자를 포함해{' '}
+                      {(applicantLimit ?? 0).toLocaleString()}명까지입니다.
+                      인원을 줄이거나 다른 회차를 선택해 주세요.
                     </p>
                   )}
 
@@ -217,7 +245,8 @@ const PreRegisterContainer = ({
                         disabled={
                           isSubmitting ||
                           !!sessionError ||
-                          status?.canApply === false ||
+                          !capacity ||
+                          !canApply ||
                           isOverCapacity
                         }
                       >

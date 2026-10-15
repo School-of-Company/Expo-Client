@@ -2,13 +2,17 @@
 
 import { useState } from 'react';
 import { Trash } from '@/shared/assets/icons';
-import { AddItemButton, Input, ToggleButton } from '@/shared/ui';
+import { AddItemButton, Input, MockDataBadge, ToggleButton } from '@/shared/ui';
 import {
   DateTimeInput,
+  formatDateWithWeekday,
   PreregisterSession,
   RegistrationTable,
+  splitDateTime,
   TableColumn,
 } from '../../../common';
+import { usePreregisterSummary } from '../../../common/model/preregisterSummary';
+import { getSessionMetaMock } from '../../mock/sessionMeta';
 import { SessionForm, toCount } from '../../model/sessionForm';
 import ScheduleSection from '../ScheduleSection';
 import SessionCreateForm from '../SessionCreateForm';
@@ -21,6 +25,9 @@ export interface SessionRow {
   needsRetry: boolean;
 }
 
+/** 왼쪽 메뉴에서 개설 양식을 열 때 스크롤할 대상 */
+export const SESSION_FORM_ID = 'schedule-session-form';
+
 interface SessionSectionProps {
   expoId: string;
   rows: SessionRow[];
@@ -28,7 +35,15 @@ interface SessionSectionProps {
   onDelete: (session: PreregisterSession) => void;
   onRetry: (session: PreregisterSession) => void;
   isLocked: boolean;
+  /** 넘기면 개설 양식을 밖에서 연다. 없으면 표 안에서 관리한다 */
+  isCreating?: boolean;
+  onCreatingChange?: (isCreating: boolean) => void;
 }
+
+const formatOperatingDay = (startedAt: string | null) => {
+  const { date } = splitDateTime(startedAt);
+  return date ? formatDateWithWeekday(date) : '-';
+};
 
 const SessionSection = ({
   expoId,
@@ -37,10 +52,33 @@ const SessionSection = ({
   onDelete,
   onRetry,
   isLocked,
+  isCreating: controlledCreating,
+  onCreatingChange,
 }: SessionSectionProps) => {
-  const [isCreating, setIsCreating] = useState(false);
+  const [ownCreating, setOwnCreating] = useState(false);
+  const isCreating = controlledCreating ?? ownCreating;
+  const setIsCreating = onCreatingChange ?? setOwnCreating;
+  // 신청수는 Application 집계에서 읽는다. 실패하면 칸만 비워 두고 회차 편집은 계속한다
+  const { data: summary } = usePreregisterSummary(expoId);
+  const summaryBySession = new Map(
+    summary?.sessions.map((item) => [item.sessionId, item]),
+  );
 
   const columns: TableColumn<SessionRow>[] = [
+    {
+      key: 'id',
+      label: 'ID',
+      flex: 0.4,
+      render: ({ id }) => id,
+    },
+    {
+      key: 'operatingDay',
+      label: '운영일',
+      flex: 0.7,
+      render: ({ form }) => (
+        <p className="text-black">{formatOperatingDay(form.startedAt)}</p>
+      ),
+    },
     {
       key: 'title',
       label: '회차명',
@@ -120,6 +158,29 @@ const SessionSection = ({
       ),
     },
     {
+      key: 'applied',
+      label: '신청수',
+      flex: 0.7,
+      render: ({ id }) => {
+        const item = summaryBySession.get(id);
+        if (!item) return '-';
+        return (
+          <div>
+            <p className="text-black">확정 {item.confirmedParticipants}</p>
+            {item.waitingParticipants > 0 && (
+              <p className="text-caption2r">대기 {item.waitingParticipants}</p>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'channelCount',
+      label: '채널수',
+      flex: 0.5,
+      render: ({ session }) => getSessionMetaMock(session).channelCount,
+    },
+    {
       key: 'cancelEndedAt',
       label: '취소 마감',
       flex: 1.6,
@@ -174,23 +235,32 @@ const SessionSection = ({
 
   return (
     <ScheduleSection
-      title="사전등록 회차"
+      title="② 회차 일정 관리"
       description="박람회 입장 사전등록을 받는 시간대입니다. 신청 이력이 있는 회차는 마감·재개만 바꿀 수 있고 삭제할 수 없습니다. 취소 마감을 비우면 참가자가 취소할 수 없습니다."
     >
+      <div className="flex flex-wrap items-center gap-8">
+        <MockDataBadge issue="Expo-Expo-Server#110" />
+        <p className="text-caption1r text-gray-500">
+          채널수는 예시 데이터입니다. 신청수는 확정 인원이며 대기 인원을 함께
+          표시합니다.
+        </p>
+      </div>
       <RegistrationTable
         columns={columns}
         rows={rows}
         emptyText="등록된 사전등록 회차가 없습니다."
         footerText="회차"
         footerCount={rows.length}
-        minWidth="1700px"
+        minWidth="2100px"
         maxHeight="none"
       >
         {isCreating ? (
-          <SessionCreateForm
-            expoId={expoId}
-            onClose={() => setIsCreating(false)}
-          />
+          <div id={SESSION_FORM_ID} className="scroll-mt-[96px]">
+            <SessionCreateForm
+              expoId={expoId}
+              onClose={() => setIsCreating(false)}
+            />
+          </div>
         ) : (
           !isLocked && <AddItemButton onClick={() => setIsCreating(true)} />
         )}

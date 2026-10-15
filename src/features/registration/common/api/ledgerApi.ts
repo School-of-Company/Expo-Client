@@ -1,4 +1,4 @@
-import { toApiError } from '@/shared/libs/http/apiError';
+import { ApiError, toApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
 // Expo-Application-Server AdminApplicationController 의 관리자 경로 응답 형식
@@ -78,6 +78,9 @@ export interface AdminParticipantDetail {
   representativeId: number | null;
   /** 연결된 연수자. 직업과 별개다 */
   linkedTraineeId: number | null;
+  applicationType: string | null;
+  /** User 의 현재 등록 답변. 접수 당시 답변(answers)과 다를 수 있다 */
+  information: Record<string, unknown> | null;
 }
 
 export interface AdminApplicationRow {
@@ -86,10 +89,18 @@ export interface AdminApplicationRow {
   traineeId: number | null;
   programType: ProgramSessionType;
   programId: number;
+  groupId: string;
   status: AdminApplicationStatus;
   createdAt: string;
-  definition: Partial<ProgramSessionDefinition> | null;
-  participant: AdminParticipantDetail | null;
+  formId: string;
+  formVersion: number;
+  /** 접수 당시 회차 정의 */
+  definition: Partial<ProgramSessionDefinition>;
+  /** 접수 당시 질문과 제출 답변 (임의 JSON) */
+  questions: unknown;
+  answers: Record<string, unknown> | null;
+  /** 서버는 참가자가 하나라도 없으면 502 로 실패하므로 null 이 아니다 */
+  participant: AdminParticipantDetail;
   /** 상태 변경 이력 */
   history: AdminApplicationHistory[];
 }
@@ -108,7 +119,13 @@ export interface AdminApplicationQuery {
   applicationId?: string;
   programType?: ProgramSessionType;
   programId?: number;
+  groupId?: string;
   status?: AdminApplicationStatus;
+  /** 제출 당시 제목 */
+  search?: string;
+  /** ISO 일시. from 포함, until 제외 */
+  from?: string;
+  until?: string;
   /** 참가자 이름·번호 (1–50자) */
   q?: string;
   occupation?: AdminOccupation;
@@ -141,8 +158,14 @@ export const getAdminApplications = async (
     const response = await clientTokenInstance.get(basePath(expoId), {
       params: compactParams(query),
     });
-    return response.data;
+    const page: AdminApplicationPage = response.data;
+    // 서버는 participant: null 성공을 주지 않는다. 오면 계약 위반이므로 빈 칸으로 숨기지 않고 502 로 실패시킨다
+    if (page.items.some((item) => !item.participant)) {
+      throw new ApiError('User 참가자 누락', 502);
+    }
+    return page;
   } catch (error) {
+    if (error instanceof ApiError) throw error;
     throw toApiError(error, '접수 원장을 불러오지 못했습니다.');
   }
 };
@@ -195,17 +218,19 @@ export const getAdminCurrentSessions = async (
   }
 };
 
-export interface CancelAdminApplicationResult {
+export interface AdminCancellationResult {
   applicationId: string;
-  /** 서버가 돌려준 처리 후 상태. 알 수 없는 값일 수 있어 문자열로 받는다 */
-  status: string;
+  status: 'CANCELLED';
 }
 
-/** 서버가 행사별 취소 권한·취소 마감·입장·출석·스캔 보호를 확인한다. 강제 취소는 없다 */
-export const cancelAdminApplication = async (
+/**
+ * 관리자 신청 취소. 이미 취소된 신청은 다시 보내도 200 이다.
+ * 서버가 취소 권한(APPLICATION_CANCEL)·취소 마감·입장 여부를 다시 검사하고, 확정 취소면 대기자를 자동 승급한다
+ */
+export const postAdminApplicationCancellation = async (
   expoId: string,
   applicationId: string,
-): Promise<CancelAdminApplicationResult> => {
+): Promise<AdminCancellationResult> => {
   try {
     const response = await clientTokenInstance.post(
       `${basePath(expoId)}/${encodeURIComponent(applicationId)}/cancellation`,

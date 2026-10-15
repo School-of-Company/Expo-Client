@@ -73,10 +73,11 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
                   applicationType,
                   form,
                 }) => {
-                  const status = getFormPeriodStatus(
-                    form.startDate,
-                    form.endDate,
-                  );
+                  // 설문에는 신청 기간이 없다
+                  const hasPeriod = 'startDate' in form;
+                  const status = hasPeriod
+                    ? getFormPeriodStatus(form.startDate, form.endDate)
+                    : 'OPEN';
 
                   return (
                     <ApplicationFormCard
@@ -84,7 +85,11 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
                       category={audience}
                       title={form.title}
                       description={form.informationText}
-                      period={`${formatFormPeriod(form.startDate)} ~ ${formatFormPeriod(form.endDate)}`}
+                      period={
+                        hasPeriod
+                          ? `${formatFormPeriod(form.startDate)} ~ ${formatFormPeriod(form.endDate)}`
+                          : '-'
+                      }
                       statusLabel={FORM_PERIOD_STATUS_LABEL[status]}
                       isOpen={status === 'OPEN'}
                       buttonLabel={
@@ -93,10 +98,12 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
                           : `${current.label}하기`
                       }
                       href={
-                        // 일반 사전등록은 참가자 선택 페이지로, 나머지는 기존 동적 폼으로
+                        // 일반 사전등록은 참가자 선택 페이지로, 연수 사전신청은 프로그램별 신청으로, 나머지는 기존 동적 폼으로
                         key === 'pre-standard'
                           ? `/application/forms/${expoId}/pre-register`
-                          : `/application/${expoId}?formType=${formType}&userType=${userType}&applicationType=${applicationType}`
+                          : key === 'pre-trainee'
+                            ? `/application/forms/${expoId}/training`
+                            : `/application/${expoId}?formType=${formType}&userType=${userType}&applicationType=${applicationType}`
                       }
                     />
                   );
