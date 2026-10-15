@@ -1,3 +1,5 @@
+'use client';
+
 import { ScheduleManager } from '@/features/registration/schedule';
 import { Header } from '@/widgets/layout';
 import { RegistrationTabs } from '@/widgets/registration';

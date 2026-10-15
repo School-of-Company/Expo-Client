@@ -107,34 +107,37 @@ export const cancelMyApplication = async (
   }
 };
 
-export interface PreRegisterWaitlist {
+/**
+ * 사전등록 대기 일행. 대기자는 User 에 저장되기 전이라 my-applications 참가자 목록에 없고 QR 도 없다.
+ * PROCESSING 은 승급 뒤 저장 중, PROMOTION_ENDED 는 회차 시작으로 승급이 끝난 상태다.
+ */
+export interface MyPreRegisterWaitlist {
   sessionId: number;
+  /** 대표자를 포함한 일행 인원 */
   applicants: number;
-  // WAITING 외에 승급 처리 중 상태가 올 수 있어 문자열로 받는다
-  status: string;
-  position: number;
-  // 응답 헤더 X-CSRF-TOKEN. 대기 취소 요청 헤더에 그대로 싣는다
+  status: 'WAITING' | 'PROCESSING' | 'PROMOTION_ENDED';
+  /** 일행 단위 대기 순번(1부터). WAITING 이 아니면 null */
+  position: number | null;
   csrfToken?: string;
 }
 
-// 대기 일행이 없으면(404) null. 참가자 세션이 없을 때(401)도 정상 흐름이라 null
-export const getPreRegisterWaitlist = async (
+// 404 는 대기 일행이 없다는 뜻이라 null 로 돌려준다. 그 밖의 오류는 대기 없음으로 위장하지 않는다
+export const getMyPreRegisterWaitlist = async (
   expoId: string,
-): Promise<PreRegisterWaitlist | null> => {
+): Promise<MyPreRegisterWaitlist | null> => {
   try {
-    const { data, headers } = await clientInstance.get<PreRegisterWaitlist>(
+    const { data, headers } = await clientInstance.get<MyPreRegisterWaitlist>(
       `/application/expos/${expoId}/my-applications/preregister-waitlist`,
     );
     return { ...data, csrfToken: headers['x-csrf-token'] };
   } catch (error) {
-    const status = getErrorStatus(error);
-    if (status === 401 || status === 404) return null;
+    if (getErrorStatus(error) === 404) return null;
     throw toError(error, COMMON_ERRORS, '대기 내역을 불러오지 못했습니다.');
   }
 };
 
-// 대기 일행 전체를 취소한다. 취소한 대기의 Idempotency-Key 로는 다시 신청할 수 없다
-export const cancelPreRegisterWaitlist = async (
+/** 대기 일행 전체 취소. 일부만 취소할 수 없고, 취소한 대기는 같은 신청으로 되살릴 수 없다 */
+export const cancelMyPreRegisterWaitlist = async (
   expoId: string,
   csrfToken?: string,
 ) => {
@@ -150,8 +153,8 @@ export const cancelPreRegisterWaitlist = async (
       {
         ...COMMON_ERRORS,
         403: '요청을 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.',
-        404: '취소할 대기 신청을 찾을 수 없습니다.',
-        409: '대기에서 확정으로 처리 중이거나 삭제된 행사라 취소할 수 없습니다. 잠시 후 다시 확인해주세요.',
+        404: '취소할 대기 신청이 없습니다.',
+        409: '대기에서 확정으로 처리 중이라 지금은 취소할 수 없습니다. 잠시 후 다시 확인해주세요.',
       },
       '대기 취소에 실패했습니다.',
     );

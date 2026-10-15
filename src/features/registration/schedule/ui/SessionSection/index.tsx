@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Trash } from '@/shared/assets/icons';
-import { AddItemButton, Input, MockDataBadge, ToggleButton } from '@/shared/ui';
+import { AddItemButton, Input, ToggleButton } from '@/shared/ui';
 import {
   DateTimeInput,
   formatDateWithWeekday,
@@ -12,7 +12,6 @@ import {
   TableColumn,
 } from '../../../common';
 import { usePreregisterSummary } from '../../../common/model/preregisterSummary';
-import { getSessionMetaMock } from '../../mock/sessionMeta';
 import { SessionForm, toCount } from '../../model/sessionForm';
 import ScheduleSection from '../ScheduleSection';
 import SessionCreateForm from '../SessionCreateForm';
@@ -175,12 +174,6 @@ const SessionSection = ({
       },
     },
     {
-      key: 'channelCount',
-      label: '채널수',
-      flex: 0.5,
-      render: ({ session }) => getSessionMetaMock(session).channelCount,
-    },
-    {
       key: 'cancelEndedAt',
       label: '취소 마감',
       flex: 1.6,
@@ -238,13 +231,9 @@ const SessionSection = ({
       title="② 회차 일정 관리"
       description="박람회 입장 사전등록을 받는 시간대입니다. 신청 이력이 있는 회차는 마감·재개만 바꿀 수 있고 삭제할 수 없습니다. 취소 마감을 비우면 참가자가 취소할 수 없습니다."
     >
-      <div className="flex flex-wrap items-center gap-8">
-        <MockDataBadge issue="Expo-Expo-Server#110" />
-        <p className="text-caption1r text-gray-500">
-          채널수는 예시 데이터입니다. 신청수는 확정 인원이며 대기 인원을 함께
-          표시합니다.
-        </p>
-      </div>
+      <p className="text-caption1r text-gray-500">
+        신청수는 확정 인원이며 대기 인원을 함께 표시합니다.
+      </p>
       <RegistrationTable
         columns={columns}
         rows={rows}

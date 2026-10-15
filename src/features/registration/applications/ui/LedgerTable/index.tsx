@@ -19,18 +19,40 @@ import {
   LedgerViewRow,
 } from '../../model/ledgerView';
 
-const SORT_KEY = 'createdAt';
+// 헤더 정렬 키 → 서버 정렬 [오름차순, 내림차순]
+const SORTS = {
+  receipt: ['RECEIPT_ASC', 'RECEIPT_DESC'],
+  program: ['PROGRAM_ASC', 'PROGRAM_DESC'],
+  session: ['SESSION_ASC', 'SESSION_DESC'],
+  created: ['CREATED_ASC', 'CREATED_DESC'],
+} as const satisfies Record<
+  string,
+  [AdminApplicationSort, AdminApplicationSort]
+>;
+
+type SortKey = keyof typeof SORTS;
+
+const toTableSort = (sort: AdminApplicationSort) => {
+  const key = (Object.keys(SORTS) as SortKey[]).find((sortKey) =>
+    (SORTS[sortKey] as readonly string[]).includes(sort),
+  );
+  return key
+    ? {
+        key,
+        direction:
+          SORTS[key][0] === sort ? ('asc' as const) : ('desc' as const),
+      }
+    : undefined;
+};
 
 const COLUMNS: TableColumn<LedgerViewRow>[] = [
   {
     key: 'receiptNumber',
-    // 접수번호는 예시 값이다. 표 위 안내에 예시 데이터 배지를 붙인다
-    label: '접수번호*',
+    label: '접수번호',
     flex: 0.9,
+    sortKey: 'receipt',
     render: (row) => (
-      <p className="truncate text-caption1r text-gray-400">
-        {row.receiptNumber || '-'}
-      </p>
+      <p className="truncate text-caption1r">#{row.receiptNumber}</p>
     ),
   },
   {
@@ -69,25 +91,20 @@ const COLUMNS: TableColumn<LedgerViewRow>[] = [
     ),
   },
   {
-    key: 'affiliation',
-    label: '소속/유형*',
-    flex: 1.2,
+    key: 'occupation',
+    label: '직업',
+    flex: 1,
     render: (row) => (
-      <>
-        <p className="truncate text-black">
-          {row.occupation ? OCCUPATION_LABEL[row.occupation] : '-'}
-        </p>
-        {/* 학교는 예시 값이다 */}
-        <p className="truncate text-caption2r text-gray-400">
-          {row.school ?? '-'}
-        </p>
-      </>
+      <p className="truncate text-black">
+        {row.occupation ? OCCUPATION_LABEL[row.occupation] : '-'}
+      </p>
     ),
   },
   {
     key: 'program',
     label: '회차/구분',
     flex: 1.8,
+    sortKey: 'program',
     render: (row) => (
       <>
         <p className="truncate text-black">{row.title}</p>
@@ -108,6 +125,7 @@ const COLUMNS: TableColumn<LedgerViewRow>[] = [
     key: 'schedule',
     label: '일시',
     flex: 1.3,
+    sortKey: 'session',
     render: (row) => (
       <p className="text-caption1r">
         {formatDefinitionSchedule(row.startedAt, row.endedAt)}
@@ -136,10 +154,10 @@ const COLUMNS: TableColumn<LedgerViewRow>[] = [
       ),
   },
   {
-    key: SORT_KEY,
+    key: 'createdAt',
     label: '신청일시',
     flex: 1.1,
-    sortKey: SORT_KEY,
+    sortKey: 'created',
     render: (row) => (
       <p className="text-caption1r">{formatDateTime(row.createdAt)}</p>
     ),
@@ -194,14 +212,12 @@ const LedgerTable = ({
     onToggleRow={onToggle}
     onToggleAll={onTogglePage}
     onRowClick={onRowClick}
-    // 서버는 신청일시 정렬만 지원한다
-    sort={{
-      key: SORT_KEY,
-      direction: sort === 'CREATED_ASC' ? 'asc' : 'desc',
+    sort={toTableSort(sort)}
+    // 같은 열을 다시 누르면 방향을 바꾸고, 다른 열은 오름차순부터 시작한다
+    onSort={(key) => {
+      const [asc, desc] = SORTS[key as SortKey];
+      onSortChange(sort === asc ? desc : asc);
     }}
-    onSort={() =>
-      onSortChange(sort === 'CREATED_ASC' ? 'CREATED_DESC' : 'CREATED_ASC')
-    }
   >
     {children}
   </RegistrationTable>

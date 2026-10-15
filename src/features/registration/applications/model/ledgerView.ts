@@ -7,7 +7,6 @@ import {
   ProgramSessionDefinition,
 } from '../../common/api/ledgerApi';
 import { LedgerRow, toSessionKey } from '../../common/model/ledger';
-import { getLedgerRowExtras, LedgerRowExtras } from '../mock/ledgerExtras';
 
 export type ApplicationType = 'PRE' | 'FIELD';
 
@@ -35,8 +34,8 @@ export interface SessionCapacity {
   capacity: number;
 }
 
-/** 표에 그리는 행. 신청구분은 응답의 참가자 값, 접수번호·학교는 예시 값이다 */
-export interface LedgerViewRow extends LedgerRow, LedgerRowExtras {
+/** 표에 그리는 행. 신청구분은 응답의 참가자 값이다 */
+export interface LedgerViewRow extends LedgerRow {
   applicationType: ApplicationType | null;
   capacity: SessionCapacity | null;
 }
@@ -77,7 +76,6 @@ export const toLedgerViewRows = (
   );
   return rows.map((row) => ({
     ...row,
-    ...getLedgerRowExtras(row),
     applicationType: toApplicationType(types.get(row.id) ?? null),
     capacity:
       capacityMap.get(
@@ -85,28 +83,6 @@ export const toLedgerViewRows = (
       ) ?? null,
   }));
 };
-
-/** 서버 필터가 없어(Expo-Application-Server#107) 현재 페이지 행에만 거는 필터 */
-export interface LedgerClientFilter {
-  applicationType: ApplicationType | '';
-  /** YYYY-MM-DD */
-  eventDay: string;
-}
-
-export const INITIAL_CLIENT_FILTER: LedgerClientFilter = {
-  applicationType: '',
-  eventDay: '',
-};
-
-export const isClientFilterActive = (filter: LedgerClientFilter) =>
-  filter.applicationType !== '' || filter.eventDay !== '';
-
-export const matchesClientFilter = (
-  row: LedgerViewRow,
-  filter: LedgerClientFilter,
-) =>
-  (!filter.applicationType || row.applicationType === filter.applicationType) &&
-  (!filter.eventDay || row.startedAt?.slice(0, 10) === filter.eventDay);
 
 // 잘못된 기간으로 선택지가 끝없이 늘지 않게 막는다
 const EXPO_DAY_MAX = 31;

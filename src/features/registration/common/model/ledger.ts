@@ -58,6 +58,7 @@ export const PROGRAM_TYPE_LABEL: Record<ProgramSessionType, string> = {
 /** 화면에 쓰는 원장 행. id 는 UUID 신청 ID */
 export interface LedgerRow {
   id: string;
+  receiptNumber: number;
   participantId: number;
   traineeId: number | null;
   programType: ProgramSessionType;
@@ -78,6 +79,7 @@ export interface LedgerRow {
 
 export const toLedgerRow = (row: AdminApplicationRow): LedgerRow => ({
   id: row.applicationId,
+  receiptNumber: row.receiptNumber,
   participantId: row.participantId,
   traineeId: row.traineeId,
   programType: row.programType,
@@ -116,10 +118,24 @@ export const parseSessionKey = (
   return { programType, programId };
 };
 
+/** 확정과 대기를 함께 보는 상태 필터. 서버에는 쉼표로 보낸다 */
+export const ACTIVE_STATUS_FILTER = 'CONFIRMED,WAITING';
+
+export type LedgerStatusFilter =
+  | AdminApplicationStatus
+  | typeof ACTIVE_STATUS_FILTER
+  | '';
+
+/** 상태 필터를 상태 목록으로. 비어 있으면 모든 상태 */
+export const toStatusList = (status: LedgerStatusFilter) =>
+  status ? (status.split(',') as AdminApplicationStatus[]) : [];
+
 /** 서버 필터와 1:1 로 대응하는 관리대장 필터 */
 export interface LedgerFilter {
   session: string;
-  status: AdminApplicationStatus | '';
+  status: LedgerStatusFilter;
+  /** 제출 당시 회차 시작일(YYYY-MM-DD) */
+  eventDate: string;
   /** 제출 당시 제목 */
   search: string;
   /** 참가자 이름·번호 */
@@ -131,6 +147,7 @@ export interface LedgerFilter {
 export const INITIAL_LEDGER_FILTER: LedgerFilter = {
   session: '',
   status: '',
+  eventDate: '',
   search: '',
   q: '',
   occupation: '',
@@ -152,6 +169,7 @@ export const toLedgerQuery = (
   return {
     ...(session ?? {}),
     status: filter.status || undefined,
+    eventDate: filter.eventDate || undefined,
     search: search || undefined,
     q: q || undefined,
     occupation: filter.occupation || undefined,

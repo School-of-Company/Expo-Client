@@ -1,9 +1,7 @@
 'use client';
 
-import { MockDataBadge } from '@/shared/ui';
 import { DateTimeInput, RegistrationSelect } from '../../../common';
 import { AdminApplicationAction } from '../../api/applicationActivityApi';
-import { ACTIVITY_MOCK_ISSUE } from '../../mock/applicationActivityMock';
 import {
   ACTIVITY_ACTION_LABEL,
   ActivityFilter,
@@ -71,44 +69,6 @@ const ApplicationActivityFilters = ({
           </button>
         </div>
       </div>
-
-      {/* 서버가 아직 이 조건을 받지 않는다. 불러온 행만 거르면 결과를 오해할 수 있어 막아 둔다 */}
-      <fieldset
-        disabled
-        className="space-y-8 rounded-sm border-1 border-dashed border-gray-200 px-16 py-12"
-      >
-        <legend className="flex items-center gap-8 px-4">
-          <span className="text-caption1r text-gray-400">
-            서버 지원 후 사용할 수 있는 조건
-          </span>
-          <MockDataBadge issue={ACTIVITY_MOCK_ISSUE} />
-        </legend>
-        <div className="grid grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] gap-12 opacity-50 mobile:grid-cols-1 tablet:grid-cols-2">
-          <input
-            aria-label="검색"
-            placeholder="이름·연락처·학교·소속·메모"
-            className="w-full rounded-sm border-1 border-solid border-gray-200 bg-white px-16 py-12 text-body2r outline-none"
-          />
-          <RegistrationSelect
-            ariaLabel="처리주체"
-            value=""
-            onChange={() => {}}
-            options={[{ value: '', label: '처리주체 전체' }]}
-          />
-          <RegistrationSelect
-            ariaLabel="프로그램"
-            value=""
-            onChange={() => {}}
-            options={[{ value: '', label: '프로그램 전체' }]}
-          />
-          <RegistrationSelect
-            ariaLabel="변경 후 상태"
-            value=""
-            onChange={() => {}}
-            options={[{ value: '', label: '변경 후 상태 전체' }]}
-          />
-        </div>
-      </fieldset>
     </div>
   );
 };

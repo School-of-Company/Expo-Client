@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useMemo, useState } from 'react';
-import { Loading, MockDataBadge } from '@/shared/ui';
+import { Loading } from '@/shared/ui';
 import {
   formatDateWithWeekday,
   RefreshStatus,
@@ -10,7 +10,6 @@ import {
   StatCard,
   useRegistrationExpo,
 } from '../../../common';
-import { ATTENDANCE_ACTIVITY_ISSUE } from '../../mock/attendanceActivity';
 import { useAttendanceActivity } from '../../model/attendanceActivity';
 import {
   ALL_DAYS,
@@ -18,7 +17,6 @@ import {
   getDefaultDay,
   getEntryMethodCounts,
   getExpoDays,
-  getIdentifiedEntered,
   useAttendanceSummary,
 } from '../../model/attendanceSummary';
 import CountList from '../CountList';
@@ -27,31 +25,39 @@ import RecentAttendanceTable from '../RecentAttendanceTable';
 
 const Section = ({
   title,
-  badge,
   children,
 }: {
   title: string;
-  badge?: ReactNode;
   children: ReactNode;
 }) => (
   <section className="min-w-0 space-y-16">
-    <div className="flex items-center gap-12">
-      <p className="text-body1b text-black">{title}</p>
-      {badge}
-    </div>
+    <p className="text-body1b text-black">{title}</p>
     {children}
   </section>
 );
 
-const mockBadge = <MockDataBadge issue={ATTENDANCE_ACTIVITY_ISSUE} />;
-
-interface AttendanceOverviewProps {
-  /** 전용 화면에서는 최근 기록·스캐너별 처리까지 보여 준다. 대시보드는 집계·추이만 */
-  detailed?: boolean;
-}
+/** 영역마다 따로 불러와 하나가 실패해도 나머지는 보여 준다 */
+const QueryContent = <T,>({
+  query,
+  errorText,
+  children,
+}: {
+  query: { data?: T; isError: boolean; refetch: () => unknown };
+  errorText: string;
+  children: (data: T) => ReactNode;
+}) => {
+  if (query.data !== undefined) return <>{children(query.data)}</>;
+  if (query.isError)
+    return <SectionError message={errorText} onRetry={query.refetch} />;
+  return (
+    <div className="flex justify-center py-40">
+      <Loading />
+    </div>
+  );
+};
 
 /** 행사장 입·퇴장 집계를 날짜별로 보고 10초마다 갱신한다 */
-const AttendanceOverview = ({ detailed = false }: AttendanceOverviewProps) => {
+const AttendanceOverview = () => {
   const { expoId, expo } = useRegistrationExpo();
   const days = useMemo(
     () => getExpoDays(expo?.startedDay, expo?.finishedDay),
@@ -62,8 +68,8 @@ const AttendanceOverview = ({ detailed = false }: AttendanceOverviewProps) => {
   const day = selectedDay ?? getDefaultDay(days);
   const isAll = day === ALL_DAYS;
 
-  const summary = useAttendanceSummary(expoId, day, days);
-  const activity = useAttendanceActivity(expoId, day, days);
+  const summary = useAttendanceSummary(expoId, day);
+  const activity = useAttendanceActivity(expoId, day);
   const data = summary.data;
 
   const dayOptions = [
@@ -115,11 +121,11 @@ const AttendanceOverview = ({ detailed = false }: AttendanceOverviewProps) => {
             />
             <StatCard
               label="고유 식별 QR"
-              value={getIdentifiedEntered(data).toLocaleString()}
+              value={data.uniqueQr.toLocaleString()}
               unit="건"
               sub={
                 isAll
-                  ? '날짜별 합계 · 여러 날 입장한 QR 은 날마다 셈'
+                  ? '사전등록·인쇄 QR · 여러 날 입장해도 한 번'
                   : '사전등록·인쇄 QR 중복 제외'
               }
             />
@@ -131,30 +137,31 @@ const AttendanceOverview = ({ detailed = false }: AttendanceOverviewProps) => {
             />
             <StatCard
               label="최근 10분 입장"
-              value={
-                activity.recentEntered === null
-                  ? '—'
-                  : activity.recentEntered.toLocaleString()
-              }
-              unit={activity.recentEntered === null ? undefined : '건'}
-              sub="오늘 날짜에서만 집계"
-              badge={mockBadge}
+              value={data.recentEntered10m.toLocaleString()}
+              unit="건"
+              sub="고른 날짜와 상관없이 지금 기준"
             />
           </div>
         )}
         {isAll && (
           <p className="text-caption1r text-gray-400">
-            전체 기록은 날짜별 집계를 더한 값입니다. 현재 체류는 날마다 남은
-            인원의 합입니다.
+            전체 기록은 박람회 전체 기간 집계입니다.
           </p>
         )}
       </div>
 
       <div className="grid grid-cols-[2fr_1fr] gap-[32px] tablet:grid-cols-1">
-        <Section title="시간대별 입·퇴장 추이" badge={mockBadge}>
-          <div className="rounded-sm border-1 border-solid border-gray-200 px-24 py-20 mobile:px-16">
-            <HourlyTrendChart data={activity.hourly} />
-          </div>
+        <Section title="시간대별 입·퇴장 추이">
+          <QueryContent
+            query={activity.hourly}
+            errorText="시간대별 입·퇴장 건수를 불러오지 못했습니다."
+          >
+            {(points) => (
+              <div className="rounded-sm border-1 border-solid border-gray-200 px-24 py-20 mobile:px-16">
+                <HourlyTrendChart data={points} />
+              </div>
+            )}
+          </QueryContent>
         </Section>
         <Section title="입장 방식별 현황">
           {data ? (
@@ -172,22 +179,32 @@ const AttendanceOverview = ({ detailed = false }: AttendanceOverviewProps) => {
         </Section>
       </div>
 
-      {detailed && (
-        <div className="grid grid-cols-[2fr_1fr] gap-[32px] tablet:grid-cols-1">
-          <Section title="최근 입·퇴장 기록" badge={mockBadge}>
-            <RecentAttendanceTable rows={activity.logs} />
-          </Section>
-          <Section title="스캐너별 입장 처리" badge={mockBadge}>
-            <CountList
-              items={activity.scanners.map(({ scannerName, entered }) => ({
-                label: scannerName,
-                count: entered,
-              }))}
-              emptyText="입장을 처리한 스캐너가 없습니다."
-            />
-          </Section>
-        </div>
-      )}
+      <div className="grid grid-cols-[2fr_1fr] gap-[32px] tablet:grid-cols-1">
+        <Section title="최근 입·퇴장 기록">
+          <QueryContent
+            query={activity.recent}
+            errorText="최근 입·퇴장 기록을 불러오지 못했습니다."
+          >
+            {(records) => <RecentAttendanceTable rows={records} />}
+          </QueryContent>
+        </Section>
+        <Section title="스캐너별 입장 처리">
+          <QueryContent
+            query={activity.scanners}
+            errorText="스캐너별 입장 처리 건수를 불러오지 못했습니다."
+          >
+            {(scanners) => (
+              <CountList
+                items={scanners.map(({ scanner, entered }) => ({
+                  label: scanner,
+                  count: entered,
+                }))}
+                emptyText="스캐너 이름이 기록된 입장 처리가 없습니다."
+              />
+            )}
+          </QueryContent>
+        </Section>
+      </div>
     </div>
   );
 };

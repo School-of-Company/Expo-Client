@@ -1,3 +1,4 @@
+import { PageViewTracker } from '@/features/application';
 import { PreRegisterContainer } from '@/features/application/forms';
 
 const PreRegisterPage = ({
@@ -10,6 +11,7 @@ const PreRegisterPage = ({
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex flex-1 justify-center p-16">
+        <PageViewTracker expoId={expoId} />
         <PreRegisterContainer expoId={expoId} sessionId={sessionId} />
       </div>
     </div>

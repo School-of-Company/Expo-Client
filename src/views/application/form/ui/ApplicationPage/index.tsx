@@ -1,4 +1,7 @@
-import { ApplicationFormContainer } from '@/features/application';
+import {
+  ApplicationFormContainer,
+  PageViewTracker,
+} from '@/features/application';
 import { SurveyAnswerContainer } from '@/features/survey-answer';
 
 const ApplicationPage = ({
@@ -14,7 +17,10 @@ const ApplicationPage = ({
         {formType === 'survey' ? (
           <SurveyAnswerContainer expoId={params} />
         ) : (
-          <ApplicationFormContainer params={params} />
+          <>
+            <PageViewTracker expoId={params} />
+            <ApplicationFormContainer params={params} />
+          </>
         )}
       </div>
     </div>
