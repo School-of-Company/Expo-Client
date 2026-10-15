@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useRef, useState } from 'react';
+import { SessionNotice, getSessionIssue } from '@/features/phone-verification';
 import {
   LEDGER_STATUS_LABEL,
   OCCUPATION_LABEL,
@@ -159,15 +160,43 @@ const QrDialog = ({
   onClose: () => void;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { data } = useQuery({
+  const { data, error, isFetching, refetch } = useQuery({
     queryKey: ['participantQr', expoId, target.participantId],
     queryFn: () => getParticipantQr(expoId, target.participantId),
     retry: false,
+    // 실패는 아래에서 다시 시도할 수 있게 안내한다
+    meta: { silent: true },
   });
+  const sessionIssue = getSessionIssue(error);
 
   return (
     <Dialog onClose={onClose}>
       <p className="text-h3b text-black">{target.title}</p>
+      {!data && isFetching && (
+        <p role="status" className="text-body2r text-gray-500">
+          QR 을 불러오는 중입니다...
+        </p>
+      )}
+      {!data && !isFetching && error && (
+        <div className="flex w-full flex-col gap-12">
+          {sessionIssue ? (
+            <SessionNotice expoId={expoId} issue={sessionIssue} />
+          ) : (
+            <>
+              <p role="alert" className="break-keep text-body2r text-error">
+                {error.message}
+              </p>
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="w-full rounded-sm border-1 border-solid border-main-600 px-24 py-14 text-body2b text-main-600"
+              >
+                다시 시도
+              </button>
+            </>
+          )}
+        </div>
+      )}
       {data && (
         <>
           <QRCodeCanvas
@@ -206,7 +235,9 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   const {
     participants,
     applications,
+    sessionIssue,
     errorMessage,
+    retry,
     waitlist,
     waitlistErrorMessage,
     cancel,
@@ -222,7 +253,8 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     applications.length === 0 &&
     !waitlist &&
     !errorMessage &&
-    !waitlistErrorMessage
+    !waitlistErrorMessage &&
+    !sessionIssue
   )
     return null;
 
@@ -233,14 +265,28 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         인증한 번호로 본인을 포함하여 최대 5명까지 함께 신청할 수 있습니다.
       </p>
 
-      {errorMessage && <p className="text-body2r text-error">{errorMessage}</p>}
-      {waitlistErrorMessage && (
-        <p className="text-body2r text-error">
-          대기 내역: {waitlistErrorMessage}
-        </p>
+      {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
+      {(errorMessage || waitlistErrorMessage) && (
+        <div role="alert" className="flex flex-col gap-8">
+          {errorMessage && (
+            <p className="text-body2r text-error">{errorMessage}</p>
+          )}
+          {waitlistErrorMessage && (
+            <p className="text-body2r text-error">
+              대기 내역: {waitlistErrorMessage}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => retry()}
+            className="self-start rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-caption1b text-main-600"
+          >
+            다시 시도
+          </button>
+        </div>
       )}
 
-      {waitlist && (
+      {!sessionIssue && waitlist && (
         <PreRegisterWaitlist
           waitlist={waitlist}
           onCancel={() => setIsWaitlistCancelOpen(true)}
@@ -248,7 +294,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         />
       )}
 
-      {applications.length > 0 && (
+      {!sessionIssue && applications.length > 0 && (
         <ul className="flex flex-col divide-y divide-solid divide-gray-100 rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6">
           {applications.map((application) => (
             <ApplicationRow

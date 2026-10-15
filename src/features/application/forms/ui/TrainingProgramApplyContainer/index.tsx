@@ -8,6 +8,7 @@ import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter
 import { buildProgramApplyPayload } from '@/features/form/program';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
+import { SessionNotice } from '@/features/phone-verification';
 import { getTrainingProgram } from '@/shared/api';
 import { withLoading } from '@/shared/hocs';
 import { getProgramSessionCsrfHeaders } from '@/shared/libs/http/programSessionCsrf';
@@ -172,8 +173,14 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
   });
   // 서버는 세션이 소유한 확정 사전등록 참가자만 프로그램 신청을 받는다
   const queryClient = useQueryClient();
-  const { participants, applications, waitlist, errorMessage } =
-    useMyApplications(expoId);
+  const {
+    participants,
+    applications,
+    waitlist,
+    errorMessage,
+    sessionIssue,
+    retry,
+  } = useMyApplications(expoId);
   const eligible = participants.filter((participant) =>
     applications.some(
       (a) =>
@@ -196,10 +203,20 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
           신청할 연수마다 따로 신청합니다. 결과도 연수별로 표시됩니다.
         </p>
         {error && <p className="text-body2r text-error">{error.message}</p>}
+        {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
         {errorMessage && (
-          <p className="text-body2r text-error">{errorMessage}</p>
+          <div role="alert" className="flex flex-col gap-8">
+            <p className="text-body2r text-error">{errorMessage}</p>
+            <button
+              type="button"
+              onClick={() => retry()}
+              className="self-start rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-caption1b text-main-600"
+            >
+              다시 시도
+            </button>
+          </div>
         )}
-        {!errorMessage && eligible.length === 0 && (
+        {!errorMessage && !sessionIssue && eligible.length === 0 && (
           <p className="break-keep text-body2r text-gray-600">
             {waitlist
               ? '사전등록이 대기 중입니다. 확정된 뒤에 연수를 신청할 수 있습니다.'
