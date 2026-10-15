@@ -73,6 +73,7 @@ const ApplicationRow = ({
     cancellable,
     cancellationBlockedReason,
   } = application;
+  const reasonId = `cancel-blocked-${type}-${applicationId}`;
   const title = [participant?.name, TYPE_LABEL[type]]
     .filter(Boolean)
     .join(' · ');
@@ -115,12 +116,21 @@ const ApplicationRow = ({
             신청취소
           </button>
         ) : (
-          cancellationBlockedReason && (
-            <p className="text-caption1r text-gray-500">
+          <>
+            <button
+              type="button"
+              disabled
+              aria-describedby={reasonId}
+              className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 px-16 py-8 text-caption1b text-gray-400"
+            >
+              신청취소
+            </button>
+            <p id={reasonId} className="text-caption1r text-gray-500">
               {BLOCKED_REASON_LABEL[cancellationBlockedReason] ??
-                cancellationBlockedReason}
+                (cancellationBlockedReason ||
+                  '지금은 취소할 수 없습니다. 운영 측에 문의해주세요.')}
             </p>
-          )
+          </>
         )}
       </div>
     </li>

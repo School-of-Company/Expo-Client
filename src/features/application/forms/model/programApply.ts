@@ -3,14 +3,13 @@ import { formatFormPeriod } from './formPeriodStatus';
 import type {
   ProgramOccupation,
   ProgramPolicy,
-  TrainingProgramItem,
+  Program,
 } from '@/shared/types/program/list/type';
 
 /**
  * 프로그램-폼 연결은 프로그램 응답의 `policy.formId` 다(ProgramPolicy). 정책이 없는 기존 프로그램은 신청할 수 없다.
- * TODO(api): 참가자용 공개 프로그램/회차 목록 계약은 Expo-Application-Server#43 에서 확정된다.
  */
-export const getProgramFormId = (program: TrainingProgramItem) =>
+export const getProgramFormId = (program: Pick<Program, 'policy'>) =>
   program.policy?.formId || undefined;
 
 /** 프로그램 하나의 제출 결과. 한 프로그램의 실패가 다른 프로그램의 성공 표시를 가리지 않게 따로 둔다. */

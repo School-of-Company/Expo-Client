@@ -23,9 +23,12 @@ export const createStandardApplicationFormatter = (
     const phoneField = dynamicFormItems.find(
       (item) => item.dynamicFormType === 'PHONE_NUMBER',
     );
-    const phoneValue = phoneField
-      ? (resolveFieldValue(data, phoneField) as string | undefined)
+    // 하이픈·공백을 지워 보낸다. 설문 제출도 같은 규칙으로 번호를 정리한다
+    const rawPhone = phoneField
+      ? resolveFieldValue(data, phoneField)
       : undefined;
+    const phoneValue =
+      typeof rawPhone === 'string' ? rawPhone.replace(/[\s-]/g, '') : undefined;
 
     let nameValue: string | undefined;
     let informationJsonData = processedData;
