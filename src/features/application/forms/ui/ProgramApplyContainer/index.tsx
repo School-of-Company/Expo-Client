@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useMemo, useRef, useState } from 'react';
 import { PrivacyConsent } from '@/entities/application';
 import { getProgramForm } from '@/entities/form/api/programForms';
@@ -8,36 +9,45 @@ import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter
 import { buildProgramApplyPayload } from '@/features/form/program';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
-import { getTrainingProgram } from '@/shared/api';
+import { getPublicStandardProgram, getTrainingProgram } from '@/shared/api';
 import { withLoading } from '@/shared/hocs';
 import { getProgramSessionCsrfHeaders } from '@/shared/libs/http/programSessionCsrf';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button, DetailHeader } from '@/shared/ui';
 import {
   ApplicationSubmitError,
-  postTrainingProgramApplication,
+  postProgramApplication,
 } from '../../../api/postApplication';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
+import { getProgramParticipants } from '../../api/programParticipants';
 import {
   OUTCOME_LABEL,
   ProgramApplyOutcome,
   getProgramFormId,
   getProgramPolicyNotes,
-} from '../../model/trainingProgramApply';
+} from '../../model/programApply';
 import { useMyApplications } from '../../model/useMyApplications';
-import type { TrainingProgramItem } from '@/shared/types/program/list/type';
+import type { Program, ProgramType } from '@/shared/types/program/list/type';
+
+const PROGRAM_LABEL: Record<ProgramType, string> = {
+  STANDARD: '프로그램',
+  TRAINING: '연수',
+};
 
 const ProgramApplyForm = ({
   expoId,
+  programType,
   program,
   formId,
   participants,
   onResult,
 }: {
   expoId: string;
-  program: TrainingProgramItem;
+  programType: ProgramType;
+  program: Program;
   formId: string;
-  participants: { participantId: number; name: string }[];
+  // 서버가 알려 준 이 프로그램의 참가자. 신청 불가(eligible=false)는 선택할 수 없다
+  participants: { participantId: number; name: string; eligible: boolean }[];
   onResult: (outcome: ProgramApplyOutcome) => void;
 }) => {
   const {
@@ -45,14 +55,17 @@ const ProgramApplyForm = ({
     error,
     refetch,
   } = useQuery({
-    queryKey: ['trainingProgramForm', formId],
+    queryKey: ['programForm', formId],
     queryFn: () => getProgramForm(formId),
     retry: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedId, setParticipantId] = useState<number>();
-  // 참가자 목록이 폼보다 늦게 와도 첫 참가자를 기본으로 고른다
-  const participantId = selectedId ?? participants[0]?.participantId;
+  // 다시 받은 목록에서 빠진 참가자를 고른 채로 두지 않고 첫 참가자를 기본으로 고른다
+  const eligible = participants.filter((p) => p.eligible);
+  const participantId = eligible.some((p) => p.participantId === selectedId)
+    ? selectedId
+    : eligible[0]?.participantId;
   // 같은 내용의 재시도(연타·네트워크 오류 뒤)는 같은 Idempotency-Key 로 보낸다
   const submissionKeys = useRef(createSubmissionKeys());
   const schema = useMemo(
@@ -84,7 +97,8 @@ const ProgramApplyForm = ({
         ...buildProgramApplyPayload(form, data as DynamicFormValues),
         participantId,
       };
-      const result = await postTrainingProgramApplication(
+      const result = await postProgramApplication(
+        programType,
         expoId,
         String(program.id),
         payload,
@@ -106,7 +120,7 @@ const ProgramApplyForm = ({
         message:
           submitError instanceof Error
             ? submitError.message
-            : '연수 신청에 실패했습니다',
+            : `${PROGRAM_LABEL[programType]} 신청에 실패했습니다`,
       });
     } finally {
       setIsSubmitting(false);
@@ -122,23 +136,29 @@ const ProgramApplyForm = ({
       onSubmit={onSubmit}
       renderFooter={(methods) => (
         <div className="mt-24 flex flex-col gap-24">
-          <label className="flex flex-col gap-8 text-body2b">
-            신청할 참가자
-            <select
-              className="rounded-sm border-1 border-solid border-gray-200 p-12 text-body2r"
-              value={participantId ?? ''}
-              onChange={(e) => setParticipantId(Number(e.target.value))}
-            >
-              {participants.map((participant) => (
-                <option
-                  key={participant.participantId}
-                  value={participant.participantId}
-                >
-                  {participant.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <fieldset className="flex flex-col gap-8">
+            <legend className="mb-8 text-body2b">신청할 참가자</legend>
+            {participants.map((participant) => (
+              <label
+                key={participant.participantId}
+                className="flex items-center gap-8 text-body2r"
+              >
+                <input
+                  type="radio"
+                  name={`participant-${program.id}`}
+                  checked={participantId === participant.participantId}
+                  disabled={!participant.eligible}
+                  onChange={() => setParticipantId(participant.participantId)}
+                />
+                {participant.name}
+                {!participant.eligible && (
+                  <span className="text-caption1r text-gray-500">
+                    (신청할 수 없는 참가자)
+                  </span>
+                )}
+              </label>
+            ))}
+          </fieldset>
           <PrivacyConsent
             content={form?.informationText ?? ''}
             watch={methods.watch}
@@ -156,32 +176,104 @@ const ProgramApplyForm = ({
   );
 };
 
+// 신청 가능한 참가자는 서버가 프로그램별로 판단한다. 조회 실패·미등록·대상 없음을 구분해 안내한다
+const ParticipantLookup = ({
+  expoId,
+  programType,
+  program,
+  formId,
+  waiting,
+  onResult,
+}: {
+  expoId: string;
+  programType: ProgramType;
+  program: Program;
+  formId: string;
+  waiting: boolean;
+  onResult: (outcome: ProgramApplyOutcome) => void;
+}) => {
+  const { data, error, isLoading } = useQuery({
+    queryKey: ['programParticipants', expoId, programType, program.id],
+    queryFn: () => getProgramParticipants(expoId, programType, program.id),
+    retry: false,
+    meta: { silent: true },
+  });
+
+  if (isLoading)
+    return (
+      <p role="status" className="text-body2r text-gray-500">
+        신청 가능한 참가자를 확인하는 중입니다...
+      </p>
+    );
+  if (error) return <p className="text-body2r text-error">{error.message}</p>;
+  if (!data) return null;
+  if (!data.registered)
+    return (
+      <p className="break-keep text-body2r text-gray-600">
+        {waiting
+          ? '사전등록이 대기 중입니다. 확정된 뒤에 신청할 수 있습니다.'
+          : '사전등록이 확정된 참가자만 신청할 수 있습니다. '}
+        {!waiting && (
+          <Link
+            href={`/application/forms/${expoId}/pre-register`}
+            className="text-main-600 underline"
+          >
+            사전등록하러 가기
+          </Link>
+        )}
+      </p>
+    );
+  const members = data.participants.map(({ participant, eligible }) => ({
+    participantId: participant.participantId,
+    name: participant.name,
+    eligible,
+  }));
+  if (!members.some((m) => m.eligible))
+    return (
+      <p className="break-keep text-body2r text-gray-600">
+        이 프로그램을 신청할 수 있는 참가자가 없습니다. 직업·정원·신청 기간 또는
+        이미 신청한 같은 묶음 프로그램을 확인해주세요.
+      </p>
+    );
+  return (
+    <ProgramApplyForm
+      expoId={expoId}
+      programType={programType}
+      program={program}
+      formId={formId}
+      participants={members}
+      onResult={onResult}
+    />
+  );
+};
+
 /**
- * 연수 프로그램별 신청. 프로그램마다 따로 제출하고 결과도 프로그램별로 보여 준다.
+ * 프로그램별 신청(일반·연수 공통). 프로그램마다 따로 제출하고 결과도 프로그램별로 보여 준다.
  * 여러 프로그램을 한 번에 묶어 보내지 않는다(Expo-Config-Server#71).
  */
-const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
+const ProgramApplyContainer = ({
+  expoId,
+  programType,
+}: {
+  expoId: string;
+  programType: ProgramType;
+}) => {
+  const label = PROGRAM_LABEL[programType];
   const {
     data: programs,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ['trainingPrograms', expoId],
-    queryFn: () => getTrainingProgram(expoId),
+  } = useQuery<Program[]>({
+    queryKey: ['applyPrograms', programType, expoId],
+    queryFn: () =>
+      programType === 'TRAINING'
+        ? getTrainingProgram(expoId)
+        : getPublicStandardProgram(expoId),
     retry: false,
   });
-  // 서버는 세션이 소유한 확정 사전등록 참가자만 프로그램 신청을 받는다
   const queryClient = useQueryClient();
-  const { participants, applications, waitlist, errorMessage } =
-    useMyApplications(expoId);
-  const eligible = participants.filter((participant) =>
-    applications.some(
-      (a) =>
-        a.type === 'PREREGISTER' &&
-        a.status === 'CONFIRMED' &&
-        a.participantId === participant.participantId,
-    ),
-  );
+  // 사전등록 대기 중인 일행이 있으면 "미등록" 대신 대기 안내를 보여 준다
+  const { waitlist } = useMyApplications(expoId);
   const [openId, setOpenId] = useState<number | null>(null);
   const [outcomes, setOutcomes] = useState<Record<number, ProgramApplyOutcome>>(
     {},
@@ -191,19 +283,14 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
     isLoading,
     children: (
       <div className="mt-30 flex w-full max-w-[816px] flex-col gap-24">
-        <DetailHeader headerTitle="연수 신청" />
+        <DetailHeader headerTitle={`${label} 신청`} />
         <p className="text-body2r text-gray-500">
-          신청할 연수마다 따로 신청합니다. 결과도 연수별로 표시됩니다.
+          신청할 {label}마다 따로 신청합니다. 결과도 {label}별로 표시됩니다.
         </p>
         {error && <p className="text-body2r text-error">{error.message}</p>}
-        {errorMessage && (
-          <p className="text-body2r text-error">{errorMessage}</p>
-        )}
-        {!errorMessage && eligible.length === 0 && (
-          <p className="break-keep text-body2r text-gray-600">
-            {waitlist
-              ? '사전등록이 대기 중입니다. 확정된 뒤에 연수를 신청할 수 있습니다.'
-              : '사전등록이 확정된 참가자만 연수를 신청할 수 있습니다. 먼저 사전등록과 본인 인증을 완료해주세요.'}
+        {programs?.length === 0 && (
+          <p className="text-body2r text-gray-500">
+            신청할 수 있는 {label}이 없습니다.
           </p>
         )}
         {programs?.map((program) => {
@@ -239,7 +326,8 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
               )}
               {!formId && (
                 <p className="text-caption1r text-gray-500">
-                  이 연수는 아직 온라인 신청서가 연결되지 않았습니다.
+                  이 {programType === 'TRAINING' ? '연수는' : '프로그램은'} 아직
+                  온라인 신청서가 연결되지 않았습니다.
                 </p>
               )}
               {outcome && (
@@ -253,17 +341,20 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
                 </p>
               )}
               {formId && openId === program.id && (
-                <ProgramApplyForm
+                <ParticipantLookup
                   expoId={expoId}
+                  programType={programType}
                   program={program}
+                  waiting={!!waitlist}
                   formId={formId}
-                  participants={eligible}
                   onResult={(next) => {
                     setOutcomes((prev) => ({ ...prev, [program.id]: next }));
                     // 접수·거절 모두 내 신청·취소 가능 여부가 바뀔 수 있어 다시 받는다
-                    queryClient.invalidateQueries({
-                      queryKey: ['myApplications', expoId],
-                    });
+                    ['myApplications', 'programParticipants'].forEach((key) =>
+                      queryClient.invalidateQueries({
+                        queryKey: [key, expoId],
+                      }),
+                    );
                   }}
                 />
               )}
@@ -275,4 +366,4 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
   });
 };
 
-export default TrainingProgramApplyContainer;
+export default ProgramApplyContainer;

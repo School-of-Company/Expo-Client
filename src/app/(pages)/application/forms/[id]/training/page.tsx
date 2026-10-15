@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { TrainingProgramApplyContainer } from '@/features/application/forms';
+import { ProgramApplyContainer } from '@/features/application/forms';
 
 export const metadata: Metadata = {
   title: '연수 신청',
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 const page = ({ params }: { params: { id: string } }) => (
   <div className="flex min-h-screen flex-col">
     <div className="flex flex-1 justify-center p-16">
-      <TrainingProgramApplyContainer expoId={params.id} />
+      <ProgramApplyContainer expoId={params.id} programType="TRAINING" />
     </div>
   </div>
 );
