@@ -10,6 +10,7 @@ import {
   createProgramForm,
   deleteProgramForm,
   getProgramForm,
+  getProgramFormList,
   updateProgramForm,
 } from '../api/programForms';
 import type {
@@ -92,21 +93,38 @@ export const useProgramFormsQuery = (formIds: string[]) =>
     })),
   });
 
-export const useCreateProgramFormMutation = (expoId: string) =>
-  useMutation({
+/** 회차에 아직 연결하지 않은 폼까지 이 행사의 프로그램용 폼 전체. 문항은 상세 조회로 읽는다 */
+export const useProgramFormListQuery = (expoId: string) =>
+  useQuery({
+    queryKey: programFormKeys.list(expoId),
+    queryFn: () => getProgramFormList(expoId),
+  });
+
+export const useCreateProgramFormMutation = (expoId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: (data: CreateProgramFormRequestDto) =>
       createProgramForm(expoId, data),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: programFormKeys.list(expoId),
+      }),
   });
+};
 
 export const useUpdateProgramFormMutation = (formId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: UpdateProgramFormRequestDto) =>
       updateProgramForm(formId, data),
+    // 목록에도 제목·대상·기간·버전이 있어 함께 갱신한다. 폼만으로는 행사를 몰라 목록 전체를 무효화한다
     onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: programFormKeys.detail(formId),
-      }),
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: programFormKeys.detail(formId),
+        }),
+        queryClient.invalidateQueries({ queryKey: programFormKeys.lists() }),
+      ]),
   });
 };
 
@@ -114,7 +132,11 @@ export const useDeleteProgramFormMutation = (formId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => deleteProgramForm(formId),
-    onSuccess: () =>
-      queryClient.removeQueries({ queryKey: programFormKeys.detail(formId) }),
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: programFormKeys.detail(formId) });
+      return queryClient.invalidateQueries({
+        queryKey: programFormKeys.lists(),
+      });
+    },
   });
 };
