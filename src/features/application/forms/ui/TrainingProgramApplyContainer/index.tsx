@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useRef, useState } from 'react';
 import { PrivacyConsent } from '@/entities/application';
 import { getProgramForm } from '@/entities/form/api/programForms';
@@ -22,6 +22,7 @@ import {
   OUTCOME_LABEL,
   ProgramApplyOutcome,
   getProgramFormId,
+  getProgramPolicyNotes,
 } from '../../model/trainingProgramApply';
 import { useMyApplications } from '../../model/useMyApplications';
 import type { TrainingProgramItem } from '@/shared/types/program/list/type';
@@ -49,9 +50,9 @@ const ProgramApplyForm = ({
     retry: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [participantId, setParticipantId] = useState(
-    participants[0]?.participantId,
-  );
+  const [selectedId, setParticipantId] = useState<number>();
+  // 참가자 목록이 폼보다 늦게 와도 첫 참가자를 기본으로 고른다
+  const participantId = selectedId ?? participants[0]?.participantId;
   // 같은 내용의 재시도(연타·네트워크 오류 뒤)는 같은 Idempotency-Key 로 보낸다
   const submissionKeys = useRef(createSubmissionKeys());
   const schema = useMemo(
@@ -143,7 +144,10 @@ const ProgramApplyForm = ({
             watch={methods.watch}
             setValue={methods.setValue}
           />
-          <Button type="submit" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            disabled={isSubmitting || participantId === undefined}
+          >
             {isSubmitting ? '신청 중...' : `${program.title} 신청하기`}
           </Button>
         </div>
@@ -167,7 +171,9 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
     retry: false,
   });
   // 서버는 세션이 소유한 확정 사전등록 참가자만 프로그램 신청을 받는다
-  const { participants, applications } = useMyApplications(expoId);
+  const queryClient = useQueryClient();
+  const { participants, applications, waitlist, errorMessage } =
+    useMyApplications(expoId);
   const eligible = participants.filter((participant) =>
     applications.some(
       (a) =>
@@ -190,6 +196,16 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
           신청할 연수마다 따로 신청합니다. 결과도 연수별로 표시됩니다.
         </p>
         {error && <p className="text-body2r text-error">{error.message}</p>}
+        {errorMessage && (
+          <p className="text-body2r text-error">{errorMessage}</p>
+        )}
+        {!errorMessage && eligible.length === 0 && (
+          <p className="break-keep text-body2r text-gray-600">
+            {waitlist
+              ? '사전등록이 대기 중입니다. 확정된 뒤에 연수를 신청할 수 있습니다.'
+              : '사전등록이 확정된 참가자만 연수를 신청할 수 있습니다. 먼저 사전등록과 본인 인증을 완료해주세요.'}
+          </p>
+        )}
         {programs?.map((program) => {
           const formId = getProgramFormId(program);
           const outcome = outcomes[program.id];
@@ -210,6 +226,17 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
                   {openId === program.id ? '닫기' : '신청'}
                 </Button>
               </div>
+              {program.policy && (
+                <ul className="flex flex-col gap-4 text-caption1r text-gray-600">
+                  {getProgramPolicyNotes(program.policy).map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                  <li className="text-gray-500">
+                    안내된 정원·기간은 참고용이며, 신청할 때 서버가 자격과 남은
+                    자리를 다시 확인합니다.
+                  </li>
+                </ul>
+              )}
               {!formId && (
                 <p className="text-caption1r text-gray-500">
                   이 연수는 아직 온라인 신청서가 연결되지 않았습니다.
@@ -231,9 +258,13 @@ const TrainingProgramApplyContainer = ({ expoId }: { expoId: string }) => {
                   program={program}
                   formId={formId}
                   participants={eligible}
-                  onResult={(next) =>
-                    setOutcomes((prev) => ({ ...prev, [program.id]: next }))
-                  }
+                  onResult={(next) => {
+                    setOutcomes((prev) => ({ ...prev, [program.id]: next }));
+                    // 접수·거절 모두 내 신청·취소 가능 여부가 바뀔 수 있어 다시 받는다
+                    queryClient.invalidateQueries({
+                      queryKey: ['myApplications', expoId],
+                    });
+                  }}
                 />
               )}
             </section>

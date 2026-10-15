@@ -23,6 +23,7 @@ import { createStandardApplicationFormatter } from '../../../lib/formatter/creat
 import {
   getApplicantLimit,
   getCompanionLimit,
+  getWaitingLimit,
   isWaitingParty,
 } from '../../model/sessionSeats';
 import { usePreRegisterCapacity } from '../../model/usePreRegister';
@@ -105,6 +106,11 @@ const PreRegisterContainer = ({
         return;
       }
       submissionKeys.current.reset();
+      // 신청 폼 모음의 내 신청·대기 현황이 이전 결과를 보여 주지 않게 한다
+      queryClient.invalidateQueries({ queryKey: ['myApplications', expoId] });
+      queryClient.invalidateQueries({
+        queryKey: ['myPreRegisterWaitlist', expoId],
+      });
       // 서버가 대기로 접수하면(202) 확정이 아니므로 성공 페이지가 대기 접수와 순번을 안내한다
       const waiting =
         result?.status === 'WAITING'
@@ -181,6 +187,8 @@ const PreRegisterContainer = ({
                 대표자를 포함해 {applicantLimit?.toLocaleString()}명까지 신청할
                 수 있습니다. 한 일행은 나뉘지 않고 모두 확정되거나 모두 대기로
                 접수됩니다.
+                {getWaitingLimit(capacity) === 0 &&
+                  ' 이 회차는 대기를 받지 않아 자리가 부족하면 신청이 거절됩니다.'}
               </p>
             )}
             <p className="text-caption1r text-gray-500">

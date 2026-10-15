@@ -16,6 +16,7 @@ import {
   OwnerParticipant,
 } from '../../api/myApplications';
 import { useMyApplications } from '../../model/useMyApplications';
+import PreRegisterWaitlist from '../PreRegisterWaitlist';
 
 const TYPE_LABEL: Record<OwnerApplicationType, string> = {
   PREREGISTER: '사전등록',
@@ -36,8 +37,10 @@ const BLOCKED_REASON_LABEL: Record<string, string> = {
   PROGRAM_CHANGE_PENDING: '프로그램 변경이 진행 중이라 취소할 수 없습니다.',
   SESSION_CHANGE_PENDING: '회차 변경이 진행 중이라 취소할 수 없습니다.',
   APPLICATION_STATE_CHANGED: '신청 상태가 바뀌었습니다. 새로고침해주세요.',
-  ACTIVE_PROGRAMS: '신청한 프로그램을 먼저 취소해야 합니다.',
-  ACTIVE_COMPANIONS: '일행의 사전등록을 먼저 취소해야 합니다.',
+  ACTIVE_PROGRAMS:
+    '이 참가자가 신청한 프로그램을 먼저 취소해야 사전등록을 취소할 수 있습니다.',
+  ACTIVE_COMPANIONS:
+    '동행자의 사전등록을 먼저 취소해주세요. 대표자는 마지막에 취소할 수 있습니다.',
 };
 
 interface QrTarget {
@@ -200,15 +203,28 @@ const QrDialog = ({
 };
 
 const MyApplicationList = ({ expoId }: { expoId: string }) => {
-  const { participants, applications, errorMessage, cancel } =
-    useMyApplications(expoId);
+  const {
+    participants,
+    applications,
+    errorMessage,
+    waitlist,
+    waitlistErrorMessage,
+    cancel,
+    cancelWaitlist,
+    isCancellingWaitlist,
+  } = useMyApplications(expoId);
   const [qrTarget, setQrTarget] = useState<QrTarget | null>(null);
   const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null);
+  const [isWaitlistCancelOpen, setIsWaitlistCancelOpen] = useState(false);
 
-  if (errorMessage) {
-    return <p className="text-body2r text-error">{errorMessage}</p>;
-  }
-  if (applications.length === 0) return null;
+  // 조회 실패를 신청 없음으로 보이지 않게 오류를 그대로 알린다
+  if (
+    applications.length === 0 &&
+    !waitlist &&
+    !errorMessage &&
+    !waitlistErrorMessage
+  )
+    return null;
 
   return (
     <section className="flex flex-col gap-12">
@@ -217,20 +233,37 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         인증한 번호로 본인을 포함하여 최대 5명까지 함께 신청할 수 있습니다.
       </p>
 
-      <ul className="flex flex-col divide-y divide-solid divide-gray-100 rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6">
-        {applications.map((application) => (
-          <ApplicationRow
-            key={`${application.type}-${application.applicationId}`}
-            application={application}
-            participant={participants.find(
-              (participant) =>
-                participant.participantId === application.participantId,
-            )}
-            onCancel={setCancelTarget}
-            onShowQr={setQrTarget}
-          />
-        ))}
-      </ul>
+      {errorMessage && <p className="text-body2r text-error">{errorMessage}</p>}
+      {waitlistErrorMessage && (
+        <p className="text-body2r text-error">
+          대기 내역: {waitlistErrorMessage}
+        </p>
+      )}
+
+      {waitlist && (
+        <PreRegisterWaitlist
+          waitlist={waitlist}
+          onCancel={() => setIsWaitlistCancelOpen(true)}
+          isCancelling={isCancellingWaitlist}
+        />
+      )}
+
+      {applications.length > 0 && (
+        <ul className="flex flex-col divide-y divide-solid divide-gray-100 rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6">
+          {applications.map((application) => (
+            <ApplicationRow
+              key={`${application.type}-${application.applicationId}`}
+              application={application}
+              participant={participants.find(
+                (participant) =>
+                  participant.participantId === application.participantId,
+              )}
+              onCancel={setCancelTarget}
+              onShowQr={setQrTarget}
+            />
+          ))}
+        </ul>
+      )}
 
       {qrTarget && (
         <QrDialog
@@ -244,7 +277,8 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         <Dialog onClose={() => setCancelTarget(null)}>
           <p className="text-h3b text-black">신청을 취소할까요?</p>
           <p className="break-keep text-center text-body2r text-gray-500">
-            {cancelTarget.title}의 신청이 취소됩니다.
+            {cancelTarget.title}의 신청이 취소됩니다. 다시 신청하면 새 신청으로
+            처리되어 지금 자리가 보장되지 않습니다.
           </p>
           <div className="flex w-full gap-8">
             <button
@@ -263,6 +297,35 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
               className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
             >
               신청 취소
+            </button>
+          </div>
+        </Dialog>
+      )}
+
+      {isWaitlistCancelOpen && (
+        <Dialog onClose={() => setIsWaitlistCancelOpen(false)}>
+          <p className="text-h3b text-black">대기 신청을 취소할까요?</p>
+          <p className="break-keep text-center text-body2r text-gray-500">
+            일행 전체의 대기가 함께 취소되고 대기 순번이 사라집니다. 다시
+            신청하면 새 신청으로 맨 뒤에 접수됩니다.
+          </p>
+          <div className="flex w-full gap-8">
+            <button
+              type="button"
+              onClick={() => setIsWaitlistCancelOpen(false)}
+              className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-body2b text-gray-700"
+            >
+              닫기
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                cancelWaitlist();
+                setIsWaitlistCancelOpen(false);
+              }}
+              className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
+            >
+              대기 취소
             </button>
           </div>
         </Dialog>
