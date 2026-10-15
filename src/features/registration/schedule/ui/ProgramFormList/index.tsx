@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { ProgramFormResponseDto, useProgramFormsQuery } from '@/entities/form';
+import {
+  ProgramFormListItemDto,
+  useProgramFormListQuery,
+} from '@/entities/form';
 import { withLoading } from '@/shared/hocs';
-import { Button, Input } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 import {
   formatDateTimeValue,
   fromOffsetDateTime,
@@ -17,28 +19,24 @@ import {
 } from '../../../common';
 import {
   FORM_PARTICIPANT_LABEL,
-  getLinkedFormIds,
   getProgramsUsingForm,
 } from '../../model/programFormLink';
 import ScheduleSection from '../ScheduleSection';
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 /**
- * 이 행사 프로그램용 폼 목록. 등록용 신청 폼·만족도 조사는 박람회 운영에서 관리한다.
- * 행사별 폼 목록 API(Expo-Form-Server#141)가 없어 회차에 연결된 폼만 보여 준다
+ * 이 행사 프로그램용 폼 전체 목록(Expo-Form-Server#141). 회차에 아직 연결하지 않은 폼도 보인다.
+ * 등록용 신청 폼·만족도 조사는 박람회 운영에서 관리한다
  */
 const ProgramFormList = () => {
   const router = useRouter();
   const { expoId, routes } = useRegistrationExpo();
   const programsQuery = useSchedulePrograms(expoId);
   const programs = programsQuery.data ?? [];
-  const results = useProgramFormsQuery(getLinkedFormIds(programs));
-  const forms = results.flatMap(({ data }) => (data ? [data] : []));
-  const [idInput, setIdInput] = useState('');
+  const formsQuery = useProgramFormListQuery(expoId);
+  const forms = formsQuery.data ?? [];
+  const error = programsQuery.error ?? formsQuery.error;
 
-  const columns: TableColumn<ProgramFormResponseDto>[] = [
+  const columns: TableColumn<ProgramFormListItemDto>[] = [
     {
       key: 'title',
       label: '폼 제목',
@@ -62,22 +60,25 @@ const ProgramFormList = () => {
         `${formatDateTimeValue(fromOffsetDateTime(startDate))} ~ ${formatDateTimeValue(fromOffsetDateTime(endDate))}`,
     },
     {
-      key: 'questions',
-      label: '질문',
+      key: 'version',
+      label: '버전',
       flex: 0.4,
-      render: ({ dynamicForm }) => dynamicForm.length,
+      render: ({ version }) => version,
     },
     {
       key: 'sessions',
       label: '연결 회차',
       flex: 1.8,
-      render: ({ id }) => (
-        <p className="truncate">
-          {getProgramsUsingForm(programs, id)
-            .map(({ title }) => title)
-            .join(', ')}
-        </p>
-      ),
+      render: ({ id }) => {
+        const linked = getProgramsUsingForm(programs, id);
+        return linked.length ? (
+          <p className="truncate">
+            {linked.map(({ title }) => title).join(', ')}
+          </p>
+        ) : (
+          <p className="text-gray-400">연결 전</p>
+        );
+      },
     },
     {
       key: 'actions',
@@ -95,13 +96,17 @@ const ProgramFormList = () => {
   ];
 
   return withLoading({
-    isLoading: programsQuery.isLoading || results.some((r) => r.isLoading),
+    isLoading: programsQuery.isLoading || formsQuery.isLoading,
     children: (
       <div className="w-full max-w-[1200px] space-y-[30px] pb-[120px]">
-        {programsQuery.error ? (
+        {error ? (
+          // 목록 조회 실패를 폼이 없는 것처럼 보이지 않게 따로 알린다
           <SectionError
-            message={programsQuery.error.message}
-            onRetry={() => void programsQuery.refetch()}
+            message={error.message}
+            onRetry={() => {
+              void programsQuery.refetch();
+              void formsQuery.refetch();
+            }}
           />
         ) : (
           <ScheduleSection
@@ -110,8 +115,8 @@ const ProgramFormList = () => {
           >
             <div className="flex items-center justify-between gap-16 mobile:flex-col mobile:items-stretch">
               <p className="text-caption1r text-gray-500">
-                회차에 연결된 폼만 보입니다. 연결 전인 폼은 편집 화면 주소의 ID
-                로 열 수 있습니다.
+                폼을 먼저 만들어 두고, 일정·모집의 프로그램 회차에서 제목으로
+                골라 연결할 수 있습니다.
               </p>
               <div className="w-[200px] shrink-0 mobile:w-full">
                 <Button onClick={() => router.push(routes.programFormNew)}>
@@ -122,31 +127,12 @@ const ProgramFormList = () => {
             <RegistrationTable
               columns={columns}
               rows={forms}
-              emptyText="회차에 연결된 프로그램용 폼이 없습니다."
+              emptyText="아직 만든 프로그램용 폼이 없습니다."
               footerText="프로그램용 폼"
               footerCount={forms.length}
               minWidth="900px"
               maxHeight="none"
             />
-            <div className="flex max-w-[480px] gap-8">
-              <Input
-                size="small"
-                aria-label="폼 ID로 열기"
-                placeholder="폼 ID"
-                value={idInput}
-                onChange={(e) => setIdInput(e.target.value)}
-              />
-              <button
-                type="button"
-                className="shrink-0 rounded-sm border-1 border-solid border-gray-200 px-16 text-caption1b text-gray-500 duration-200 hover:border-main-600 hover:text-main-600 disabled:opacity-40"
-                disabled={!UUID_PATTERN.test(idInput.trim())}
-                onClick={() =>
-                  router.push(routes.programForm(idInput.trim().toLowerCase()))
-                }
-              >
-                열기
-              </button>
-            </div>
           </ScheduleSection>
         )}
       </div>
