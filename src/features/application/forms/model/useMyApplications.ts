@@ -6,6 +6,8 @@ import { getErrorStatus } from '@/shared/libs/http/apiError';
 import {
   OwnerApplicationType,
   cancelMyApplication,
+  cancelPreRegisterWaitlist,
+  getPreRegisterWaitlist,
   getMyApplications,
 } from '../api/myApplications';
 
@@ -38,7 +40,30 @@ export const useMyApplications = (expoId: string) => {
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
 
+  const waitlistKey = ['preRegisterWaitlist', expoId];
+  const { data: waitlist, error: waitlistError } = useQuery({
+    queryKey: waitlistKey,
+    queryFn: () => getPreRegisterWaitlist(expoId),
+    retry: false,
+    meta: { silent: true },
+  });
+
+  const { mutate: cancelWaitlist, isPending: isCancellingWaitlist } =
+    useMutation({
+      mutationFn: () => cancelPreRegisterWaitlist(expoId, waitlist?.csrfToken),
+      onSuccess: () => toast.success('대기 신청이 취소되었습니다.'),
+      onError: (error: Error) => toast.error(error.message),
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: waitlistKey });
+        queryClient.invalidateQueries({ queryKey });
+      },
+    });
+
   return {
+    waitlist,
+    waitlistErrorMessage: waitlistError?.message,
+    cancelWaitlist,
+    isCancellingWaitlist,
     participants: data?.participants ?? [],
     applications: data?.applications ?? [],
     // 401(인증 전)은 정상 흐름이라 오류로 보지 않는다

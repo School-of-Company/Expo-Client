@@ -107,6 +107,57 @@ export const cancelMyApplication = async (
   }
 };
 
+export interface PreRegisterWaitlist {
+  sessionId: number;
+  applicants: number;
+  // WAITING 외에 승급 처리 중 상태가 올 수 있어 문자열로 받는다
+  status: string;
+  position: number;
+  // 응답 헤더 X-CSRF-TOKEN. 대기 취소 요청 헤더에 그대로 싣는다
+  csrfToken?: string;
+}
+
+// 대기 일행이 없으면(404) null. 참가자 세션이 없을 때(401)도 정상 흐름이라 null
+export const getPreRegisterWaitlist = async (
+  expoId: string,
+): Promise<PreRegisterWaitlist | null> => {
+  try {
+    const { data, headers } = await clientInstance.get<PreRegisterWaitlist>(
+      `/application/expos/${expoId}/my-applications/preregister-waitlist`,
+    );
+    return { ...data, csrfToken: headers['x-csrf-token'] };
+  } catch (error) {
+    const status = getErrorStatus(error);
+    if (status === 401 || status === 404) return null;
+    throw toError(error, COMMON_ERRORS, '대기 내역을 불러오지 못했습니다.');
+  }
+};
+
+// 대기 일행 전체를 취소한다. 취소한 대기의 Idempotency-Key 로는 다시 신청할 수 없다
+export const cancelPreRegisterWaitlist = async (
+  expoId: string,
+  csrfToken?: string,
+) => {
+  try {
+    await clientInstance.post(
+      `/application/expos/${expoId}/my-applications/preregister-waitlist/cancellation`,
+      undefined,
+      { headers: { 'X-CSRF-TOKEN': csrfToken } },
+    );
+  } catch (error) {
+    throw toError(
+      error,
+      {
+        ...COMMON_ERRORS,
+        403: '요청을 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.',
+        404: '취소할 대기 신청을 찾을 수 없습니다.',
+        409: '대기에서 확정으로 처리 중이거나 삭제된 행사라 취소할 수 없습니다. 잠시 후 다시 확인해주세요.',
+      },
+      '대기 취소에 실패했습니다.',
+    );
+  }
+};
+
 // 대표자가 소유한 확정 참가자의 입장 QR 값. 현장 체크인 스캐너는 { participantId, code } 를 읽는다
 export const getParticipantQr = async (
   expoId: string,

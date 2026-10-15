@@ -14,6 +14,7 @@ import {
   OwnerApplication,
   OwnerApplicationType,
   OwnerParticipant,
+  PreRegisterWaitlist,
 } from '../../api/myApplications';
 import { useMyApplications } from '../../model/useMyApplications';
 
@@ -69,6 +70,7 @@ const ApplicationRow = ({
     cancellable,
     cancellationBlockedReason,
   } = application;
+  const reasonId = `cancel-blocked-${type}-${applicationId}`;
   const title = [participant?.name, TYPE_LABEL[type]]
     .filter(Boolean)
     .join(' · ');
@@ -111,12 +113,21 @@ const ApplicationRow = ({
             신청취소
           </button>
         ) : (
-          cancellationBlockedReason && (
-            <p className="text-caption1r text-gray-500">
+          <>
+            <button
+              type="button"
+              disabled
+              aria-describedby={reasonId}
+              className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 px-16 py-8 text-caption1b text-gray-400"
+            >
+              신청취소
+            </button>
+            <p id={reasonId} className="text-caption1r text-gray-500">
               {BLOCKED_REASON_LABEL[cancellationBlockedReason] ??
-                cancellationBlockedReason}
+                (cancellationBlockedReason ||
+                  '지금은 취소할 수 없습니다. 운영 측에 문의해주세요.')}
             </p>
-          )
+          </>
         )}
       </div>
     </li>
@@ -199,16 +210,60 @@ const QrDialog = ({
   );
 };
 
+const WAITLIST_STATUS_LABEL: Record<string, string> = {
+  WAITING: '대기 중',
+};
+
+const WaitlistCard = ({
+  waitlist,
+  onCancel,
+}: {
+  waitlist: PreRegisterWaitlist;
+  onCancel: () => void;
+}) => (
+  <div className="flex items-center justify-between gap-12 rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-12 mobile:flex-col mobile:items-stretch">
+    <div className="flex flex-col gap-4">
+      <p className="text-body2b text-black">
+        사전등록 · {WAITLIST_STATUS_LABEL[waitlist.status] ?? '승급 처리 중'}
+      </p>
+      <p className="text-body2r text-gray-500">
+        회차 {waitlist.sessionId} · {waitlist.applicants}명 · 대기 순번{' '}
+        {waitlist.position}번
+      </p>
+      <p className="text-caption1r text-gray-500">
+        자리가 나면 확정되며 그때 QR이 발송됩니다. 대기 중에는 QR이 없습니다.
+      </p>
+    </div>
+    <button
+      type="button"
+      onClick={onCancel}
+      className="whitespace-nowrap rounded-sm border-1 border-solid border-error px-16 py-8 text-caption1b text-error"
+    >
+      대기 전체 취소
+    </button>
+  </div>
+);
+
 const MyApplicationList = ({ expoId }: { expoId: string }) => {
-  const { participants, applications, errorMessage, cancel } =
-    useMyApplications(expoId);
+  const {
+    participants,
+    applications,
+    errorMessage,
+    cancel,
+    waitlist,
+    waitlistErrorMessage,
+    cancelWaitlist,
+    isCancellingWaitlist,
+  } = useMyApplications(expoId);
+  const [confirmWaitlist, setConfirmWaitlist] = useState(false);
   const [qrTarget, setQrTarget] = useState<QrTarget | null>(null);
   const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null);
 
   if (errorMessage) {
     return <p className="text-body2r text-error">{errorMessage}</p>;
   }
-  if (applications.length === 0) return null;
+  if (applications.length === 0 && !waitlist && !waitlistErrorMessage)
+    return null;
 
   return (
     <section className="flex flex-col gap-12">
@@ -217,20 +272,32 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         인증한 번호로 본인을 포함하여 최대 5명까지 함께 신청할 수 있습니다.
       </p>
 
-      <ul className="flex flex-col divide-y divide-solid divide-gray-100 rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6">
-        {applications.map((application) => (
-          <ApplicationRow
-            key={`${application.type}-${application.applicationId}`}
-            application={application}
-            participant={participants.find(
-              (participant) =>
-                participant.participantId === application.participantId,
-            )}
-            onCancel={setCancelTarget}
-            onShowQr={setQrTarget}
-          />
-        ))}
-      </ul>
+      {waitlistErrorMessage && (
+        <p className="text-body2r text-error">{waitlistErrorMessage}</p>
+      )}
+      {waitlist && (
+        <WaitlistCard
+          waitlist={waitlist}
+          onCancel={() => setConfirmWaitlist(true)}
+        />
+      )}
+
+      {applications.length > 0 && (
+        <ul className="flex flex-col divide-y divide-solid divide-gray-100 rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6">
+          {applications.map((application) => (
+            <ApplicationRow
+              key={`${application.type}-${application.applicationId}`}
+              application={application}
+              participant={participants.find(
+                (participant) =>
+                  participant.participantId === application.participantId,
+              )}
+              onCancel={setCancelTarget}
+              onShowQr={setQrTarget}
+            />
+          ))}
+        </ul>
+      )}
 
       {qrTarget && (
         <QrDialog
@@ -238,6 +305,35 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
           target={qrTarget}
           onClose={() => setQrTarget(null)}
         />
+      )}
+
+      {confirmWaitlist && (
+        <Dialog onClose={() => setConfirmWaitlist(false)}>
+          <p className="text-h3b text-black">대기를 모두 취소할까요?</p>
+          <p className="break-keep text-center text-body2r text-gray-500">
+            함께 신청한 일행 전체의 대기가 취소되며, 일부만 취소할 수 없습니다.
+          </p>
+          <div className="flex w-full gap-8">
+            <button
+              type="button"
+              onClick={() => setConfirmWaitlist(false)}
+              className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-body2b text-gray-700"
+            >
+              닫기
+            </button>
+            <button
+              type="button"
+              disabled={isCancellingWaitlist}
+              onClick={() => {
+                cancelWaitlist();
+                setConfirmWaitlist(false);
+              }}
+              className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white disabled:opacity-50"
+            >
+              대기 전체 취소
+            </button>
+          </div>
+        </Dialog>
       )}
 
       {cancelTarget && (
