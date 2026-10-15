@@ -75,13 +75,20 @@ const PreRegisterContainer = ({
       return;
     }
 
+    // 서버는 일반 사전등록의 회차 ID를 양수 숫자로 필수로 받는다
+    const session = Number(sessionId);
+    if (!Number.isInteger(session) || session <= 0) {
+      toast.error('신청할 회차를 선택해주세요');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const formatted = createStandardApplicationFormatter(
         questions,
         'PRE',
       )(data as DynamicFormValues & { privacyConsent: boolean });
-      const payload = { ...formatted, ...(sessionId && { sessionId }) };
+      const payload = { ...formatted, sessionId: session };
       const result: ApplicationWaitResult | undefined = await postApplication(
         expoId,
         'application',
