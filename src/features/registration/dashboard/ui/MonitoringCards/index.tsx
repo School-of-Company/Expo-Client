@@ -1,0 +1,69 @@
+import { StatCard } from '../../../common';
+import { useActiveQrSummary } from '../../model/activeQr';
+import { useApplicationPageViews } from '../../model/applicationPageViews';
+
+interface MonitoringCardsProps {
+  expoId: string;
+  /** 회차를 불러오지 못하면 null */
+  openSessionCount: number | null;
+  closedSessionCount: number | null;
+}
+
+/** 신청화면 접속량과 지금 열린 회차·QR. 대시보드 오른쪽 좁은 열에 세로로 쌓는다 */
+const MonitoringCards = ({
+  expoId,
+  openSessionCount,
+  closedSessionCount,
+}: MonitoringCardsProps) => {
+  const { data: pageViews, isError: isPageViewsError } =
+    useApplicationPageViews(expoId);
+  const { data: activeQr, isError: isActiveQrError } =
+    useActiveQrSummary(expoId);
+  // 불러오지 못하면 '-' 로 두고 이유는 보조 문구로 알린다
+  const formatCount = (value?: number) => value?.toLocaleString() ?? '-';
+  const pageViewsError = isPageViewsError && !pageViews;
+
+  return (
+    <div className="grid grid-cols-1 gap-12 mobile:!grid-cols-1 tablet:grid-cols-2">
+      <StatCard
+        label="모집 중 회차"
+        value={openSessionCount?.toLocaleString() ?? '-'}
+        unit="개"
+        sub={`마감 ${closedSessionCount?.toLocaleString() ?? '-'}개`}
+        emphasis
+      />
+      <StatCard
+        label="오늘 신청화면 조회 (PV)"
+        value={formatCount(pageViews?.today.pageViews)}
+        unit="회"
+        sub={
+          pageViewsError
+            ? '조회 수를 불러오지 못했습니다.'
+            : `고유 방문(참고) ${formatCount(pageViews?.today.uniqueVisitors)}명 (UV)`
+        }
+      />
+      <StatCard
+        label="누적 신청화면 조회"
+        value={formatCount(pageViews?.totalPageViews)}
+        unit="회"
+        sub={
+          pageViewsError
+            ? '조회 수를 불러오지 못했습니다.'
+            : `일별 UV 누적 ${formatCount(pageViews?.totalDailyVisitors)}명`
+        }
+      />
+      <StatCard
+        label="활성 QR"
+        value={formatCount(activeQr?.active)}
+        unit="개"
+        sub={
+          isActiveQrError && !activeQr
+            ? '발급 현황을 불러오지 못했습니다.'
+            : `인쇄 QR 중 사용 중 · 중지 ${formatCount(activeQr?.revoked)}개`
+        }
+      />
+    </div>
+  );
+};
+
+export default MonitoringCards;

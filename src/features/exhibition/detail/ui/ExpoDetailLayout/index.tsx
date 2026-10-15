@@ -7,7 +7,7 @@ import {
   KaKaoMap,
   ShowLocation,
 } from '@/entities/exhibition';
-import TestExpo from '@/shared/assets/png/TestExpo.png';
+import DefaultExpo from '@/shared/assets/png/DefaultExpo.png';
 import { Share } from '@/shared/assets/svg';
 import { isValidSrc } from '@/shared/model';
 import {
@@ -33,9 +33,10 @@ const ExpoDetailLayout = ({
 }) => {
   const date = `${expoDetail?.startedDay} ~ ${expoDetail?.finishedDay}`;
 
-  const safeSrc = isValidSrc(expoDetail.coverImage)
-    ? expoDetail.coverImage
-    : TestExpo;
+  const safeSrc =
+    expoDetail.coverImage && isValidSrc(expoDetail.coverImage)
+      ? expoDetail.coverImage
+      : DefaultExpo;
 
   return (
     <div className="flex w-full flex-col space-y-48">
@@ -93,11 +94,14 @@ const ExpoDetailLayout = ({
 
           <div className="space-y-14">
             <ShowLocation
-              latitude={expoDetail?.y}
-              longitude={expoDetail?.x}
+              latitude={Number(expoDetail?.y)}
+              longitude={Number(expoDetail?.x)}
               detailAddress={expoDetail.location}
             />
-            <KaKaoMap latitude={expoDetail?.y} longitude={expoDetail?.x} />
+            <KaKaoMap
+              latitude={Number(expoDetail?.y)}
+              longitude={Number(expoDetail?.x)}
+            />
           </div>
         </div>
       </div>

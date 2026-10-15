@@ -1,24 +1,25 @@
 import axios from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
+import { getScanErrorMessage } from '@/shared/libs/http/getScanErrorMessage';
 import { PatchStandardProgramData } from '@/shared/types/program/detail/type';
 
 export const patchStandardAttendance = async ({
+  expoId,
   programId,
   participantId,
-  phoneNumber,
-}: PatchStandardProgramData) => {
+  code,
+}: PatchStandardProgramData): Promise<void> => {
   try {
-    const response = await clientTokenInstance.patch(
-      `/attendance/standard/${programId}`,
-      {
-        participantId,
-        phoneNumber,
-      },
+    await clientTokenInstance.patch(
+      `/attendance/standard/${encodeURIComponent(programId)}`,
+      // code가 없으면 키 자체를 빼고 보낸다
+      code === undefined
+        ? { expoId, participantId }
+        : { expoId, participantId, code },
     );
-    return response;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || 'QR코드 스캔 실패');
+    if (axios.isAxiosError(error)) {
+      throw new Error(getScanErrorMessage(error, 'QR코드 스캔 실패'));
     }
     throw error;
   }

@@ -1,12 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { ExhibitionForm } from '@/features/exhibition/common';
 import {
   formatDateTime,
+  hasPendingProgramChange,
+  ProgramChangeRetryNotice,
   useEditExhibitionMutation,
   useExpoData,
 } from '@/features/exhibition/edit';
 import { withLoading } from '@/shared/hocs';
+import { QueryError } from '@/shared/ui';
 import { Header } from '@/widgets/layout';
 
 const EditExhibition = ({ id }: { id: string }) => {
@@ -16,11 +20,15 @@ const EditExhibition = ({ id }: { id: string }) => {
     expoStandardQuery,
     expoTrainingQuery,
     isLoading,
+    isError,
+    refetchFailed,
   } = useExpoData(id);
+  // 변경 재시도 뒤 최신 revision으로 폼을 다시 채우기 위해 key를 바꾼다
+  const [formKey, setFormKey] = useState(0);
 
-  const expoDetail = expoDetailQuery.data!;
-  const geoQueryData = geoQuery.data!;
-  const expoStandard = expoStandardQuery.data!;
+  const expoDetail = expoDetailQuery.data;
+  const geoQueryData = geoQuery.data;
+  const expoStandard = expoStandardQuery.data;
 
   const expoTrainingData = expoTrainingQuery.data || [];
   const expoTraining = {
@@ -41,6 +49,7 @@ const EditExhibition = ({ id }: { id: string }) => {
       ...(expoTraining?.choice ?? []),
     ].map((training) => ({
       id: training.id,
+      revision: training.revision,
       title: training.title,
       startedAt: formatDateTime(training.startedAt),
       endedAt: formatDateTime(training.endedAt),
@@ -48,6 +57,7 @@ const EditExhibition = ({ id }: { id: string }) => {
     })),
     standard: (expoStandard ?? []).map((std) => ({
       id: std.id,
+      revision: std.revision,
       title: std.title,
       startedAt: formatDateTime(std.startedAt),
       endedAt: formatDateTime(std.endedAt),
@@ -56,14 +66,33 @@ const EditExhibition = ({ id }: { id: string }) => {
 
   const { mutate, isPending, isSuccess } = useEditExhibitionMutation(id);
 
+  const hasPendingChange = hasPendingProgramChange([
+    ...(expoStandard ?? []),
+    ...expoTrainingData,
+  ]);
+
   return (
     <div className="flex min-h-screen flex-col gap-[30px]">
       <Header />
       {withLoading({
         isLoading,
-        children: (
-          <div className="flex flex-1 justify-center overflow-hidden p-16">
+        children: isError ? (
+          <QueryError
+            message="박람회 정보를 불러오지 못했습니다. 일부 정보 없이 저장하면 기존 프로그램이 지워질 수 있어 수정 화면을 열지 않았습니다."
+            onRetry={refetchFailed}
+          />
+        ) : (
+          <div className="flex flex-1 flex-col items-center gap-16 overflow-hidden p-16">
+            {hasPendingChange && (
+              <div className="w-full max-w-[816px]">
+                <ProgramChangeRetryNotice
+                  id={id}
+                  onRetried={() => setFormKey((key) => key + 1)}
+                />
+              </div>
+            )}
             <ExhibitionForm
+              key={formKey}
               defaultValues={defaultValues}
               mutation={{ mutate, isPending, isSuccess }}
             />

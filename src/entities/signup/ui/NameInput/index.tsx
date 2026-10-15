@@ -11,7 +11,10 @@ const NameInput = ({ register, errors }: NameInputProps) => (
   <div className="space-y-8">
     <p className="text-h3b text-black">이름</p>
     <Input
-      {...register('name', { required: '이름을 입력해주세요.' })}
+      {...register('name', {
+        required: '이름을 입력해주세요.',
+        maxLength: { value: 10, message: '이름은 10자 이하로 입력해주세요.' },
+      })}
       type="text"
       placeholder="이름을 입력해주세요."
       error={!!errors.name}

@@ -2,7 +2,6 @@ import { Control, UseFormSetValue } from 'react-hook-form';
 import { Square } from '@/shared/assets/svg';
 import { FormValues, OptionProps } from '@/shared/types/form/create/type';
 import OptionItem from '../OptionItem';
-import OtherOption from '../OtherOptionProps';
 
 interface CheckBoxOptionProps extends OptionProps {
   setValue: UseFormSetValue<FormValues>;
@@ -14,7 +13,6 @@ const CheckBoxOption = ({
   remove,
   register,
   index,
-  isCheckBox,
   setValue,
   control,
 }: CheckBoxOptionProps) => {
@@ -34,7 +32,6 @@ const CheckBoxOption = ({
           control={control}
         />
       ))}
-      {isCheckBox ? <OtherOption text="기타" /> : null}
     </div>
   );
 };

@@ -1,4 +1,6 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { normalizeExpoId } from '@/shared/config';
 import { ExhibitionCheckInPage } from '@/views/exhibition/check-in';
 
 export const metadata: Metadata = {
@@ -8,7 +10,11 @@ export const metadata: Metadata = {
 };
 
 const page = ({ params }: { params: { expo_id: string } }) => {
-  return <ExhibitionCheckInPage id={params.expo_id} />;
+  // 출석 서버는 expoId를 소문자로 맞추지 않고 박람회 ID 비교가 대소문자를 가려 대문자면 404가 난다.
+  // UUID는 소문자로 맞추고, 숫자 ID는 관리 화면과 같이 그대로 받는다
+  const expoId = normalizeExpoId(params.expo_id);
+  if (!expoId) notFound();
+  return <ExhibitionCheckInPage id={expoId} />;
 };
 
 export default page;

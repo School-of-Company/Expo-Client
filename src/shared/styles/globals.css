@@ -132,6 +132,7 @@ button {
 
 html {
   font-family: 'Pretendard';
+  scrollbar-gutter: stable;
 }
 body {
   background-color: #fff;

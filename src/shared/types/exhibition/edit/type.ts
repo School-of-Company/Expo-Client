@@ -1,10 +1,16 @@
 import {
-  UseFieldArrayReturn,
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from 'react-hook-form';
-import { ExhibitionFormData } from '../type';
+  ProgramPolicy,
+  StandardProgramRequest,
+  TrainingProgramRequest,
+} from '../../program/list/type';
+
+// 박람회 수정은 프로그램 전체를 교체한다. id가 null이면 새 프로그램이고,
+// 기존 프로그램은 조회한 revision을 돌려보낸다 (ExpoUpdate*ProgramRequest)
+interface ExpoUpdateProgramRef {
+  id: number | null;
+  revision: number | null;
+  policy: ProgramPolicy | null;
+}
 
 export interface AddressResponse {
   meta: {
@@ -43,69 +49,10 @@ export interface EditExhibitionData {
   finishedDay: string;
   location: string;
   coverImage: string;
-  x: number;
-  y: number;
-  updateStandardProRequestDto: {
-    title: string;
-    startedAt: string;
-    endedAt: string;
-  }[];
-  updateTrainingProRequestDto: {
-    title: string;
-    startedAt: string;
-    endedAt: string;
-    category: 'ESSENTIAL' | 'CHOICE';
-  }[];
-}
-
-export interface FieldArrayProps {
-  fields: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['fields'];
-  append: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['append'];
-  remove: UseFieldArrayReturn<
-    ExhibitionFormData,
-    'trainings' | 'standard',
-    'id'
-  >['remove'];
-  register: UseFormRegister<ExhibitionFormData>;
-  setValue: UseFormSetValue<ExhibitionFormData>;
-  watch: UseFormWatch<ExhibitionFormData>;
-  fieldName: 'trainings' | 'standard';
-}
-
-export interface ModalProps {
-  setModal: (value: boolean) => void;
-  setValue: UseFormSetValue<ExhibitionFormData>;
-  watch: UseFormWatch<ExhibitionFormData>;
-  index: number;
-  fieldName: 'trainings' | 'standard';
-}
-
-export interface EditExhibitionData {
-  title: string;
-  description: string;
-  startedDay: string;
-  finishedDay: string;
-  location: string;
-  coverImage: string;
-  x: number;
-  y: number;
-  updateStandardProRequestDto: {
-    title: string;
-    startedAt: string;
-    endedAt: string;
-  }[];
-  updateTrainingProRequestDto: {
-    title: string;
-    startedAt: string;
-    endedAt: string;
-    category: 'ESSENTIAL' | 'CHOICE';
-  }[];
+  x: string;
+  y: string;
+  updateStandardProRequestDto: (StandardProgramRequest &
+    ExpoUpdateProgramRef)[];
+  updateTrainingProRequestDto: (TrainingProgramRequest &
+    ExpoUpdateProgramRef)[];
 }

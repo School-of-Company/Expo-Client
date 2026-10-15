@@ -1,8 +1,27 @@
+## EXPO
+
+<img width="5760" height="3240" alt="image" src="https://github.com/user-attachments/assets/95a43eb9-ae53-4dd6-b63a-f5fc7ad34fce" />
+
+광주광역시 교육청 외주 프로젝트로, 교육 행사·축전의 디지털 운영 효율화를 목표로 개발한 서비스입니다.
+- 관리자는 행사·축전을 생성하고 참가자 폼 및 만족도 조사를 동적으로 구성·배포할 수 있으며, 참가자는 문자로 전달된 QR 코드를 통해 출입을 인증하고 즉시 만족도 조사에 참여할 수 있습니다. 
+- 수집된 모든 데이터는 Excel로 자동 정리되어, 행사 운영 통계와 교육청 정책 의사결정에 활용될 수 있도록 설계했습니다.
+
 ## How to Clone?
 
 ```
  git clone https://github.com/School-of-Company/Expo-Client.git
 ```
+
+## Server Environment
+
+배포 서버(EC2) `.env`에 넣는 서버 전용 값입니다. `NEXT_PUBLIC_` 이 붙지 않아 브라우저 번들에 들어가지 않습니다.
+
+| 이름 | 값 | 설명 |
+| --- | --- | --- |
+| `BASE_URL` | Gateway 주소 | Next 서버가 부르는 Gateway. 없으면 `NEXT_PUBLIC_BASE_URL`을 씁니다. |
+| `TRUSTED_PROXY_HOPS` | Next 앞에서 `X-Forwarded-For`를 덧붙이는 프록시 수(예: nginx 하나면 `1`, CloudFront → ALB면 `2`) | 이 값이 있어야 Next 프록시가 사용자 IP를 Gateway에 넘깁니다. Gateway는 그 IP로 로그인·인증번호·문자 발송 요청 수를 제한합니다. **설정하지 않으면** IP를 넘기지 않아 모든 사용자가 Next 서버 IP 하나로 묶입니다(위조한 IP로 한도를 피하지 못하게 하기 위한 기본값). 앞단 구성이 바뀌면 함께 바꿔야 합니다. |
+
+헤더의 **미래교육박람회** 메뉴는 `NEXT_PUBLIC_FUTURE_EDU_EXPO_ID`(박람회 UUID)를 넣으면 그 박람회 대시보드로 바로 가고, 없으면 제목에 '미래교육박람회'가 들어간 박람회를 찾아 들어갑니다. 행사가 끝나면 `src/entities/layout/Header/model/navigationItems.ts`에서 메뉴 한 줄을 지웁니다.
 
 ## Contributing
 

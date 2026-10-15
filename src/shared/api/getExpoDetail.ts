@@ -1,15 +1,14 @@
-import axios from 'axios';
+import { toApiError } from '../libs/http/apiError';
 import clientTokenInstance from '../libs/http/clientTokenInstance';
 import { ExpoDetail } from '../types/exhibition/detail/type';
 
 export const getExpoDetail = async (id: string): Promise<ExpoDetail> => {
   try {
-    const response = await clientTokenInstance.get(`/expo/${id}`);
+    const response = await clientTokenInstance.get(
+      `/expo/${encodeURIComponent(id)}`,
+    );
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.error || '박람회 상세 불러오기 실패');
-    }
-    throw error;
+    throw toApiError(error, '박람회 상세 불러오기 실패');
   }
 };

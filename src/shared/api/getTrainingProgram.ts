@@ -1,17 +1,27 @@
-import axios from 'axios';
+import { AxiosInstance } from 'axios';
+import { toApiError } from '../libs/http/apiError';
 import clientInstance from '../libs/http/clientInstance';
-import { Program } from '../types/program/list/type';
+import clientTokenInstance from '../libs/http/clientTokenInstance';
+import { TrainingProgramItem } from '../types/program/list/type';
 
-export const getTrainingProgram = async (id: string): Promise<Program[]> => {
+const fetchTrainingProgram = async (
+  instance: AxiosInstance,
+  id: string,
+): Promise<TrainingProgramItem[]> => {
   try {
-    const response = await clientInstance.get(`/training/program/${id}`);
+    const response = await instance.get(
+      `/training/program/${encodeURIComponent(id)}`,
+    );
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(
-        error.response.data.error || '연수 프로그램 불러오기 실패',
-      );
-    }
-    throw error;
+    throw toApiError(error, '연수 프로그램 불러오기 실패');
   }
 };
+
+/** 참가자 신청 폼처럼 로그인 없이 쓰는 화면용 */
+export const getTrainingProgram = (id: string) =>
+  fetchTrainingProgram(clientInstance, id);
+
+/** 관리자 화면용. 관리자 토큰을 붙여 보낸다 */
+export const getAdminTrainingProgram = (id: string) =>
+  fetchTrainingProgram(clientTokenInstance, id);

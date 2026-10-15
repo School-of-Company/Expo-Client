@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { postSendSms } from '../api/postSendSms';
+import { postSendSms } from '@/shared/api';
 
 export const useSendSms = (
   setTimer: React.Dispatch<React.SetStateAction<number>>,

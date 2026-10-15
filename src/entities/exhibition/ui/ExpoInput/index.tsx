@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import { XMark } from '@/shared/assets/icons';
+import {
+  DATE_TIME_PATTERN,
+  isDateTimeRangeInvalid,
+  isProgramTitleTooLong,
+  PROGRAM_TITLE_MAX_LENGTH,
+} from '@/shared/config/validation';
 import { FieldArrayProps } from '@/shared/types/exhibition/type';
 import { AddItemButton } from '@/shared/ui';
 import Modal from '../Modal';
@@ -21,13 +27,21 @@ const ExpoInput = ({
     setModal(true);
   };
 
+  const items = watch(fieldName);
+
   const handleRemove = (index: number) => {
+    // 박람회 수정은 목록 전체 교체라 저장된 프로그램을 빼면 서버에서 삭제된다
+    if (
+      items[index]?.id != null &&
+      !window.confirm(
+        `'${items[index].title}' 프로그램을 목록에서 뺄까요?\n저장하면 이 프로그램이 삭제됩니다. 신청 이력이 있는 프로그램은 삭제할 수 없습니다.`,
+      )
+    )
+      return;
     remove(index);
     setSelectedIndex(null);
     setModal(false);
   };
-
-  const items = watch(fieldName);
 
   return (
     <div className="relative flex flex-col gap-[20px]">
@@ -55,6 +69,9 @@ const ExpoInput = ({
                   <input
                     {...register(`${fieldName}.${index}.title`, {
                       required: '연수를 입력해주세요',
+                      validate: (title) =>
+                        !isProgramTitleTooLong(title) ||
+                        `프로그램명은 ${PROGRAM_TITLE_MAX_LENGTH}자 이하로 입력해주세요.`,
                     })}
                     placeholder="연수를 입력해주세요"
                     className="text-body4 w-full overflow-hidden overflow-ellipsis whitespace-nowrap bg-transparent text-gray-500"
@@ -68,22 +85,19 @@ const ExpoInput = ({
                   type="hidden"
                   {...register(`${fieldName}.${index}.startedAt`, {
                     required: '연수 시작 일과 시간을 입력해주세요.',
-                    pattern: {
-                      value:
-                        /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) ([01]\d|2[0-3]):([0-5]\d)$/,
-                      message: 'yyyy-mm-dd HH:mm 형식으로 입력해주세요',
-                    },
+                    pattern: DATE_TIME_PATTERN,
                   })}
                 />
                 <input
                   type="hidden"
                   {...register(`${fieldName}.${index}.endedAt`, {
                     required: '연수 종료 일과 시간을 입력해주세요.',
-                    pattern: {
-                      value:
-                        /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) ([01]\d|2[0-3]):([0-5]\d)$/,
-                      message: 'yyyy-mm-dd HH:mm 형식으로 입력해주세요',
-                    },
+                    pattern: DATE_TIME_PATTERN,
+                    validate: (endedAt, formValues) =>
+                      !isDateTimeRangeInvalid(
+                        formValues[fieldName][index]?.startedAt ?? '',
+                        endedAt,
+                      ) || '프로그램 종료 일시는 시작 일시보다 늦어야 합니다.',
                   })}
                 />
               </div>

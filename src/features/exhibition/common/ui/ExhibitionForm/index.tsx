@@ -7,6 +7,7 @@ import { ImageInput } from '@/entities/exhibition';
 import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
 import { useAddressSearch } from '@/features/exhibition/common/hooks/useAddressSearch';
 import { Location } from '@/shared/assets/icons';
+import { COLORS } from '@/shared/config';
 import { handleFormErrors } from '@/shared/model';
 import { showError } from '@/shared/model';
 import {
@@ -162,7 +163,7 @@ const ExhibitionForm = ({
             })}
             type="text"
             placeholder="장소를 입력해주세요."
-            icon={<Location fill="#909090" />}
+            icon={<Location fill={COLORS.gray500} />}
             onClick={openAddressSearch}
             readOnly
           />

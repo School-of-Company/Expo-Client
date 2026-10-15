@@ -12,7 +12,7 @@ import { withLoading } from '@/shared/hocs';
 import { TableForm } from '@/shared/ui/Table';
 
 const AdminPageWrapper = () => {
-  const { expoListData, requestSignUpData, requestAdminData, isLoading } =
+  const { expoListData, page, requestSignUpData, requestAdminData, isLoading } =
     useAdminData();
   const { approveSignup, rejectSignup } = useCheckActions();
   const { deleteExpo } = useDeleteActions();
@@ -22,12 +22,22 @@ const AdminPageWrapper = () => {
     DeleteBadge: rejectSignup,
   };
 
-  const deleteExpoActions = {
-    DeleteBadge: deleteExpo,
-  };
-
   const expoList =
-    expoListData?.map(({ coverImage: _coverImage, ...rest }) => rest) || [];
+    expoListData?.content.map(({ coverImage: _coverImage, ...rest }) => rest) ||
+    [];
+
+  // 박람회 삭제는 되돌릴 수 없어 한 번 더 확인한다
+  const deleteExpoActions = {
+    DeleteBadge: (id: string) => {
+      const title = expoList.find((expo) => expo.id === id)?.title;
+      const target = title ? `'${title}' 박람회` : '선택한 박람회';
+      if (
+        window.confirm(`${target}를 삭제할까요?\n삭제하면 되돌릴 수 없습니다.`)
+      ) {
+        deleteExpo(id);
+      }
+    },
+  };
   const requestSignUp = requestSignUpData?.data || [];
   const requestAdmin = requestAdminData?.data;
 
@@ -52,6 +62,10 @@ const AdminPageWrapper = () => {
           <div className="space-y-[26px]">
             <p className="text-h2b text-black">등록된 박람회</p>
             <TableForm
+              key={page}
+              id="expo-list"
+              totalPage={expoListData?.totalPages}
+              totalCount={expoListData?.totalElements}
               categories={expoListCategories}
               data={expoList}
               maxHeight="414px"

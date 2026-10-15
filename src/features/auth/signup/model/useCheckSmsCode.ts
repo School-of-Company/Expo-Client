@@ -1,20 +1,24 @@
-import { useQuery } from '@tanstack/react-query';
-import { getCheckSmsCode } from '../api/getCheckSmsCode';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
+import { getCheckSmsCode } from '@/shared/api';
 
 export const useCheckSmsCode = (
-  phoneNumber: string,
-  code: string,
   setIsSmsVerified: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
-  return useQuery({
-    queryKey: ['CheckSmsCode', phoneNumber, code],
-    queryFn: async () => {
-      const result = await getCheckSmsCode(phoneNumber, code);
-      if (typeof result === 'boolean') {
-        setIsSmsVerified(result);
-      }
-      return result;
+  return useMutation({
+    mutationFn: ({
+      phoneNumber,
+      code,
+    }: {
+      phoneNumber: string;
+      code: string;
+    }) => getCheckSmsCode(phoneNumber, code),
+    onSuccess: () => {
+      setIsSmsVerified(true);
+      toast.success('인증 번호 확인에 성공했습니다.');
     },
-    enabled: false,
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
   });
 };

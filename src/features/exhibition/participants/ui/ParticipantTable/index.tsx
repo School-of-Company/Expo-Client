@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useMemo, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { withLoading } from '@/shared/hocs';
+import { useExcelDownload } from '@/shared/model';
 import { useExpoDetail } from '@/shared/queries';
 import {
   participants,
@@ -14,9 +15,6 @@ import {
 import { SearchInput } from '@/shared/ui/SearchInput';
 import SelectUserType from '@/shared/ui/SelectUserType';
 import { TableForm } from '@/shared/ui/Table';
-import { getClassExcelFile } from '../../api/getClassExcelFile';
-import { getStandardExcelFile } from '../../api/getStandardExcelFile';
-import { getTraineeExcelFile } from '../../api/getTraineeExcelFile';
 import { category, selectOptionCategories } from '../../model/category';
 import { useExpoManageQueries } from '../../model/useExpoData';
 import DateContainer from '../DateContainer';
@@ -39,6 +37,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
   );
   const [selectItem, setSelectItem] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const { mutate: downloadExcel, isPending: isExporting } = useExcelDownload();
 
   useEffect(() => {
     if (expoDetailQuery?.startedDay && selectedDate === undefined) {
@@ -61,15 +60,15 @@ const ParticipantTable = ({ id }: { id: string }) => {
 
   const expoData = expoManageQueries.data;
 
-  const participantsData = Array.isArray(expoData)
-    ? expoData
-    : ((isTrainee
-        ? (expoData as TraineeResponse)?.participants
-        : (expoData as ParticipantResponse)?.participants) ?? []);
+  // 연수자는 전체 목록 배열, 일반 참가자는 날짜별 페이지 응답이다
+  const participantsData: (Trainee | participants)[] =
+    (isTrainee
+      ? (expoData as TraineeResponse | undefined)
+      : (expoData as ParticipantResponse | undefined)?.participants) ?? [];
 
-  const totalPage = Array.isArray(expoData)
+  const totalPage = isTrainee
     ? 1
-    : (expoData?.info?.totalPage ?? 1);
+    : ((expoData as ParticipantResponse | undefined)?.info?.totalPage ?? 1);
 
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) return participantsData;
@@ -107,7 +106,8 @@ const ParticipantTable = ({ id }: { id: string }) => {
   const traineeExcelFile = {
     exportExcel: (selectedRowId: number) => {
       if (isProgram) {
-        void getClassExcelFile(id);
+        // 프로그램 탭은 행사 전체 연수자와 신청 강연을 담은 교원 연수자 명단을 받는다
+        downloadExcel({ path: `/excel/${id}` });
         return;
       }
 
@@ -116,15 +116,16 @@ const ParticipantTable = ({ id }: { id: string }) => {
         return;
       }
 
-      void getTraineeExcelFile(String(selectedRowId));
+      downloadExcel({ path: `/excel/trainee/${selectedRowId}` });
     },
   };
   const standardExcelFile = {
-    exportExcel: () => getStandardExcelFile(id),
+    exportExcel: () => downloadExcel({ path: `/excel/standard/${id}` }),
   };
 
   return withLoading({
-    isLoading: expoManageLoading || !selectedDate || expoDetailLoading,
+    isLoading:
+      expoManageLoading || (!isTrainee && !selectedDate) || expoDetailLoading,
     children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-y-auto">
         <SelectUserType
@@ -133,12 +134,15 @@ const ParticipantTable = ({ id }: { id: string }) => {
           onChange={handleSlectUserChange}
         />
 
-        <DateContainer
-          startedDay={expoDetailQuery?.startedDay || ''}
-          finishedDay={expoDetailQuery?.finishedDay || ''}
-          onDateSelect={setSelectedDate}
-          selectedDate={selectedDate || ''}
-        />
+        {/* 연수자 목록은 날짜 구분 없이 행사 전체라 날짜 선택을 보여 주지 않는다 */}
+        {!isTrainee && (
+          <DateContainer
+            startedDay={expoDetailQuery?.startedDay || ''}
+            finishedDay={expoDetailQuery?.finishedDay || ''}
+            onDateSelect={setSelectedDate}
+            selectedDate={selectedDate || ''}
+          />
+        )}
 
         <SearchInput
           placeholder="이름, 연락처, 연수번호로 검색"
@@ -159,6 +163,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
             selectItemBoolean={!isProgram}
             setSelectItem={setSelectItem}
             selectItem={selectItem}
+            isExporting={isExporting}
           />
         ) : (
           <TableForm<participants>
@@ -171,6 +176,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
             totalPage={totalPage}
             id={id}
             selectItemBoolean={false}
+            isExporting={isExporting}
           />
         )}
       </div>

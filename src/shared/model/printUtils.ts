@@ -1,23 +1,54 @@
+'use client';
+
+import { QRCodeSVG } from 'qrcode.react';
+import { createElement } from 'react';
+import { flushSync } from 'react-dom';
+import { createRoot } from 'react-dom/client';
+
+export const renderQRCodeSVG = (value: string, size = 130): string => {
+  const host = document.createElement('div');
+  const root = createRoot(host);
+
+  flushSync(() => {
+    root.render(createElement(QRCodeSVG, { value, size }));
+  });
+
+  const markup = host.innerHTML;
+  root.unmount();
+
+  return markup;
+};
+
+// 이미지로 온 QR이면 img src로 쓸 값, QR 값 문자열이면 null
+// 랜덤 code에 'base64'가 들어가도 오판하지 않도록 접두어로만 판정한다
+const toQrImageSrc = (qrCode: string): string | null => {
+  if (qrCode.startsWith('data:image/')) return qrCode;
+  if (qrCode.startsWith('/9j/')) return `data:image/jpeg;base64,${qrCode}`;
+  if (qrCode.startsWith('iVBORw0KGgo'))
+    return `data:image/png;base64,${qrCode}`;
+  return null;
+};
+
 export const printBadge = (selectedData: {
   name: string;
-  qrCode: string;
+  // Swagger는 string이지만 예시가 객체라 객체로 와도 JSON 문자열로 바꿔 그린다
+  qrCode: unknown;
   isTemporary: boolean;
 }) => {
   const printWindow = window.open('', '_blank');
 
-  if (printWindow) {
-    const isBase64 =
-      selectedData.qrCode &&
-      (selectedData.qrCode.startsWith('/9j/') ||
-        selectedData.qrCode.includes('base64'));
+  if (!printWindow) return;
 
-    const encodedQRCode = encodeURIComponent(selectedData.qrCode);
+  const qrValue =
+    typeof selectedData.qrCode === 'string'
+      ? selectedData.qrCode
+      : (JSON.stringify(selectedData.qrCode) ?? '');
+  const qrImageSrc = toQrImageSrc(qrValue);
 
-    printWindow.document.write(`
+  printWindow.document.write(`
       <html>
         <head>
           <title>Badge</title>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
           <style>
             body {
               font-family: 'Arial', sans-serif;
@@ -59,29 +90,11 @@ export const printBadge = (selectedData: {
         </head>
         <body>
           <div class="badge">
-            <h1>${selectedData.name}</h1>
+            <h1 id="badge-name"></h1>
             ${selectedData.isTemporary ? `<p style="font-size:14px;">(임시 QR)</p>` : ''}
-            <div class="qr-container">
-              ${
-                isBase64
-                  ? `<img src="data:image/png;base64,${selectedData.qrCode}" alt="QR Code" width="100" height="100" />`
-                  : `<div id="qrcode"></div>`
-              }
-            </div>
+            <div class="qr-container" id="badge-qr"></div>
           </div>
           <script>
-            ${
-              !isBase64
-                ? `
-                  const decodedQRText = decodeURIComponent("${encodedQRCode}");
-                  new QRCode("qrcode", {
-                    text: decodedQRText,
-                    width: 130,
-                    height: 130
-                  });
-                `
-                : ''
-            }
             window.onload = function() {
               window.print();
               window.close();
@@ -90,6 +103,26 @@ export const printBadge = (selectedData: {
         </body>
       </html>
     `);
-    printWindow.document.close();
+
+  const doc = printWindow.document;
+
+  // 외부 입력값이므로 HTML 파싱 없이 textContent / 프로퍼티로만 주입한다.
+  const nameElement = doc.getElementById('badge-name');
+  if (nameElement) nameElement.textContent = selectedData.name;
+
+  const qrContainer = doc.getElementById('badge-qr');
+  if (qrContainer) {
+    if (qrImageSrc) {
+      const image = doc.createElement('img');
+      image.src = qrImageSrc;
+      image.alt = 'QR Code';
+      image.width = 100;
+      image.height = 100;
+      qrContainer.appendChild(image);
+    } else {
+      qrContainer.innerHTML = renderQRCodeSVG(qrValue);
+    }
   }
+
+  doc.close();
 };

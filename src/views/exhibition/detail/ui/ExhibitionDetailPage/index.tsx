@@ -3,16 +3,22 @@
 import React, { useState } from 'react';
 import { useExpoQueries } from '@/features/exhibition/detail';
 import { withLoading } from '@/shared/hocs';
-import { FormTypeModal } from '@/shared/ui';
+import { FormTypeModal, QueryError } from '@/shared/ui';
 import { ExhibitionDetailContent } from '@/widgets/exhibition/detail';
 import { Header } from '@/widgets/layout';
 import { ModalLayout } from '@/widgets/layout';
 
 const ExhibitionDetailPage = ({ params }: { params: string }) => {
-  const { expoDetailQuery, expoStandardQuery, expoTrainingQuery, isLoading } =
-    useExpoQueries(params);
-  const expoDetail = expoDetailQuery.data!;
-  const expoStandard = expoStandardQuery.data!;
+  const {
+    expoDetailQuery,
+    expoStandardQuery,
+    expoTrainingQuery,
+    isLoading,
+    isError,
+    refetchFailed,
+  } = useExpoQueries(params);
+  const expoDetail = expoDetailQuery.data;
+  const expoStandard = expoStandardQuery.data ?? [];
 
   const expoTrainingData = expoTrainingQuery.data || [];
   const expoTraining = {
@@ -41,15 +47,21 @@ const ExhibitionDetailPage = ({ params }: { params: string }) => {
       <Header />
       {withLoading({
         isLoading,
-        children: (
-          <ExhibitionDetailContent
-            expoDetail={expoDetail}
-            expoStandard={expoStandard}
-            expoTraining={expoTraining}
-            params={params}
-            openModal={openModal}
-          />
-        ),
+        children:
+          isError || !expoDetail ? (
+            <QueryError
+              message="박람회 정보를 불러오지 못했습니다."
+              onRetry={refetchFailed}
+            />
+          ) : (
+            <ExhibitionDetailContent
+              expoDetail={expoDetail}
+              expoStandard={expoStandard}
+              expoTraining={expoTraining}
+              params={params}
+              openModal={openModal}
+            />
+          ),
       })}
       {isModalOpen && (
         <ModalLayout>

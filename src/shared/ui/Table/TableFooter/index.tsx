@@ -9,15 +9,17 @@ type ActionKeys =
   | 'PrintBadge'
   | 'exportExcel'
   | 'RouteActions';
-type ActionsType = Partial<Record<ActionKeys, (selectItem: number) => void>>;
+type ActionsType<Id> = Partial<Record<ActionKeys, (selectItem: Id) => void>>;
 
-type TableFooterProps = VariantProps<typeof tableFooterStyles> & {
+type TableFooterProps<Id> = VariantProps<typeof tableFooterStyles> & {
   num: number;
   text?: string;
-  actions?: ActionsType;
-  selectItem: number | null;
-  setSelectItem: React.Dispatch<React.SetStateAction<number | null>>;
+  actions?: ActionsType<Id>;
+  selectItem: Id | null;
+  setSelectItem: React.Dispatch<React.SetStateAction<Id | null>>;
   selectItemBoolean: boolean;
+  // 엑셀을 받는 동안 출력 버튼을 막아 같은 요청이 겹치지 않게 한다
+  isExporting?: boolean;
 };
 
 const tableFooterStyles = cva('flex justify-between items-center', {
@@ -36,7 +38,7 @@ const tableFooterStyles = cva('flex justify-between items-center', {
   },
 });
 
-const TableFooter = ({
+const TableFooter = <Id extends string | number>({
   text = '참가자 전체 인원',
   type = 'default',
   actions = {},
@@ -44,7 +46,8 @@ const TableFooter = ({
   selectItem,
   setSelectItem,
   selectItemBoolean,
-}: TableFooterProps) => {
+  isExporting = false,
+}: TableFooterProps<Id>) => {
   const handleActionClick = (actionKey: ActionKeys) => {
     const isDisabled = selectItemBoolean !== false && selectItem === null;
 
@@ -67,8 +70,9 @@ const TableFooter = ({
         <div className="flex items-center gap-20 mobile:gap-16">
           <p className="text-body1r text-gray-400">출력</p>
           <SmallButton
-            text="Excel"
+            text={isExporting ? '받는 중...' : 'Excel'}
             onClick={() => handleActionClick('exportExcel')}
+            disabled={isExporting}
           />
         </div>
       )}

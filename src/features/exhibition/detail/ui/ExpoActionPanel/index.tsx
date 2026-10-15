@@ -2,8 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
+import { ExpoAction, getExpoActions } from '@/entities/exhibition';
 import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
 import { Share } from '@/shared/assets/svg';
+import { COLORS } from '@/shared/config';
 import { Button } from '@/shared/ui';
 
 interface ExpoActionPanelProps {
@@ -15,6 +17,23 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
   const router = useRouter();
   const [isMore, setIsMore] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const actions = getExpoActions(params);
+
+  const renderAction = (
+    action: ExpoAction,
+    variant: 'white' | 'gray' = 'white',
+  ) => (
+    <Button
+      variant={variant}
+      onClick={() =>
+        'href' in action
+          ? router.push(action.href)
+          : openModal(action.modal.type, action.modal.text)
+      }
+    >
+      {action.title}
+    </Button>
+  );
 
   useEffect(() => {
     const handleResize = () => {
@@ -35,38 +54,12 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
         <div className="h-fit w-full rounded-sm border-1 border-solid border-gray-200 p-[18px] tablet:w-full tablet:border-none tablet:px-0">
           <div className="w-full space-y-8">
             <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
-              <Button
-                onClick={() =>
-                  router.push(
-                    `/exhibition/participants/${params}?page=1&userType=STANDARD`,
-                  )
-                }
-                variant="white"
-              >
-                조회
-              </Button>
-              <Button
-                variant="white"
-                onClick={() =>
-                  openModal('formcreate', '생성할 항목을 선택하세요.')
-                }
-              >
-                폼 생성
-              </Button>
+              {renderAction(actions.participants)}
+              {renderAction(actions.formCreate)}
             </div>
             <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
-              <Button
-                variant="white"
-                onClick={() => openModal('FIELD', '대상을 선택하세요.')}
-              >
-                현장 등록 QR
-              </Button>
-              <Button
-                variant="white"
-                onClick={() => router.push(`/exhibition/check-in/${params}`)}
-              >
-                박람회 입장
-              </Button>
+              {renderAction(actions.fieldQr)}
+              {renderAction(actions.checkIn)}
             </div>
             <div
               style={{
@@ -75,27 +68,12 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
               className={`flex flex-col gap-8 overflow-hidden`}
             >
               <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
-                <Button
-                  onClick={() =>
-                    router.push(`/program/${params}?navigation=standard`)
-                  }
-                  variant="white"
-                >
-                  프로그램
-                </Button>
-                <Button
-                  variant="white"
-                  onClick={() => openModal('message', '대상을 선택하세요.')}
-                >
-                  문자 전송
-                </Button>
+                {renderAction(actions.program)}
+                {renderAction(actions.message)}
               </div>
-              <Button
-                variant="gray"
-                onClick={() => openModal('edit', '수정할 항목을 선택하세요.')}
-              >
-                수정
-              </Button>
+              {renderAction(actions.paperQr)}
+              {renderAction(actions.lottery)}
+              {renderAction(actions.edit, 'gray')}
             </div>
             {!isMobile && (
               <>
@@ -105,7 +83,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
                     onClick={() => setIsMore(false)}
                   >
                     <span>접기</span>
-                    <ArrowUp fill="#448FFF" />
+                    <ArrowUp fill={COLORS.main600} />
                   </div>
                 ) : (
                   <div
@@ -113,7 +91,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
                     className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-gray-400"
                   >
                     <span>더보기</span>
-                    <ArrowDown fill="#A7A7A7" />
+                    <ArrowDown fill={COLORS.gray400} />
                   </div>
                 )}
               </>

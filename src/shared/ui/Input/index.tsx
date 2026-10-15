@@ -7,11 +7,10 @@ import {
   forwardRef,
 } from 'react';
 
-interface Props
-  extends Omit<
-    DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>,
-    'size'
-  > {
+interface Props extends Omit<
+  DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>,
+  'size'
+> {
   icon?: ReactNode;
   onIconClick?: () => void;
   size?: 'default' | 'small';

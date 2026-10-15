@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 
 import FormEditor from '@/features/form/common/ui/FormEditor';
-import { useCreateFormMutation } from '@/features/form/create';
+import { useCreateFormSubmit } from '@/features/form/create';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { Header } from '@/widgets/layout';
 
@@ -22,7 +22,7 @@ const CreateForm = ({ id }: { id: string }) => {
     isSurveyPending,
     isApplicationSuccess,
     isSurveySuccess,
-  } = useCreateFormMutation(
+  } = useCreateFormSubmit(
     id,
     type,
     mode,

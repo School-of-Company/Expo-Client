@@ -9,20 +9,23 @@ import {
   useWatch,
 } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import { v4 as uuidv4 } from 'uuid';
 import {
-  CheckBox,
   CheckBoxOption,
   DeleteButton,
   DropDownOption,
   FormTitle,
   FormTypeSelect,
-  MultipleChoiceOption,
   RequiredToggle,
 } from '@/entities/form';
 import ConditionalSettings from '@/entities/form/ui/ConditionalSettings';
 import { formatTime } from '@/features/exhibition/edit/model/formatDateTime';
 import { getTrainingProgram } from '@/shared/api';
-import { preventEvent } from '@/shared/model';
+import {
+  formatTrainingProgramOption,
+  isTrainingProgramQuestion,
+  preventEvent,
+} from '@/shared/model';
 import { FormValues, Option } from '@/shared/types/form/create/type';
 import { AddItemButton } from '@/shared/ui';
 
@@ -45,7 +48,6 @@ const FormContainer = ({
   setValue,
   control,
 }: Props) => {
-  const [isCheckBox, setIsCheckBox] = useState(false);
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(false);
   const [selectedOption, setSelectedOption] = useState<Option | null>(() => {
     const formType = control._formValues.questions[index].formType;
@@ -57,22 +59,35 @@ const FormContainer = ({
     name: `questions.${index}.title`,
   });
 
+  const dynamicFormType = useWatch({
+    control,
+    name: `questions.${index}.dynamicFormType`,
+  });
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: `questions.${index}.options`,
   });
 
-  const isTrainingProgramQuestion =
-    questionTitle?.includes('연수 프로그램을 선택해주세요');
+  const isTrainingProgram = isTrainingProgramQuestion(questionTitle);
+
+  const isSpecialField = !!dynamicFormType && dynamicFormType !== 'DEFAULT';
+  // 이름·전화번호·연수자 아이디는 신청 처리에 꼭 필요해서 필수로 고정한다.
+  const isRequiredField =
+    dynamicFormType === 'NAME' ||
+    dynamicFormType === 'PHONE_NUMBER' ||
+    dynamicFormType === 'TRAINING_ID';
+  const hasOptions =
+    selectedOption?.value === 'DROPDOWN' ||
+    selectedOption?.value === 'MULTIPLE';
 
   const componentMap: Record<string, JSX.Element | null> = {
-    CHECKBOX: (
+    MULTIPLE: (
       <CheckBoxOption
         fields={fields}
         remove={remove}
         register={register}
         index={index}
-        isCheckBox={isCheckBox}
         setValue={setValue}
         control={control}
       />
@@ -83,16 +98,6 @@ const FormContainer = ({
         remove={remove}
         register={register}
         index={index}
-        isCheckBox={isCheckBox}
-      />
-    ),
-    MULTIPLE: (
-      <MultipleChoiceOption
-        fields={fields}
-        remove={remove}
-        register={register}
-        index={index}
-        isCheckBox={isCheckBox}
       />
     ),
   };
@@ -112,7 +117,12 @@ const FormContainer = ({
       const currentOptions = control._formValues.questions[index].options || [];
 
       const newOptions = programs.map((program) => ({
-        value: `[${formatTime(program.startedAt)} ~ ${formatTime(program.endedAt)}] ${program.title}`,
+        id: uuidv4(),
+        value: formatTrainingProgramOption(
+          formatTime(program.startedAt),
+          formatTime(program.endedAt),
+          program.title,
+        ),
         label: program.id,
       }));
 
@@ -132,17 +142,16 @@ const FormContainer = ({
   };
 
   useEffect(() => {
-    if (selectedOption?.value === 'SENTENCE') {
+    if (selectedOption && !hasOptions) {
       setValue(`questions.${index}.options`, []);
     }
+  }, [selectedOption, hasOptions, index, setValue]);
 
-    if (
-      selectedOption?.value === 'SENTENCE' ||
-      selectedOption?.value === 'IMAGE'
-    ) {
-      setIsCheckBox(false);
+  useEffect(() => {
+    if (isRequiredField) {
+      setValue(`questions.${index}.requiredStatus`, true);
     }
-  }, [selectedOption, index, setValue]);
+  }, [isRequiredField, index, setValue]);
 
   return (
     <div
@@ -161,15 +170,15 @@ const FormContainer = ({
       </div>
       {renderOptionComponent()}
       <div className="flex items-center gap-12 border-b-1 border-solid border-gray-100">
-        {selectedOption?.value !== 'SENTENCE' ? (
+        {hasOptions && dynamicFormType !== 'OCCUPATION' ? (
           <>
             <AddItemButton
               onClick={(e: React.MouseEvent) => {
                 preventEvent(e);
-                append({ value: '' });
+                append({ id: uuidv4(), value: '' });
               }}
             />
-            {isTrainingProgramQuestion && (
+            {isTrainingProgram && (
               <button
                 type="button"
                 onClick={(e: React.MouseEvent) => {
@@ -188,25 +197,26 @@ const FormContainer = ({
         ) : null}
       </div>
       <div className="flex w-full items-center justify-end gap-20">
-        {selectedOption?.value !== 'IMAGE' &&
-        selectedOption?.value !== 'SENTENCE' &&
-        selectedOption?.value !== 'DROPDOWN' ? (
-          <CheckBox control={control} index={index} text="기타" />
-        ) : null}
         <DeleteButton
           onClick={(e: React.MouseEvent) => {
             preventEvent(e);
             formRemove(index);
           }}
         />
-        <RequiredToggle control={control} index={index} />
+        <RequiredToggle
+          control={control}
+          index={index}
+          isLocked={isRequiredField}
+        />
       </div>
 
-      <ConditionalSettings
-        currentIndex={index}
-        control={control}
-        setValue={setValue}
-      />
+      {!isSpecialField && (
+        <ConditionalSettings
+          currentIndex={index}
+          control={control}
+          setValue={setValue}
+        />
+      )}
     </div>
   );
 };

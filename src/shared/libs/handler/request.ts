@@ -1,7 +1,11 @@
 import { AxiosRequestConfig, ResponseType } from 'axios';
-import { NextRequest, NextResponse } from 'next/server';
-import { serverInstance } from '@/shared/libs/http/serverInstance';
-import { tokenHandleRequest } from './tokenHandler';
+import { NextRequest } from 'next/server';
+import { clientIpHeaders } from '@/shared/libs/http/clientIp';
+import {
+  FILE_DOWNLOAD_TIMEOUT_MS,
+  serverInstance,
+} from '@/shared/libs/http/serverInstance';
+import { isFileDownloadRequest } from './proxyTarget';
 import { RequestData } from './type';
 
 export async function parseRequestData(
@@ -35,6 +39,7 @@ export async function parseRequestData(
 
 export async function sendRequest(
   req: NextRequest,
+  url: string,
   accessToken: string | undefined,
   requestData: RequestData,
   headers: Record<string, string | undefined>,
@@ -43,42 +48,24 @@ export async function sendRequest(
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
 
-  const isFileDownload =
-    req.headers.get('X-File-Download') === 'true' ||
-    req.nextUrl.pathname.includes('/excel/');
-
-  const responseType: ResponseType = isFileDownload ? 'arraybuffer' : 'json';
-
-  const axiosConfig: AxiosRequestConfig = {
-    responseType,
-    headers: headers as AxiosRequestConfig['headers'],
-  };
+  const isFileDownload = isFileDownloadRequest(req);
+  // 파일은 메모리에 모으지 않고 받는 대로 브라우저로 흘려보낸다
+  const responseType: ResponseType = isFileDownload ? 'stream' : 'json';
 
   return await serverInstance.request({
-    url: `${process.env.NEXT_PUBLIC_BASE_URL}${req.nextUrl.pathname.replace(
-      '/api/server/token',
-      '',
-    )}`,
+    url,
     method: req.method as AxiosRequestConfig['method'],
-    params: Object.fromEntries(req.nextUrl.searchParams.entries()),
     data: requestData,
-    ...axiosConfig,
+    responseType,
+    headers: {
+      ...headers,
+      ...clientIpHeaders(req),
+      // 압축을 풀면 Content-Length 가 실제 본문과 달라지므로 원본 그대로 받는다(XLSX 는 이미 zip 이다)
+      ...(isFileDownload && { 'Accept-Encoding': 'identity' }),
+    } as AxiosRequestConfig['headers'],
+    ...(isFileDownload && {
+      timeout: FILE_DOWNLOAD_TIMEOUT_MS,
+      decompress: false,
+    }),
   });
-}
-
-export async function retryRequest(
-  req: NextRequest,
-  accessToken: string,
-  body?: string | FormData,
-): Promise<NextResponse> {
-  const headers = new Headers(req.headers);
-  headers.set('Authorization', `Bearer ${accessToken}`);
-
-  const newReq = new NextRequest(req.url, {
-    method: req.method,
-    headers,
-    body: body && typeof body === 'string' ? body : undefined,
-  });
-
-  return tokenHandleRequest(newReq, body);
 }

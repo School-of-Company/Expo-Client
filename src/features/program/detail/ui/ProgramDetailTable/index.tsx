@@ -2,12 +2,11 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import { withLoading } from '@/shared/hocs';
-import { useQRScanner } from '@/shared/model';
+import { useExcelDownload, useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
 import { TableForm } from '@/shared/ui/Table';
-import { getStandardProgramExcelFile } from '../../api/getStandardProgramExcelFile';
-import { getTraineeProgramExcelFile } from '../../api/getTraineeProgramExcelFile';
 import { programCategories } from '../../model/category';
 import { useProgramDetailQueries } from '../../model/useProgramDetailData';
 import { useStandardAttendance } from '../../model/useStandardAttendance';
@@ -23,6 +22,7 @@ const ProgramDetailTable = ({
   const searchParams = useSearchParams();
   const { mutate: standardAttendance } = useStandardAttendance();
   const { mutate: trainingAttendance } = useTrainingAttendance();
+  const { mutate: downloadExcel, isPending: isExporting } = useExcelDownload();
   const navigation = searchParams.get('navigation') || 'standard';
   const { programDetailQueries, isLoading } = useProgramDetailQueries(
     programId,
@@ -32,18 +32,38 @@ const ProgramDetailTable = ({
   useQRScanner(setScannedQR);
   const programDetailData = programDetailQueries.data || [];
 
-  const handleAttendance = (scannedQR: QrScanData) => {
+  const handleAttendance = ({
+    participantId,
+    code,
+    traineeId,
+    token,
+  }: QrScanData) => {
+    if (token) {
+      toast.warn('종이 QR은 박람회 입장에만 사용할 수 있습니다.');
+      return;
+    }
     if (navigation === 'standard') {
-      standardAttendance({
-        programId,
-        participantId: scannedQR.participantId!,
-        phoneNumber: scannedQR.phoneNumber!,
-      });
+      if (!participantId) {
+        toast.error('참가자 QR 형식이 올바르지 않습니다.');
+        return;
+      }
+      // 출석 서버는 program-attendance.require-code가 기본 false라 code 없는 예전 QR도 participantId만으로 받는다.
+      // code가 있으면 항상 확인한다. 운영에서 require-code를 켜면 서버가 주는 4xx 메시지를 그대로 보여 준다
+      standardAttendance(
+        code
+          ? { expoId, programId, participantId, code }
+          : { expoId, programId, participantId },
+      );
     } else {
-      trainingAttendance({
-        programId,
-        traineeId: scannedQR.traineeId!,
-      });
+      if (participantId && code) {
+        trainingAttendance({ expoId, programId, participantId, code });
+        return;
+      }
+      if (!traineeId) {
+        toast.error('연수자 QR 형식이 올바르지 않습니다.');
+        return;
+      }
+      trainingAttendance({ expoId, programId, traineeId });
     }
   };
 
@@ -54,10 +74,14 @@ const ProgramDetailTable = ({
   }, [scannedQR]);
 
   const TraineeProgramActions = {
-    exportExcel: () => getTraineeProgramExcelFile(expoId),
+    exportExcel: () => downloadExcel({ path: `/excel/${expoId}` }),
   };
   const StandardProgramActions = {
-    exportExcel: () => getStandardProgramExcelFile(expoId, programId),
+    exportExcel: () =>
+      downloadExcel({
+        path: `/excel/program/${expoId}`,
+        params: { programId },
+      }),
   };
 
   const filteActions =
@@ -76,6 +100,7 @@ const ProgramDetailTable = ({
           text="인원 수"
           actions={filteActions}
           selectItemBoolean={false}
+          isExporting={isExporting}
         />
       </div>
     ),

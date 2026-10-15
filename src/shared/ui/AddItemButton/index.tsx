@@ -1,4 +1,5 @@
 import { Plus } from '@/shared/assets/icons';
+import { COLORS } from '@/shared/config';
 
 interface AddItemButtonProps {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
@@ -11,7 +12,7 @@ const AddItemButton = ({ onClick }: AddItemButtonProps) => (
     onClick={onClick}
   >
     <div className="flex gap-8">
-      <Plus fill="#448FFF" />
+      <Plus fill={COLORS.main600} />
       <div className="text-body3 text-main-600">추가하기</div>
     </div>
   </button>

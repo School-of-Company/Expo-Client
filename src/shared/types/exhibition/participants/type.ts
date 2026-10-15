@@ -1,25 +1,14 @@
 import { ApplicationType } from '@/shared/types/exhibition/type';
 
-interface TrainingProgram {
-  programName: string;
-}
-
 export interface Trainee {
   id: number;
   name: string;
-  trainingProgram?: TrainingProgram;
-  trainingId: string;
-  phoneNumber: string;
+  trainingId: string | null;
+  phoneNumber: string | null;
   applicationType: ApplicationType;
 }
 
-export interface TraineeResponse {
-  info: {
-    totalPage: number;
-    totalElement: number;
-  };
-  participants: Trainee[];
-}
+export type TraineeResponse = Trainee[];
 
 export interface participants {
   id: number;

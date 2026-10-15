@@ -1,4 +1,8 @@
 import { UseFormRegister, FieldErrors, UseFormWatch } from 'react-hook-form';
+import {
+  PHONE_NUMBER_PATTERN,
+  SMS_CODE_PATTERN,
+} from '@/shared/config/validation';
 import { SignUpData } from '@/shared/types/signup/type';
 import { Button, Input } from '@/shared/ui';
 
@@ -11,7 +15,7 @@ interface PhoneVerificationProps {
   isSendingSms: boolean;
   isCheckingCode: boolean;
   timer: number;
-  sendSms: (phoneNumber: string) => void;
+  sendSms: () => void;
   checkSmsCode: () => void;
 }
 
@@ -34,19 +38,17 @@ const PhoneVerification = ({
         <Input
           {...register('phoneNumber', {
             required: '연락처를 입력해주세요.',
-            pattern: {
-              value: /^\d{10,11}$/,
-              message: '유효한 전화번호를 입력해주세요.',
-            },
+            pattern: PHONE_NUMBER_PATTERN,
           })}
           type="tel"
           placeholder="연락처는 - 빼고 입력해주세요"
           width="80%"
-          disabled={isSmsVerified}
+          // 발송한 번호로만 인증할 수 있으므로 만료 전까지 잠근다
+          disabled={isSmsSent || isSmsVerified}
           error={!!errors.phoneNumber}
         />
         <Button
-          onClick={() => sendSms(watch('phoneNumber'))}
+          onClick={sendSms}
           width="20%"
           disabled={
             !watch('phoneNumber') || isSendingSms || isSmsSent || isSmsVerified
@@ -70,10 +72,7 @@ const PhoneVerification = ({
         <Input
           {...register('code', {
             required: '인증 번호를 입력해주세요.',
-            pattern: {
-              value: /^\d{4}$/,
-              message: '4자리 숫자를 입력해주세요.',
-            },
+            pattern: SMS_CODE_PATTERN,
           })}
           type="text"
           placeholder="인증 번호 입력"
@@ -82,9 +81,11 @@ const PhoneVerification = ({
           error={!!errors.code}
         />
         <Button
-          onClick={() => checkSmsCode()}
+          onClick={checkSmsCode}
           width="20%"
-          disabled={!watch('code') || isSmsVerified || !isCheckingCode}
+          disabled={
+            !isSmsSent || !watch('code') || isSmsVerified || isCheckingCode
+          }
           type="button"
         >
           확인
