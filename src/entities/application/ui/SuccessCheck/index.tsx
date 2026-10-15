@@ -23,6 +23,9 @@ const SuccessCheck = () => {
         <p className="text-center text-body1r text-gray-600">
           {status === 'WAITING' && position && `대기 순번 ${position}번 · `}
           자리가 나야 확정되며, 확정되면 QR이 대표자 번호로 발송됩니다.
+          <br />
+          대기 중에는 QR과 연수 신청이 없으며, 신청 폼 모음의 나의 신청 현황에서
+          대기 순번을 확인하거나 일행 전체 대기를 취소할 수 있습니다.
         </p>
       )}
     </div>
