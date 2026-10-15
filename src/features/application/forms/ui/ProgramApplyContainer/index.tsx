@@ -60,6 +60,8 @@ const ProgramApplyForm = ({
     retry: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // 연타가 state 갱신 전에 두 번 들어오지 않게 막는다
+  const inFlight = useRef(false);
   const [selectedId, setParticipantId] = useState<number>();
   // 다시 받은 목록에서 빠진 참가자를 고른 채로 두지 않고 첫 참가자를 기본으로 고른다
   const eligible = participants.filter((p) => p.eligible);
@@ -91,6 +93,8 @@ const ProgramApplyForm = ({
       });
       return;
     }
+    if (inFlight.current) return;
+    inFlight.current = true;
     setIsSubmitting(true);
     try {
       const payload = {
@@ -123,6 +127,7 @@ const ProgramApplyForm = ({
             : `${PROGRAM_LABEL[programType]} 신청에 실패했습니다`,
       });
     } finally {
+      inFlight.current = false;
       setIsSubmitting(false);
     }
   };
