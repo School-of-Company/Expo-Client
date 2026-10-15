@@ -149,7 +149,6 @@ const RegistrationDashboard = ({
           />
         </div>
         <SummaryCards
-          expoId={expoId}
           programCount={programCount}
           sessionCount={sessions.data?.length ?? null}
           confirmed={summary.data ? (counts?.CONFIRMED ?? 0) : null}
@@ -166,8 +165,10 @@ const RegistrationDashboard = ({
           />
         )}
         <p className="text-caption1r text-gray-400">
-          확정·대기는 프로그램 회차 신청 건수 합계입니다. 행사 사전등록 인원은
-          포함하지 않습니다.
+          확정·대기는 프로그램 회차 신청 건수 합계로, 한 사람이 여러 회차에
+          신청하면 신청마다 셉니다. 고유 참가자는 프로그램을 신청한 사람
+          수입니다. 둘 다 행사 사전등록 인원은 포함하지 않으며, 사전등록 인원은
+          아래 사전등록 요약과 사전등록 회차 탭에서 따로 봅니다.
         </p>
       </div>
 
