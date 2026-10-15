@@ -232,22 +232,22 @@ const ScheduleManager = () => {
                 disabled={isSaving}
               />
               <CreateEntry
-                title="신규 프로그램 등록"
-                description="프로그램 마스터 표 아래에 등록 양식을 엽니다."
-                buttonLabel="프로그램 등록 양식 열기"
+                title="프로그램 신청 회차 추가"
+                description="① 프로그램 신청 회차 표 아래에 양식을 엽니다. 신청 폼은 이 양식에서 연결합니다."
+                buttonLabel="프로그램 회차 양식 열기"
                 onClick={() => {
                   handleProgramEditingChange('new');
                   scrollToForm(PROGRAM_FORM_ID);
                 }}
               />
               <CreateEntry
-                title="신규 회차 개설"
+                title="사전등록 회차 개설"
                 description={
                   isSessionLocked
-                    ? '저장하지 않은 회차 변경이 있으면 회차를 개설할 수 없습니다.'
-                    : '회차 일정 표 아래에 개설 양식을 엽니다.'
+                    ? '저장하지 않은 사전등록 회차 변경이 있으면 회차를 개설할 수 없습니다.'
+                    : '박람회 입장 사전등록 시간대를 만듭니다. 프로그램 회차가 아닙니다.'
                 }
-                buttonLabel="회차 개설 양식 열기"
+                buttonLabel="사전등록 회차 양식 열기"
                 disabled={isSessionLocked}
                 onClick={() => {
                   setIsCreatingSession(true);
@@ -294,8 +294,8 @@ const ScheduleManager = () => {
           <div className="fixed inset-x-0 bottom-0 z-[5] flex justify-center border-t-1 border-solid border-gray-100 bg-white px-16 py-12 shadow-[0px_-4px_8px_0px_rgba(68,143,255,0.08)]">
             <div className="w-full max-w-[1200px] space-y-8">
               <p className="text-caption1r text-gray-500">
-                저장하지 않은 회차 변경 {edits.size}건이 있습니다. 저장 전에는
-                회차를 추가·삭제할 수 없습니다.
+                저장하지 않은 사전등록 회차 변경 {edits.size}건이 있습니다. 저장
+                전에는 사전등록 회차를 추가·삭제할 수 없습니다.
               </p>
               <div className="grid grid-cols-[1fr_3fr] gap-16">
                 <Button variant="gray" onClick={handleCancel}>

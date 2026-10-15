@@ -19,7 +19,7 @@ export const getExpoActions = (expoId: string) => {
     },
     formCreate: {
       title: '폼 생성',
-      description: '신청 폼·만족도 조사 폼 만들기',
+      description: '사전·현장 등록 폼과 만족도 조사 폼 만들기',
       modal: { type: 'formcreate', text: '생성할 항목을 선택하세요.' },
     },
     programForm: {
@@ -41,6 +41,11 @@ export const getExpoActions = (expoId: string) => {
       title: '프로그램',
       description: '일반·연수 프로그램 조회와 출석',
       href: routes.program,
+    },
+    programSchedule: {
+      title: '프로그램 신청 설정',
+      description: '프로그램 회차·묶음 추가, 신청 폼 연결, 정원·모집 기간',
+      href: getRegistrationRoutes(expoId).schedule,
     },
     message: {
       title: '문자 전송',
