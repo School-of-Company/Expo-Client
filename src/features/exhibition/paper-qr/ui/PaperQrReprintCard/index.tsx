@@ -1,10 +1,12 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Input, MockDataBadge } from '@/shared/ui';
-import { PAPER_QR_MOCK_ISSUE } from '../../mock/paperQrMock';
+import { Input } from '@/shared/ui';
+import { revokeQrToken } from '../../api/qrTokensApi';
 import { PAPER_QR_CATEGORIES, PaperQrCategory } from '../../model/constants';
+import { paperQrSummaryQueryKey } from '../../model/usePaperQrSummary';
 
 export const MAX_REPRINT_LOOKUP = 120;
 
@@ -15,42 +17,64 @@ export interface PaperQrReprintDraft {
 }
 
 interface PaperQrReprintCardProps {
+  expoId: string;
   draft: PaperQrReprintDraft;
+  isLookingUp: boolean;
   onDraftChange: (draft: PaperQrReprintDraft) => void;
   onLookup: () => void;
+  onRevoked: (code: string) => void;
 }
 
-const CODE_PATTERN = /^(ADT|CHD|GEN)-\d{4}-[A-Z0-9]{2}$/;
+// 구분 3글자-연번-확인 문자 2자리. 확인 문자는 서버가 검사한다
+const CODE_PATTERN = /^[A-Z]{3}-\d{4,}-[A-Z0-9]{2}$/;
+const CODE_MAX_LENGTH = 20;
 
 const PaperQrReprintCard = ({
+  expoId,
   draft,
+  isLookingUp,
   onDraftChange,
   onLookup,
+  onRevoked,
 }: PaperQrReprintCardProps) => {
+  const queryClient = useQueryClient();
   const [revokeCode, setRevokeCode] = useState('');
+  const [isRevoking, setIsRevoking] = useState(false);
 
-  const handleRevoke = () => {
+  const handleRevoke = async () => {
     const code = revokeCode.trim().toUpperCase();
     if (!CODE_PATTERN.test(code)) {
       toast.warn('QR 코드 형식을 확인해 주세요. 예: ADT-0001-K7');
       return;
     }
     if (!window.confirm(`${code} QR을 사용 중지할까요?`)) return;
-    // 서버 연결 전이라 실제로 막지 않는다. Expo-Attendance-Server#132
-    toast.info(
-      '예시 화면입니다. 서버가 연결되면 이 QR은 입장할 수 없게 됩니다.',
-    );
-    setRevokeCode('');
+    setIsRevoking(true);
+    try {
+      await revokeQrToken(expoId, code);
+      toast.success(
+        `${code} QR을 사용 중지했습니다. 이제 이 QR로 입장할 수 없습니다.`,
+      );
+      setRevokeCode('');
+      onRevoked(code);
+      void queryClient.invalidateQueries({
+        queryKey: paperQrSummaryQueryKey(expoId),
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'QR을 사용 중지하지 못했습니다.',
+      );
+    } finally {
+      setIsRevoking(false);
+    }
   };
 
   return (
     <section className="flex flex-col gap-24 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
       <div className="space-y-16">
         <div className="space-y-8">
-          <div className="flex items-center gap-8">
-            <p className="text-h3b text-black">기존 QR 다시 인쇄</p>
-            <MockDataBadge issue={PAPER_QR_MOCK_ISSUE} />
-          </div>
+          <p className="text-h3b text-black">기존 QR 다시 인쇄</p>
           <p className="break-keep text-caption1r text-gray-500">
             이미 발급한 QR을 연번으로 찾아 다시 인쇄합니다. 한 번에 최대{' '}
             {MAX_REPRINT_LOOKUP}장까지 조회할 수 있습니다.
@@ -106,19 +130,17 @@ const PaperQrReprintCard = ({
         </div>
         <button
           type="button"
-          className="w-full rounded-sm border-1 border-solid border-main-600 py-12 text-body2b text-main-600"
+          className="w-full rounded-sm border-1 border-solid border-main-600 py-12 text-body2b text-main-600 disabled:opacity-40"
           onClick={onLookup}
+          disabled={isLookingUp}
         >
-          조회하기
+          {isLookingUp ? '조회 중...' : '조회하기'}
         </button>
       </div>
 
       <div className="space-y-12 border-t-1 border-solid border-gray-200 pt-24">
         <div className="space-y-8">
-          <div className="flex items-center gap-8">
-            <p className="text-body2b text-black">분실 QR 무효화</p>
-            <MockDataBadge issue={PAPER_QR_MOCK_ISSUE} />
-          </div>
+          <p className="text-body2b text-black">분실 QR 무효화</p>
           <p className="break-keep text-caption1r text-gray-500">
             잃어버린 QR의 코드를 입력하면 그 QR로는 입장할 수 없게 됩니다.
           </p>
@@ -127,15 +149,16 @@ const PaperQrReprintCard = ({
           <Input
             placeholder="ADT-0001-K7"
             value={revokeCode}
+            maxLength={CODE_MAX_LENGTH}
             onChange={(e) => setRevokeCode(e.target.value)}
           />
           <button
             type="button"
             className="shrink-0 whitespace-nowrap rounded-sm bg-error px-20 py-12 text-body2b text-white disabled:cursor-not-allowed disabled:opacity-40"
             onClick={handleRevoke}
-            disabled={revokeCode.trim() === ''}
+            disabled={revokeCode.trim() === '' || isRevoking}
           >
-            사용 중지
+            {isRevoking ? '처리 중...' : '사용 중지'}
           </button>
         </div>
       </div>

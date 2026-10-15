@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { withLoading } from '@/shared/hocs';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
@@ -10,6 +10,7 @@ import {
   patchPreregisterSession,
   PreregisterSession,
   retryPreregisterSessionChange,
+  ScheduleProgram,
   SectionError,
   useInvalidateSchedule,
   usePreregisterSessions,
@@ -17,19 +18,20 @@ import {
   useSchedulePrograms,
   useScheduleMutation,
 } from '../../../common';
+import { ProgramForm } from '../../model/policyForm';
 import {
   SessionForm,
   toSessionDefinition,
   toSessionForm,
   validateSessionForm,
 } from '../../model/sessionForm';
+import { useProgramDraftRestore } from '../../model/useProgramDraftRestore';
 import BulkPolicySection from '../BulkPolicySection';
 import CreateEntry from '../CreateEntry';
 import ProgramSection, {
   PROGRAM_FORM_ID,
   ProgramEditing,
 } from '../ProgramSection';
-import PromotionPolicySection from '../PromotionPolicySection';
 import SessionSection, { SESSION_FORM_ID, SessionRow } from '../SessionSection';
 
 // 상태를 바꾼 뒤 그려진 양식으로 스크롤한다
@@ -59,6 +61,7 @@ const ScheduleManager = () => {
   const isDirty = edits.size > 0;
   const [isAsideOpen, setIsAsideOpen] = useState(true);
   const [programEditing, setProgramEditing] = useState<ProgramEditing>(null);
+  const [draftForm, setDraftForm] = useState<ProgramForm>();
   const [isCreatingSession, setIsCreatingSession] = useState(false);
 
   useEffect(() => {
@@ -70,6 +73,22 @@ const ScheduleManager = () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
+
+  useProgramDraftRestore(
+    expoId,
+    programsQuery.data,
+    useCallback((target: ScheduleProgram | 'new', form: ProgramForm) => {
+      setDraftForm(form);
+      setProgramEditing(target);
+      scrollToForm(PROGRAM_FORM_ID);
+    }, []),
+  );
+
+  // 초안은 그 양식에만 채운다. 다른 회차를 열면 서버 값으로 시작한다
+  const handleProgramEditingChange = (editing: ProgramEditing) => {
+    setDraftForm(undefined);
+    setProgramEditing(editing);
+  };
 
   const sessions = sessionsQuery.data;
   const rows = useMemo<SessionRow[]>(
@@ -212,13 +231,12 @@ const ScheduleManager = () => {
                 programs={programs}
                 disabled={isSaving}
               />
-              <PromotionPolicySection programs={programs} />
               <CreateEntry
                 title="신규 프로그램 등록"
                 description="프로그램 마스터 표 아래에 등록 양식을 엽니다."
                 buttonLabel="프로그램 등록 양식 열기"
                 onClick={() => {
-                  setProgramEditing('new');
+                  handleProgramEditingChange('new');
                   scrollToForm(PROGRAM_FORM_ID);
                 }}
               />
@@ -255,7 +273,8 @@ const ScheduleManager = () => {
                 expoId={expoId}
                 programs={programs}
                 editing={programEditing}
-                onEditingChange={setProgramEditing}
+                onEditingChange={handleProgramEditingChange}
+                draftForm={draftForm}
               />
               <SessionSection
                 expoId={expoId}

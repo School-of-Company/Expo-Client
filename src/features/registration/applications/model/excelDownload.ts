@@ -5,6 +5,7 @@ import {
   ReportExcelTemplate,
 } from '@/shared/types/registration/type';
 import {
+  ACTIVE_STATUS_FILTER,
   LedgerFilter,
   LedgerRow,
   parseSessionKey,
@@ -174,8 +175,22 @@ const planFilter = (
     );
   }
 
+  if (filter.eventDate) {
+    blockers.push(
+      '행사일 조건은 다운로드 필터에 없습니다. 행사일을 해제하거나 신청을 선택해서 받아주세요.',
+    );
+  }
+  if (filter.status === ACTIVE_STATUS_FILTER) {
+    blockers.push(
+      '확정+대기는 다운로드 필터에서 한 번에 고를 수 없습니다. 상태를 하나만 고르거나 신청을 선택해서 받아주세요.',
+    );
+  }
+
   const session = parseSessionKey(filter.session);
-  const status = filter.status || null;
+  const status =
+    filter.status && filter.status !== ACTIVE_STATUS_FILTER
+      ? filter.status
+      : null;
 
   if (template === 'TRAINEE' && session?.programType === 'STANDARD') {
     blockers.push('연수자 명단은 연수 회차만 필터할 수 있습니다.');
@@ -210,7 +225,10 @@ const planFilter = (
     // 회차를 고르지 않아도 연수자 명단은 연수 신청만 대상으로 한다
     ...(template === 'TRAINEE' && { programType: 'TRAINING' }),
     status,
-    sort: filter.sort,
+    // Report 는 신청일시 정렬만 받는다. 다른 정렬은 대상이 같고 순서만 달라 서버 기본값에 맡긴다
+    ...((filter.sort === 'CREATED_ASC' || filter.sort === 'CREATED_DESC') && {
+      sort: filter.sort,
+    }),
   };
 
   return {

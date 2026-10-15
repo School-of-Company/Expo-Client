@@ -2,33 +2,28 @@
 
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Input, MockDataBadge } from '@/shared/ui';
-import { PAPER_QR_MOCK_ISSUE, PaperQrCode } from '../../mock/paperQrMock';
+import { Input } from '@/shared/ui';
+import { PaperQrItem } from '../../api/qrTokensApi';
 import { DEFAULT_LABEL_SIZE } from '../../model/constants';
-import { PaperQrBatch } from '../../model/issuePaperQrTokens';
-import { getTokenTail, printPaperQrA4 } from '../../model/printPaperQrA4';
+import { printPaperQrA4 } from '../../model/printPaperQrA4';
 import { printPaperQrLabels } from '../../model/printPaperQrLabels';
 import PaperQrTicketCard from '../PaperQrTicketCard';
 
-export type PaperQrOutput =
-  | { kind: 'issued'; batches: PaperQrBatch[] }
-  | { kind: 'sample'; codes: PaperQrCode[] };
+export interface PaperQrOutput {
+  /** 방금 발급한 QR 인지, 다시 인쇄하려고 조회한 QR 인지 */
+  kind: 'issued' | 'lookup';
+  items: PaperQrItem[];
+}
 
 interface PaperQrOutputListProps {
   output: PaperQrOutput | null;
   expoTitle: string;
-  // 예시 다시 인쇄 조회에서만 쓴다
+  // 다시 인쇄 조회 결과에서만 쓴다
   onNextLookup?: () => void;
 }
 
 // 수천 장을 한 화면에 그리면 느려서 미리보기는 앞부분만 보인다
 const PREVIEW_LIMIT = 120;
-
-const STATUS_LABEL: Record<PaperQrCode['status'], string | undefined> = {
-  ACTIVE: undefined,
-  USED: '입장 완료',
-  REVOKED: '사용 중지됨',
-};
 
 const actionButton =
   'rounded-sm px-16 py-8 text-caption1b whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-40';
@@ -41,21 +36,20 @@ const PaperQrOutputList = ({
   const [labelSize, setLabelSize] = useState(DEFAULT_LABEL_SIZE);
   const [isPrinting, setIsPrinting] = useState(false);
 
-  const isSample = output?.kind === 'sample';
-  const batches = output?.kind === 'issued' ? output.batches : [];
-  const total = isSample
-    ? output.codes.length
-    : batches.reduce((sum, { tokens }) => sum + tokens.length, 0);
+  const items = output?.items ?? [];
+  const total = items.length;
+  // 사용 중지한 QR 은 찍어도 입장할 수 없어 인쇄에서 뺀다
+  const printable = items.filter(({ revoked }) => !revoked);
   const isLabelSizeValid = labelSize.width >= 20 && labelSize.height >= 15;
-  const canPrint = !isSample && total > 0 && !isPrinting;
+  const canPrint = printable.length > 0 && !isPrinting;
 
   const print = async (mode: 'a4' | 'label') => {
     setIsPrinting(true);
     try {
       if (mode === 'a4') {
-        await printPaperQrA4(batches, { expoTitle });
+        await printPaperQrA4(printable, { expoTitle });
       } else {
-        await printPaperQrLabels(batches, { expoTitle, labelSize });
+        await printPaperQrLabels(printable, { expoTitle, labelSize });
       }
     } catch (error) {
       toast.error(
@@ -66,43 +60,21 @@ const PaperQrOutputList = ({
     }
   };
 
-  const tickets = isSample
-    ? output.codes
-        .slice(0, PREVIEW_LIMIT)
-        .map((item) => (
-          <PaperQrTicketCard
-            key={item.code}
-            category={item.category}
-            qrValue={item.qrValue}
-            code={item.code}
-            statusLabel={STATUS_LABEL[item.status]}
-            expoTitle={expoTitle}
-            isSample
-          />
-        ))
-    : batches
-        .flatMap(({ category, tokens }) =>
-          tokens.map((token) => ({ category, token })),
-        )
-        .slice(0, PREVIEW_LIMIT)
-        .map(({ category, token }) => (
-          <PaperQrTicketCard
-            key={token}
-            category={category}
-            qrValue={token}
-            tokenTail={getTokenTail(token)}
-            expoTitle={expoTitle}
-          />
-        ));
+  const tickets = items
+    .slice(0, PREVIEW_LIMIT)
+    .map((item) => (
+      <PaperQrTicketCard key={item.code} item={item} expoTitle={expoTitle} />
+    ));
 
   return (
     <section className="space-y-16 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
       <div className="flex flex-wrap items-start justify-between gap-12">
         <div className="space-y-4">
-          <div className="flex items-center gap-8">
-            <p className="text-h3b text-black">출력 목록 · {total}장</p>
-            {isSample && <MockDataBadge issue={PAPER_QR_MOCK_ISSUE} />}
-          </div>
+          <p className="text-h3b text-black">
+            출력 목록 · {total}장
+            {printable.length < total &&
+              ` (인쇄 ${printable.length}장, 사용 중지 ${total - printable.length}장 제외)`}
+          </p>
           <p className="break-keep text-caption1r text-gray-500">
             A4 기준 3열 배열. 화면에서 QR이 정상 표시되면 인쇄 버튼을
             눌러주세요.
@@ -125,7 +97,7 @@ const PaperQrOutputList = ({
           >
             라벨 인쇄
           </button>
-          {isSample && onNextLookup && (
+          {output?.kind === 'lookup' && onNextLookup && (
             <button
               type="button"
               className={`${actionButton} bg-gray-100 text-gray-700`}
@@ -137,13 +109,7 @@ const PaperQrOutputList = ({
         </div>
       </div>
 
-      {isSample && (
-        <p className="break-keep text-caption1r text-error">
-          예시 QR은 실제 입장권이 아니라 인쇄할 수 없습니다.
-        </p>
-      )}
-
-      {!isSample && total > 0 && (
+      {printable.length > 0 && (
         <div className="flex flex-wrap items-end gap-12">
           <div className="w-[120px] space-y-4">
             <p className="text-caption1r text-gray-600">라벨 가로(mm)</p>

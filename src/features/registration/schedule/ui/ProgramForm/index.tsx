@@ -1,8 +1,11 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Button, Input, MockDataBadge, ToggleButton } from '@/shared/ui';
+import { useProgramFormQuery } from '@/entities/form';
+import { getRegistrationRoutes } from '@/shared/config';
+import { Button, Input, ToggleButton } from '@/shared/ui';
 import {
   DateTimeInput,
   patchScheduleProgram,
@@ -19,7 +22,12 @@ import {
   toProgramRequest,
   validateProgramForm,
 } from '../../model/policyForm';
-import { toCount } from '../../model/sessionForm';
+import {
+  DRAFT_QUERY,
+  getFormLinkProblem,
+  saveProgramDraft,
+  toProgramKey,
+} from '../../model/programFormLink';
 import PolicyFields, { Field } from '../PolicyFields';
 import { FieldLabel } from '../ScheduleSection';
 
@@ -27,6 +35,10 @@ interface ProgramFormProps {
   expoId: string;
   /** 없으면 새 프로그램을 만든다 */
   program?: ScheduleProgram;
+  /** 묶음·공유 폼을 찾을 이 행사의 회차 */
+  programs: ScheduleProgram[];
+  /** 폼을 만들고 돌아왔을 때 이어서 편집할 값 */
+  initialForm?: ProgramFormValue;
   onClose: () => void;
 }
 
@@ -39,22 +51,22 @@ const CATEGORY_OPTIONS = [
   { value: 'CHOICE', label: '선택' },
 ];
 
-/** 서버가 아직 받지 않는 입력(Expo-Expo-Server#110). 저장할 때 보내지 않는다 */
-interface ProgramExtraForm {
-  code: string;
-  maxSessionsPerUser: number;
-  place: string;
-}
-
-const ProgramForm = ({ expoId, program, onClose }: ProgramFormProps) => {
-  const [form, setForm] = useState<ProgramFormValue>(() =>
-    program ? toProgramForm(program) : EMPTY_PROGRAM_FORM,
+const ProgramForm = ({
+  expoId,
+  program,
+  programs,
+  initialForm,
+  onClose,
+}: ProgramFormProps) => {
+  const router = useRouter();
+  const [form, setForm] = useState<ProgramFormValue>(
+    () =>
+      initialForm ?? (program ? toProgramForm(program) : EMPTY_PROGRAM_FORM),
   );
-  const [extra, setExtra] = useState<ProgramExtraForm>({
-    code: '',
-    maxSessionsPerUser: 1,
-    place: '',
-  });
+  const programKey = program ? toProgramKey(program) : undefined;
+  const { data: linkedForm } = useProgramFormQuery(
+    form.hasPolicy ? form.policy.formId : '',
+  );
   const { mutate: save, isPending } = useScheduleMutation(
     expoId,
     (value: ProgramFormValue) =>
@@ -73,12 +85,29 @@ const ProgramForm = ({ expoId, program, onClose }: ProgramFormProps) => {
     setForm((prev) => ({ ...prev, ...patch }));
 
   const handleSubmit = () => {
-    const error = validateProgramForm(form);
+    const error =
+      validateProgramForm(form) ??
+      (form.hasPolicy && linkedForm
+        ? getFormLinkProblem(linkedForm, expoId, form.programType, form.policy)
+        : null);
     if (error) {
       toast.error(error);
       return;
     }
     save(form);
+  };
+
+  // 지금 고치던 회차를 남겨 두고 폼을 만들러 간다. 폼을 저장하면 이 회차로 돌아와 새 폼이 연결된다
+  const handleCreateForm = () => {
+    if (!saveProgramDraft(expoId, { target: programKey ?? 'new', form })) {
+      toast.error(
+        '브라우저 저장소를 쓸 수 없어 회차 초안을 남기지 못했습니다. 폼 관리에서 폼을 먼저 만들어 주세요.',
+      );
+      return;
+    }
+    router.push(
+      `${getRegistrationRoutes(expoId).programFormNew}?${DRAFT_QUERY.returnTo}=schedule`,
+    );
   };
 
   // 서버는 policy 가 null 이면 기존 정책을 유지하므로 한 번 만든 정책은 끌 수 없다
@@ -126,50 +155,6 @@ const ProgramForm = ({ expoId, program, onClose }: ProgramFormProps) => {
           </Field>
         )}
       </div>
-      <div className="space-y-16 rounded-sm border-1 border-dashed border-gray-200 px-20 py-16">
-        <div className="flex flex-wrap items-center gap-8">
-          <MockDataBadge issue="Expo-Expo-Server#110" />
-          <p className="text-caption1r text-gray-500">
-            서버 연결 후 저장됩니다. 지금은 아래 값을 보내지 않습니다.
-          </p>
-        </div>
-        <div className="grid grid-cols-3 gap-16 mobile:grid-cols-1">
-          <Field label="프로그램 코드">
-            <Input
-              placeholder="예: TRAIN_SAMSUNG"
-              value={extra.code}
-              onChange={(e) =>
-                setExtra((prev) => ({
-                  ...prev,
-                  code: e.target.value.toUpperCase(),
-                }))
-              }
-            />
-          </Field>
-          <Field label="1인 최대 회차">
-            <Input
-              type="number"
-              min={1}
-              value={extra.maxSessionsPerUser}
-              onChange={(e) =>
-                setExtra((prev) => ({
-                  ...prev,
-                  maxSessionsPerUser: toCount(e.target.value),
-                }))
-              }
-            />
-          </Field>
-          <Field label="장소 (선택)">
-            <Input
-              placeholder="장소를 입력해주세요."
-              value={extra.place}
-              onChange={(e) =>
-                setExtra((prev) => ({ ...prev, place: e.target.value }))
-              }
-            />
-          </Field>
-        </div>
-      </div>
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         <Field label="시작">
           <DateTimeInput
@@ -201,8 +186,18 @@ const ProgramForm = ({ expoId, program, onClose }: ProgramFormProps) => {
       </div>
       {form.hasPolicy && (
         <PolicyFields
+          expoId={expoId}
+          programType={form.programType}
+          programs={programs}
+          programKey={programKey}
           value={form.policy}
-          onChange={(patch) => update({ policy: { ...form.policy, ...patch } })}
+          onChange={(patch) =>
+            setForm((prev) => ({
+              ...prev,
+              policy: { ...prev.policy, ...patch },
+            }))
+          }
+          onCreateForm={handleCreateForm}
         />
       )}
       <div className="grid grid-cols-2 gap-16">

@@ -1,8 +1,8 @@
 'use client';
 
 import { renderQRCodeSVG } from '@/shared/model';
+import { PaperQrItem } from '../api/qrTokensApi';
 import { getCategoryLabel } from './constants';
-import { PaperQrBatch } from './issuePaperQrTokens';
 
 interface PrintOptions {
   expoTitle: string;
@@ -42,7 +42,7 @@ const A4_STYLE = `
   .category { font-size: 13pt; font-weight: 700; line-height: 1.2; }
   .qr { width: 40mm; height: 40mm; }
   .qr svg { width: 100%; height: 100%; display: block; }
-  .token { font-size: 7pt; color: #555; line-height: 1.2; }
+  .token { font-size: 9pt; font-weight: 700; line-height: 1.2; }
   .expo {
     font-size: 7pt;
     line-height: 1.2;
@@ -51,12 +51,9 @@ const A4_STYLE = `
   }
 `;
 
-// 토큰 전체를 글자로 찍지 않고, 현장에서 장을 구분할 끝자리만 보인다
-export const getTokenTail = (token: string) => token.slice(-6);
-
 // 숨긴 iframe으로 인쇄한다. printPaperQrLabels와 같은 방식이다
 export const printPaperQrA4 = (
-  batches: PaperQrBatch[],
+  items: PaperQrItem[],
   { expoTitle }: PrintOptions,
 ): Promise<void> =>
   new Promise((resolve, reject) => {
@@ -80,18 +77,14 @@ export const printPaperQrA4 = (
     );
     doc.close();
 
-    const tickets = batches.flatMap(({ category, tokens }) =>
-      tokens.map((token) => ({ category, token })),
-    );
-
     // 박람회 이름은 외부 입력값이라 textContent로만 넣는다
-    for (let start = 0; start < tickets.length; start += TICKETS_PER_PAGE) {
+    for (let start = 0; start < items.length; start += TICKETS_PER_PAGE) {
       const page = doc.createElement('div');
       page.className = 'page';
 
-      tickets
+      items
         .slice(start, start + TICKETS_PER_PAGE)
-        .forEach(({ category, token }) => {
+        .forEach(({ category, token, code }) => {
           const ticket = doc.createElement('div');
           ticket.className = 'ticket';
 
@@ -107,7 +100,8 @@ export const printPaperQrA4 = (
 
           const tokenText = doc.createElement('div');
           tokenText.className = 'token';
-          tokenText.textContent = `토큰 ${getTokenTail(token)}`;
+          // 분실 신고 때 이 코드로 사용 중지한다
+          tokenText.textContent = code;
           ticket.appendChild(tokenText);
 
           const expoText = doc.createElement('div');

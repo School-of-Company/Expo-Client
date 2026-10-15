@@ -1,4 +1,4 @@
-import { useQueries, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { eachDayOfInterval, isValid, parseISO } from 'date-fns';
 import { normalizeExpoId } from '@/shared/config';
 import { EntrySummary } from '@/shared/types/exhibition/check-in/entry';
@@ -12,6 +12,9 @@ export const ALL_DAYS = 'all';
 
 export const attendanceSummaryQueryKey = (expoId: string, date: string) =>
   ['attendanceSummary', expoId, date] as const;
+
+/** 날짜 탭 값을 서버 조회 조건으로. 전체 기록은 null(all=true) */
+export const toPeriodDate = (day: string) => (day === ALL_DAYS ? null : day);
 
 /** 박람회 시작일~종료일의 모든 날짜(YYYY-MM-DD) */
 export const getExpoDays = (startedDay?: string, finishedDay?: string) => {
@@ -28,107 +31,27 @@ export const getDefaultDay = (days: string[]) => {
   return days.includes(today) ? today : (days[0] ?? ALL_DAYS);
 };
 
-// 응답에 필드가 빠져 와도 0 으로 센다
-const sumSummaries = (summaries: EntrySummary[]): EntrySummary => {
-  const paper = new Map<string | null, { entered: number; exited: number }>();
-  const walkIn = { ADULT: 0, STUDENT: 0 };
-  summaries.forEach((summary) => {
-    (summary.paper ?? []).forEach(({ category, entered, exited }) => {
-      const prev = paper.get(category) ?? { entered: 0, exited: 0 };
-      paper.set(category, {
-        entered: prev.entered + entered,
-        exited: prev.exited + exited,
-      });
-    });
-    (summary.walkIn?.counts ?? []).forEach(({ category, count }) => {
-      walkIn[category] = (walkIn[category] ?? 0) + count;
-    });
-  });
-  const sum = (pick: (summary: EntrySummary) => number | undefined) =>
-    summaries.reduce((total, summary) => total + (pick(summary) ?? 0), 0);
-
-  return {
-    expoId: summaries[0]?.expoId ?? '',
-    date: ALL_DAYS,
-    // 지역 일시 문자열이라 사전순이 곧 시간순이다
-    generatedAt: summaries.reduce(
-      (latest, { generatedAt }) =>
-        (generatedAt ?? '') > latest ? generatedAt : latest,
-      '',
-    ),
-    registered: {
-      standard: sum((s) => s.registered?.standard),
-      trainee: sum((s) => s.registered?.trainee),
-    },
-    paper: Array.from(paper, ([category, counts]) => ({
-      category,
-      ...counts,
-    })),
-    walkIn: {
-      expoId: summaries[0]?.expoId ?? '',
-      date: ALL_DAYS,
-      counts: [
-        { category: 'ADULT', count: walkIn.ADULT },
-        { category: 'STUDENT', count: walkIn.STUDENT },
-      ],
-      total: walkIn.ADULT + walkIn.STUDENT,
-    },
-    totals: {
-      entered: sum((s) => s.totals?.entered),
-      exited: sum((s) => s.totals?.exited),
-      stillInside: sum((s) => s.totals?.stillInside),
-    },
-  };
-};
-
-/**
- * 고른 날짜의 입·퇴장 집계. 전체 기록은 서버 API 가 없어 날짜별로 따로 읽어 더한다.
- * 같은 날짜는 같은 쿼리 키라 탭을 오가도 다시 읽지 않는다
- */
-export const useAttendanceSummary = (
-  expoId: string,
-  day: string,
-  days: string[],
-) => {
+/** 고른 날짜(또는 전체 기록)의 입·퇴장 집계 */
+export const useAttendanceSummary = (expoId: string, day: string) => {
   const queryClient = useQueryClient();
   const serverExpoId = normalizeExpoId(expoId);
-  const targetDays = day === ALL_DAYS ? days : [day];
+  const queryKey = attendanceSummaryQueryKey(serverExpoId ?? expoId, day);
 
-  const queries = useQueries({
-    queries: targetDays.map((date) => ({
-      queryKey: attendanceSummaryQueryKey(serverExpoId ?? expoId, date),
-      queryFn: () => getAttendanceSummary(serverExpoId!, date),
-      enabled: Boolean(serverExpoId),
-      refetchInterval: ATTENDANCE_REFRESH_MS,
-      // 실패는 화면 영역 안에만 표시한다
-      meta: { silent: true },
-    })),
+  const query = useQuery({
+    queryKey,
+    queryFn: () => getAttendanceSummary(serverExpoId!, toPeriodDate(day)),
+    enabled: Boolean(serverExpoId),
+    refetchInterval: ATTENDANCE_REFRESH_MS,
+    // 실패는 화면 영역 안에만 표시한다
+    meta: { silent: true },
   });
 
-  const results = queries.flatMap(({ data }) => (data ? [data] : []));
-  const isComplete = results.length === targetDays.length && results.length > 0;
-  const data = isComplete
-    ? day === ALL_DAYS
-      ? sumSummaries(results)
-      : results[0]
-    : undefined;
-
   return {
-    data,
-    isLoading: queries.some(({ isLoading }) => isLoading),
-    isError: queries.some(({ isError }) => isError),
-    isFetching: queries.some(({ isFetching }) => isFetching),
-    updatedAt: isComplete
-      ? Math.min(...queries.map(({ dataUpdatedAt }) => dataUpdatedAt))
-      : 0,
-    refetch: () =>
-      Promise.all(
-        targetDays.map((date) =>
-          queryClient.invalidateQueries({
-            queryKey: attendanceSummaryQueryKey(serverExpoId ?? expoId, date),
-          }),
-        ),
-      ),
+    data: query.data,
+    isError: query.isError,
+    isFetching: query.isFetching,
+    updatedAt: query.dataUpdatedAt,
+    refetch: () => queryClient.invalidateQueries({ queryKey }),
   };
 };
 
@@ -181,9 +104,3 @@ export const getEntryMethodCounts = (summary: EntrySummary) => {
     })),
   ];
 };
-
-/** 사전등록 QR 과 인쇄 QR 입장 수. 간편입장은 식별할 QR 이 없어 뺀다 */
-export const getIdentifiedEntered = (summary: EntrySummary) =>
-  (summary.registered?.standard ?? 0) +
-  (summary.registered?.trainee ?? 0) +
-  (summary.paper ?? []).reduce((sum, { entered }) => sum + entered, 0);

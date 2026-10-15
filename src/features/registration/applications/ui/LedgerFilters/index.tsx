@@ -1,39 +1,41 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MockDataBadge } from '@/shared/ui';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { formatDateWithWeekday, RegistrationSelect } from '../../../common';
 import {
   AdminApplicationSort,
-  AdminApplicationStatus,
   AdminOccupation,
   ProgramSessionDefinition,
 } from '../../../common/api/ledgerApi';
 import {
+  ACTIVE_STATUS_FILTER,
   formatDefinitionSchedule,
   LEDGER_STATUS_LABEL,
   LedgerFilter,
+  LedgerStatusFilter,
   OCCUPATION_LABEL,
   PROGRAM_TYPE_LABEL,
   Q_MAX_LENGTH,
   SEARCH_MAX_LENGTH,
   toSessionKey,
 } from '../../../common/model/ledger';
-import { LEDGER_EXTRAS_ISSUE } from '../../mock/ledgerExtras';
-import {
-  APPLICATION_TYPE_LABEL,
-  ApplicationType,
-  LedgerClientFilter,
-} from '../../model/ledgerView';
+
+const SORT_OPTIONS: { value: AdminApplicationSort; label: string }[] = [
+  { value: 'CREATED_DESC', label: '최근 신청순' },
+  { value: 'CREATED_ASC', label: '오래된 신청순' },
+  { value: 'RECEIPT_ASC', label: '접수번호 오름차순' },
+  { value: 'RECEIPT_DESC', label: '접수번호 내림차순' },
+  { value: 'PROGRAM_ASC', label: '프로그램 가나다순' },
+  { value: 'PROGRAM_DESC', label: '프로그램 역순' },
+  { value: 'SESSION_ASC', label: '회차 일시 빠른순' },
+  { value: 'SESSION_DESC', label: '회차 일시 늦은순' },
+];
 
 interface LedgerFiltersProps {
   filter: LedgerFilter;
   sessions: ProgramSessionDefinition[];
   onChange: (filter: LedgerFilter) => void;
-  /** 서버 필터가 없어 현재 페이지 행에만 거는 필터. 넘기면 신청구분·행사일을 보인다 */
-  clientFilter?: LedgerClientFilter;
-  onClientFilterChange?: (filter: LedgerClientFilter) => void;
   /** 박람회 기간의 날짜 (YYYY-MM-DD) */
   expoDays?: string[];
   onReset: () => void;
@@ -46,8 +48,6 @@ const LedgerFilters = ({
   filter,
   sessions,
   onChange,
-  clientFilter,
-  onClientFilterChange,
   expoDays = [],
   onReset,
 }: LedgerFiltersProps) => {
@@ -74,7 +74,7 @@ const LedgerFilters = ({
       <div className="grid grid-cols-4 items-center gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
         <div className="col-span-2 mobile:col-span-1">
           <SearchInput
-            placeholder="이름·연락처 (학교·소속 검색은 준비 중)"
+            placeholder="이름·연락처"
             value={keyword}
             onChange={(value) => setKeyword(value.slice(0, Q_MAX_LENGTH))}
           />
@@ -104,10 +104,11 @@ const LedgerFilters = ({
           ariaLabel="상태"
           value={filter.status}
           onChange={(status) =>
-            update({ status: status as AdminApplicationStatus | '' })
+            update({ status: status as LedgerStatusFilter })
           }
           options={[
             { value: '', label: '전체 상태' },
+            { value: ACTIVE_STATUS_FILTER, label: '확정+대기' },
             ...Object.entries(LEDGER_STATUS_LABEL).map(([value, label]) => ({
               value,
               label,
@@ -128,57 +129,23 @@ const LedgerFilters = ({
             })),
           ]}
         />
-        {clientFilter && onClientFilterChange && (
-          <>
-            <div className="flex items-center gap-8">
-              <RegistrationSelect
-                ariaLabel="신청구분"
-                value={clientFilter.applicationType}
-                onChange={(applicationType) =>
-                  onClientFilterChange({
-                    ...clientFilter,
-                    applicationType: applicationType as ApplicationType | '',
-                  })
-                }
-                options={[
-                  { value: '', label: '전체 신청구분' },
-                  ...Object.entries(APPLICATION_TYPE_LABEL).map(
-                    ([value, label]) => ({
-                      value,
-                      label,
-                    }),
-                  ),
-                ]}
-              />
-              <MockDataBadge issue={LEDGER_EXTRAS_ISSUE} />
-            </div>
-            <div className="flex items-center gap-8">
-              <RegistrationSelect
-                ariaLabel="행사일"
-                value={clientFilter.eventDay}
-                onChange={(eventDay) =>
-                  onClientFilterChange({ ...clientFilter, eventDay })
-                }
-                options={[
-                  { value: '', label: '전체 행사일' },
-                  ...expoDays.map((day) => ({
-                    value: day,
-                    label: formatDateWithWeekday(day),
-                  })),
-                ]}
-              />
-              <MockDataBadge issue={LEDGER_EXTRAS_ISSUE} />
-            </div>
-          </>
-        )}
+        <RegistrationSelect
+          ariaLabel="행사일"
+          value={filter.eventDate}
+          onChange={(eventDate) => update({ eventDate })}
+          options={[
+            { value: '', label: '전체 행사일' },
+            ...expoDays.map((day) => ({
+              value: day,
+              label: formatDateWithWeekday(day),
+            })),
+          ]}
+        />
         <RegistrationSelect
           ariaLabel="정렬"
           value={filter.sort}
           onChange={(sort) => update({ sort: sort as AdminApplicationSort })}
-          options={[
-            { value: 'CREATED_DESC', label: '최근 신청순' },
-            { value: 'CREATED_ASC', label: '오래된 신청순' },
-          ]}
+          options={SORT_OPTIONS}
         />
         <button
           type="button"
@@ -188,13 +155,6 @@ const LedgerFilters = ({
           초기화
         </button>
       </div>
-      {clientFilter && (
-        <p className="text-caption1r text-gray-400">
-          신청구분·행사일은 서버 필터가 준비 중이라 지금 보고 있는 페이지의
-          행에만 적용합니다. 건수·그룹 메시지·엑셀의 필터 전체에는 반영되지
-          않습니다.
-        </p>
-      )}
     </div>
   );
 };

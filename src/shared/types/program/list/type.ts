@@ -17,8 +17,16 @@ export type ProgramOccupation =
   | 'TEACHER'
   | 'PRE_SERVICE_TEACHER';
 
+// 회차 신청 채널(신청 구분)별 정원 (ProgramChannelRequest, Expo-Expo-Server#112)
+export interface ProgramChannel {
+  name: string;
+  allowedOccupations: ProgramOccupation[];
+  capacity: number;
+  waitingCapacity: number;
+}
+
 // 프로그램 모집 정책 (ProgramPolicyRequest, 조회 응답도 같은 클래스를 쓴다).
-// Swagger에도 required 로 표시되듯 groupId 외에는 모두 필수다.
+// Swagger에도 required 로 표시되듯 groupId·channels 외에는 모두 필수다.
 // null·키 누락·빈 직업 목록은 400 이다(Expo-Expo-Server ProgramPolicyRequest.kt).
 // 일시는 UTC 오프셋이 있는 ISO 8601 이다
 export interface ProgramPolicy {
@@ -32,6 +40,9 @@ export interface ProgramPolicy {
   cancelEndedAt: string;
   promotionEndedAt: string;
   closed: boolean;
+  // 없으면 채널 없이 capacity·waitingCapacity 하나로 모집한다.
+  // 있으면 정원·대기 정원은 채널 합, 신청 가능 직종은 채널 직종 합집합이어야 한다
+  channels?: ProgramChannel[] | null;
 }
 
 // 프로그램 생성·수정 요청 공통 필드. 시각은 'yyyy-MM-dd HH:mm' 이다.

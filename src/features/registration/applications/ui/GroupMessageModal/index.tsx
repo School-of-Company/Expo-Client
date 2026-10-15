@@ -20,6 +20,7 @@ import {
   GROUP_MESSAGE_MAX_LENGTH,
   GROUP_MESSAGE_SELECTED_MAX,
   GROUP_MESSAGE_VARIABLES,
+  getFilteredScopeBlocker,
   isFinalJobStatus,
   isGoneJobError,
   JOB_STATUS_LABEL,
@@ -130,7 +131,9 @@ const GroupMessageModal = ({
         ? `선택 신청은 최대 ${GROUP_MESSAGE_SELECTED_MAX}건까지 보낼 수 있습니다.`
         : scope === 'FILTERED' && filterCount === 0
           ? '현재 필터에 맞는 신청이 없습니다.'
-          : null;
+          : scope === 'FILTERED'
+            ? getFilteredScopeBlocker(filter)
+            : null;
 
   const previewMutation = useMutation({
     mutationFn: () => postGroupMessagePreview(expoId, source),

@@ -7,7 +7,11 @@ import {
   GroupMessageJobStatus,
   GroupMessageSource,
 } from '../../common/api/groupMessageApi';
-import { LedgerFilter, parseSessionKey } from '../../common/model/ledger';
+import {
+  LedgerFilter,
+  parseSessionKey,
+  toStatusList,
+} from '../../common/model/ledger';
 
 export const GROUP_MESSAGE_MAX_LENGTH = 1000;
 export const GROUP_MESSAGE_SELECTED_MAX = 1000;
@@ -39,18 +43,23 @@ const FINAL_JOB_STATUSES: GroupMessageJobStatus[] = [
 export const isFinalJobStatus = (status: GroupMessageJobStatus) =>
   FINAL_JOB_STATUSES.includes(status);
 
-/** 그룹 문자의 필터 전체 범위는 원장 필터를 그대로 받는다(제목, 이름·번호, 직업 포함) */
+/** 서버가 필터 전체 발송에 쓸 수 없는 사람 조건. 있으면 선택 발송만 할 수 있다 */
+export const getFilteredScopeBlocker = (filter: LedgerFilter) =>
+  filter.q.trim() || filter.occupation
+    ? '이름·연락처 검색이나 직업 조건이 있으면 현재 필터 전체로 보낼 수 없습니다. 조건을 지우거나 신청을 선택해서 보내주세요.'
+    : null;
+
+/** 그룹 문자의 필터 전체 범위는 원장 필터를 받는다. 사람 조건은 getFilteredScopeBlocker 로 막는다 */
 export const toGroupMessageFilter = (
   filter: LedgerFilter,
 ): GroupMessageFilter => {
-  const q = filter.q.trim();
   const search = filter.search.trim();
+  const status = toStatusList(filter.status);
   return {
     ...(parseSessionKey(filter.session) ?? {}),
-    ...(filter.status && { status: filter.status }),
+    ...(status.length > 0 && { status }),
+    ...(filter.eventDate && { eventDate: filter.eventDate }),
     ...(search && { search }),
-    ...(q && { q }),
-    ...(filter.occupation && { occupation: filter.occupation }),
     sort: filter.sort,
   };
 };

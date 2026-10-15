@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
-import { MockDataBadge, NavigationBar } from '@/shared/ui';
+import { NavigationBar } from '@/shared/ui';
 import SmallButton from '@/shared/ui/SmallButton';
 import {
   RefreshStatus,
@@ -24,14 +24,9 @@ import {
   useLedger,
   useLedgerSummary,
 } from '../../../common/model/ledger';
-import { LEDGER_EXTRAS_ISSUE } from '../../mock/ledgerExtras';
 import {
   buildCapacityMap,
   getExpoDays,
-  INITIAL_CLIENT_FILTER,
-  isClientFilterActive,
-  LedgerClientFilter,
-  matchesClientFilter,
   toLedgerViewRows,
 } from '../../model/ledgerView';
 import ApplicationDetailModal from '../ApplicationDetailModal';
@@ -57,9 +52,6 @@ const ApplicationLedger = () => {
       ? { ...INITIAL_LEDGER_FILTER, session }
       : INITIAL_LEDGER_FILTER;
   });
-  const [clientFilter, setClientFilter] = useState<LedgerClientFilter>(
-    INITIAL_CLIENT_FILTER,
-  );
   // 서버 페이지를 넘겨도 선택이 유지되도록 선택한 행 자체를 보관한다
   const [selected, setSelected] = useState<Map<string, LedgerRow>>(new Map());
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
@@ -87,13 +79,9 @@ const ApplicationLedger = () => {
     [sessions, sessionSummary],
   );
   const rows = useMemo(
-    () =>
-      toLedgerViewRows(data?.rows ?? [], data?.items ?? [], capacityMap).filter(
-        (row) => matchesClientFilter(row, clientFilter),
-      ),
-    [data, capacityMap, clientFilter],
+    () => toLedgerViewRows(data?.rows ?? [], data?.items ?? [], capacityMap),
+    [data, capacityMap],
   );
-  const pageRowCount = data?.rows.length ?? 0;
   const expoDays = useMemo(
     () => getExpoDays(expo?.startedDay, expo?.finishedDay),
     [expo],
@@ -190,13 +178,8 @@ const ApplicationLedger = () => {
           filter={filter}
           sessions={sessions}
           onChange={handleFilterChange}
-          clientFilter={clientFilter}
-          onClientFilterChange={setClientFilter}
           expoDays={expoDays}
-          onReset={() => {
-            setClientFilter(INITIAL_CLIENT_FILTER);
-            handleFilterChange(INITIAL_LEDGER_FILTER);
-          }}
+          onReset={() => handleFilterChange(INITIAL_LEDGER_FILTER)}
         />
 
         {isError && (!data || isParticipantSourceError(error)) ? (
@@ -230,12 +213,6 @@ const ApplicationLedger = () => {
                 {' · '}대기{' '}
                 <span className="text-black">{statusCounts.WAITING ?? 0}</span>
                 {' · '}취소 {statusCounts.CANCELLED ?? 0}
-                {isClientFilterActive(clientFilter) && (
-                  <>
-                    {' · '}이 페이지 {pageRowCount}건 중{' '}
-                    <span className="text-black">{rows.length}</span>건 표시
-                  </>
-                )}
               </p>
               {selected.size > 0 && (
                 <button
@@ -246,11 +223,6 @@ const ApplicationLedger = () => {
                   선택 해제
                 </button>
               )}
-            </div>
-
-            <div className="flex items-center gap-8 text-caption1r text-gray-400">
-              <MockDataBadge issue={LEDGER_EXTRAS_ISSUE} />
-              <p>* 접수번호와 학교·소속은 서버 연결 전 예시 값입니다.</p>
             </div>
 
             <LedgerTable

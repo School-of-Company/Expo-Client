@@ -32,6 +32,7 @@ export interface PreregisterSession extends PreregisterSessionDefinition {
 
 // 프로그램·모집 정책 형식은 박람회 화면과 같이 shared 타입을 쓴다
 export type {
+  ProgramChannel,
   ProgramPolicy,
   TrainingCategory,
 } from '@/shared/types/program/list/type';
@@ -209,5 +210,41 @@ export const deleteScheduleProgram = async (
     );
   } catch (error) {
     throw toApiError(error, '프로그램을 삭제하지 못했습니다.');
+  }
+};
+
+export type ProgramPolicyBulkStatus =
+  | 'UPDATED'
+  | 'UNCHANGED'
+  | 'SKIPPED_NO_POLICY'
+  | 'FAILED';
+
+export interface ProgramPolicyBulkResult {
+  programType: ScheduleProgram['programType'];
+  id: number;
+  title: string;
+  status: ProgramPolicyBulkStatus;
+  /** FAILED 사유 */
+  reason: string | null;
+}
+
+/**
+ * 모집 정책이 있는 모든 프로그램의 신청기간을 한 번에 바꾼다(Expo-Expo-Server#113).
+ * 검증에 걸린 프로그램만 FAILED 로 오고, 같은 요청을 다시 보내면 결과가 빈 목록일 수 있다
+ */
+export const patchProgramApplicationPeriod = async (
+  expoId: string,
+  period: { applicationStartedAt: string; applicationEndedAt: string },
+): Promise<ProgramPolicyBulkResult[]> => {
+  try {
+    const response = await clientTokenInstance.patch<{
+      results: ProgramPolicyBulkResult[];
+    }>(
+      `/expo/${encodeURIComponent(expoId)}/programs/application-period`,
+      period,
+    );
+    return response.data.results ?? [];
+  } catch (error) {
+    throw toApiError(error, '신청기간을 일괄 적용하지 못했습니다.');
   }
 };

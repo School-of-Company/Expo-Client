@@ -1,8 +1,8 @@
 'use client';
 
 import { renderQRCodeSVG } from '@/shared/model';
+import { PaperQrItem } from '../api/qrTokensApi';
 import { PAPER_QR_CATEGORIES } from './constants';
-import { PaperQrBatch } from './issuePaperQrTokens';
 
 interface PrintOptions {
   expoTitle: string;
@@ -30,12 +30,13 @@ const LABEL_STYLE = (width: number, height: number) => `
   .qr svg { width: 100%; height: 100%; display: block; }
   .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1mm; }
   .category { font-size: ${Math.round(height * 0.4)}pt; font-weight: 700; line-height: 1; }
+  .code { font-size: 8pt; font-weight: 700; line-height: 1.2; }
   .expo { font-size: 7pt; line-height: 1.2; word-break: keep-all; }
 `;
 
 // 숨긴 iframe으로 인쇄한다. 발급 응답을 기다린 뒤라 새 창은 팝업 차단에 걸린다
 export const printPaperQrLabels = (
-  batches: PaperQrBatch[],
+  items: PaperQrItem[],
   { expoTitle, labelSize }: PrintOptions,
 ): Promise<void> =>
   new Promise((resolve, reject) => {
@@ -60,36 +61,39 @@ export const printPaperQrLabels = (
     doc.close();
 
     // 박람회 이름은 외부 입력값이라 textContent로만 넣는다
-    batches.forEach(({ category, tokens }) => {
+    items.forEach(({ category, token, code }) => {
       const printLabel =
         PAPER_QR_CATEGORIES.find((item) => item.value === category)
           ?.printLabel ?? null;
 
-      tokens.forEach((token) => {
-        const label = doc.createElement('div');
-        label.className = 'label';
+      const label = doc.createElement('div');
+      label.className = 'label';
 
-        const qr = doc.createElement('div');
-        qr.className = 'qr';
-        qr.innerHTML = renderQRCodeSVG(token);
-        label.appendChild(qr);
+      const qr = doc.createElement('div');
+      qr.className = 'qr';
+      qr.innerHTML = renderQRCodeSVG(token);
+      label.appendChild(qr);
 
-        const text = doc.createElement('div');
-        text.className = 'text';
-        if (printLabel) {
-          const categoryText = doc.createElement('div');
-          categoryText.className = 'category';
-          categoryText.textContent = printLabel;
-          text.appendChild(categoryText);
-        }
-        const expoText = doc.createElement('div');
-        expoText.className = 'expo';
-        expoText.textContent = expoTitle;
-        text.appendChild(expoText);
-        label.appendChild(text);
+      const text = doc.createElement('div');
+      text.className = 'text';
+      if (printLabel) {
+        const categoryText = doc.createElement('div');
+        categoryText.className = 'category';
+        categoryText.textContent = printLabel;
+        text.appendChild(categoryText);
+      }
+      // 분실 신고 때 이 코드로 사용 중지한다
+      const codeText = doc.createElement('div');
+      codeText.className = 'code';
+      codeText.textContent = code;
+      text.appendChild(codeText);
+      const expoText = doc.createElement('div');
+      expoText.className = 'expo';
+      expoText.textContent = expoTitle;
+      text.appendChild(expoText);
+      label.appendChild(text);
 
-        doc.body.appendChild(label);
-      });
+      doc.body.appendChild(label);
     });
 
     const cleanup = () => {

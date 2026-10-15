@@ -12,9 +12,10 @@ export const PAPER_QR_CATEGORIES: {
   { value: 'GENERAL', label: '구분 없음', printLabel: null },
 ];
 
-export const getCategoryLabel = (category: PaperQrCategory) =>
+// 예전에 발급한 다른 구분(직업별)은 서버 구분 이름을 그대로 보인다
+export const getCategoryLabel = (category: string) =>
   PAPER_QR_CATEGORIES.find((item) => item.value === category)?.label ??
-  '구분 없음';
+  category;
 
 // 발급 API가 한 번에 받는 최대 장수
 export const MAX_TOKENS_PER_REQUEST = 1000;
