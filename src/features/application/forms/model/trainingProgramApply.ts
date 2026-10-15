@@ -1,4 +1,10 @@
-import type { TrainingProgramItem } from '@/shared/types/program/list/type';
+import { OCCUPATION_LABEL } from '@/features/registration/common/model/ledger';
+import { formatFormPeriod } from './formPeriodStatus';
+import type {
+  ProgramOccupation,
+  ProgramPolicy,
+  TrainingProgramItem,
+} from '@/shared/types/program/list/type';
 
 /**
  * 프로그램-폼 연결은 프로그램 응답의 `policy.formId` 다(ProgramPolicy). 정책이 없는 기존 프로그램은 신청할 수 없다.
@@ -20,4 +26,47 @@ export const OUTCOME_LABEL: Record<
   WAITING: '대기 접수되었습니다. 자리가 나면 안내드립니다.',
   PROCESSING:
     '처리 중입니다. 잠시 후 같은 신청서로 다시 눌러 결과를 확인해주세요.',
+};
+
+const occupations = (list: ProgramOccupation[]) =>
+  list
+    .map((occupation) => OCCUPATION_LABEL[occupation] ?? occupation)
+    .join('·');
+
+const seats = (capacity: number, waitingCapacity: number) =>
+  `정원 ${capacity.toLocaleString()}명 · ${
+    waitingCapacity > 0
+      ? `대기 ${waitingCapacity.toLocaleString()}명`
+      : '대기 없음'
+  }`;
+
+/**
+ * 프로그램 모집 정책 안내 문구. 화면 안내용이며 자격·채널·정원·기간의 최종 판정은 신청할 때 서버가 한다.
+ * 잔여석 공개 API 가 없어 남은 자리는 보여 주지 않는다.
+ */
+export const getProgramPolicyNotes = (policy: ProgramPolicy): string[] => {
+  const notes = [
+    `신청 ${formatFormPeriod(policy.applicationStartedAt)} ~ ${formatFormPeriod(policy.applicationEndedAt)}`,
+    // 취소 가능 기간이 남아도 새 신청·대기 승급은 신청 마감·승급 종료를 따른다
+    `취소 마감 ${formatFormPeriod(policy.cancelEndedAt)} · 대기 승급 종료 ${formatFormPeriod(policy.promotionEndedAt)}`,
+  ];
+  if (policy.channels?.length) {
+    notes.push(
+      ...policy.channels.map(
+        (channel) =>
+          `${channel.name}(${occupations(channel.allowedOccupations)}) ${seats(channel.capacity, channel.waitingCapacity)}`,
+      ),
+      '신청자의 직업에 맞는 채널로 접수되며, 다른 채널의 빈자리로 옮겨지지 않습니다. 대기 순서도 채널마다 따로 정해집니다.',
+    );
+  } else {
+    notes.push(
+      `${occupations(policy.allowedOccupations)} 신청 가능 · ${seats(policy.capacity, policy.waitingCapacity)}`,
+    );
+  }
+  if (policy.groupId)
+    notes.push(
+      '같은 묶음의 연수는 참가자마다 하나만 확정 또는 대기로 신청할 수 있습니다.',
+    );
+  if (policy.closed) notes.push('운영 측에서 신청을 마감했습니다.');
+  return notes;
 };
