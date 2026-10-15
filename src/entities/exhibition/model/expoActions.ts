@@ -23,9 +23,9 @@ export const getExpoActions = (expoId: string) => {
       modal: { type: 'formcreate', text: '생성할 항목을 선택하세요.' },
     },
     programForm: {
-      title: '프로그램용 폼 생성',
-      description: '프로그램 신청에 쓸 폼 만들기',
-      href: getRegistrationRoutes(expoId).programFormNew,
+      title: '프로그램용 폼',
+      description: '프로그램 신청에 쓸 폼 만들기·다시 편집',
+      href: getRegistrationRoutes(expoId).programForms,
     },
     fieldQr: {
       title: '현장 등록 QR',

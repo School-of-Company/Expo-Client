@@ -2,12 +2,9 @@
 
 import { useState } from 'react';
 import { useProgramFormQuery } from '@/entities/form';
-import { Button, Loading } from '@/shared/ui';
+import { Loading } from '@/shared/ui';
 import { toProgramFormValues } from '../../model/programFormValues';
-import {
-  useDeleteProgramForm,
-  useEditProgramForm,
-} from '../../model/useProgramForm';
+import { useEditProgramForm } from '../../model/useProgramForm';
 import ProgramFormEditor, {
   ProgramFormBuilderSlotProps,
 } from '../ProgramFormEditor';
@@ -15,12 +12,11 @@ import VersionConflictModal from '../VersionConflictModal';
 import type { ProgramFormResponseDto } from '@/entities/form';
 
 interface Props {
-  expoId: string;
   formId: string;
   renderBuilder?: (props: ProgramFormBuilderSlotProps) => React.ReactNode;
 }
 
-const ProgramFormEdit = ({ expoId, formId, renderBuilder }: Props) => {
+const ProgramFormEdit = ({ formId, renderBuilder }: Props) => {
   const { data, isError } = useProgramFormQuery(formId);
 
   if (isError) {
@@ -32,26 +28,15 @@ const ProgramFormEdit = ({ expoId, formId, renderBuilder }: Props) => {
   if (!data) return <Loading />;
 
   // 처음 받은 폼으로 편집을 시작한다. 이후 캐시가 다시 받아져도 편집 기준(version)은 바뀌지 않는다
-  return (
-    <ProgramFormEditBody
-      expoId={expoId}
-      initial={data}
-      renderBuilder={renderBuilder}
-    />
-  );
+  return <ProgramFormEditBody initial={data} renderBuilder={renderBuilder} />;
 };
 
 const ProgramFormEditBody = ({
-  expoId,
   initial,
   renderBuilder,
 }: Omit<Props, 'formId'> & { initial: ProgramFormResponseDto }) => {
   const { base, save, isPending, hasConflict, reapply, reloadLatest } =
     useEditProgramForm(initial);
-  const { remove, isPending: isDeleting } = useDeleteProgramForm(
-    expoId,
-    initial.id,
-  );
   // 편집기는 처음 값으로만 채워지므로, 최신본을 불러오면 key 를 바꿔 다시 그린다
   const [editorKey, setEditorKey] = useState(0);
   const [isReloading, setIsReloading] = useState(false);
@@ -70,6 +55,11 @@ const ProgramFormEditBody = ({
 
   return (
     <>
+      {/* 서버가 연결 회차 보호 전까지 거절하는 동작이라 화면에서 막고 안내한다(Expo-Expo-Server#76) */}
+      <p className="text-caption1r text-gray-500">
+        응답 기간 줄이기와 폼 삭제는 지원하지 않습니다. 응답 기간은 늘리기만 할
+        수 있습니다.
+      </p>
       <ProgramFormEditor
         key={editorKey}
         defaultValues={toProgramFormValues(base)}
@@ -78,17 +68,6 @@ const ProgramFormEditBody = ({
         isPending={isPending}
         renderBuilder={renderBuilder}
         onSubmit={save}
-        footer={
-          <Button
-            variant="white"
-            disabled={isDeleting}
-            onClick={() => {
-              if (window.confirm('이 프로그램용 폼을 삭제할까요?')) remove();
-            }}
-          >
-            삭제
-          </Button>
-        }
       />
       {hasConflict && (
         <VersionConflictModal

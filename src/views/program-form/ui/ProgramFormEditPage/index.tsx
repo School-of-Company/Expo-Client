@@ -6,6 +6,7 @@ import {
   ProgramFormBuilderSlotProps,
   ProgramFormEdit,
 } from '@/features/program-form';
+import { ProgramFormUsage } from '@/features/registration/schedule';
 import { getRegistrationRoutes } from '@/shared/config';
 import { DetailHeader } from '@/shared/ui';
 import { Header } from '@/widgets/layout';
@@ -26,14 +27,13 @@ const ProgramFormEditPage = () => {
         <div className="w-full max-w-[1000px] space-y-[30px]">
           <DetailHeader
             className="gap-12"
-            onBack={() => router.push(getRegistrationRoutes(expoId).dashboard)}
+            onBack={() =>
+              router.push(getRegistrationRoutes(expoId).programForms)
+            }
             headerTitle="프로그램용 폼 수정"
           />
-          <ProgramFormEdit
-            expoId={expoId}
-            formId={formId}
-            renderBuilder={renderBuilder}
-          />
+          <ProgramFormUsage formId={formId} />
+          <ProgramFormEdit formId={formId} renderBuilder={renderBuilder} />
         </div>
       </div>
     </div>
