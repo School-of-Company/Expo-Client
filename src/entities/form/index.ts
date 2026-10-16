@@ -40,3 +40,6 @@ export {
 export * from './model/queries';
 export { FORM_ERROR_MESSAGES, formRequest, toFormError } from './lib/errors';
 export type { ErrorResponseDto } from './lib/errors';
+export { default as AnswerList } from './ui/AnswerList';
+export { toAnswerDisplay } from './lib/answerDisplay';
+export type { AnswerDisplay, AnswerRow } from './lib/answerDisplay';
