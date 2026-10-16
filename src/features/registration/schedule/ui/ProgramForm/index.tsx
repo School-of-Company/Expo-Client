@@ -105,6 +105,10 @@ const ProgramForm = ({
       );
       return;
     }
+    // 브라우저 뒤로 가기로 돌아와도 초안이 다시 열리도록 지금 주소에 이어서 편집 표시를 남긴다
+    const url = new URL(window.location.href);
+    url.searchParams.set(DRAFT_QUERY.resume, '1');
+    window.history.replaceState(null, '', url);
     router.push(
       `${getRegistrationRoutes(expoId).programFormNew}?${DRAFT_QUERY.returnTo}=schedule`,
     );
@@ -154,6 +158,13 @@ const ProgramForm = ({
             />
           </Field>
         )}
+        <Field label="장소 (선택)">
+          <Input
+            placeholder="비우면 '장소 추후 안내'로 표시됩니다."
+            value={form.place}
+            onChange={(e) => update({ place: e.target.value })}
+          />
+        </Field>
       </div>
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         <Field label="시작">

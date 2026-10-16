@@ -55,15 +55,24 @@ const COLUMNS: TableColumn<SessionStatusRow>[] = [
   {
     key: 'capacity',
     label: '정원',
-    render: ({ policy }) =>
+    render: ({ policy, startedAt }) =>
       policy ? (
         <>
           <p>{policy.capacity}</p>
+          {policy.preRegistrationCapacity != null && (
+            <p className="text-caption2r">
+              사전 {policy.preRegistrationCapacity} · 현장{' '}
+              {policy.onsiteCapacity ?? 0}
+            </p>
+          )}
           <p className="text-caption2r">
             대기 {policy.waitingCapacity}
             {policy.closed && ' · 마감'}
           </p>
         </>
+      ) : startedAt !== null ? (
+        // 현재 회차인데 정책이 없다. 정원 0·마감으로 보이지 않게 구분한다
+        <span className="text-caption1r text-gray-500">모집 설정 필요</span>
       ) : (
         '-'
       ),

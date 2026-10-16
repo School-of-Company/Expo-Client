@@ -1,5 +1,5 @@
 export { default as Button } from './Button';
-export { default as Input } from './Input';
+export { default as Input, InputLabelContext } from './Input';
 export { default as FormTypeModal } from './FormTypeModal';
 export { default as CheckBox } from './CheckBox';
 export { default as Loading } from './Loading';

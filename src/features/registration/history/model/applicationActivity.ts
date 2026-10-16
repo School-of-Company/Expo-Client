@@ -5,9 +5,11 @@ import {
 } from '@tanstack/react-query';
 import { ApiError, getErrorStatus } from '@/shared/libs/http/apiError';
 import { StatusBadgeTone } from '../../common';
+import { parseSessionKey } from '../../common/model/ledger';
 import {
   AdminApplicationAction,
   AdminApplicationActivity,
+  AdminApplicationActorType,
   AdminApplicationActivityQuery,
   getAdminApplicationActivities,
 } from '../api/applicationActivityApi';
@@ -40,9 +42,35 @@ export const getActivityActionLabel = (action: string) =>
 export const getActivityActionTone = (action: string): StatusBadgeTone =>
   isActivityAction(action) ? ACTIVITY_ACTION_TONE[action] : 'outline';
 
+const ACTIVITY_ACTOR_LABEL: Record<AdminApplicationActorType, string> = {
+  USER: '사용자',
+  ADMIN: '관리자',
+  SYSTEM: '자동 처리',
+  UNKNOWN: '미기록',
+};
+
+/** 주체가 기록되지 않은 과거 이력(UNKNOWN)은 사용자·자동으로 단정하지 않는다 */
+export const getActivityActorLabel = ({
+  actorType,
+  actorId,
+}: Pick<AdminApplicationActivity, 'actorType' | 'actorId'>) => {
+  const label = ACTIVITY_ACTOR_LABEL[actorType ?? 'UNKNOWN'] ?? '미기록';
+  return actorType === 'ADMIN' && actorId !== null
+    ? `${label} #${actorId}`
+    : label;
+};
+
+export const MAX_PARTICIPANT_LENGTH = 50;
+
 /** 처리일은 관리자 로컬 일시 'YYYY-MM-DDTHH:mm'. 조회할 때 UTC 로 바꾼다 */
 export interface ActivityFilter {
   action: AdminApplicationAction | '';
+  /** 참가자 검색어 */
+  participant: string;
+  /** `${programType}:${programId}` (toSessionKey) */
+  session: string;
+  /** 처리 결과 상태 */
+  status: string;
   from: string | null;
   /** 이 시각은 포함하지 않는다 */
   to: string | null;
@@ -50,6 +78,9 @@ export interface ActivityFilter {
 
 export const INITIAL_ACTIVITY_FILTER: ActivityFilter = {
   action: '',
+  participant: '',
+  session: '',
+  status: '',
   from: null,
   to: null,
 };
@@ -69,6 +100,9 @@ const toActivityQuery = (
   page,
   size,
   action: filter.action || undefined,
+  q: filter.participant.trim() || undefined,
+  ...parseSessionKey(filter.session),
+  status: filter.status || undefined,
   from: toUtcIso(filter.from),
   until: toUtcIso(filter.to),
 });
@@ -111,14 +145,14 @@ export const useAdminApplicationActivities = (
 export type ActivityCounts = Record<'total' | AdminApplicationAction, number>;
 
 /**
- * 처리일 조건 안의 전체·유형별 건수. 집계 API 가 없어 유형마다 size=1(서버 최소)로 조회해
- * totalElements 만 읽는다. 처리유형 조건과는 상관없이 나눠 보여 준다
+ * 처리유형을 뺀 나머지 조건(검색·프로그램·상태·처리일) 안의 전체·유형별 건수.
+ * 집계 API 가 없어 유형마다 size=1(서버 최소)로 조회해 totalElements 만 읽는다.
+ * 결과 상태 조건이 있으면 그 상태로 끝난 이력만 센다
  */
 export const useActivityCounts = (
   expoId: string,
-  { from, to }: ActivityFilter,
+  { action: _action, ...range }: ActivityFilter,
 ) => {
-  const range = { from, to };
   const actions = ['', ...ACTIVITY_ACTIONS] as const;
   return useQueries({
     queries: actions.map((action) => ({

@@ -4,17 +4,12 @@ import { useApplicationPageViews } from '../../model/applicationPageViews';
 
 interface MonitoringCardsProps {
   expoId: string;
-  /** 회차를 불러오지 못하면 null */
-  openSessionCount: number | null;
-  closedSessionCount: number | null;
+  /** 모집 상태별 회차 수. 회차를 불러오지 못하면 null */
+  sessionCounts: { open: number; closed: number; unset: number } | null;
 }
 
 /** 신청화면 접속량과 지금 열린 회차·QR. 대시보드 오른쪽 좁은 열에 세로로 쌓는다 */
-const MonitoringCards = ({
-  expoId,
-  openSessionCount,
-  closedSessionCount,
-}: MonitoringCardsProps) => {
+const MonitoringCards = ({ expoId, sessionCounts }: MonitoringCardsProps) => {
   const { data: pageViews, isError: isPageViewsError } =
     useApplicationPageViews(expoId);
   const { data: activeQr, isError: isActiveQrError } =
@@ -27,9 +22,13 @@ const MonitoringCards = ({
     <div className="grid grid-cols-1 gap-12 mobile:!grid-cols-1 tablet:grid-cols-2">
       <StatCard
         label="모집 중 회차"
-        value={openSessionCount?.toLocaleString() ?? '-'}
+        value={formatCount(sessionCounts?.open)}
         unit="개"
-        sub={`마감 ${closedSessionCount?.toLocaleString() ?? '-'}개`}
+        sub={
+          sessionCounts
+            ? `마감 ${formatCount(sessionCounts.closed)}개 · 모집 설정 필요 ${formatCount(sessionCounts.unset)}개`
+            : '회차를 불러오지 못했습니다.'
+        }
         emphasis
       />
       <StatCard

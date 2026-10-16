@@ -8,8 +8,16 @@ interface ScheduleSectionProps {
   children: React.ReactNode;
 }
 
-export const FieldLabel = ({ children }: { children: React.ReactNode }) => (
-  <p className="text-body2b text-black">{children}</p>
+export const FieldLabel = ({
+  id,
+  children,
+}: {
+  id?: string;
+  children: React.ReactNode;
+}) => (
+  <p id={id} className="text-body2b text-black">
+    {children}
+  </p>
 );
 
 const ScheduleSection = ({

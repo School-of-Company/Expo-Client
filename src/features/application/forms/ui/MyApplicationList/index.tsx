@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 import { AnswerList } from '@/entities/form';
 import { SessionNotice, getSessionIssue } from '@/features/phone-verification';
 import {
@@ -12,6 +13,7 @@ import {
   PROGRAM_TYPE_LABEL,
 } from '@/features/registration/common/model/ledger';
 import { downloadQrImage } from '@/shared/libs/downloadQrImage';
+import { useModalDialog } from '@/shared/model';
 import {
   getParticipantQr,
   OwnerApplication,
@@ -50,6 +52,20 @@ const BLOCKED_REASON_LABEL: Record<string, string> = {
     '동행자의 사전등록을 먼저 취소해주세요. 대표자는 마지막에 취소할 수 있습니다.',
 };
 
+// 서버가 학생·보호자 연결 정보를 주지 않으므로 학생 신청에만 일반 안내를 한다.
+// 마지막 연결 학생을 취소하면 서버가 보호자 신청도 함께 취소하고, 다른 학생이 있으면 보호자는 유지한다
+const GUARDIAN_CANCEL_NOTE =
+  '보호자와 함께 신청한 마지막 학생이면 보호자의 신청도 함께 취소됩니다. 같은 보호자에 연결된 다른 학생이 있으면 보호자는 유지됩니다.';
+
+const getGuardianCancelNote = (
+  application: OwnerApplication,
+  participant?: OwnerParticipant,
+) =>
+  application.type !== 'PREREGISTER' &&
+  participant?.occupation === 'ELEMENTARY_STUDENT'
+    ? GUARDIAN_CANCEL_NOTE
+    : undefined;
+
 interface QrTarget {
   participantId: number;
   title: string;
@@ -61,13 +77,14 @@ interface CancelTarget {
   title: string;
   // 어느 참가자의 어느 회차인지 확인 문구
   session: string;
+  // 학생 신청에 연결된 보호자가 있을 때의 안내(마지막 연결 학생이면 보호자도 함께 취소된다)
+  guardianNote?: string;
 }
 
 const SESSION_STATE_NOTE: Partial<Record<SessionInfo['state'], string>> = {
   loading: '회차 정보를 불러오는 중입니다.',
   error: '회차 정보를 불러오지 못했습니다.',
   missing: '삭제되었거나 변경되어 회차 정보를 찾을 수 없습니다.',
-  unsupported: '사전등록 회차의 이름과 일정은 아직 제공되지 않습니다.',
 };
 
 const ApplicationRow = ({
@@ -94,6 +111,10 @@ const ApplicationRow = ({
   } = application;
   const sessionLabel = `${session.title}${session.startedAt ? ` (${formatDefinitionSchedule(session.startedAt, session.endedAt)})` : ''}`;
   const reasonId = `cancel-blocked-${type}-${applicationId}`;
+  const blockedReason =
+    BLOCKED_REASON_LABEL[cancellationBlockedReason] ??
+    (cancellationBlockedReason ||
+      '지금은 취소할 수 없습니다. 운영 측에 문의해주세요.');
   const title = [participant?.name, TYPE_LABEL[type]]
     .filter(Boolean)
     .join(' · ');
@@ -137,37 +158,43 @@ const ApplicationRow = ({
                   applicationId,
                   title,
                   session: sessionLabel,
+                  guardianNote: getGuardianCancelNote(application, participant),
                 })
               }
               className="whitespace-nowrap rounded-sm border-1 border-solid border-error px-16 py-8 text-caption1b text-error"
             >
               신청취소
             </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                disabled
-                aria-describedby={reasonId}
-                className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 px-16 py-8 text-caption1b text-gray-400"
-              >
-                신청취소
-              </button>
-              <p id={reasonId} className="text-caption1r text-gray-500">
-                {BLOCKED_REASON_LABEL[cancellationBlockedReason] ??
-                  (cancellationBlockedReason ||
-                    '지금은 취소할 수 없습니다. 운영 측에 문의해주세요.')}
-              </p>
-            </>
+          ) : status === 'CANCELLED' ? null : (
+            // 취소할 수 없는 사유는 줄마다 펼쳐 두지 않고, 버튼을 누르면 알림으로 알려 준다
+            <button
+              type="button"
+              aria-disabled
+              aria-describedby={reasonId}
+              onClick={() => toast.info(blockedReason)}
+              className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 px-16 py-8 text-caption1b text-gray-400"
+            >
+              신청취소
+              <span id={reasonId} className="sr-only">
+                {blockedReason}
+              </span>
+            </button>
           )}
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <p className="text-body2b text-black">{session.title}</p>
+      <div className="flex min-w-0 flex-col gap-4">
+        <p className="break-words break-keep text-body2b text-black">
+          {session.title}
+        </p>
         {session.startedAt && (
           <p className="text-caption1r text-gray-500">
             {formatDefinitionSchedule(session.startedAt, session.endedAt)}
+          </p>
+        )}
+        {session.place && (
+          <p className="break-words break-keep text-caption1r text-gray-500">
+            장소: {session.place}
           </p>
         )}
         {SESSION_STATE_NOTE[session.state] && (
@@ -196,27 +223,35 @@ const ApplicationRow = ({
 };
 
 const Dialog = ({
+  label,
   onClose,
   children,
 }: {
+  label: string;
   onClose: () => void;
   children: React.ReactNode;
-}) => (
-  <div
-    role="dialog"
-    aria-modal
-    className="fixed inset-0 z-10 flex items-center justify-center px-[18px]"
-    style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-    onClick={onClose}
-  >
+}) => {
+  const dialogRef = useModalDialog({ onClose });
+  return (
     <div
-      className="flex w-full max-w-[360px] flex-col items-center gap-16 rounded-sm bg-white p-24"
-      onClick={(event) => event.stopPropagation()}
+      className="fixed inset-0 z-10 flex items-center justify-center px-[18px]"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      onClick={onClose}
     >
-      {children}
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        tabIndex={-1}
+        className="flex w-full max-w-[360px] flex-col items-center gap-16 rounded-sm bg-white p-24 outline-none"
+        onClick={(event) => event.stopPropagation()}
+      >
+        {children}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const QrDialog = ({
   expoId,
@@ -238,7 +273,7 @@ const QrDialog = ({
   const sessionIssue = getSessionIssue(error);
 
   return (
-    <Dialog onClose={onClose}>
+    <Dialog label={`${target.title} 입장 QR`} onClose={onClose}>
       <p className="text-h3b text-black">{target.title}</p>
       {!data && isFetching && (
         <p role="status" className="text-body2r text-gray-500">
@@ -376,6 +411,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
 
       {!sessionIssue && waitlist && (
         <PreRegisterWaitlist
+          expoId={expoId}
           waitlist={waitlist}
           onCancel={() => setIsWaitlistCancelOpen(true)}
           isCancelling={isCancellingWaitlist}
@@ -409,7 +445,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
       )}
 
       {cancelTarget && (
-        <Dialog onClose={() => setCancelTarget(null)}>
+        <Dialog label="신청 취소 확인" onClose={() => setCancelTarget(null)}>
           <p className="text-h3b text-black">신청을 취소할까요?</p>
           <p className="break-keep text-center text-body2r text-gray-500">
             {cancelTarget.title}
@@ -418,6 +454,14 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
             <br />이 신청이 취소됩니다. 다시 신청하면 새 신청으로 처리되어 지금
             자리가 보장되지 않습니다.
           </p>
+          {cancelTarget.guardianNote && (
+            <p
+              role="alert"
+              className="break-keep text-center text-body2b text-error"
+            >
+              {cancelTarget.guardianNote}
+            </p>
+          )}
           <div className="flex w-full gap-8">
             <button
               type="button"
@@ -441,7 +485,10 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
       )}
 
       {isWaitlistCancelOpen && (
-        <Dialog onClose={() => setIsWaitlistCancelOpen(false)}>
+        <Dialog
+          label="대기 신청 취소 확인"
+          onClose={() => setIsWaitlistCancelOpen(false)}
+        >
           <p className="text-h3b text-black">대기 신청을 취소할까요?</p>
           <p className="break-keep text-center text-body2r text-gray-500">
             일행 전체의 대기가 함께 취소되고 대기 순번이 사라집니다. 다시

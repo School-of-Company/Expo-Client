@@ -3,23 +3,22 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, ArrowDown } from '@/shared/assets/icons';
 import { COLORS } from '@/shared/config';
-import { DynamicFormType } from '@/shared/types/form/create/type';
 
-interface SplitButtonProps {
+interface SplitButtonProps<T extends string> {
   onDefaultClick: () => void;
-  onSpecialFieldClick: (type: DynamicFormType) => void;
-  specialFieldOptions: { value: DynamicFormType; label: string }[];
+  onSpecialFieldClick: (type: T) => void;
+  specialFieldOptions: { value: T; label: string }[];
   text?: string;
   disabledOptions?: Set<string>;
 }
 
-const SplitButton = ({
+const SplitButton = <T extends string>({
   onDefaultClick,
   onSpecialFieldClick,
   specialFieldOptions,
   text = '추가하기',
   disabledOptions = new Set(),
-}: SplitButtonProps) => {
+}: SplitButtonProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -39,7 +38,7 @@ const SplitButton = ({
     };
   }, []);
 
-  const handleSpecialFieldClick = (type: DynamicFormType) => {
+  const handleSpecialFieldClick = (type: T) => {
     if (!disabledOptions.has(type)) {
       onSpecialFieldClick(type);
       setIsOpen(false);

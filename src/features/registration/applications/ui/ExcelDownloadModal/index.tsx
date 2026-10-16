@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { XMark } from '@/shared/assets/icons';
 import { CheckBoxIcon, CheckedBoxIcon } from '@/shared/assets/svg';
+import { useModalDialog } from '@/shared/model';
 import {
   ReportExcelScope,
   ReportExcelTemplate,
@@ -14,6 +15,7 @@ import {
   LEDGER_STATUS_LABEL,
   LedgerFilter,
   LedgerRow,
+  parseSessionKey,
 } from '../../../common/model/ledger';
 import {
   ATTENDANCE_FILTER_BLOCKER,
@@ -66,15 +68,10 @@ const ExcelDownloadModal = ({
     selectedRows.length > 0 ? 'SELECTED' : 'FILTER',
   );
 
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
-
   // 성공·실패와 관계없이 대장의 선택과 필터는 그대로 둔다
   const { mutate: download, isPending } = useReportExcelDownload(onClose);
+  // 파일을 만드는 중에는 닫기 버튼처럼 Escape 로도 닫지 않는다
+  const dialogRef = useModalDialog({ onClose, canClose: !isPending });
 
   const plan = useMemo(
     () =>
@@ -108,6 +105,11 @@ const ExcelDownloadModal = ({
   const targetStatusCounts =
     scope === 'SELECTED' ? countByStatus(selectedRows) : filterStatusCounts;
   const isPersonDeduped = template === 'STANDARD' || template === 'TRAINEE';
+  // 연수자 명단은 서버가 연수 신청만 고른다. 연수 회차를 고르지 않았으면 대장 건수에 일반 신청이 섞여 있다
+  const isTraineeSubset =
+    scope === 'FILTER' &&
+    template === 'TRAINEE' &&
+    parseSessionKey(filter.session)?.programType !== 'TRAINING';
 
   const scopeOptions: {
     value: ReportExcelScope;
@@ -127,9 +129,19 @@ const ExcelDownloadModal = ({
       className="fixed inset-0 z-10 flex items-center justify-center px-[18px]"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
     >
-      <div className="flex max-h-[90vh] w-full max-w-[792px] flex-col gap-[40px] overflow-y-auto rounded-sm bg-white px-[40px] py-[36px] mobile:px-20">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="excel-download-title"
+        tabIndex={-1}
+        className="flex max-h-[90vh] w-full max-w-[792px] flex-col gap-[40px] overflow-y-auto rounded-sm bg-white px-[40px] py-[36px] outline-none mobile:px-20"
+      >
         <div className="flex items-center">
-          <p className="flex-grow text-center text-h2r text-black mobile:text-body1r">
+          <p
+            id="excel-download-title"
+            className="flex-grow text-center text-h2r text-black mobile:text-body1r"
+          >
             엑셀 다운로드
           </p>
           <button
@@ -137,6 +149,7 @@ const ExcelDownloadModal = ({
             onClick={onClose}
             disabled={isPending}
             aria-label="닫기"
+            className="-m-10 flex h-[44px] w-[44px] shrink-0 items-center justify-center"
           >
             <XMark />
           </button>
@@ -191,7 +204,9 @@ const ExcelDownloadModal = ({
           <p className="text-caption1r text-gray-500">
             {targetCount === undefined
               ? '현재 필터 건수를 확인하고 있습니다'
-              : `대상 신청 ${targetCount}건 (${describeStatus(targetStatusCounts)})`}
+              : isTraineeSubset
+                ? `현재 필터 ${targetCount}건 중 연수 신청만 받습니다. 연수 신청이 없으면 다운로드되지 않습니다`
+                : `대상 신청 ${targetCount}건 (${describeStatus(targetStatusCounts)})`}
             {scope === 'FILTER' &&
               '. 화면 페이지와 관계없이 서버가 필터 조건 전체를 대상으로 고정합니다(최대 10000건, 15분 유지). 상태를 고르지 않으면 모든 상태가 포함됩니다'}
             {isPersonDeduped &&

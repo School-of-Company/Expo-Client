@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
 import { AnswerList } from '@/entities/form';
 import { XMark } from '@/shared/assets/icons';
+import { useModalDialog } from '@/shared/model';
 import { Button, Loading } from '@/shared/ui';
 import { formatDateTime, SectionError } from '../../../common';
 import {
@@ -64,17 +64,7 @@ const ApplicationDetailModal = ({
   );
   const cancellation = useCancelApplication(expoId);
 
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [onClose]);
+  const dialogRef = useModalDialog({ onClose });
 
   const row = data ? toLedgerRow(data) : null;
   // 이력은 오래된 순으로 보여 준다
@@ -240,11 +230,13 @@ const ApplicationDetailModal = ({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="application-detail-title"
+        tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        className="flex max-h-[90vh] w-full max-w-[640px] flex-col gap-[32px] overflow-y-auto rounded-sm bg-white px-[40px] py-[36px] mobile:px-20"
+        className="flex max-h-[90vh] w-full max-w-[640px] flex-col gap-[32px] overflow-y-auto rounded-sm bg-white px-[40px] py-[36px] outline-none mobile:px-20"
       >
         <div className="flex items-center">
           <p
@@ -253,7 +245,12 @@ const ApplicationDetailModal = ({
           >
             신청 상세
           </p>
-          <button type="button" onClick={onClose} aria-label="닫기">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="닫기"
+            className="-m-10 flex h-[44px] w-[44px] shrink-0 items-center justify-center"
+          >
             <XMark />
           </button>
         </div>

@@ -6,6 +6,7 @@ import {
   AdminSessionSummary,
   ProgramSessionDefinition,
 } from '../../common/api/ledgerApi';
+import { AdminPreregisterStatus } from '../../common/api/preregisterLedgerApi';
 import { LedgerRow, toSessionKey } from '../../common/model/ledger';
 
 export type ApplicationType = 'PRE' | 'FIELD';
@@ -27,6 +28,14 @@ export const LEDGER_STATUS_TONE: Record<
   CONFIRMED: 'main',
   WAITING: 'outline',
   CANCELLED: 'gray',
+};
+
+export const PREREGISTER_STATUS_TONE: Record<
+  AdminPreregisterStatus,
+  StatusBadgeTone
+> = {
+  ...LEDGER_STATUS_TONE,
+  PENDING: 'outline',
 };
 
 export interface SessionCapacity {

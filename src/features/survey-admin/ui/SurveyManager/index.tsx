@@ -140,14 +140,22 @@ const SurveyManager = () => {
       )}
 
       {pending && (
-        <ModalLayout>
+        <ModalLayout
+          label="만족도 조사 수정 확인"
+          onClose={() => setPending(null)}
+        >
           <div className="flex w-full max-w-[656px] flex-col gap-40 rounded-sm bg-white p-28">
             <div className="space-y-12">
               <div className="flex w-full justify-between">
                 <p className="text-h2b mobile:text-body1b">
                   만족도 조사를 수정할까요?
                 </p>
-                <button type="button" onClick={() => setPending(null)}>
+                <button
+                  type="button"
+                  onClick={() => setPending(null)}
+                  aria-label="닫기"
+                  className="-m-10 flex h-[44px] w-[44px] shrink-0 items-center justify-center"
+                >
                   <XMark />
                 </button>
               </div>

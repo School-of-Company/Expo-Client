@@ -18,8 +18,10 @@ import {
   FormTypeSelect,
   RequiredToggle,
 } from '@/entities/form';
+import { fieldRegistry, type FieldValue } from '@/entities/form/registry';
 import ConditionalSettings from '@/entities/form/ui/ConditionalSettings';
 import { formatTime } from '@/features/exhibition/edit/model/formatDateTime';
+import { parseSettings } from '@/features/form/common/model/formUtils';
 import { getTrainingProgram } from '@/shared/api';
 import {
   formatTrainingProgramOption,
@@ -28,6 +30,10 @@ import {
 } from '@/shared/model';
 import { FormValues, Option } from '@/shared/types/form/create/type';
 import { AddItemButton } from '@/shared/ui';
+import type {
+  DynamicFormItem,
+  FormType,
+} from '@/shared/types/application/type';
 
 interface Props {
   expoId: string;
@@ -39,6 +45,56 @@ interface Props {
   setValue: UseFormSetValue<FormValues>;
   control: Control<FormValues>;
 }
+
+/** 편집기가 타입을 바꾸게 하지 않고 보존만 하는 문항. 선택지도 서버 고정값을 쓴다. */
+const FIXED_TYPE_LABELS: Partial<Record<string, string>> = {
+  REGION: '지역',
+  COMPANION: '동행자',
+};
+
+/** 지역·동행자를 응답자 화면 그대로 보여준다. 입력값은 이 화면에만 있고 저장·전송하지 않는다. */
+const FixedFieldPreview = ({
+  formType,
+  title,
+  requiredStatus,
+  otherJson,
+}: {
+  formType: FormType;
+  title: string;
+  requiredStatus: boolean;
+  otherJson: string | null;
+}) => {
+  const { Renderer, defaultValue } = fieldRegistry[formType];
+  const { maxSelection } = parseSettings(otherJson);
+  const item: DynamicFormItem = {
+    id: 0,
+    title,
+    formType,
+    jsonData: {},
+    requiredStatus,
+    otherJson: { hasEtc: false, ...(maxSelection && { maxSelection }) },
+  };
+  const [value, setValue] = useState<FieldValue>(() => defaultValue(item));
+
+  return (
+    <div className="space-y-12 rounded-sm bg-gray-50 p-16">
+      <p className="text-caption1b text-gray-500">
+        미리보기 (입력해도 저장되거나 전송되지 않습니다)
+      </p>
+      <p className="text-body2b text-black">
+        {title || '(제목 없음)'}
+        {requiredStatus && <span className="text-error"> *</span>}
+      </p>
+      <Renderer
+        item={item}
+        value={value}
+        etc=""
+        onChange={setValue}
+        onEtcChange={() => {}}
+      />
+    </div>
+  );
+};
 
 const FormContainer = ({
   expoId,
@@ -60,6 +116,20 @@ const FormContainer = ({
     control,
     name: `questions.${index}.title`,
   });
+
+  const formType = useWatch({
+    control,
+    name: `questions.${index}.formType`,
+  });
+  const requiredStatus = useWatch({
+    control,
+    name: `questions.${index}.requiredStatus`,
+  });
+  const otherJson = useWatch({
+    control,
+    name: `questions.${index}.otherJson`,
+  });
+  const fixedTypeLabel = FIXED_TYPE_LABELS[formType];
 
   const dynamicFormType = useWatch({
     control,
@@ -162,16 +232,33 @@ const FormContainer = ({
     >
       <div className="flex w-full items-center justify-between gap-16">
         <FormTitle register={register} index={index} />
-        <FormTypeSelect
-          options={options}
-          selectedOption={selectedOption}
-          setSelectedOption={setSelectedOption}
-          register={register}
-          index={index}
-          setValue={setValue}
-        />
+        {fixedTypeLabel ? (
+          <div className="flex w-[196px] items-center justify-center rounded-md border-1 border-solid border-gray-100 bg-gray-50 px-12 py-10">
+            <input type="hidden" {...register(`questions.${index}.formType`)} />
+            <span className="text-h3r text-gray-500 mobile:text-caption2r">
+              {fixedTypeLabel}
+            </span>
+          </div>
+        ) : (
+          <FormTypeSelect
+            options={options}
+            selectedOption={selectedOption}
+            setSelectedOption={setSelectedOption}
+            register={register}
+            index={index}
+            setValue={setValue}
+          />
+        )}
       </div>
       {renderOptionComponent()}
+      {fixedTypeLabel && (
+        <FixedFieldPreview
+          formType={formType as FormType}
+          title={questionTitle}
+          requiredStatus={requiredStatus}
+          otherJson={otherJson}
+        />
+      )}
       <div className="flex items-center gap-12 border-b-1 border-solid border-gray-100">
         {hasOptions && dynamicFormType !== 'OCCUPATION' ? (
           <>

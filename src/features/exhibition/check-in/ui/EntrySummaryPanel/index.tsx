@@ -51,15 +51,17 @@ const Item = ({
   sub,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   sub?: string;
 }) => (
   <div className="flex items-baseline gap-12">
-    <p className="w-[150px] flex-none whitespace-nowrap text-body2r text-gray-500">
+    <p className="w-[150px] flex-none break-keep text-body2r text-gray-500">
       {label}
     </p>
     <p className="text-h3b text-black">{value}</p>
-    {sub && <p className="text-caption1r text-gray-400">{sub}</p>}
+    {sub && (
+      <p className="min-w-0 break-keep text-caption1r text-gray-400">{sub}</p>
+    )}
   </div>
 );
 
@@ -68,9 +70,10 @@ const SummaryItems = ({ summary }: { summary: EntrySummary }) => (
   <div className="grid grid-cols-3 gap-x-[40px] gap-y-16 mobile:grid-cols-1 tablet:grid-cols-2">
     <Item label="입장 합계" value={summary.totals?.entered ?? 0} />
     <Item label="퇴장" value={summary.totals?.exited ?? 0} />
+    {/* 체류 값이 빠져 오면 실제 0명으로 오인하지 않도록 0 대신 '-'로 둔다 */}
     <Item
-      label="현재 체류"
-      value={summary.totals?.stillInside ?? 0}
+      label="기록상 체류(참고)"
+      value={summary.totals?.stillInside ?? '-'}
       sub="QR 입장만"
     />
     <Item label="등록 QR 일반" value={summary.registered?.standard ?? 0} />
@@ -129,7 +132,8 @@ const EntrySummaryContent = ({ expoId }: { expoId: string }) => {
       )}
       <p className="break-keep text-caption1r text-gray-400">
         입장은 QR당 하루 한 번만 셉니다. 이 화면 집계가 생기기 전의 입장과
-        간편입장 퇴장은 포함되지 않습니다.
+        간편입장 퇴장은 포함되지 않습니다. 기록상 체류는 퇴장 미스캔 등으로 실제
+        현장 인원과 다를 수 있습니다.
       </p>
     </section>
   );

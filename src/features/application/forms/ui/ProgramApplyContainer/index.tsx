@@ -25,13 +25,17 @@ import { formatFormPeriod } from '../../model/formPeriodStatus';
 import {
   OUTCOME_LABEL,
   ProgramApplyOutcome,
+  REUSED_GUARDIAN_NOTE,
+  formatProgramPlace,
   getProgramFormId,
   getIneligibleLabel,
   getSeatsLabel,
   getProgramPolicyNotes,
+  getProgramRecruitmentLabel,
 } from '../../model/programApply';
 import { getGroupApplications, groupPrograms } from '../../model/programGroups';
 import { useMyApplications } from '../../model/useMyApplications';
+import CompanionApplyFlow from '../CompanionApplyFlow';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
 const PROGRAM_LABEL: Record<ProgramType, string> = {
@@ -268,9 +272,14 @@ const ParticipantLookup = ({
       name: participant.name,
       eligible,
       reason: ineligibleReason,
+      occupation: participant.occupation,
+      // 이미 신청한 보호자는 신청 불가로 내려오지만 재사용 후보다. 재사용 가능 여부는 서버가 판정한다
+      guardianApplied:
+        participant.occupation === 'PARENT' &&
+        ineligibleReason === 'GROUP_ALREADY_APPLIED',
     }),
   );
-  return (
+  const seatInfo = (
     <>
       {data.capacity && (
         <p className="break-keep text-caption1r text-gray-600">
@@ -287,6 +296,33 @@ const ParticipantLookup = ({
           {channel.name}: {getSeatsLabel(channel.capacity)}
         </p>
       ))}
+    </>
+  );
+  if (program.policy?.guardianPolicy) {
+    if (!members.some((m) => m.eligible))
+      return (
+        <p className="break-keep text-body2r text-gray-600">
+          이 프로그램을 신청할 수 있는 참가자가 없습니다. 직업·정원·신청 기간
+          또는 이미 신청한 같은 묶음 프로그램을 확인해주세요.
+        </p>
+      );
+    return (
+      <>
+        {seatInfo}
+        <CompanionApplyFlow
+          expoId={expoId}
+          programType={programType}
+          program={program}
+          formId={formId}
+          participants={members}
+          onResult={onResult}
+        />
+      </>
+    );
+  }
+  return (
+    <>
+      {seatInfo}
       {!members.some((m) => m.eligible) && (
         <p className="break-keep text-body2r text-gray-600">
           이 프로그램을 신청할 수 있는 참가자가 없습니다. 아래 사유를
@@ -417,16 +453,17 @@ const ProgramApplyContainer = ({
               key={group.key}
               className="flex flex-col gap-16 rounded-sm border-1 border-solid border-gray-200 p-24"
             >
-              <div className="flex items-center justify-between gap-16">
-                <p className="text-body1b">{program.title}</p>
-                <Button
-                  type="button"
-                  disabled={!formId}
-                  onClick={() => setOpenGroupKey(isOpen ? null : group.key)}
-                >
-                  {isOpen ? '닫기' : '신청'}
-                </Button>
+              <div className="flex min-w-0 flex-wrap items-center gap-8">
+                <p className="min-w-0 break-words break-keep text-body1b">
+                  {program.title}
+                </p>
+                <span className="rounded-sm border-1 border-solid border-gray-200 px-8 py-4 text-caption2r text-gray-500">
+                  {getProgramRecruitmentLabel(program.policy)}
+                </span>
               </div>
+              <p className="min-w-0 break-words break-keep text-body2r text-gray-600">
+                장소: {formatProgramPlace(program.place)}
+              </p>
               {group.sessions.length > 1 && (
                 <fieldset className="flex flex-col gap-8">
                   <legend className="mb-8 text-body2b">회차 선택</legend>
@@ -448,8 +485,11 @@ const ProgramApplyContainer = ({
                           setOpenGroupKey(null);
                         }}
                       />
-                      {session.title} · {formatFormPeriod(session.startedAt)} ~{' '}
-                      {formatFormPeriod(session.endedAt)}
+                      <span className="min-w-0 break-words break-keep">
+                        {session.title} · {formatFormPeriod(session.startedAt)}{' '}
+                        ~ {formatFormPeriod(session.endedAt)} ·{' '}
+                        {formatProgramPlace(session.place)}
+                      </span>
                       {session.policy?.closed && (
                         <span className="text-caption1r text-gray-500">
                           (마감)
@@ -462,12 +502,13 @@ const ProgramApplyContainer = ({
               {existing.length > 0 && (
                 <div
                   role="status"
-                  className="flex flex-col gap-4 break-keep text-caption1r text-gray-600"
+                  className="flex flex-col gap-4 break-words break-keep text-caption1r text-gray-600"
                 >
                   {existing.map(({ application, participantName, session }) => (
                     <p key={application.applicationId}>
                       {participantName}: {session.title}{' '}
-                      {formatFormPeriod(session.startedAt)} 회차{' '}
+                      {formatFormPeriod(session.startedAt)} 회차(
+                      {formatProgramPlace(session.place)}){' '}
                       {application.status === 'CONFIRMED' ? '확정' : '대기'}
                     </p>
                   ))}
@@ -508,6 +549,13 @@ const ProgramApplyContainer = ({
                   온라인 신청서가 연결되지 않았습니다.
                 </p>
               )}
+              <Button
+                type="button"
+                disabled={!formId}
+                onClick={() => setOpenGroupKey(isOpen ? null : group.key)}
+              >
+                {isOpen ? '닫기' : '신청'}
+              </Button>
               {outcome && (
                 <p
                   role="status"
@@ -516,6 +564,12 @@ const ProgramApplyContainer = ({
                   {outcome.kind === 'FAILED'
                     ? outcome.message
                     : OUTCOME_LABEL[outcome.kind]}
+                  {outcome.kind !== 'FAILED' && outcome.reusedGuardian && (
+                    <>
+                      <br />
+                      {REUSED_GUARDIAN_NOTE}
+                    </>
+                  )}
                 </p>
               )}
               {formId && isOpen && (

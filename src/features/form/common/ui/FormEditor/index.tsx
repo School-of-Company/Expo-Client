@@ -24,6 +24,11 @@ const SPECIAL_FIELD_TITLES: Record<DynamicFormType, string> = {
   SCHOOL: '소속 학교',
 };
 
+const REGION_TITLE = '지역';
+
+/** 메뉴에서 고르는 문항. 지역은 특수 필드(dynamicFormType)가 아니라 문항 타입(formType)이다. */
+type AddableField = DynamicFormType | 'REGION';
+
 const FormEditor = ({
   expoId,
   type,
@@ -95,7 +100,20 @@ const FormEditor = ({
 
   // 직업·소속 학교는 Form 서비스가 모양을 검증한다: 직업은 키가 고정된 드롭다운,
   // 일반 참가자의 소속 학교는 직업이 교사·예비교사일 때만 보이는 문장형이다.
-  const handleAddSpecialField = (fieldType: DynamicFormType) => {
+  const handleAddSpecialField = (fieldType: AddableField) => {
+    if (fieldType === 'REGION') {
+      append({
+        id: crypto.randomUUID(),
+        title: REGION_TITLE,
+        formType: 'REGION',
+        options: [],
+        requiredStatus: false,
+        otherJson: null,
+        dynamicFormType: 'DEFAULT',
+      });
+      return;
+    }
+
     const base = {
       id: crypto.randomUUID(),
       title: SPECIAL_FIELD_TITLES[fieldType],
@@ -140,18 +158,25 @@ const FormEditor = ({
     append(base);
   };
 
-  const specialFieldOptions =
+  const specialFieldOptions: { value: AddableField; label: string }[] =
     mode === 'survey'
       ? []
-      : (Object.keys(SPECIAL_FIELD_TITLES) as DynamicFormType[])
-          .filter((value) => !(type === 'TRAINEE' && value === 'OCCUPATION'))
-          .map((value) => ({ value, label: SPECIAL_FIELD_TITLES[value] }));
+      : [
+          ...(Object.keys(SPECIAL_FIELD_TITLES) as DynamicFormType[])
+            .filter((value) => !(type === 'TRAINEE' && value === 'OCCUPATION'))
+            .map((value) => ({ value, label: SPECIAL_FIELD_TITLES[value] })),
+          { value: 'REGION', label: REGION_TITLE },
+        ];
 
   const usedSpecialFieldTypes = new Set<string>(
     questions.map((q) => q.dynamicFormType ?? 'DEFAULT'),
   );
   if (type === 'STANDARD' && !occupationQuestion) {
     usedSpecialFieldTypes.add('SCHOOL');
+  }
+  // 지역은 폼에 하나만 둔다. 이미 있으면 메뉴에서 막는다.
+  if (questions.some((q) => q.formType === 'REGION')) {
+    usedSpecialFieldTypes.add('REGION');
   }
 
   const filteredSelectOptions = selectOptionData.filter(

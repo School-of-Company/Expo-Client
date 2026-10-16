@@ -47,6 +47,9 @@ export interface ProgramSessionDefinition {
 export interface ProgramSessionPolicy {
   capacity: number;
   waitingCapacity: number;
+  /** 사전·현장 정원. 둘의 합이 capacity 다. 옛 응답에는 없을 수 있다 */
+  preRegistrationCapacity?: number;
+  onsiteCapacity?: number;
   closed: boolean;
 }
 

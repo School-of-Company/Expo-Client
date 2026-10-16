@@ -13,6 +13,7 @@ export type ProgramIneligibleReason =
 export interface ProgramParticipant {
   participant: OwnerParticipant;
   eligible: boolean;
+  // 신청할 수 없는 사유. 같은 묶음에 이미 신청했으면 GROUP_ALREADY_APPLIED
   ineligibleReason?: ProgramIneligibleReason | null;
 }
 
