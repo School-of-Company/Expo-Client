@@ -5,15 +5,18 @@ import {
   AttendUserQrRequest,
   AttendUserResponse,
 } from '@/shared/types/exhibition/check-in/type';
+import { scannerNameConfig } from './scannerNameHeader';
 
 export const patchAttendUser = async (
   id: string,
   data: AttendUserQrRequest,
+  scannerName?: string,
 ): Promise<AttendUserResponse> => {
   try {
     const response = await clientTokenInstance.patch(
       `/attendance/${encodeURIComponent(id)}`,
       data,
+      scannerNameConfig(scannerName),
     );
 
     return response.data;
