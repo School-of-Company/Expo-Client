@@ -43,7 +43,11 @@ const seats = (capacity: number, waitingCapacity: number) =>
  * 프로그램 모집 정책 안내 문구. 화면 안내용이며 자격·채널·정원·기간의 최종 판정은 신청할 때 서버가 한다.
  * 잔여석 공개 API 가 없어 남은 자리는 보여 주지 않는다.
  */
-export const getProgramPolicyNotes = (policy: ProgramPolicy): string[] => {
+export const getProgramPolicyNotes = (
+  policy: ProgramPolicy,
+  /** 같은 묶음을 쓰는 다른 프로그램이 목록에 있으면 그 안내에 쓸 이름(프로그램·연수) */
+  sharedGroupLabel?: string,
+): string[] => {
   const notes = [
     `신청 ${formatFormPeriod(policy.applicationStartedAt)} ~ ${formatFormPeriod(policy.applicationEndedAt)}`,
     // 취소 가능 기간이 남아도 새 신청·대기 승급은 신청 마감·승급 종료를 따른다
@@ -62,9 +66,10 @@ export const getProgramPolicyNotes = (policy: ProgramPolicy): string[] => {
       `${occupations(policy.allowedOccupations)} 신청 가능 · ${seats(policy.capacity, policy.waitingCapacity)}`,
     );
   }
-  if (policy.groupId)
+  // 서버는 묶음을 지정하지 않은 프로그램에도 고유 묶음을 넣으므로, 묶음을 함께 쓰는 프로그램이 있을 때만 안내한다
+  if (sharedGroupLabel)
     notes.push(
-      '같은 묶음의 연수는 참가자마다 하나만 확정 또는 대기로 신청할 수 있습니다.',
+      `같은 묶음에 속한 ${sharedGroupLabel} 중에서는 참가자마다 하나만 확정 또는 대기로 신청할 수 있습니다.`,
     );
   if (policy.closed) notes.push('운영 측에서 신청을 마감했습니다.');
   return notes;

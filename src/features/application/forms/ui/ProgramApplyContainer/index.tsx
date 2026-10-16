@@ -282,6 +282,19 @@ const ProgramApplyContainer = ({
   const { waitlist, errorMessage, sessionIssue, retry } =
     useMyApplications(expoId);
   const [openId, setOpenId] = useState<number | null>(null);
+  // 둘 이상의 프로그램이 함께 쓰는 묶음
+  const sharedGroups = useMemo(() => {
+    const counts = new Map<string, number>();
+    programs?.forEach(({ policy }) => {
+      if (policy?.groupId)
+        counts.set(policy.groupId, (counts.get(policy.groupId) ?? 0) + 1);
+    });
+    return new Set(
+      Array.from(counts).flatMap(([groupId, count]) =>
+        count > 1 ? [groupId] : [],
+      ),
+    );
+  }, [programs]);
   const [outcomes, setOutcomes] = useState<Record<number, ProgramApplyOutcome>>(
     {},
   );
@@ -335,7 +348,12 @@ const ProgramApplyContainer = ({
               </div>
               {program.policy && (
                 <ul className="flex flex-col gap-4 text-caption1r text-gray-600">
-                  {getProgramPolicyNotes(program.policy).map((note) => (
+                  {getProgramPolicyNotes(
+                    program.policy,
+                    sharedGroups.has(program.policy.groupId ?? '')
+                      ? label
+                      : undefined,
+                  ).map((note) => (
                     <li key={note}>{note}</li>
                   ))}
                   <li className="text-gray-500">
