@@ -164,11 +164,18 @@ const ApplicationRow = ({
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <p className="text-body2b text-black">{session.title}</p>
+      <div className="flex min-w-0 flex-col gap-4">
+        <p className="break-words break-keep text-body2b text-black">
+          {session.title}
+        </p>
         {session.startedAt && (
           <p className="text-caption1r text-gray-500">
             {formatDefinitionSchedule(session.startedAt, session.endedAt)}
+          </p>
+        )}
+        {session.place && (
+          <p className="break-words break-keep text-caption1r text-gray-500">
+            장소: {session.place}
           </p>
         )}
         {SESSION_STATE_NOTE[session.state] && (
