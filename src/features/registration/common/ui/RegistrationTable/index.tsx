@@ -102,7 +102,7 @@ const RegistrationTable = <T extends { id: RowId }>({
                 {emptyText}
               </p>
             )}
-            {rows.map((row) => {
+            {rows.map((row, index) => {
               const isSelected = selectedIds?.has(row.id) ?? false;
               return (
                 <div
@@ -115,7 +115,9 @@ const RegistrationTable = <T extends { id: RowId }>({
                   {isSelectable && (
                     <button
                       type="button"
-                      aria-label={`${row.id} 선택`}
+                      // id 는 UUID 라 읽어 주면 알아들을 수 없다. 화면의 순서로 부른다
+                      aria-label={`${index + 1}번째 행 선택`}
+                      aria-pressed={isSelected}
                       className="flex w-[48px] flex-none justify-center"
                       onClick={(e) => {
                         e.stopPropagation();
