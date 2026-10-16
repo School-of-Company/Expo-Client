@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getPublicStandardProgram, getTrainingProgram } from '@/shared/api';
+import { getPublicPreregisterSessions } from '../api/preRegister';
 import type { OwnerApplication } from '../api/myApplications';
 import type { Program } from '@/shared/types/program/list/type';
 
@@ -10,13 +11,13 @@ export interface SessionInfo {
   title: string;
   startedAt: string | null;
   endedAt: string | null;
-  /** found: 공개 정의에서 찾음, missing: 삭제·변경으로 목록에 없음, error: 조회 실패, unsupported: 공개 조회 계약 없음 */
-  state: 'found' | 'missing' | 'error' | 'loading' | 'unsupported';
+  /** found: 공개 정의에서 찾음, missing: 삭제·변경으로 목록에 없음, error: 조회 실패 */
+  state: 'found' | 'missing' | 'error' | 'loading';
 }
 
 /**
- * 신청의 sessionOrProgramId 를 공개 프로그램 목록(`/standard|training/program/{expoId}`)과 맞춰 제목·일정을 구한다.
- * OwnerApplicationDto 에는 제목·일정이 없다. 사전등록 회차는 공개 정의 조회가 없어 ID 로만 표시한다.
+ * 신청의 sessionOrProgramId 를 공개 프로그램 목록(`/standard|training/program/{expoId}`)과
+ * 공개 사전등록 회차 목록과 맞춰 제목·일정을 구한다. OwnerApplicationDto 에는 제목·일정이 없다.
  */
 export const useApplicationSessions = (
   expoId: string,
@@ -41,19 +42,26 @@ export const useApplicationSessions = (
     meta: { silent: true },
   });
 
+  // 사전등록 회차 선택 화면과 같은 키라 캐시를 같이 쓴다
+  const preregister = useQuery({
+    queryKey: ['preRegisterSessions', expoId],
+    queryFn: () => getPublicPreregisterSessions(expoId),
+    enabled: need('PREREGISTER'),
+    retry: false,
+    meta: { silent: true },
+  });
+
   const getSession = ({
     type,
     sessionOrProgramId: id,
   }: OwnerApplication): SessionInfo => {
-    if (type === 'PREREGISTER')
-      return {
-        title: `사전등록 회차 ${id}`,
-        startedAt: null,
-        endedAt: null,
-        state: 'unsupported',
-      };
-    const query = type === 'TRAINING' ? training : standard;
-    const fallback = `${type === 'TRAINING' ? '연수' : '프로그램'} 회차 ${id}`;
+    const query =
+      type === 'PREREGISTER'
+        ? preregister
+        : type === 'TRAINING'
+          ? training
+          : standard;
+    const fallback = `${type === 'PREREGISTER' ? '사전등록' : type === 'TRAINING' ? '연수' : '프로그램'} 회차 ${id}`;
     const none = { title: fallback, startedAt: null, endedAt: null };
     if (query.isLoading) return { ...none, state: 'loading' };
     if (query.isError) return { ...none, state: 'error' };
@@ -69,9 +77,10 @@ export const useApplicationSessions = (
 
   return {
     getSession,
-    hasLookupError: standard.isError || training.isError,
+    hasLookupError: standard.isError || training.isError || preregister.isError,
     retryLookup: () =>
       Promise.all([
+        preregister.isError ? preregister.refetch() : undefined,
         standard.isError ? standard.refetch() : undefined,
         training.isError ? training.refetch() : undefined,
       ]),
