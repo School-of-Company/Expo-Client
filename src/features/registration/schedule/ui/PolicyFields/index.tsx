@@ -85,7 +85,7 @@ const PolicyFields = ({
           {
             ...EMPTY_CHANNEL_FORM,
             name: '일반',
-            capacity: Math.max(value.capacity, 1),
+            capacity: Math.max(totals.capacity, 1),
             waitingCapacity: value.waitingCapacity,
             allowedOccupations: value.allowedOccupations,
           },
