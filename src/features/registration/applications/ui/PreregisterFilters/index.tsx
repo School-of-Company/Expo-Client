@@ -53,6 +53,7 @@ const PreregisterFilters = ({
     <div className="grid grid-cols-4 items-center gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
       <div className="col-span-2 mobile:col-span-1">
         <SearchInput
+          label="대표자·동행자 이름·연락처 검색"
           placeholder="대표자·동행자 이름·연락처"
           value={keyword}
           onChange={(value) => setKeyword(value.slice(0, Q_MAX_LENGTH))}
