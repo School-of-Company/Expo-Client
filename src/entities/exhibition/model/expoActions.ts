@@ -103,7 +103,7 @@ export const getExpoActionGroups = (expoId: string): ExpoActionGroup[] => {
           key: 'lottery',
           title: '경품 추첨',
           description: '만족도 조사 경품 추첨 설정과 당첨 번호 관리',
-          primary: { label: '경품 추첨', href: routes.lottery },
+          primary: { label: '경품 추첨', href: registration.lottery },
         },
       ],
     },

@@ -33,7 +33,6 @@ export const getExpoRoutes = (expoId: string) => {
       applicationType: 'PRE' | 'FIELD',
     ) =>
       `/exhibition/access-qr/${id}?userType=${userType}&applicationType=${applicationType}`,
-    lottery: `/exhibition/lottery/${id}`,
     edit: `/exhibition/edit/${id}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
@@ -55,6 +54,8 @@ export const getRegistrationRoutes = (expoId: string) => {
     // 프로그램 조회·출석, 회차·모집, 프로그램 신청 폼을 한 화면에 모은 페이지.
     // schedule·programForms 목록 주소는 next.config 리다이렉트로 이 페이지에 온다
     programs: `${base}/programs`,
+    // 만족도 조사 페이지의 경품 추첨 탭
+    lottery: `${base}/survey?view=lottery`,
     programForms: `${base}/program-forms`,
     programFormNew: `${base}/programs/forms/new`,
     programForm: (formId: string) =>
