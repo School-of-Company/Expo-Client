@@ -272,6 +272,21 @@ const ParticipantLookup = ({
   );
   return (
     <>
+      {data.capacity && (
+        <p className="break-keep text-caption1r text-gray-600">
+          {getSeatsLabel(data.capacity)}
+          <br />
+          조회 시점의 참고값이며, 신청할 때 서버가 다시 판정합니다.
+        </p>
+      )}
+      {data.channels?.map((channel) => (
+        <p
+          key={channel.name}
+          className="break-keep text-caption1r text-gray-600"
+        >
+          {channel.name}: {getSeatsLabel(channel.capacity)}
+        </p>
+      ))}
       {!members.some((m) => m.eligible) && (
         <p className="break-keep text-body2r text-gray-600">
           이 프로그램을 신청할 수 있는 참가자가 없습니다. 아래 사유를
@@ -435,11 +450,6 @@ const ProgramApplyContainer = ({
                       />
                       {session.title} · {formatFormPeriod(session.startedAt)} ~{' '}
                       {formatFormPeriod(session.endedAt)}
-                      {getSeatsLabel(session.seats) && (
-                        <span className="text-caption1r text-gray-500">
-                          {getSeatsLabel(session.seats)}
-                        </span>
-                      )}
                       {session.policy?.closed && (
                         <span className="text-caption1r text-gray-500">
                           (마감)

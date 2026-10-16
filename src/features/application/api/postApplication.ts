@@ -30,9 +30,6 @@ const APPLICATION_ERROR_MESSAGES: Record<number, string> = {
 // 서버 오류 코드로 상태 코드보다 구체적으로 안내한다
 const APPLICATION_ERROR_CODE_MESSAGES: Record<string, string> = {
   ...INELIGIBLE_REASON_LABEL,
-  // ponytail: 코드명은 Expo-Application-Server#126 확정 전 가정값
-  CAPACITY_FULL: '조회 이후 정원이 모두 찼습니다. 잔여석을 다시 확인해주세요.',
-  APPLICATION_CLOSED: '신청이 마감되었습니다.',
   WAITLIST_WITHDRAWN:
     '취소한 대기 신청입니다. 다시 신청하려면 처음부터 새로 신청해주세요.',
 };
@@ -81,7 +78,13 @@ const submit = async (
 
       if (error.response) {
         const { status, data: body } = error.response;
-        const code = typeof body?.code === 'string' ? body.code : undefined;
+        // 신청 불가 사유(403·409)가 있으면 포괄 오류 코드보다 사유를 우선한다
+        const reason =
+          typeof body?.ineligibleReason === 'string'
+            ? body.ineligibleReason
+            : undefined;
+        const code =
+          reason ?? (typeof body?.code === 'string' ? body.code : undefined);
         // 서버가 사유를 주지 않으면 프록시가 상태별 공통 문구를 싣는다. 그때는 신청 화면용 안내를 쓴다
         const serverText = body?.error || body?.message;
         const specific =

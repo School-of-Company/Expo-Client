@@ -73,15 +73,6 @@ export interface Program {
   title: string;
   startedAt: string;
   endedAt: string;
-  // 조회 시점의 잔여석·대기 현황(참고값, 최종 판정은 서버). 계약 미확정(Expo-Application-Server#126)이라 없을 수 있다
-  seats?: ProgramSeats | null;
-}
-
-// 정원 잔여·대기 정원 잔여·실제 대기 인원은 서로 다른 값이다
-export interface ProgramSeats {
-  remaining: number;
-  waitingRemaining: number;
-  waitingCount: number;
 }
 
 // 연수 프로그램만 연수 구분을 갖는다 (TrainingProgramResponse)
