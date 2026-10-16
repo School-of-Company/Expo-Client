@@ -14,3 +14,4 @@ export { default as Section } from './Section';
 export { default as HelpText } from './HelpText';
 export { default as TextButton } from './TextButton';
 export { default as PageTitle } from './PageTitle';
+export { default as TitleTabs } from './TitleTabs';

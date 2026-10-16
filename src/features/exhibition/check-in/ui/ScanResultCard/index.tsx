@@ -31,9 +31,6 @@ const ScanResultCard = ({
         className="flex min-h-[160px] flex-col items-center justify-center gap-8 rounded-sm border-1 border-dashed border-gray-300 px-20 py-24"
       >
         <p className="text-h3b text-gray-500">{modeLabel} 스캔 대기</p>
-        <p className="text-body2r text-gray-400">
-          QR을 스캔하면 처리 결과가 여기에 표시됩니다.
-        </p>
       </div>
     );
   }

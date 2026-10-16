@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { Trash } from '@/shared/assets/icons';
+import { getExpoRoutes } from '@/shared/config';
 import {
   formatDateTimeValue,
   fromOffsetDateTime,
@@ -197,7 +199,7 @@ const ScheduleTable = ({
     {
       key: 'actions',
       label: '관리',
-      flex: 0.9,
+      flex: 1.1,
       render: (item) => {
         const isSession = item.kind === 'session';
         const pending = isSession
@@ -205,6 +207,18 @@ const ScheduleTable = ({
           : item.program.pendingRevision !== null;
         return (
           <div className="flex items-center justify-center gap-12">
+            {/* 프로그램은 이 표에서 바로 출석 화면으로 간다 */}
+            {!isSession && (
+              <Link
+                href={getExpoRoutes(expoId).programAttendance(
+                  item.program.programType,
+                  item.program.id,
+                )}
+                className="text-body2r text-main-600"
+              >
+                출석
+              </Link>
+            )}
             {isSession && item.needsRetry ? (
               <button
                 type="button"

@@ -2,7 +2,7 @@
 
 import { renderQRCodeSVG } from '@/shared/model';
 import { PaperQrItem } from '../api/qrTokensApi';
-import { PAPER_QR_CATEGORIES } from './constants';
+import { getCategoryPrintColor, PAPER_QR_CATEGORIES } from './constants';
 
 interface PrintOptions {
   expoTitle: string;
@@ -13,11 +13,16 @@ const LABEL_STYLE = (width: number, height: number) => `
   @page { size: ${width}mm ${height}mm; margin: 0; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body { font-family: 'Pretendard', 'Arial', sans-serif; color: #000; }
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Arial', sans-serif;
+    color: #121212;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .label {
     width: ${width}mm;
     height: ${height}mm;
-    padding: 2mm;
+    padding: 2mm 2mm 2mm 0;
     display: flex;
     align-items: center;
     gap: 2mm;
@@ -26,12 +31,21 @@ const LABEL_STYLE = (width: number, height: number) => `
     page-break-after: always;
   }
   .label:last-child { break-after: auto; page-break-after: auto; }
+  /* 왼쪽 색 띠로 구분을 멀리서도 알아본다 */
+  .band { flex: none; width: 2mm; height: 100%; }
   .qr { flex: none; height: 100%; aspect-ratio: 1 / 1; }
   .qr svg { width: 100%; height: 100%; display: block; }
   .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1mm; }
   .category { font-size: ${Math.round(height * 0.4)}pt; font-weight: 700; line-height: 1; }
-  .code { font-size: 8pt; font-weight: 700; line-height: 1.2; }
-  .expo { font-size: 7pt; line-height: 1.2; word-break: keep-all; }
+  .code {
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .expo { font-size: 7pt; line-height: 1.2; word-break: keep-all; color: #4e4e4e; }
 `;
 
 // 숨긴 iframe으로 인쇄한다. 발급 응답을 기다린 뒤라 새 창은 팝업 차단에 걸린다
@@ -68,6 +82,11 @@ export const printPaperQrLabels = (
 
       const label = doc.createElement('div');
       label.className = 'label';
+
+      const band = doc.createElement('div');
+      band.className = 'band';
+      band.style.background = getCategoryPrintColor(category);
+      label.appendChild(band);
 
       const qr = doc.createElement('div');
       qr.className = 'qr';

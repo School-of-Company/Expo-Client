@@ -6,16 +6,33 @@ export const PAPER_QR_CATEGORIES: {
   label: string;
   // 라벨에 크게 찍는 글. 구분 없음은 찍지 않는다
   printLabel: string | null;
+  // 입구에서 멀리서도 구분하도록 인쇄물 띠에 칠하는 색
+  printColor: string;
 }[] = [
-  { value: 'ADULT', label: '성인', printLabel: '어른' },
-  { value: 'CHILD', label: '어린이', printLabel: '아이' },
-  { value: 'GENERAL', label: '구분 없음', printLabel: null },
+  { value: 'ADULT', label: '성인', printLabel: '어른', printColor: '#448fff' },
+  {
+    value: 'CHILD',
+    label: '어린이',
+    printLabel: '아이',
+    printColor: '#f08c00',
+  },
+  {
+    value: 'GENERAL',
+    label: '구분 없음',
+    printLabel: null,
+    printColor: '#383838',
+  },
 ];
 
 // 예전에 발급한 다른 구분(직업별)은 서버 구분 이름을 그대로 보인다
 export const getCategoryLabel = (category: string) =>
   PAPER_QR_CATEGORIES.find((item) => item.value === category)?.label ??
   category;
+
+// 예전에 발급한 다른 구분은 기본 색으로 찍는다
+export const getCategoryPrintColor = (category: string) =>
+  PAPER_QR_CATEGORIES.find((item) => item.value === category)?.printColor ??
+  '#383838';
 
 // 발급 API가 한 번에 받는 최대 장수
 export const MAX_TOKENS_PER_REQUEST = 1000;

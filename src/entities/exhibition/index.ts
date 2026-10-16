@@ -1,5 +1,10 @@
-export { getExpoActions } from './model/expoActions';
-export type { ExpoAction, ExpoActionModalType } from './model/expoActions';
+export { getExpoActionGroups } from './model/expoActions';
+export type {
+  ExpoActionGroup,
+  ExpoActionItem,
+  ExpoActionLink,
+  ExpoActionModalType,
+} from './model/expoActions';
 export { default as ContentListText } from './ui/ContentListText';
 export { default as ContentText } from './ui/ContentText';
 export { default as ExpoInput } from './ui/ExpoInput';
@@ -11,7 +16,8 @@ export { default as TrainingModule } from './ui/TrainingModule';
 export { default as WarningMessage } from './ui/WarningMessage';
 export { default as DateButton } from './ui/DateButton';
 export { default as FilterTab } from './ui/FilterTab';
-export { default as ExhibitionCheckInHeader } from './ui/ExhibitionCheckInHeader';
 export { default as ExhibitionAccessQr } from './ui/ExhibitionAccessQr';
 export { default as ExpoListItem } from './ui/ExpoListItem';
 export { default as CreateExpoCard } from './ui/CreateExpoCard';
+export { copyExpoLink } from './lib/copyExpoLink';
+export { useRunExpoAction } from './model/useRunExpoAction';

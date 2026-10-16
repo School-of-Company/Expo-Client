@@ -14,11 +14,10 @@ const RegistrationTabs = () => {
     { href: routes.dashboard, label: '모니터링', exact: true },
     { href: routes.applications, label: '접수대장' },
     { href: routes.preregister, label: '사전등록' },
-    { href: routes.schedule, label: '일정·모집' },
-    { href: routes.programForms, label: '프로그램 폼' },
+    // 프로그램 조회·출석, 회차·모집, 신청 폼은 프로그램 페이지 한 화면에 모았다
+    { href: routes.programs, label: '프로그램' },
     { href: routes.participants, label: '참가자 검색' },
     { href: routes.operations, label: '박람회 운영' },
-    { href: routes.survey, label: '만족도 조사' },
   ];
 
   const isActive = (href: string, exact?: boolean) =>
