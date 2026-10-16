@@ -4,6 +4,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 import { ExhibitionCheckInHeader } from '@/entities/exhibition';
+import { maskParticipantPhone } from '@/features/registration/participants/model/participantSearch';
 import { toRoleAuthority, USER_AUTHORITY } from '@/shared/config';
 import { useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
@@ -164,6 +165,12 @@ const QRScannerTable = ({ id }: { id: string }) => {
     handleScan();
   }, [scannedQR]);
 
+  // 표에는 참가자 검색과 같은 규칙으로 가린 번호만 보여 준다(번호 없으면 '-')
+  const maskedUserData = userData.map((user) => ({
+    ...user,
+    phoneNumber: maskParticipantPhone(user.phoneNumber),
+  }));
+
   const userQrPrintActions = {
     PrintBadge: (selectItem: string) => userQrPrint(userData, selectItem),
   };
@@ -230,7 +237,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
       )}
       <TableForm
         categories={CHECK_IN_PRINT_CATEGORIES}
-        data={userData}
+        data={maskedUserData}
         getRowKey={toAttendUserRowKey}
         maxHeight="414px"
         footerType="print"
