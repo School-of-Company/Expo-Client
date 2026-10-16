@@ -17,14 +17,6 @@ export type ProgramOccupation =
   | 'TEACHER'
   | 'PRE_SERVICE_TEACHER';
 
-// 회차 신청 채널(신청 구분)별 정원 (ProgramChannelRequest, Expo-Expo-Server#112)
-export interface ProgramChannel {
-  name: string;
-  allowedOccupations: ProgramOccupation[];
-  capacity: number;
-  waitingCapacity: number;
-}
-
 // 보호자 동반 필수 정책 (ProgramGuardianPolicyRequest). 학년은 학생 본인 폼의 문항·선택지 키로만 판정한다.
 // 문항 제목·선택지 라벨로 추측하지 않는다
 export interface ProgramGuardianPolicy {
@@ -40,7 +32,7 @@ export interface ProgramGuardianPolicy {
 }
 
 // 프로그램 모집 정책 (ProgramPolicyRequest, 조회 응답도 같은 클래스를 쓴다).
-// Swagger에도 required 로 표시되듯 groupId·channels 외에는 모두 필수다.
+// Swagger에도 required 로 표시되듯 groupId 외에는 모두 필수다.
 // null·키 누락·빈 직업 목록은 400 이다(Expo-Expo-Server ProgramPolicyRequest.kt).
 // 일시는 UTC 오프셋이 있는 ISO 8601 이다
 export interface ProgramPolicy {
@@ -54,9 +46,10 @@ export interface ProgramPolicy {
   cancelEndedAt: string;
   promotionEndedAt: string;
   closed: boolean;
-  // 없으면 채널 없이 capacity·waitingCapacity 하나로 모집한다.
-  // 있으면 정원·대기 정원은 채널 합, 신청 가능 직종은 채널 직종 합집합이어야 한다
-  channels?: ProgramChannel[] | null;
+  // 총정원 capacity 는 사전·현장 정원의 합이다(Expo-Expo-Server#123). 두 정원은 생략할 수 없고
+  // 알 수 없는 필드는 400 이다
+  preRegistrationCapacity: number;
+  onsiteCapacity: number;
   // 이 회차의 초등 1~3학년 보호자 동반 필수 설정. null·생략이면 OFF 이고 기존 단건 신청이다(Expo-Expo-Server#125)
   guardianPolicy?: ProgramGuardianPolicy | null;
 }
@@ -67,7 +60,7 @@ export interface StandardProgramRequest {
   title: string;
   startedAt: string;
   endedAt: string;
-  // 회차 장소(선택). 서버 계약 확정 전 가정이다(Expo-Expo-Server#124 대기). 비우면 null 로 보낸다
+  // 회차 장소(선택). 생략·null 이면 수정 때 기존 장소를 두고, 빈 문자열이면 지운다(Expo-Expo-Server#124)
   place?: string | null;
   policy?: ProgramPolicy | null;
 }

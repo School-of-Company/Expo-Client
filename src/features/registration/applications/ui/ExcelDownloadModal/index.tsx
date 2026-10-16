@@ -15,6 +15,7 @@ import {
   LEDGER_STATUS_LABEL,
   LedgerFilter,
   LedgerRow,
+  parseSessionKey,
 } from '../../../common/model/ledger';
 import {
   ATTENDANCE_FILTER_BLOCKER,
@@ -104,6 +105,11 @@ const ExcelDownloadModal = ({
   const targetStatusCounts =
     scope === 'SELECTED' ? countByStatus(selectedRows) : filterStatusCounts;
   const isPersonDeduped = template === 'STANDARD' || template === 'TRAINEE';
+  // 연수자 명단은 서버가 연수 신청만 고른다. 연수 회차를 고르지 않았으면 대장 건수에 일반 신청이 섞여 있다
+  const isTraineeSubset =
+    scope === 'FILTER' &&
+    template === 'TRAINEE' &&
+    parseSessionKey(filter.session)?.programType !== 'TRAINING';
 
   const scopeOptions: {
     value: ReportExcelScope;
@@ -198,7 +204,9 @@ const ExcelDownloadModal = ({
           <p className="text-caption1r text-gray-500">
             {targetCount === undefined
               ? '현재 필터 건수를 확인하고 있습니다'
-              : `대상 신청 ${targetCount}건 (${describeStatus(targetStatusCounts)})`}
+              : isTraineeSubset
+                ? `현재 필터 ${targetCount}건 중 연수 신청만 받습니다. 연수 신청이 없으면 다운로드되지 않습니다`
+                : `대상 신청 ${targetCount}건 (${describeStatus(targetStatusCounts)})`}
             {scope === 'FILTER' &&
               '. 화면 페이지와 관계없이 서버가 필터 조건 전체를 대상으로 고정합니다(최대 10000건, 15분 유지). 상태를 고르지 않으면 모든 상태가 포함됩니다'}
             {isPersonDeduped &&

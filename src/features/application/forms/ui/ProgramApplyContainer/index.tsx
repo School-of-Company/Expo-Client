@@ -379,22 +379,13 @@ const ProgramApplyContainer = ({
               key={group.key}
               className="flex flex-col gap-16 rounded-sm border-1 border-solid border-gray-200 p-24"
             >
-              <div className="flex items-center justify-between gap-16">
-                <div className="flex min-w-0 flex-wrap items-center gap-8">
-                  <p className="min-w-0 break-words break-keep text-body1b">
-                    {program.title}
-                  </p>
-                  <span className="rounded-sm border-1 border-solid border-gray-200 px-8 py-4 text-caption2r text-gray-500">
-                    {getProgramRecruitmentLabel(program.policy)}
-                  </span>
-                </div>
-                <Button
-                  type="button"
-                  disabled={!formId}
-                  onClick={() => setOpenGroupKey(isOpen ? null : group.key)}
-                >
-                  {isOpen ? '닫기' : '신청'}
-                </Button>
+              <div className="flex min-w-0 flex-wrap items-center gap-8">
+                <p className="min-w-0 break-words break-keep text-body1b">
+                  {program.title}
+                </p>
+                <span className="rounded-sm border-1 border-solid border-gray-200 px-8 py-4 text-caption2r text-gray-500">
+                  {getProgramRecruitmentLabel(program.policy)}
+                </span>
               </div>
               <p className="min-w-0 break-words break-keep text-body2r text-gray-600">
                 장소: {formatProgramPlace(program.place)}
@@ -484,6 +475,13 @@ const ProgramApplyContainer = ({
                   온라인 신청서가 연결되지 않았습니다.
                 </p>
               )}
+              <Button
+                type="button"
+                disabled={!formId}
+                onClick={() => setOpenGroupKey(isOpen ? null : group.key)}
+              >
+                {isOpen ? '닫기' : '신청'}
+              </Button>
               {outcome && (
                 <p
                   role="status"

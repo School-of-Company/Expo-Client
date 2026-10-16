@@ -4,13 +4,15 @@ export interface MessageTemplate {
   body: string;
 }
 
-// 행사명은 고정하지 않고 선택한 박람회 제목을 쓴다. 제목이 없으면 머리말에서 뺀다
+// 행사명은 고정하지 않고 선택한 박람회 제목을 쓴다. 제목이 없으면 머리말에서 뺀다.
+// 제목이 이미 '['로 시작하면(예: [QA 전용] …) 괄호를 겹치지 않는다
 const toHeader = (expoTitle: string) => {
   const title = expoTitle.trim();
-  return `${title ? `[${title}] 안내\n` : ''}{이름}님께 안내드립니다.\n\n`;
+  const label = title.startsWith('[') ? title : `[${title}]`;
+  return `${title ? `${label} 안내\n` : ''}{이름}님께 안내드립니다.\n\n`;
 };
 
-// {장소}는 사전등록 회차와 장소를 입력한 프로그램·연수 회차에만 값이 있고(Expo-Expo-Server#124 대기),
+// {장소}는 사전등록 회차와 장소를 입력한 프로그램·연수 회차에만 값이 있고(Expo-Expo-Server#124),
 // 장소가 없는 신청은 발송에서 빠진다. 장소를 비운 회차가 있을 수 있어 프로그램용 문구에는 넣지 않는다
 // 확정되지 않은 운영 약속(도착 시각·재안내 등)은 넣지 않는다. 프로그램은 퇴실 기록이 없어 출석 QR 만 안내한다
 export const getMessageTemplates = (expoTitle: string): MessageTemplate[] => {

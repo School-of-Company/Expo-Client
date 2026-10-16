@@ -9,14 +9,12 @@ import {
 } from '../../../common/api/ledgerApi';
 import { OCCUPATION_LABEL } from '../../../common/model/ledger';
 import {
-  EMPTY_CHANNEL_FORM,
   EMPTY_GUARDIAN_POLICY_FORM,
   GuardianPolicyForm,
   PolicyForm,
-  withChannelTotals,
+  withCapacityTotals,
 } from '../../model/policyForm';
 import { toCount } from '../../model/sessionForm';
-import ChannelFields from '../ChannelFields';
 import ProgramFormPicker from '../ProgramFormPicker';
 import ProgramGroupPicker from '../ProgramGroupPicker';
 import { FieldLabel } from '../ScheduleSection';
@@ -67,38 +65,7 @@ const PolicyFields = ({
   onChange,
   onCreateForm,
 }: PolicyFieldsProps) => {
-  const hasChannels = value.channels.length > 0;
-  const totals = withChannelTotals(value);
-
-  const toggleChannels = (on: boolean) => {
-    if (on) {
-      // 지금 정원·직업을 첫 채널로 옮겨 합계가 그대로 이어지게 한다
-      onChange({
-        channels: [
-          {
-            ...EMPTY_CHANNEL_FORM,
-            name: '일반',
-            capacity: Math.max(value.capacity, 1),
-            waitingCapacity: value.waitingCapacity,
-            allowedOccupations: value.allowedOccupations,
-          },
-        ],
-      });
-      return;
-    }
-    if (
-      !window.confirm(
-        '채널을 모두 지우고 채널 합계를 정원·대기 정원으로 남길까요? 저장하면 채널 없는 회차가 됩니다.',
-      )
-    )
-      return;
-    onChange({
-      channels: [],
-      capacity: totals.capacity,
-      waitingCapacity: totals.waitingCapacity,
-      allowedOccupations: totals.allowedOccupations,
-    });
-  };
+  const totals = withCapacityTotals(value);
 
   const guardian = value.guardianPolicy;
   const patchGuardian = (patch: Partial<GuardianPolicyForm>) =>
@@ -135,48 +102,40 @@ const PolicyFields = ({
           같은 묶음의 회차 중에서는 하나만 신청할 수 있습니다.
         </p>
       </Field>
-      <div className="flex items-center justify-between gap-16">
-        <div className="space-y-6">
-          <FieldLabel>신청 채널별 정원</FieldLabel>
-          <p className="text-caption1r text-gray-500">
-            {hasChannels
-              ? `채널 합계: 정원 ${totals.capacity}명 · 대기 ${totals.waitingCapacity}명`
-              : '교원·일반처럼 신청 구분마다 정원을 나눌 때 켭니다.'}
-          </p>
-        </div>
-        <ToggleButton value={hasChannels} onChange={toggleChannels} />
-      </div>
-      {hasChannels && (
-        <ChannelFields
-          value={value.channels}
-          onChange={(channels) => onChange({ channels })}
-        />
-      )}
       <div className="grid grid-cols-4 gap-16 mobile:grid-cols-1 tablet:grid-cols-2">
-        {!hasChannels && (
-          <>
-            <Field label="정원">
-              <Input
-                type="number"
-                min={1}
-                value={value.capacity}
-                onChange={(e) =>
-                  onChange({ capacity: toCount(e.target.value) })
-                }
-              />
-            </Field>
-            <Field label="대기 정원">
-              <Input
-                type="number"
-                min={0}
-                value={value.waitingCapacity}
-                onChange={(e) =>
-                  onChange({ waitingCapacity: toCount(e.target.value) })
-                }
-              />
-            </Field>
-          </>
-        )}
+        <Field label="사전 접수 정원">
+          <Input
+            type="number"
+            min={0}
+            value={value.preRegistrationCapacity}
+            onChange={(e) =>
+              onChange({ preRegistrationCapacity: toCount(e.target.value) })
+            }
+          />
+        </Field>
+        <Field label="현장 접수 정원">
+          <Input
+            type="number"
+            min={0}
+            value={value.onsiteCapacity}
+            onChange={(e) =>
+              onChange({ onsiteCapacity: toCount(e.target.value) })
+            }
+          />
+        </Field>
+        <Field label="총정원">
+          <p className="flex h-[48px] items-center">{totals.capacity}명</p>
+        </Field>
+        <Field label="대기 정원">
+          <Input
+            type="number"
+            min={0}
+            value={value.waitingCapacity}
+            onChange={(e) =>
+              onChange({ waitingCapacity: toCount(e.target.value) })
+            }
+          />
+        </Field>
         <Field label="모집 마감">
           <div className="flex h-[48px] items-center">
             <ToggleButton
@@ -214,6 +173,28 @@ const PolicyFields = ({
           />
         </Field>
       </div>
+      <Field label="신청 가능 직업 (하나 이상)">
+        <div className="flex flex-wrap gap-8">
+          {OCCUPATIONS.map((occupation) => {
+            const isSelected = value.allowedOccupations.includes(occupation);
+            return (
+              <button
+                key={occupation}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => toggleOccupation(occupation)}
+                className={`rounded-sm border-1 border-solid px-12 py-6 text-caption1r ${
+                  isSelected
+                    ? 'border-main-600 text-main-600'
+                    : 'border-gray-200 text-gray-500'
+                }`}
+              >
+                {OCCUPATION_LABEL[occupation]}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
       <Field label="초등 1~3학년 보호자 동반 필수">
         <div className="flex h-[48px] items-center">
           <ToggleButton
@@ -288,30 +269,6 @@ const PolicyFields = ({
             ))}
           </div>
         </div>
-      )}
-      {!hasChannels && (
-        <Field label="신청 가능 직업 (하나 이상)">
-          <div className="flex flex-wrap gap-8">
-            {OCCUPATIONS.map((occupation) => {
-              const isSelected = value.allowedOccupations.includes(occupation);
-              return (
-                <button
-                  key={occupation}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => toggleOccupation(occupation)}
-                  className={`rounded-sm border-1 border-solid px-12 py-6 text-caption1r ${
-                    isSelected
-                      ? 'border-main-600 text-main-600'
-                      : 'border-gray-200 text-gray-500'
-                  }`}
-                >
-                  {OCCUPATION_LABEL[occupation]}
-                </button>
-              );
-            })}
-          </div>
-        </Field>
       )}
     </div>
   );

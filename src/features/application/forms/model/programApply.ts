@@ -82,19 +82,14 @@ export const getProgramPolicyNotes = (
     // 취소 가능 기간이 남아도 새 신청·대기 승급은 신청 마감·승급 종료를 따른다
     `취소 마감 ${formatFormPeriod(policy.cancelEndedAt)} · 대기 승급 종료 ${formatFormPeriod(policy.promotionEndedAt)}`,
   ];
-  if (policy.channels?.length) {
+  notes.push(
+    `${occupations(policy.allowedOccupations)} 신청 가능 · ${seats(policy.capacity, policy.waitingCapacity)}`,
+  );
+  // 사전·현장 정원은 안내만 한다. 어느 정원을 쓰는지와 현장 접수 가능 여부는 서버가 판정한다
+  if (policy.preRegistrationCapacity != null)
     notes.push(
-      ...policy.channels.map(
-        (channel) =>
-          `${channel.name}(${occupations(channel.allowedOccupations)}) ${seats(channel.capacity, channel.waitingCapacity)}`,
-      ),
-      '신청자의 직업에 맞는 채널로 접수되며, 다른 채널의 빈자리로 옮겨지지 않습니다. 대기 순서도 채널마다 따로 정해집니다.',
+      `사전 접수 정원 ${policy.preRegistrationCapacity.toLocaleString()}명`,
     );
-  } else {
-    notes.push(
-      `${occupations(policy.allowedOccupations)} 신청 가능 · ${seats(policy.capacity, policy.waitingCapacity)}`,
-    );
-  }
   // 서버는 묶음을 지정하지 않은 프로그램에도 고유 묶음을 넣으므로, 묶음을 함께 쓰는 프로그램이 있을 때만 안내한다
   if (sharedGroupLabel)
     notes.push(

@@ -338,14 +338,17 @@ export const useCancelApplication = (expoId: string) => {
 
 const timeOf = (dateTime: string) => dateTime.slice(11, 16);
 
-/** 회차 정의 일시 (YYYY-MM-DDTHH:mm) → 10.31(토) 09:30 ~ 12:30 */
+/** 회차 정의 일시 (YYYY-MM-DDTHH:mm) → 10.31(토) 09:30 ~ 12:30. 날짜가 다르면 종료 날짜도 붙인다 */
 export const formatDefinitionSchedule = (
   startedAt: string | null,
   endedAt: string | null,
 ) => {
   if (!startedAt) return '-';
   const date = formatDateWithWeekday(startedAt.slice(0, 10));
-  return endedAt
-    ? `${date} ${timeOf(startedAt)} ~ ${timeOf(endedAt)}`
-    : `${date} ${timeOf(startedAt)}`;
+  if (!endedAt) return `${date} ${timeOf(startedAt)}`;
+  const endDate =
+    endedAt.slice(0, 10) === startedAt.slice(0, 10)
+      ? ''
+      : `${formatDateWithWeekday(endedAt.slice(0, 10))} `;
+  return `${date} ${timeOf(startedAt)} ~ ${endDate}${timeOf(endedAt)}`;
 };

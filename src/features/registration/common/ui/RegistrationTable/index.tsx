@@ -97,12 +97,13 @@ const RegistrationTable = <T extends { id: RowId }>({
             className="space-y-20 overflow-y-auto pt-6"
             style={{ maxHeight }}
           >
+            {/* 표가 화면보다 넓은 모바일에서는 가운데 정렬이면 문구가 화면 밖으로 밀리므로 왼쪽에 붙인다 */}
             {rows.length === 0 && (
-              <p className="py-40 text-center text-body2r text-gray-400">
+              <p className="py-40 text-center text-body2r text-gray-400 mobile:sticky mobile:left-0 mobile:text-left">
                 {emptyText}
               </p>
             )}
-            {rows.map((row) => {
+            {rows.map((row, index) => {
               const isSelected = selectedIds?.has(row.id) ?? false;
               return (
                 <div
@@ -115,7 +116,9 @@ const RegistrationTable = <T extends { id: RowId }>({
                   {isSelectable && (
                     <button
                       type="button"
-                      aria-label={`${row.id} 선택`}
+                      // id 는 UUID 라 읽어 주면 알아들을 수 없다. 화면의 순서로 부른다
+                      aria-label={`${index + 1}번째 행 선택`}
+                      aria-pressed={isSelected}
                       className="flex w-[48px] flex-none justify-center"
                       onClick={(e) => {
                         e.stopPropagation();

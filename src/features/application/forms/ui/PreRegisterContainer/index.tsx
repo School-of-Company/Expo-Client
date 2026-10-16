@@ -312,7 +312,7 @@ const PreRegisterContainer = ({
                       href={backHref}
                       className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-center text-body2b text-gray-700"
                     >
-                      프로그램 목록으로
+                      신청 폼 모음으로
                     </Link>
                     <div className="flex-1">
                       <Button

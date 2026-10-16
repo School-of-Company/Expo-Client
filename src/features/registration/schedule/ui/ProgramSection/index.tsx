@@ -151,20 +151,21 @@ const ProgramSection = ({
       flex: 0.7,
       render: ({ program }) => {
         if (!program.policy) return '-';
-        const { capacity, waitingCapacity, channels } = program.policy;
+        const {
+          capacity,
+          waitingCapacity,
+          preRegistrationCapacity,
+          onsiteCapacity,
+        } = program.policy;
         const total = `${capacity ?? '-'} / ${waitingCapacity ?? 0}`;
-        // 채널이 있으면 신청 구분별 정원을 함께 보여 준다
-        return channels?.length ? (
-          <p
-            className="truncate"
-            title={channels
-              .map((c) => `${c.name} ${c.capacity} / ${c.waitingCapacity}`)
-              .join(', ')}
-          >
-            {total} · 채널 {channels.length}
-          </p>
-        ) : (
-          total
+        return (
+          <>
+            <p>{total}</p>
+            <p className="text-caption2r">
+              사전 {preRegistrationCapacity ?? '-'} · 현장{' '}
+              {onsiteCapacity ?? '-'}
+            </p>
+          </>
         );
       },
     },
