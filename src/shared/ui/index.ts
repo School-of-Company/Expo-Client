@@ -12,3 +12,4 @@ export { default as NavigationBar } from './NavigationBar';
 export { default as MockDataBadge } from './MockDataBadge';
 export { default as Section } from './Section';
 export { default as HelpText } from './HelpText';
+export { default as TextButton } from './TextButton';
