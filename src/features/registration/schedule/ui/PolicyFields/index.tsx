@@ -10,6 +10,8 @@ import {
 import { OCCUPATION_LABEL } from '../../../common/model/ledger';
 import {
   EMPTY_CHANNEL_FORM,
+  EMPTY_GUARDIAN_POLICY_FORM,
+  GuardianPolicyForm,
   PolicyForm,
   withChannelTotals,
 } from '../../model/policyForm';
@@ -98,6 +100,10 @@ const PolicyFields = ({
     });
   };
 
+  const guardian = value.guardianPolicy;
+  const patchGuardian = (patch: Partial<GuardianPolicyForm>) =>
+    guardian && onChange({ guardianPolicy: { ...guardian, ...patch } });
+
   const toggleOccupation = (occupation: AdminOccupation) =>
     onChange({
       allowedOccupations: value.allowedOccupations.includes(occupation)
@@ -179,14 +185,6 @@ const PolicyFields = ({
             />
           </div>
         </Field>
-        <Field label="초등 1~3학년 보호자 동반 필수">
-          <div className="flex h-[48px] items-center">
-            <ToggleButton
-              value={value.companionRequired}
-              onChange={(companionRequired) => onChange({ companionRequired })}
-            />
-          </div>
-        </Field>
       </div>
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         <Field label="모집 시작">
@@ -216,6 +214,81 @@ const PolicyFields = ({
           />
         </Field>
       </div>
+      <Field label="초등 1~3학년 보호자 동반 필수">
+        <div className="flex h-[48px] items-center">
+          <ToggleButton
+            value={value.guardianPolicy !== null}
+            onChange={(on) =>
+              onChange({
+                guardianPolicy: on ? EMPTY_GUARDIAN_POLICY_FORM : null,
+              })
+            }
+          />
+        </div>
+      </Field>
+      {guardian && (
+        <div className="space-y-[12px]">
+          <p className="break-keep text-caption1r text-gray-500">
+            학년은 학생이 폼에 입력한 답변으로만 판정합니다. 문항 제목·선택지
+            라벨이 아니라 폼의 문항 ID와 선택지 키(jsonData)를 입력하세요. 이
+            회차에만 적용되며, 활성 신청이 있으면 서버가 변경을 막습니다.
+          </p>
+          <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
+            <Field label="참조 폼 버전">
+              <Input
+                type="number"
+                min={1}
+                value={guardian.formVersion}
+                onChange={(e) => patchGuardian({ formVersion: e.target.value })}
+              />
+            </Field>
+            <Field label="학교급 문항 ID">
+              <Input
+                type="number"
+                min={1}
+                value={guardian.schoolTypeQuestionId}
+                onChange={(e) =>
+                  patchGuardian({ schoolTypeQuestionId: e.target.value })
+                }
+              />
+            </Field>
+            <Field label="초등학생 선택지 키">
+              <Input
+                value={guardian.elementarySchoolValue}
+                onChange={(e) =>
+                  patchGuardian({ elementarySchoolValue: e.target.value })
+                }
+              />
+            </Field>
+            <Field label="학년 문항 ID">
+              <Input
+                type="number"
+                min={1}
+                value={guardian.gradeQuestionId}
+                onChange={(e) =>
+                  patchGuardian({ gradeQuestionId: e.target.value })
+                }
+              />
+            </Field>
+          </div>
+          <div className="grid grid-cols-3 gap-16 mobile:grid-cols-2">
+            {guardian.gradeKeys.map((key, index) => (
+              <Field key={index} label={`${index + 1}학년 선택지 키`}>
+                <Input
+                  value={key}
+                  onChange={(e) =>
+                    patchGuardian({
+                      gradeKeys: guardian.gradeKeys.map((item, i) =>
+                        i === index ? e.target.value : item,
+                      ),
+                    })
+                  }
+                />
+              </Field>
+            ))}
+          </div>
+        </div>
+      )}
       {!hasChannels && (
         <Field label="신청 가능 직업 (하나 이상)">
           <div className="flex flex-wrap gap-8">

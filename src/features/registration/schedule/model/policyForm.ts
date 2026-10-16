@@ -5,6 +5,7 @@ import {
 import {
   fromOffsetDateTime,
   ProgramChannel,
+  ProgramGuardianPolicy,
   ProgramPolicy,
   ScheduleProgram,
   ScheduleProgramRequest,
@@ -16,6 +17,24 @@ import {
   AdminOccupation,
   ProgramSessionType,
 } from '../../common/api/ledgerApi';
+
+/** 보호자 동반 필수 설정 입력. 문항 ID·폼 버전은 입력 중 빈 값이 있을 수 있어 문자열로 둔다 */
+export interface GuardianPolicyForm {
+  formVersion: string;
+  schoolTypeQuestionId: string;
+  elementarySchoolValue: string;
+  gradeQuestionId: string;
+  /** 1~6학년 선택지의 jsonData 키. 인덱스 0 이 1학년 */
+  gradeKeys: string[];
+}
+
+export const EMPTY_GUARDIAN_POLICY_FORM: GuardianPolicyForm = {
+  formVersion: '',
+  schoolTypeQuestionId: '',
+  elementarySchoolValue: '',
+  gradeQuestionId: '',
+  gradeKeys: ['', '', '', '', '', ''],
+};
 
 /** 신청 채널(신청 구분)별 정원 */
 export interface ChannelForm {
@@ -41,8 +60,8 @@ export interface PolicyForm {
   formId: string;
   groupId: string;
   channels: ChannelForm[];
-  // 초등 1~3학년 보호자 동반 필수
-  companionRequired: boolean;
+  /** 초등 1~3학년 보호자 동반 필수. null 이면 OFF */
+  guardianPolicy: GuardianPolicyForm | null;
 }
 
 export interface ProgramForm {
@@ -68,7 +87,7 @@ export const EMPTY_POLICY_FORM: PolicyForm = {
   formId: '',
   groupId: '',
   channels: [],
-  companionRequired: false,
+  guardianPolicy: null,
 };
 
 export const EMPTY_CHANNEL_FORM: ChannelForm = {
@@ -89,6 +108,32 @@ export const EMPTY_PROGRAM_FORM: ProgramForm = {
   policy: EMPTY_POLICY_FORM,
 };
 
+const toGuardianPolicyForm = (
+  policy: ProgramGuardianPolicy,
+): GuardianPolicyForm => {
+  const gradeKeys = ['', '', '', '', '', ''];
+  Object.entries(policy.gradeValues ?? {}).forEach(([key, grade]) => {
+    if (grade >= 1 && grade <= 6) gradeKeys[grade - 1] = key;
+  });
+  return {
+    formVersion: String(policy.formVersion ?? ''),
+    schoolTypeQuestionId: String(policy.schoolTypeQuestionId ?? ''),
+    elementarySchoolValue: policy.elementarySchoolValue ?? '',
+    gradeQuestionId: String(policy.gradeQuestionId ?? ''),
+    gradeKeys,
+  };
+};
+
+const toGuardianPolicy = (form: GuardianPolicyForm): ProgramGuardianPolicy => ({
+  formVersion: Number(form.formVersion),
+  schoolTypeQuestionId: Number(form.schoolTypeQuestionId),
+  elementarySchoolValue: form.elementarySchoolValue.trim(),
+  gradeQuestionId: Number(form.gradeQuestionId),
+  gradeValues: Object.fromEntries(
+    form.gradeKeys.map((key, index) => [key.trim(), index + 1]),
+  ),
+});
+
 // 타입은 서버 계약대로 필수지만 런타임 값은 서버 응답이라, 빠진 값이 와도 화면이 깨지지 않게 기본값을 둔다.
 // 빈 값은 저장할 때 validateProgramForm 이 다시 막는다
 const toPolicyForm = (policy: ProgramPolicy): PolicyForm => ({
@@ -104,7 +149,9 @@ const toPolicyForm = (policy: ProgramPolicy): PolicyForm => ({
   groupId: policy.groupId ?? '',
   // 회차를 고쳐 저장할 때 채널이 빠지면 채널 없는 정책으로 바뀌므로 그대로 들고 있는다
   channels: policy.channels ?? [],
-  companionRequired: policy.companionRequired ?? false,
+  guardianPolicy: policy.guardianPolicy
+    ? toGuardianPolicyForm(policy.guardianPolicy)
+    : null,
 });
 
 /** 채널이 있으면 정원·대기 정원은 채널 합, 신청 가능 직업은 채널 직업 합집합으로 맞춘다 */
@@ -179,6 +226,27 @@ const getChannelProblem = (policy: ProgramPolicy): string | null => {
   return null;
 };
 
+/** 서버 ProgramGuardianPolicyRequest.validate() 와 같은 규칙. 설정하지 않았으면 null */
+const getGuardianPolicyProblem = (policy: ProgramPolicy): string | null => {
+  const guardian = policy.guardianPolicy;
+  if (!guardian) return null;
+  const positive = (value: number) => Number.isInteger(value) && value > 0;
+  const keys = Object.keys(guardian.gradeValues ?? {});
+  if (
+    !positive(guardian.formVersion) ||
+    !positive(guardian.schoolTypeQuestionId) ||
+    !positive(guardian.gradeQuestionId)
+  )
+    return '보호자 동반의 폼 버전·학교급 문항 ID·학년 문항 ID를 1 이상의 숫자로 입력해주세요.';
+  if (guardian.schoolTypeQuestionId === guardian.gradeQuestionId)
+    return '학교급 문항과 학년 문항은 서로 달라야 합니다.';
+  if (!guardian.elementarySchoolValue)
+    return '초등학생 선택지의 키를 입력해주세요.';
+  if (keys.length !== 6 || keys.some((key) => !key))
+    return '1~6학년 선택지의 키를 모두 서로 다르게 입력해주세요.';
+  return null;
+};
+
 /**
  * 서버 ProgramPolicyRequest.validate() 와 같은 규칙. 문제가 없으면 null.
  * 모집 시작 < 모집 종료, 취소 마감·대기 승급 마감 ≥ 모집 시작, 직업 1개 이상, 채널 합 일치
@@ -194,7 +262,7 @@ export const getPolicyProblem = (policy: ProgramPolicy): string | null => {
   // 일괄 적용은 조회한 정책을 그대로 합치므로 값이 빠져 와도 TypeError 대신 사유로 막는다
   if (!policy.allowedOccupations?.length)
     return '신청 가능 직업을 하나 이상 선택해주세요.';
-  return getChannelProblem(policy);
+  return getChannelProblem(policy) ?? getGuardianPolicyProblem(policy);
 };
 
 // 'YYYY-MM-DDTHH:mm'(로컬) → UTC 오프셋 ISO 8601. 정책 일시는 서버 필수값이라 비어 있으면 보내기 전에 막는다
@@ -259,8 +327,10 @@ export const toProgramPolicy = (form: PolicyForm): ProgramPolicy => {
     ...(policy.channels.length > 0
       ? { channels: policy.channels.map(toProgramChannel) }
       : {}),
-    // 꺼져 있으면 키를 빼서 기존 서버·정책과 같은 본문으로 보낸다
-    ...(policy.companionRequired ? { companionRequired: true } : {}),
+    // 꺼져 있으면 키를 빼서 기존 정책과 같은 본문으로 보낸다
+    ...(policy.guardianPolicy
+      ? { guardianPolicy: toGuardianPolicy(policy.guardianPolicy) }
+      : {}),
   };
 };
 
