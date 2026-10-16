@@ -40,6 +40,8 @@ export interface ProgramSessionDefinition {
   category?: 'ESSENTIAL' | 'CHOICE' | null;
   /** 현재 회차 조회에만 있다. 접수 당시 정의(definition)에는 없을 수 있다 */
   policy?: ProgramSessionPolicy | null;
+  /** 현재 회차 조회의 프로그램 묶음 ID. 없으면 묶이지 않은 회차다 */
+  groupId?: string | null;
 }
 
 export interface ProgramSessionPolicy {
