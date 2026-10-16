@@ -75,6 +75,13 @@ export const toServerCode = (data: unknown): string | undefined => {
   return typeof code === 'string' ? code : undefined;
 };
 
+/** 프로그램 신청 거부(403·409)의 `ineligibleReason`. 화면이 포괄 오류 대신 사유 문구를 고를 수 있게 넘긴다. */
+export const toServerIneligibleReason = (data: unknown): string | undefined => {
+  const reason = (data as { ineligibleReason?: unknown } | undefined)
+    ?.ineligibleReason;
+  return typeof reason === 'string' ? reason : undefined;
+};
+
 /**
  * User 서비스 검증 오류의 `errors`({ 필드명: 사유 }). 화면이 필드마다 사유를 보여 줄 수 있게 넘긴다.
  * Form 서비스의 zod issue 배열이나 문자열이 아닌 값은 버린다.
