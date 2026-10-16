@@ -11,6 +11,8 @@ export interface ProgramGroup {
   programType: ProgramSessionType;
   title: string;
   sessionCount: number;
+  /** 모집 정책이 없는 회차 수. 정원 0·마감과 구분해 모집 설정이 필요하다고 보인다 */
+  unsetSessionCount: number;
   /** 정책이 없는 회차는 빼고 더한다 */
   capacity: number;
   waitingCapacity: number;
@@ -42,6 +44,7 @@ export const groupSessionsByProgram = (
       programType: session.programType,
       title: session.title,
       sessionCount: 0,
+      unsetSessionCount: 0,
       capacity: 0,
       waitingCapacity: 0,
       confirmed: summaries ? 0 : null,
@@ -52,6 +55,7 @@ export const groupSessionsByProgram = (
     groups.set(id, {
       ...group,
       sessionCount: group.sessionCount + 1,
+      unsetSessionCount: group.unsetSessionCount + (session.policy ? 0 : 1),
       capacity: group.capacity + (session.policy?.capacity ?? 0),
       waitingCapacity:
         group.waitingCapacity + (session.policy?.waitingCapacity ?? 0),
@@ -78,6 +82,11 @@ export const groupSessionsByProgram = (
     .map(({ startedAt: _startedAt, ...group }) => group);
 };
 
-/** 신청을 받는 회차. 정책이 없으면 열림 여부를 알 수 없어 세지 않는다 */
-export const countOpenSessions = (sessions: ProgramSessionDefinition[]) =>
-  sessions.filter(({ policy }) => policy && !policy.closed).length;
+/** 모집 상태별 회차 수. 정책이 없는 회차는 열림·마감을 알 수 없어 모집 설정 필요로 따로 센다 */
+export const countSessionsByRecruitment = (
+  sessions: ProgramSessionDefinition[],
+) => ({
+  open: sessions.filter(({ policy }) => policy && !policy.closed).length,
+  closed: sessions.filter(({ policy }) => policy?.closed).length,
+  unset: sessions.filter(({ policy }) => !policy).length,
+});
