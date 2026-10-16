@@ -16,6 +16,8 @@ export interface ReportApplicationFilter {
   /** null 이면 모든 상태, 생략하면 서버 기본값 CONFIRMED */
   status: ReportApplicationStatus | null;
   sort?: 'CREATED_DESC' | 'CREATED_ASC';
+  /** 제출 당시 회차 제목 검색(1~200자). 접수대장 search 와 같은 대상 */
+  search?: string;
 }
 
 interface ReportExcelDownloadBase {

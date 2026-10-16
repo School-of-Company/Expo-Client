@@ -13,6 +13,9 @@ import {
 
 export const SELECTED_MAX_COUNT = 1000;
 
+// 리포트 서버 ApplicationFilter.search 길이 상한(1~200자)
+const REPORT_SEARCH_MAX_LENGTH = 200;
+
 // 리포트 서버가 현재 필터 전체 다운로드를 받는 최대 건수. 넘으면 413 으로 거절한다
 export const FILTER_MAX_COUNT = 10_000;
 
@@ -158,10 +161,18 @@ const planFilter = (
     return null;
   }
 
-  // Report 필터에는 제출 당시 제목, 참가자 이름·번호와 직업 조건이 없다. 조용히 빼면 화면과 다른 대상이 나간다
-  if (filter.search.trim()) {
+  // 현재 필터 결과가 0건이면 요청 전에 막는다. 실제 성공 여부는 서버가 최종 판정한다
+  if (filterCount === 0) {
     blockers.push(
-      '제목 검색은 다운로드 필터에 없습니다. 검색어를 지우거나 신청을 선택해서 받아주세요.',
+      '현재 필터에 해당하는 신청이 없어 다운로드할 대상이 없습니다. 필터를 바꾸거나 신청을 선택해주세요.',
+    );
+  }
+
+  // Report 필터에는 참가자 이름·번호와 직업 조건이 없다. 조용히 빼면 화면과 다른 대상이 나간다
+  const search = filter.search.trim();
+  if (search.length > REPORT_SEARCH_MAX_LENGTH) {
+    blockers.push(
+      `제목 검색은 다운로드 필터에서 최대 ${REPORT_SEARCH_MAX_LENGTH}자까지 받을 수 있습니다.`,
     );
   }
   if (filter.q.trim()) {
@@ -225,6 +236,7 @@ const planFilter = (
     // 회차를 고르지 않아도 연수자 명단은 연수 신청만 대상으로 한다
     ...(template === 'TRAINEE' && { programType: 'TRAINING' }),
     status,
+    ...(search && { search }),
     // Report 는 신청일시 정렬만 받는다. 다른 정렬은 대상이 같고 순서만 달라 서버 기본값에 맡긴다
     ...((filter.sort === 'CREATED_ASC' || filter.sort === 'CREATED_DESC') && {
       sort: filter.sort,
