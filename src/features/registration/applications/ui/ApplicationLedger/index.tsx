@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
-import { NavigationBar } from '@/shared/ui';
-import SmallButton from '@/shared/ui/SmallButton';
+import { Button, NavigationBar } from '@/shared/ui';
 import {
   RefreshStatus,
   SectionError,
@@ -138,10 +137,9 @@ const ApplicationLedger = () => {
               hasError={isError && !!data}
             />
             <div className="flex flex-wrap items-center gap-8">
-              <SmallButton
-                text={`그룹 메시지 (${selected.size} 선택)`}
-                onClick={() => setIsMessageModalOpen(true)}
-              />
+              <Button size="small" onClick={() => setIsMessageModalOpen(true)}>
+                그룹 메시지 ({selected.size} 선택)
+              </Button>
               <button
                 type="button"
                 onClick={() => setIsExcelModalOpen(true)}
