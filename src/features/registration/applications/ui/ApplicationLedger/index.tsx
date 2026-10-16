@@ -11,6 +11,7 @@ import {
   SectionError,
   useRegistrationExpo,
 } from '../../../common';
+import { GroupMessageSource } from '../../../common/api/groupMessageApi';
 import {
   INITIAL_LEDGER_FILTER,
   LEDGER_PAGE_SIZE,
@@ -24,6 +25,10 @@ import {
   useLedger,
   useLedgerSummary,
 } from '../../../common/model/ledger';
+import {
+  getFilteredScopeBlocker,
+  toGroupMessageFilter,
+} from '../../model/groupMessage';
 import {
   buildCapacityMap,
   getExpoDays,
@@ -94,6 +99,14 @@ const ApplicationLedger = () => {
   const totalPage = Math.max(Math.ceil(totalCount / LEDGER_PAGE_SIZE), 1);
   const selectedIds = useMemo(() => new Set(selected.keys()), [selected]);
   const selectedRows = useMemo(() => Array.from(selected.values()), [selected]);
+
+  const buildMessageScope = useCallback(
+    (scope: 'SELECTED' | 'FILTERED'): GroupMessageSource['scope'] =>
+      scope === 'SELECTED'
+        ? { kind: 'SELECTED', applicationIds: selectedRows.map(({ id }) => id) }
+        : { kind: 'FILTERED', filter: toGroupMessageFilter(filter) },
+    [selectedRows, filter],
+  );
 
   const handleFilterChange = useCallback(
     (next: LedgerFilter) => {
@@ -264,9 +277,10 @@ const ApplicationLedger = () => {
         {isMessageModalOpen && (
           <GroupMessageModal
             expoId={expoId}
-            selectedRows={selectedRows}
-            filter={filter}
+            selectedCount={selectedRows.length}
             filterCount={totalCount}
+            buildScope={buildMessageScope}
+            filteredBlocker={getFilteredScopeBlocker(filter)}
             onClose={() => setIsMessageModalOpen(false)}
           />
         )}

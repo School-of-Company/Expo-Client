@@ -15,18 +15,15 @@ import {
   postGroupMessagePreview,
   postGroupMessageRetry,
 } from '../../../common/api/groupMessageApi';
-import { LedgerFilter, LedgerRow } from '../../../common/model/ledger';
 import {
   GROUP_MESSAGE_MAX_LENGTH,
   GROUP_MESSAGE_SELECTED_MAX,
   GROUP_MESSAGE_VARIABLES,
-  getFilteredScopeBlocker,
   isFinalJobStatus,
   isGoneJobError,
   JOB_STATUS_LABEL,
   loadLastGroupMessageJob,
   saveLastGroupMessageJob,
-  toGroupMessageFilter,
   useGroupMessageConfig,
   useGroupMessageJob,
 } from '../../model/groupMessage';
@@ -34,13 +31,20 @@ import { MESSAGE_TEMPLATES } from '../../model/messageTemplates';
 import GroupMessageJobItems from '../GroupMessageJobItems';
 import KakaoTemplatePanel from '../KakaoTemplatePanel';
 
-type Scope = 'SELECTED' | 'FILTERED';
+export type Scope = 'SELECTED' | 'FILTERED';
 
 interface GroupMessageModalProps {
   expoId: string;
-  selectedRows: LedgerRow[];
-  filter: LedgerFilter;
+  /** 현재 탭에서 선택한 건수 */
+  selectedCount: number;
+  /** 현재 탭의 필터 결과 건수 */
   filterCount: number;
+  /** 현재 탭의 대상만 담는 범위. 탭마다 선택 ID 와 필터 형식이 다르다 */
+  buildScope: (scope: Scope) => GroupMessageSource['scope'];
+  /** 필터 전체 발송을 막는 이유. 없으면 null */
+  filteredBlocker: string | null;
+  /** 모달 안 안내에 쓰는 대상 이름 */
+  targetLabel?: string;
   onClose: () => void;
 }
 
@@ -64,14 +68,16 @@ const errorMessage = (error: unknown) =>
 
 const GroupMessageModal = ({
   expoId,
-  selectedRows,
-  filter,
+  selectedCount,
   filterCount,
+  buildScope,
+  filteredBlocker,
+  targetLabel = '신청',
   onClose,
 }: GroupMessageModalProps) => {
   const queryClient = useQueryClient();
   const [scope, setScope] = useState<Scope>(
-    selectedRows.length > 0 ? 'SELECTED' : 'FILTERED',
+    selectedCount > 0 ? 'SELECTED' : 'FILTERED',
   );
   const [channel, setChannel] = useState<GroupMessageChannel>('SMS');
   const [body, setBody] = useState('');
@@ -110,14 +116,11 @@ const GroupMessageModal = ({
   }, [smsEnabled, kakaoEnabled]);
 
   const source = useMemo<GroupMessageSource>(() => {
-    const target: GroupMessageSource['scope'] =
-      scope === 'SELECTED'
-        ? { kind: 'SELECTED', applicationIds: selectedRows.map(({ id }) => id) }
-        : { kind: 'FILTERED', filter: toGroupMessageFilter(filter) };
+    const target = buildScope(scope);
     return channel === 'SMS'
       ? { scope: target, channel: 'SMS', body, fallbackToSms: false }
       : { scope: target, channel: 'KAKAO', templateId, fallbackToSms: false };
-  }, [scope, selectedRows, filter, channel, body, templateId]);
+  }, [scope, buildScope, channel, body, templateId]);
   const hasContent = channel === 'SMS' ? body.trim() !== '' : !!template;
   // 미리보기 뒤에 범위나 문구가 바뀌면 그 미리보기로는 보낼 수 없다
   const isPreviewCurrent =
@@ -125,14 +128,14 @@ const GroupMessageModal = ({
     JSON.stringify(preview.source) === JSON.stringify(source);
 
   const scopeBlocker =
-    scope === 'SELECTED' && selectedRows.length === 0
-      ? '보낼 신청을 선택해주세요.'
-      : scope === 'SELECTED' && selectedRows.length > GROUP_MESSAGE_SELECTED_MAX
-        ? `선택 신청은 최대 ${GROUP_MESSAGE_SELECTED_MAX}건까지 보낼 수 있습니다.`
+    scope === 'SELECTED' && selectedCount === 0
+      ? `보낼 ${targetLabel}을 선택해주세요.`
+      : scope === 'SELECTED' && selectedCount > GROUP_MESSAGE_SELECTED_MAX
+        ? `선택 ${targetLabel}은 최대 ${GROUP_MESSAGE_SELECTED_MAX}건까지 보낼 수 있습니다.`
         : scope === 'FILTERED' && filterCount === 0
-          ? '현재 필터에 맞는 신청이 없습니다.'
+          ? `현재 필터에 맞는 ${targetLabel}이 없습니다.`
           : scope === 'FILTERED'
-            ? getFilteredScopeBlocker(filter)
+            ? filteredBlocker
             : null;
 
   const previewMutation = useMutation({
@@ -303,7 +306,7 @@ const GroupMessageModal = ({
               <div className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
                 {(
                   [
-                    ['SELECTED', '선택한 신청', selectedRows.length],
+                    ['SELECTED', `선택한 ${targetLabel}`, selectedCount],
                     ['FILTERED', '현재 필터 전체', filterCount],
                   ] as const
                 ).map(([value, label, count]) => (
