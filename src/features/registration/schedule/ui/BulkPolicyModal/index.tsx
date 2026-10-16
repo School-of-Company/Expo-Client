@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { XMark } from '@/shared/assets/icons';
+import { useModalDialog } from '@/shared/model';
 import { Button } from '@/shared/ui';
 import {
   DateTimeInput,
@@ -12,12 +14,11 @@ import {
 } from '../../../common';
 import { toPolicyDateTime, withPolicyPatch } from '../../model/policyForm';
 import { Field } from '../PolicyFields';
-import ScheduleSection from '../ScheduleSection';
 
-interface BulkPolicySectionProps {
+interface BulkPolicyModalProps {
   expoId: string;
   programs: ScheduleProgram[];
-  disabled: boolean;
+  onClose: () => void;
 }
 
 const errorMessage = (error: unknown) =>
@@ -27,11 +28,11 @@ const errorMessage = (error: unknown) =>
  * 모집 정책이 있는 프로그램에 신청기간·대기 승급 마감을 한 번에 넣는다.
  * 신청기간은 서버 일괄 API 로, 대기 승급 마감은 프로그램마다 바꾼다
  */
-const BulkPolicySection = ({
+const BulkPolicyModal = ({
   expoId,
   programs,
-  disabled,
-}: BulkPolicySectionProps) => {
+  onClose,
+}: BulkPolicyModalProps) => {
   const [applicationStartedAt, setApplicationStartedAt] = useState<
     string | null
   >(null);
@@ -41,6 +42,8 @@ const BulkPolicySection = ({
   const [promotionEndedAt, setPromotionEndedAt] = useState<string | null>(null);
   const [isApplying, setIsApplying] = useState(false);
   const invalidate = useInvalidateSchedule(expoId);
+  // 적용하는 중에는 닫기 버튼처럼 Escape 로도 닫지 않는다
+  const dialogRef = useModalDialog({ onClose, canClose: !isApplying });
 
   // 정책이 없거나 변경이 끝나지 않은 프로그램은 정책만 바꿀 수 없다
   const targets = programs.filter(
@@ -129,43 +132,71 @@ const BulkPolicySection = ({
   };
 
   return (
-    <ScheduleSection
-      variant="aside"
-      title="신청기간 일괄 설정"
-      description={`모집 정책이 있는 프로그램 ${targets.length}개에 같은 일시를 넣습니다. 비워 둔 항목은 바꾸지 않습니다.`}
+    <div
+      className="fixed inset-0 z-10 flex items-center justify-center px-[18px]"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
     >
-      <div className="space-y-16">
-        <Field label="모집 시작">
-          <DateTimeInput
-            value={applicationStartedAt}
-            onChange={setApplicationStartedAt}
-          />
-        </Field>
-        <Field label="모집 종료">
-          <DateTimeInput
-            value={applicationEndedAt}
-            onChange={setApplicationEndedAt}
-          />
-        </Field>
-        <Field label="대기 승급 마감">
-          <DateTimeInput
-            value={promotionEndedAt}
-            onChange={setPromotionEndedAt}
-          />
-        </Field>
-      </div>
-      <p className="text-caption1r text-gray-500">
-        현장신청은 변경하지 않습니다. 모집 시작이 기존 취소·승급 마감보다 늦은
-        프로그램은 바꾸지 않고 알려 드립니다.
-      </p>
-      <Button
-        disabled={disabled || isApplying || targets.length === 0}
-        onClick={handleApply}
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bulk-policy-title"
+        tabIndex={-1}
+        className="flex max-h-[90vh] w-full max-w-[560px] flex-col gap-24 overflow-y-auto rounded-sm bg-white px-[40px] py-[36px] outline-none mobile:px-20"
       >
-        {isApplying ? '적용 중...' : '정책 있는 프로그램 전체에 적용'}
-      </Button>
-    </ScheduleSection>
+        <div className="flex items-start justify-between gap-16">
+          <div className="space-y-4">
+            <p id="bulk-policy-title" className="text-h3b text-black">
+              신청기간 일괄 설정
+            </p>
+            <p className="text-caption1r text-gray-500">
+              모집 정책이 있는 프로그램 {targets.length}개에 같은 일시를
+              넣습니다. 비워 둔 항목은 바꾸지 않습니다.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isApplying}
+            aria-label="닫기"
+            className="-m-10 flex h-[44px] w-[44px] shrink-0 items-center justify-center"
+          >
+            <XMark />
+          </button>
+        </div>
+        <div className="space-y-16">
+          <Field label="모집 시작">
+            <DateTimeInput
+              value={applicationStartedAt}
+              onChange={setApplicationStartedAt}
+            />
+          </Field>
+          <Field label="모집 종료">
+            <DateTimeInput
+              value={applicationEndedAt}
+              onChange={setApplicationEndedAt}
+            />
+          </Field>
+          <Field label="대기 승급 마감">
+            <DateTimeInput
+              value={promotionEndedAt}
+              onChange={setPromotionEndedAt}
+            />
+          </Field>
+        </div>
+        <p className="text-caption1r text-gray-500">
+          현장신청은 변경하지 않습니다. 모집 시작이 기존 취소·승급 마감보다 늦은
+          프로그램은 바꾸지 않고 알려 드립니다.
+        </p>
+        <Button
+          disabled={isApplying || targets.length === 0}
+          onClick={handleApply}
+        >
+          {isApplying ? '적용 중...' : '적용'}
+        </Button>
+      </div>
+    </div>
   );
 };
 
-export default BulkPolicySection;
+export default BulkPolicyModal;
