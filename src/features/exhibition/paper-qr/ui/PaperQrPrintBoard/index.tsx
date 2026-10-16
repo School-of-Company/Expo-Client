@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useExpoDetail } from '@/shared/queries';
+import { Button } from '@/shared/ui';
 import { getQrTokens, PaperQrItem } from '../../api/qrTokensApi';
 import { getCategoryLabel } from '../../model/constants';
 import PaperQrIssueCard from '../PaperQrIssueCard';
@@ -109,11 +110,6 @@ const PaperQrPrintBoard = ({ expoId }: { expoId: string }) => {
         ? { kind: 'issued' as const, items: issuedItems }
         : null;
 
-  const tabClass = (active: boolean) =>
-    `rounded-full px-16 py-6 text-caption1b ${
-      active ? 'bg-main-600 text-white' : 'bg-gray-100 text-gray-600'
-    }`;
-
   return (
     <div className="flex flex-col gap-24">
       <div className="grid grid-cols-2 gap-24 tablet:grid-cols-1">
@@ -134,24 +130,24 @@ const PaperQrPrintBoard = ({ expoId }: { expoId: string }) => {
 
       {hasIssued && lookupResult && (
         <div className="flex gap-8" role="tablist">
-          <button
-            type="button"
+          <Button
+            size="small"
             role="tab"
+            variant={source === 'issued' ? 'default' : 'gray'}
             aria-selected={source === 'issued'}
-            className={tabClass(source === 'issued')}
             onClick={() => setSource('issued')}
           >
             방금 발급한 QR
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            size="small"
             role="tab"
+            variant={source === 'lookup' ? 'default' : 'gray'}
             aria-selected={source === 'lookup'}
-            className={tabClass(source === 'lookup')}
             onClick={() => setSource('lookup')}
           >
             다시 인쇄 조회 결과
-          </button>
+          </Button>
         </div>
       )}
 

@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Button, Input } from '@/shared/ui';
+import { Button, HelpText, Input, Section } from '@/shared/ui';
 import { PaperQrItem } from '../../api/qrTokensApi';
 import {
   getCategoryLabel,
@@ -118,18 +118,10 @@ const PaperQrIssueCard = ({
   };
 
   return (
-    <section className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
-      <div className="space-y-8">
-        <p className="text-h3b text-black">새 QR 발급</p>
-        <p className="break-keep text-caption1r text-gray-500">
-          한 장은 하루에 한 번 입장할 수 있습니다. 발급한 QR은 오른쪽에서
-          연번으로 다시 조회해 인쇄할 수 있습니다.
-        </p>
-        <p className="text-caption1r text-gray-600">
-          현재 발급 현황 {issueStatus}
-        </p>
-      </div>
-
+    <Section
+      title="새 QR 발급"
+      description={`한 장으로 하루 한 번 입장합니다. 현재 발급 ${issueStatus}`}
+    >
       <div className="space-y-12">
         <p className="text-body2b text-black">구분별 장수</p>
         <div className="grid grid-cols-3 gap-12 mobile:grid-cols-1">
@@ -149,26 +141,22 @@ const PaperQrIssueCard = ({
             </div>
           ))}
         </div>
-        <p
-          className={`break-keep text-caption1r ${isOverLimit ? 'text-error' : 'text-gray-400'}`}
-        >
+        <HelpText tone={isOverLimit ? 'error' : 'default'}>
           합계 {total}장 · 한 번에 최대 {MAX_TOKENS_PER_ISSUE}장,{' '}
           {MAX_TOKENS_PER_REQUEST}장이 넘으면 나눠서 발급합니다.
-        </p>
+        </HelpText>
       </div>
 
-      <div className="mt-auto space-y-12">
+      <div className="space-y-12">
         <Button
           onClick={handleIssue}
           disabled={isIssuing || total === 0 || isOverLimit}
         >
           {isIssuing ? '발급 중...' : `${total}장 발급`}
         </Button>
-        {partialNotice && (
-          <p className="break-keep text-body2r text-error">{partialNotice}</p>
-        )}
+        {partialNotice && <HelpText tone="error">{partialNotice}</HelpText>}
       </div>
-    </section>
+    </Section>
   );
 };
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Button, Input } from '@/shared/ui';
+import { Button, HelpText, Input, Section } from '@/shared/ui';
 import { PaperQrItem } from '../../api/qrTokensApi';
 import { DEFAULT_LABEL_SIZE } from '../../model/constants';
 import { printPaperQrA4 } from '../../model/printPaperQrA4';
@@ -71,29 +71,14 @@ const PaperQrOutputList = ({
     ));
 
   return (
-    <section className="space-y-16 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
-      <div className="flex flex-wrap items-start justify-between gap-12">
-        <div className="space-y-4">
-          <p className="text-h3b text-black">
-            출력 목록 · {total}장
-            {printable.length < total &&
-              ` (인쇄 ${printable.length}장, 사용 중지 ${total - printable.length}장 제외)`}
-          </p>
-          {output?.range && (
-            <p className="text-body2r text-gray-700">
-              조회 범위: {output.range}
-            </p>
-          )}
-          {output?.notice && (
-            <p className="break-keep text-caption1b text-error">
-              {output.notice}
-            </p>
-          )}
-          <p className="break-keep text-caption1r text-gray-500">
-            A4 기준 3열 배열. 화면에서 QR이 정상 표시되면 인쇄 버튼을
-            눌러주세요.
-          </p>
-        </div>
+    <Section
+      title={`출력 목록 · ${total}장${
+        printable.length < total
+          ? ` (인쇄 ${printable.length}장, 사용 중지 ${total - printable.length}장 제외)`
+          : ''
+      }`}
+      description={output?.range && `조회 범위: ${output.range}`}
+      action={
         <div className="flex flex-wrap gap-8">
           <Button size="small" onClick={() => print('a4')} disabled={!canPrint}>
             A4 인쇄
@@ -117,7 +102,9 @@ const PaperQrOutputList = ({
             </Button>
           )}
         </div>
-      </div>
+      }
+    >
+      {output?.notice && <HelpText tone="error">{output.notice}</HelpText>}
 
       {printable.length > 0 && (
         <div className="flex flex-wrap items-end gap-12">
@@ -175,7 +162,7 @@ const PaperQrOutputList = ({
           )}
         </>
       )}
-    </section>
+    </Section>
   );
 };
 

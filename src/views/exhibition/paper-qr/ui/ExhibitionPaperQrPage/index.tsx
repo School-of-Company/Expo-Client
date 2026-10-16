@@ -12,7 +12,7 @@ import { PageShell } from '@/widgets/layout';
 const ExhibitionPaperQrPage = ({ id }: { id: string }) => {
   return (
     <PageShell>
-      <div className="flex w-full max-w-[1120px] flex-col gap-24">
+      <div className="flex w-full max-w-[1200px] flex-col gap-24">
         <PageTitle
           title="현장 QR"
           description="현장 신청용 QR을 화면에 띄우거나, 개인정보 없는 박람회 입장 전용 종이 QR을 발급·인쇄합니다. 종이 QR은 프로그램 신청이나 출석 확인에는 쓸 수 없습니다."
