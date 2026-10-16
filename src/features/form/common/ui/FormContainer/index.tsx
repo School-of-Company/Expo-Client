@@ -31,6 +31,7 @@ import { AddItemButton } from '@/shared/ui';
 
 interface Props {
   expoId: string;
+  type: 'STANDARD' | 'TRAINEE';
   options: Option[];
   formRemove: (index: number) => void;
   index: number;
@@ -41,6 +42,7 @@ interface Props {
 
 const FormContainer = ({
   expoId,
+  type,
   options,
   formRemove,
   index,
@@ -72,11 +74,12 @@ const FormContainer = ({
   const isTrainingProgram = isTrainingProgramQuestion(questionTitle);
 
   const isSpecialField = !!dynamicFormType && dynamicFormType !== 'DEFAULT';
-  // 이름·전화번호·연수자 아이디는 신청 처리에 꼭 필요해서 필수로 고정한다.
+  // 이름·전화번호는 신청 처리에 꼭 필요해서 필수로 고정한다.
+  // 연수자 아이디는 연수자 폼에서만 고정하고, 일반 폼에서는 관리자가 필수 여부를 고른다.
   const isRequiredField =
     dynamicFormType === 'NAME' ||
     dynamicFormType === 'PHONE_NUMBER' ||
-    dynamicFormType === 'TRAINING_ID';
+    (dynamicFormType === 'TRAINING_ID' && type === 'TRAINEE');
   const hasOptions =
     selectedOption?.value === 'DROPDOWN' ||
     selectedOption?.value === 'MULTIPLE';
