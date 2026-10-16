@@ -7,13 +7,8 @@ import {
   ProgramSessionType,
 } from '../../../common/api/ledgerApi';
 import { OCCUPATION_LABEL } from '../../../common/model/ledger';
-import {
-  EMPTY_CHANNEL_FORM,
-  PolicyForm,
-  withChannelTotals,
-} from '../../model/policyForm';
+import { PolicyForm, withCapacityTotals } from '../../model/policyForm';
 import { toCount } from '../../model/sessionForm';
-import ChannelFields from '../ChannelFields';
 import ProgramFormPicker from '../ProgramFormPicker';
 import ProgramGroupPicker from '../ProgramGroupPicker';
 import { FieldLabel } from '../ScheduleSection';
@@ -58,54 +53,7 @@ const PolicyFields = ({
   onChange,
   onCreateForm,
 }: PolicyFieldsProps) => {
-  const hasChannels = value.channels.length > 0;
-  const totals = withChannelTotals(value);
-  const isSplit =
-    value.preRegisterCapacity !== null || value.onsiteCapacity !== null;
-
-  const toggleSplit = (on: boolean) =>
-    onChange(
-      on
-        ? { preRegisterCapacity: value.capacity, onsiteCapacity: 0 }
-        : {
-            capacity: totals.capacity,
-            preRegisterCapacity: null,
-            onsiteCapacity: null,
-          },
-    );
-
-  const toggleChannels = (on: boolean) => {
-    if (on) {
-      // 지금 정원·직업을 첫 채널로 옮겨 합계가 그대로 이어지게 한다
-      onChange({
-        // 채널별 정원과 사전·현장 정원은 함께 쓰지 않는다
-        preRegisterCapacity: null,
-        onsiteCapacity: null,
-        channels: [
-          {
-            ...EMPTY_CHANNEL_FORM,
-            name: '일반',
-            capacity: Math.max(totals.capacity, 1),
-            waitingCapacity: value.waitingCapacity,
-            allowedOccupations: value.allowedOccupations,
-          },
-        ],
-      });
-      return;
-    }
-    if (
-      !window.confirm(
-        '채널을 모두 지우고 채널 합계를 정원·대기 정원으로 남길까요? 저장하면 채널 없는 회차가 됩니다.',
-      )
-    )
-      return;
-    onChange({
-      channels: [],
-      capacity: totals.capacity,
-      waitingCapacity: totals.waitingCapacity,
-      allowedOccupations: totals.allowedOccupations,
-    });
-  };
+  const totals = withCapacityTotals(value);
 
   const toggleOccupation = (occupation: AdminOccupation) =>
     onChange({
@@ -138,88 +86,40 @@ const PolicyFields = ({
           같은 묶음의 회차 중에서는 하나만 신청할 수 있습니다.
         </p>
       </Field>
-      <div className="flex items-center justify-between gap-16">
-        <div className="space-y-6">
-          <FieldLabel>신청 채널별 정원</FieldLabel>
-          <p className="text-caption1r text-gray-500">
-            {hasChannels
-              ? `채널 합계: 정원 ${totals.capacity}명 · 대기 ${totals.waitingCapacity}명`
-              : '교원·일반처럼 신청 구분마다 정원을 나눌 때 켭니다.'}
-          </p>
-        </div>
-        <ToggleButton value={hasChannels} onChange={toggleChannels} />
-      </div>
-      {!hasChannels && (
-        <div className="flex items-center justify-between gap-16">
-          <div className="space-y-6">
-            <FieldLabel>사전·현장 접수 정원</FieldLabel>
-            <p className="text-caption1r text-gray-500">
-              {isSplit
-                ? `정원 ${totals.capacity}명 (사전 + 현장)`
-                : '사전 접수와 현장 접수 정원을 따로 관리할 때 켭니다.'}
-            </p>
-          </div>
-          <ToggleButton value={isSplit} onChange={toggleSplit} />
-        </div>
-      )}
-      {hasChannels && (
-        <ChannelFields
-          value={value.channels}
-          onChange={(channels) => onChange({ channels })}
-        />
-      )}
       <div className="grid grid-cols-4 gap-16 mobile:grid-cols-1 tablet:grid-cols-2">
-        {!hasChannels && (
-          <>
-            {isSplit ? (
-              <>
-                <Field label="사전 접수 정원">
-                  <Input
-                    type="number"
-                    min={0}
-                    value={value.preRegisterCapacity ?? 0}
-                    onChange={(e) =>
-                      onChange({
-                        preRegisterCapacity: toCount(e.target.value),
-                      })
-                    }
-                  />
-                </Field>
-                <Field label="현장 접수 정원">
-                  <Input
-                    type="number"
-                    min={0}
-                    value={value.onsiteCapacity ?? 0}
-                    onChange={(e) =>
-                      onChange({ onsiteCapacity: toCount(e.target.value) })
-                    }
-                  />
-                </Field>
-              </>
-            ) : (
-              <Field label="정원">
-                <Input
-                  type="number"
-                  min={1}
-                  value={value.capacity}
-                  onChange={(e) =>
-                    onChange({ capacity: toCount(e.target.value) })
-                  }
-                />
-              </Field>
-            )}
-            <Field label="대기 정원">
-              <Input
-                type="number"
-                min={0}
-                value={value.waitingCapacity}
-                onChange={(e) =>
-                  onChange({ waitingCapacity: toCount(e.target.value) })
-                }
-              />
-            </Field>
-          </>
-        )}
+        <Field label="사전 접수 정원">
+          <Input
+            type="number"
+            min={0}
+            value={value.preRegistrationCapacity}
+            onChange={(e) =>
+              onChange({ preRegistrationCapacity: toCount(e.target.value) })
+            }
+          />
+        </Field>
+        <Field label="현장 접수 정원">
+          <Input
+            type="number"
+            min={0}
+            value={value.onsiteCapacity}
+            onChange={(e) =>
+              onChange({ onsiteCapacity: toCount(e.target.value) })
+            }
+          />
+        </Field>
+        <Field label="총정원">
+          <p className="flex h-[48px] items-center">{totals.capacity}명</p>
+        </Field>
+        <Field label="대기 정원">
+          <Input
+            type="number"
+            min={0}
+            value={value.waitingCapacity}
+            onChange={(e) =>
+              onChange({ waitingCapacity: toCount(e.target.value) })
+            }
+          />
+        </Field>
         <Field label="모집 마감">
           <div className="flex h-[48px] items-center">
             <ToggleButton
@@ -257,30 +157,28 @@ const PolicyFields = ({
           />
         </Field>
       </div>
-      {!hasChannels && (
-        <Field label="신청 가능 직업 (하나 이상)">
-          <div className="flex flex-wrap gap-8">
-            {OCCUPATIONS.map((occupation) => {
-              const isSelected = value.allowedOccupations.includes(occupation);
-              return (
-                <button
-                  key={occupation}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => toggleOccupation(occupation)}
-                  className={`rounded-sm border-1 border-solid px-12 py-6 text-caption1r ${
-                    isSelected
-                      ? 'border-main-600 text-main-600'
-                      : 'border-gray-200 text-gray-500'
-                  }`}
-                >
-                  {OCCUPATION_LABEL[occupation]}
-                </button>
-              );
-            })}
-          </div>
-        </Field>
-      )}
+      <Field label="신청 가능 직업 (하나 이상)">
+        <div className="flex flex-wrap gap-8">
+          {OCCUPATIONS.map((occupation) => {
+            const isSelected = value.allowedOccupations.includes(occupation);
+            return (
+              <button
+                key={occupation}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => toggleOccupation(occupation)}
+                className={`rounded-sm border-1 border-solid px-12 py-6 text-caption1r ${
+                  isSelected
+                    ? 'border-main-600 text-main-600'
+                    : 'border-gray-200 text-gray-500'
+                }`}
+              >
+                {OCCUPATION_LABEL[occupation]}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
     </div>
   );
 };
