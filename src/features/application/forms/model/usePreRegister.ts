@@ -12,4 +12,6 @@ export const usePreRegisterCapacity = (expoId: string, sessionId: string) =>
     queryKey: ['preRegisterCapacity', expoId, sessionId],
     queryFn: () => getPreRegisterCapacity(expoId, sessionId),
     retry: false,
+    // 회차 없이 들어온 링크는 화면이 회차 선택을 안내하므로 조회하지 않는다
+    enabled: !!sessionId,
   });
