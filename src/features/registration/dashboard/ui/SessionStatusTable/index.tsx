@@ -59,6 +59,12 @@ const COLUMNS: TableColumn<SessionStatusRow>[] = [
       policy ? (
         <>
           <p>{policy.capacity}</p>
+          {policy.preRegistrationCapacity != null && (
+            <p className="text-caption2r">
+              사전 {policy.preRegistrationCapacity} · 현장{' '}
+              {policy.onsiteCapacity ?? 0}
+            </p>
+          )}
           <p className="text-caption2r">
             대기 {policy.waitingCapacity}
             {policy.closed && ' · 마감'}
