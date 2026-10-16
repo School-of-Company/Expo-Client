@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 const TABS = [
   { value: 'standard', label: '일반 프로그램' },
   { value: 'training', label: '연수 프로그램' },
-  { value: 'preregister', label: '사전등록 회차' },
+  { value: 'preregister', label: '사전등록' },
 ];
 
 const ProgramNavigation = () => {
