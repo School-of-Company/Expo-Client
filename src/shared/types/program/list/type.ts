@@ -17,6 +17,20 @@ export type ProgramOccupation =
   | 'TEACHER'
   | 'PRE_SERVICE_TEACHER';
 
+// 보호자 동반 필수 정책 (ProgramGuardianPolicyRequest). 학년은 학생 본인 폼의 문항·선택지 키로만 판정한다.
+// 문항 제목·선택지 라벨로 추측하지 않는다
+export interface ProgramGuardianPolicy {
+  // 참조하는 프로그램 폼 버전
+  formVersion: number;
+  // 학교급 선택 문항 ID 와 초등학생 선택지의 jsonData 키
+  schoolTypeQuestionId: number;
+  elementarySchoolValue: string;
+  // 초등학생 선택 시 표시되는 필수 학년 문항 ID
+  gradeQuestionId: number;
+  // 학년 선택지 jsonData 키 → 학년(1~6). 6개가 일대일로 대응해야 한다
+  gradeValues: Record<string, number>;
+}
+
 // 프로그램 모집 정책 (ProgramPolicyRequest, 조회 응답도 같은 클래스를 쓴다).
 // Swagger에도 required 로 표시되듯 groupId 외에는 모두 필수다.
 // null·키 누락·빈 직업 목록은 400 이다(Expo-Expo-Server ProgramPolicyRequest.kt).
@@ -36,6 +50,8 @@ export interface ProgramPolicy {
   // 알 수 없는 필드는 400 이다
   preRegistrationCapacity: number;
   onsiteCapacity: number;
+  // 이 회차의 초등 1~3학년 보호자 동반 필수 설정. null·생략이면 OFF 이고 기존 단건 신청이다(Expo-Expo-Server#125)
+  guardianPolicy?: ProgramGuardianPolicy | null;
 }
 
 // 프로그램 생성·수정 요청 공통 필드. 시각은 'yyyy-MM-dd HH:mm' 이다.

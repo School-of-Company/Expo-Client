@@ -3,9 +3,17 @@ import clientInstance from '@/shared/libs/http/clientInstance';
 import { ProgramType } from '@/shared/types/program/list/type';
 import { OwnerParticipant } from './myApplications';
 
+export type ProgramIneligibleReason =
+  | 'OCCUPATION_NOT_ALLOWED'
+  | 'PREREGISTRATION_NOT_CONFIRMED'
+  | 'GROUP_ALREADY_APPLIED'
+  | 'TIME_CONFLICT';
+
 export interface ProgramParticipant {
   participant: OwnerParticipant;
   eligible: boolean;
+  // 신청할 수 없는 사유. 같은 묶음에 이미 신청했으면 GROUP_ALREADY_APPLIED
+  ineligibleReason?: ProgramIneligibleReason | null;
 }
 
 export interface ProgramParticipants {
