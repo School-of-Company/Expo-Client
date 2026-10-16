@@ -14,7 +14,7 @@ export const getExpoActions = (expoId: string) => {
   return {
     participants: {
       title: '조회',
-      description: '사전등록·연수 참가자 명단 조회',
+      description: '선택일 입장자·행사 연수자 명단 조회',
       href: routes.participants,
     },
     formCreate: {

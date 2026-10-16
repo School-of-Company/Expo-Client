@@ -6,11 +6,15 @@ import { withLoading } from '@/shared/hocs';
 import { useExpoPage } from '@/shared/queries';
 import { NavigationBar } from '@/shared/ui';
 import { useExpoValid } from '../../model/useExpoValid';
+import { useProgramFormCounts } from '../../model/useProgramFormCounts';
 
 const ExpoListContainer = () => {
   const { data: expoPage, isLoading, isError, refetch } = useExpoPage();
   const expoList = expoPage?.content;
   const { data: expoValidMap } = useExpoValid();
+  const programFormCounts = useProgramFormCounts(
+    expoList?.map(({ id }) => id) ?? [],
+  );
 
   return withLoading({
     isLoading,
@@ -46,6 +50,7 @@ const ExpoListContainer = () => {
               startedDay={item.startedDay}
               finishedDay={item.finishedDay}
               formStatus={expoValidMap?.get(item.id)}
+              programFormCount={programFormCounts.get(item.id)}
             />
           ))}
           <CreateExpoCard />

@@ -70,6 +70,13 @@ const ParticipantTable = ({ id }: { id: string }) => {
     ? 1
     : ((expoData as ParticipantResponse | undefined)?.info?.totalPage ?? 1);
 
+  // 일반 참가자는 선택일 입장자 전체 건수, 연수자는 행사 전체 연수자 수
+  const attendeeCount = (expoData as ParticipantResponse | undefined)?.info
+    ?.totalElement;
+  const isSearching = Boolean(searchQuery.trim());
+  const formatDay = (date?: string) =>
+    date ? date.replace(/^\d{4}-(\d{2})-(\d{2})$/, '$1.$2') : '';
+
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) return participantsData;
 
@@ -143,8 +150,15 @@ const ParticipantTable = ({ id }: { id: string }) => {
             selectedDate={selectedDate || ''}
           />
         )}
+        {!isTrainee && (
+          <p className="text-caption1r text-gray-500">
+            선택한 날짜에 입장한 참가자입니다. 사전등록한 전체 신청자는
+            접수대장에서 확인할 수 있습니다.
+          </p>
+        )}
 
         <SearchInput
+          label="이름, 연락처, 연수번호 검색"
           placeholder="이름, 연락처, 연수번호로 검색"
           value={searchQuery}
           onChange={setSearchQuery}
@@ -156,7 +170,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
             data={filteredData as Trainee[]}
             maxHeight="414px"
             footerType="file"
-            text="참가자 전체 인원"
+            text={isSearching ? '검색 결과' : '연수자 전체 인원'}
             actions={traineeExcelFile}
             totalPage={totalPage}
             id={id}
@@ -171,7 +185,13 @@ const ParticipantTable = ({ id }: { id: string }) => {
             data={filteredData as participants[]}
             maxHeight="414px"
             footerType="file"
-            text="참가자 전체 인원"
+            // 이 목록은 사전등록 전체가 아니라 선택일에 입장한 참가자다. 검색은 현재 페이지에서만 거른다
+            text={
+              isSearching
+                ? '현재 페이지 검색 결과'
+                : `${formatDay(selectedDate)} 입장자 수`
+            }
+            totalCount={isSearching ? undefined : attendeeCount}
             actions={standardExcelFile}
             totalPage={totalPage}
             id={id}

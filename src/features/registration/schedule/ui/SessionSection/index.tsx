@@ -192,6 +192,7 @@ const SessionSection = ({
       render: ({ id, form }) => (
         <div className="flex justify-center">
           <ToggleButton
+            label="회차 모집 마감"
             value={form.closed}
             onChange={(closed) => onChange(id, { closed })}
           />
@@ -206,7 +207,7 @@ const SessionSection = ({
         needsRetry ? (
           <button
             type="button"
-            className="text-body2r text-red-500 disabled:opacity-40"
+            className="inline-flex min-h-[44px] items-center px-8 text-body2r text-red-500 disabled:opacity-40"
             disabled={isLocked}
             onClick={() => onRetry(session)}
           >
@@ -218,7 +219,7 @@ const SessionSection = ({
             aria-label="회차 삭제"
             disabled={isLocked}
             onClick={() => onDelete(session)}
-            className="disabled:opacity-40"
+            className="inline-flex h-[44px] w-[44px] items-center justify-center disabled:opacity-40"
           >
             <Trash />
           </button>

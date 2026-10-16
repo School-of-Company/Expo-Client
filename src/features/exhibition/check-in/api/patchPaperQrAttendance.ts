@@ -1,13 +1,19 @@
 import axios from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { getScanErrorMessage } from '@/shared/libs/http/getScanErrorMessage';
+import { scannerNameConfig } from './scannerNameHeader';
 
 // 현장 종이 QR 입장. 같은 토큰은 하루에 한 번만 입장된다
-export const patchPaperQrAttendance = async (expoId: string, token: string) => {
+export const patchPaperQrAttendance = async (
+  expoId: string,
+  token: string,
+  scannerName?: string,
+) => {
   try {
     await clientTokenInstance.patch(
       `/attendance/qr/${encodeURIComponent(expoId)}`,
       { token },
+      scannerNameConfig(scannerName),
     );
   } catch (error) {
     if (axios.isAxiosError(error)) {
