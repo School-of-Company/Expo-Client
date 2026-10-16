@@ -256,7 +256,7 @@ const ScheduleManager = () => {
                 value={filter}
                 options={[
                   { value: 'ALL', label: `전체 ${count('ALL')}` },
-                  { value: 'STANDARD', label: `일반 ${count('STANDARD')}` },
+                  { value: 'STANDARD', label: `프로그램 ${count('STANDARD')}` },
                   { value: 'TRAINING', label: `연수 ${count('TRAINING')}` },
                   { value: 'PRE', label: `사전등록 ${count('PRE')}` },
                 ]}
