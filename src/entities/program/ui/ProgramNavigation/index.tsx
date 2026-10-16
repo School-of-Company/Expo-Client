@@ -1,7 +1,8 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { TitleTabs } from '@/shared/ui';
 
 // 사전등록 회차는 프로그램이 아니지만 같은 화면에서 탭으로 오간다
 const TABS = [
@@ -13,34 +14,17 @@ const TABS = [
 const ProgramNavigation = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [navigation, setNavigation] = useState<string>('standard');
-
-  useEffect(() => {
-    const currentNavigation = searchParams.get('navigation') || 'standard';
-    setNavigation(currentNavigation);
-  }, [searchParams]);
-
-  const handleNavigationChange = (newNavigation: string) => {
-    router.push(`${window.location.pathname}?navigation=${newNavigation}`);
-    setNavigation(newNavigation);
-  };
+  const navigation = searchParams.get('navigation') || 'standard';
 
   return (
-    <div className="flex flex-wrap justify-center gap-x-[18px] gap-y-8">
-      {TABS.map(({ value, label }) => (
-        <button
-          key={value}
-          type="button"
-          aria-pressed={navigation === value}
-          className={`text-h2b mobile:text-body1b ${
-            navigation === value ? 'text-black' : 'text-gray-500'
-          }`}
-          onClick={() => handleNavigationChange(value)}
-        >
-          {label}
-        </button>
-      ))}
-    </div>
+    <TitleTabs
+      ariaLabel="프로그램 구분"
+      value={navigation}
+      options={TABS}
+      onChange={(next) =>
+        router.push(`${window.location.pathname}?navigation=${next}`)
+      }
+    />
   );
 };
 
