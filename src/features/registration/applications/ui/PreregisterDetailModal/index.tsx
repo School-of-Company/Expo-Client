@@ -71,6 +71,10 @@ const PreregisterDetailModal = ({
       );
     }
     const row = toPreregisterRow(data);
+    // 서버가 User 현재 답변을 { answers, questions } 로 주지만 answers 는 문항 제목이 키라 질문과 짝짓지 않고 그대로 보여 준다
+    const participantInfo = data.participant?.information as {
+      answers?: Record<string, unknown> | null;
+    } | null;
     return (
       <>
         <section className="space-y-[10px]">
@@ -131,7 +135,7 @@ const PreregisterDetailModal = ({
             <p className="text-h3b text-black">참가자 등록 답변 (현재)</p>
             <AnswerList
               questions={null}
-              answers={data.participant.information}
+              answers={participantInfo?.answers ?? null}
               currentInfo
             />
           </section>
