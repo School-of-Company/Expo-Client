@@ -40,9 +40,8 @@ export const getRegistrationRoutes = (expoId: string) => {
   return {
     dashboard: base,
     applications: `${base}/applications`,
+    preregister: `${base}/preregister`,
     schedule: `${base}/schedule`,
-    history: `${base}/history`,
-    attendance: `${base}/attendance`,
     participants: `${base}/participants`,
     operations: `${base}/operations`,
     programForms: `${base}/program-forms`,
