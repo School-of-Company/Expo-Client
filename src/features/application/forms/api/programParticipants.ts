@@ -6,6 +6,8 @@ import { OwnerParticipant } from './myApplications';
 export interface ProgramParticipant {
   participant: OwnerParticipant;
   eligible: boolean;
+  // 이 회차에 이미 다른 학생과 신청한 보호자(계약 미확정 가정). 재사용되어 폼·좌석이 늘지 않는다
+  guardianApplied?: boolean;
 }
 
 export interface ProgramParticipants {

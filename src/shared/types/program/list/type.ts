@@ -43,6 +43,8 @@ export interface ProgramPolicy {
   // 없으면 채널 없이 capacity·waitingCapacity 하나로 모집한다.
   // 있으면 정원·대기 정원은 채널 합, 신청 가능 직종은 채널 직종 합집합이어야 한다
   channels?: ProgramChannel[] | null;
+  // 초등 1~3학년 보호자 동반 필수(Expo-Expo-Server#125, 계약 미확정 가정). 없으면 기존 단건 신청이다
+  companionRequired?: boolean;
 }
 
 // 프로그램 생성·수정 요청 공통 필드. 시각은 'yyyy-MM-dd HH:mm' 이다.

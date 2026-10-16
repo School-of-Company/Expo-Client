@@ -120,6 +120,57 @@ const PROGRAM_APPLY_ERROR_MESSAGES: Record<number, string> = {
   503: '지금은 신청할 수 없습니다. 잠시 후 다시 시도해주세요.',
 };
 
+/**
+ * 학생·보호자 일괄 신청(Expo-Application-Server#128). 서버 계약이 확정되기 전의 가정이므로
+ * 경로·본문·응답이 달라지면 이 함수와 타입만 고친다.
+ */
+// 일괄 신청은 한 명의 문제로도 전원이 함께 거절된다. 서버 본문의 사유가 있으면 그쪽이 우선한다
+const PROGRAM_BATCH_ERROR_MESSAGES: Record<number, string> = {
+  ...PROGRAM_APPLY_ERROR_MESSAGES,
+  400: '선택한 학생·보호자의 조합이나 신청서 답변이 올바르지 않습니다. 보호자 동반 조건과 입력 내용을 확인해주세요.',
+  409: '남은 자리가 부족하거나, 이미 신청한 참가자가 있거나, 신청서가 바뀌어 전원 접수되지 않았습니다. 일부만 접수되지 않으며 답변은 유지됩니다. 내 신청을 확인한 뒤 다시 시도해주세요.',
+};
+
+export interface ProgramBatchRequest {
+  participants: {
+    participantId: number;
+    formVersion: number;
+    answers: unknown;
+  }[];
+  // 이 회차에 이미 신청해 재사용하는 보호자 또는 participants 에 포함된 보호자
+  guardianParticipantId?: number;
+}
+
+export interface ProgramBatchResult {
+  status: 'CONFIRMED' | 'WAITING' | 'PROCESSING' | 'REJECTED';
+  reusedGuardian: boolean;
+}
+
+export const postProgramBatchApplication = async (
+  programType: ProgramType,
+  expoId: string,
+  programId: string,
+  payload: ProgramBatchRequest,
+  csrfHeaders: Record<string, string>,
+  idempotencyKey: string,
+): Promise<ProgramBatchResult> => {
+  const response = await submit(
+    `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${encodeURIComponent(programId)}/applications/batch`,
+    payload,
+    idempotencyKey,
+    csrfHeaders,
+    PROGRAM_BATCH_ERROR_MESSAGES,
+  );
+  const status = response.data?.status;
+  return {
+    status:
+      status === 'WAITING' || status === 'PROCESSING' || status === 'REJECTED'
+        ? status
+        : 'CONFIRMED',
+    reusedGuardian: response.data?.reusedGuardian === true,
+  };
+};
+
 /** 프로그램별 신청 결과. 201 본문의 status 가 확정·대기·처리 중을 알려 준다. */
 export type ProgramApplyResult = 'CONFIRMED' | 'WAITING' | 'PROCESSING';
 

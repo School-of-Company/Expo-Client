@@ -21,6 +21,8 @@ export interface OwnerParticipant {
   name: string;
   occupation: AdminOccupation | null;
   representative: boolean;
+  // 서버가 내려 주는 학년(Expo-Application-Server#128, 계약 미확정 가정). 라벨로 추측하지 않는다
+  grade?: number | null;
 }
 
 export interface OwnerApplication {
@@ -36,6 +38,10 @@ export interface OwnerApplication {
   cancellable: boolean;
   // 취소 가능하면 빈 문자열
   cancellationBlockedReason: string;
+  // 학생·보호자 묶음 신청(Expo-Application-Server#128, 계약 미확정 가정).
+  // 학생 신청이면 연결된 보호자 신청 id 와 그 보호자에게 연결된 활성 학생 수
+  linkedGuardianApplicationId?: string | null;
+  linkedStudentCount?: number;
 }
 
 export interface OwnerApplicationsResponse {
