@@ -12,6 +12,13 @@ import type {
 export const getProgramFormId = (program: Pick<Program, 'policy'>) =>
   program.policy?.formId || undefined;
 
+/**
+ * 회차 장소 표시. 장소는 회차마다 따로 두며 행사·사전등록 장소로 채우지 않는다.
+ * 입력하지 않았거나 서버가 아직 주지 않는 회차는 추후 안내로 표시한다
+ */
+export const formatProgramPlace = (place: string | null | undefined) =>
+  place?.trim() || '장소 추후 안내';
+
 /** 프로그램 하나의 제출 결과. 한 프로그램의 실패가 다른 프로그램의 성공 표시를 가리지 않게 따로 둔다. */
 export type ProgramApplyOutcome =
   | {

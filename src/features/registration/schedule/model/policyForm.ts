@@ -69,6 +69,8 @@ export interface ProgramForm {
   title: string;
   startedAt: string | null;
   endedAt: string | null;
+  /** 회차 장소(선택). 같은 묶음이라도 회차마다 다를 수 있다 */
+  place: string;
   category: TrainingCategory;
   /** false 면 정책을 보내지 않는다. 수정에서는 기존 정책을 그대로 둔다 */
   hasPolicy: boolean;
@@ -102,6 +104,7 @@ export const EMPTY_PROGRAM_FORM: ProgramForm = {
   title: '',
   startedAt: null,
   endedAt: null,
+  place: '',
   category: 'CHOICE',
   // 새 프로그램은 신청을 받는 것이 기본이라 폼 선택이 처음부터 보이게 한다. 정책 없는 기존 프로그램은 toProgramForm 이 그대로 둔다
   hasPolicy: true,
@@ -175,6 +178,7 @@ export const toProgramForm = (program: ScheduleProgram): ProgramForm => ({
   title: program.title,
   startedAt: program.startedAt.slice(0, 16),
   endedAt: program.endedAt.slice(0, 16),
+  place: program.place ?? '',
   category: program.category ?? 'CHOICE',
   hasPolicy: program.policy !== null,
   policy: program.policy ? toPolicyForm(program.policy) : EMPTY_POLICY_FORM,
@@ -340,6 +344,8 @@ export const toProgramRequest = (
   title: form.title.trim(),
   startedAt: toProgramDateTime(form.startedAt ?? ''),
   endedAt: toProgramDateTime(form.endedAt ?? ''),
+  // 비우면 null 로 보내 수정 때 기존 장소를 지운다. 장소 필드 전 초안에는 값이 없을 수 있다
+  place: (form.place ?? '').trim() || null,
   ...(form.programType === 'TRAINING' ? { category: form.category } : {}),
   policy: form.hasPolicy ? toProgramPolicy(form.policy) : null,
 });
@@ -361,6 +367,8 @@ export const withPolicyPatch = (
     title: program.title,
     startedAt: toProgramDateTime(program.startedAt),
     endedAt: toProgramDateTime(program.endedAt),
+    // 정책만 바꿀 때 회차 장소가 지워지지 않게 그대로 돌려보낸다
+    place: program.place ?? null,
     ...(program.category ? { category: program.category } : {}),
     policy,
   };

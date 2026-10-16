@@ -67,6 +67,8 @@ export interface StandardProgramRequest {
   title: string;
   startedAt: string;
   endedAt: string;
+  // 회차 장소(선택). 서버 계약 확정 전 가정이다(Expo-Expo-Server#124 대기). 비우면 null 로 보낸다
+  place?: string | null;
   policy?: ProgramPolicy | null;
 }
 
@@ -89,6 +91,8 @@ export interface Program {
   title: string;
   startedAt: string;
   endedAt: string;
+  // 회차 장소. 서버 반영 전(Expo-Expo-Server#124 대기)이거나 입력하지 않았으면 없거나 null 이다
+  place?: string | null;
 }
 
 // 연수 프로그램만 연수 구분을 갖는다 (TrainingProgramResponse)

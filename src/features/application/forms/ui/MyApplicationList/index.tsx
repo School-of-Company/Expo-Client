@@ -84,7 +84,6 @@ const SESSION_STATE_NOTE: Partial<Record<SessionInfo['state'], string>> = {
   loading: '회차 정보를 불러오는 중입니다.',
   error: '회차 정보를 불러오지 못했습니다.',
   missing: '삭제되었거나 변경되어 회차 정보를 찾을 수 없습니다.',
-  unsupported: '사전등록 회차의 이름과 일정은 아직 제공되지 않습니다.',
 };
 
 const ApplicationRow = ({
@@ -181,11 +180,18 @@ const ApplicationRow = ({
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <p className="text-body2b text-black">{session.title}</p>
+      <div className="flex min-w-0 flex-col gap-4">
+        <p className="break-words break-keep text-body2b text-black">
+          {session.title}
+        </p>
         {session.startedAt && (
           <p className="text-caption1r text-gray-500">
             {formatDefinitionSchedule(session.startedAt, session.endedAt)}
+          </p>
+        )}
+        {session.place && (
+          <p className="break-words break-keep text-caption1r text-gray-500">
+            장소: {session.place}
           </p>
         )}
         {SESSION_STATE_NOTE[session.state] && (

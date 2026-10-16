@@ -9,9 +9,10 @@ const SUBJECT_LABEL = {
   PAPER_QR: '종이 QR',
 } as const;
 
-export const useExitUserMutation = (expoId: string) =>
+export const useExitUserMutation = (expoId: string, scannerName?: string) =>
   useMutation({
-    mutationFn: (data: ExitScanRequest) => patchExitUser(expoId, data),
+    mutationFn: (data: ExitScanRequest) =>
+      patchExitUser(expoId, data, scannerName),
     onSuccess: ({ subjectType, enteredTime, exitedTime, stayedMinutes }) => {
       toast.success(
         `${SUBJECT_LABEL[subjectType] ?? ''} 퇴장 처리: ${enteredTime} 입장 → ${exitedTime} 퇴장 (${stayedMinutes}분)`,
