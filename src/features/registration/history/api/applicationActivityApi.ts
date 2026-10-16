@@ -1,13 +1,18 @@
 import { toApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
-import { ProgramSessionType } from '../../common/api/ledgerApi';
+import {
+  AdminParticipantDetail,
+  ProgramSessionDefinition,
+  ProgramSessionType,
+} from '../../common/api/ledgerApi';
 
 // Expo-Application-Server 행사별 프로그램 신청 처리 이력
 // (GET /application/admin/expos/{expoId}/program-session-applications/activities)
 export type AdminApplicationAction = 'APPLIED' | 'CANCELLED' | 'PROMOTED';
-export type AdminApplicationActorType = 'USER' | 'ADMIN' | 'SYSTEM';
+/** UNKNOWN 은 처리주체가 기록되기 전의 과거 이력이다 */
+export type AdminApplicationActorType = 'USER' | 'ADMIN' | 'SYSTEM' | 'UNKNOWN';
 
-// ponytail: 아래 `?` 필드는 서버 #124 계약 확정 전 가정이다. 이름이 다르면 이 파일만 맞춘다
+// 새 필드(처리주체·이전 상태·definition 등)는 서버 #131 배포 전에는 오지 않으므로 optional 로 둔다
 export interface AdminApplicationActivity {
   id: number;
   applicationId: string;
@@ -20,16 +25,17 @@ export interface AdminApplicationActivity {
   status: string;
   /** 관리자 처리의 관리자 id. 그 외와 기록 이전 이력은 null */
   actorId: number | null;
-  /** 처리주체. 기록 이전 이력은 null/없음이며 사용자·자동으로 추정하지 않는다 */
-  actorType?: AdminApplicationActorType | null;
-  /** 처리 전 상태. 신규 신청처럼 이전 상태가 없으면 null */
+  /** 처리주체. 과거 이력은 UNKNOWN 이며 사용자·자동으로 추정하지 않는다 */
+  actorType?: AdminApplicationActorType;
+  /** 처리 전 상태. 최초 신청이면 null (previousStatusRecorded=true) */
   previousStatus?: string | null;
-  /** previousStatus 가 기록된 이력인지. false 면 과거 미기록이다 */
+  /** false 는 과거 미기록, true 이면서 previousStatus=null 은 최초 신청 */
   previousStatusRecorded?: boolean;
-  /** 처리 당시 참가자·프로그램·회차 표시정보. 없으면 미기록이다 */
-  participantName?: string | null;
-  programTitle?: string | null;
-  sessionTitle?: string | null;
+  receiptNumber?: number;
+  /** 제출 당시 프로그램 정의. 삭제된 회차도 남고 누락 필드는 서버가 채우지 않는다 */
+  definition?: Partial<ProgramSessionDefinition>;
+  /** 현재 User 참가자 정보. 처리 당시 정보가 아니다 */
+  participant?: AdminParticipantDetail | null;
   createdAt: string;
 }
 
@@ -48,13 +54,13 @@ export interface AdminApplicationActivityQuery {
   size: number;
   action?: AdminApplicationAction;
   applicationId?: string;
-  /** 참가자 검색어 */
-  participant?: string;
+  /** 현재 User 참가자 검색어 (1–50자, 공백만은 400) */
+  q?: string;
   programType?: ProgramSessionType;
+  /** programType 과 함께 보낸다 */
   programId?: number;
-  /** 처리 결과 상태 */
+  /** 이력에 기록된 처리 결과 상태. 현재 신청 상태가 아니다 */
   status?: string;
-  actorType?: AdminApplicationActorType;
   from?: string;
   until?: string;
 }
