@@ -51,6 +51,17 @@ const BLOCKED_REASON_LABEL: Record<string, string> = {
     '동행자의 사전등록을 먼저 취소해주세요. 대표자는 마지막에 취소할 수 있습니다.',
 };
 
+// 서버가 연결 정보를 주는 학생 신청에만 안내한다. 실제 취소 가능 여부와 제한은 서버가 정한다
+const getGuardianCancelNote = ({
+  linkedGuardianApplicationId,
+  linkedStudentCount,
+}: OwnerApplication) => {
+  if (!linkedGuardianApplicationId) return undefined;
+  return linkedStudentCount === 1
+    ? '연결된 마지막 학생이라 보호자의 신청도 함께 취소되고 자리가 반환됩니다.'
+    : '같은 보호자에 연결된 다른 학생이 있어 보호자의 신청은 유지됩니다.';
+};
+
 interface QrTarget {
   participantId: number;
   title: string;
@@ -62,6 +73,8 @@ interface CancelTarget {
   title: string;
   // 어느 참가자의 어느 회차인지 확인 문구
   session: string;
+  // 학생 신청에 연결된 보호자가 있을 때의 안내(마지막 연결 학생이면 보호자도 함께 취소된다)
+  guardianNote?: string;
 }
 
 const SESSION_STATE_NOTE: Partial<Record<SessionInfo['state'], string>> = {
@@ -138,6 +151,7 @@ const ApplicationRow = ({
                   applicationId,
                   title,
                   session: sessionLabel,
+                  guardianNote: getGuardianCancelNote(application),
                 })
               }
               className="whitespace-nowrap rounded-sm border-1 border-solid border-error px-16 py-8 text-caption1b text-error"
@@ -427,6 +441,14 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
             <br />이 신청이 취소됩니다. 다시 신청하면 새 신청으로 처리되어 지금
             자리가 보장되지 않습니다.
           </p>
+          {cancelTarget.guardianNote && (
+            <p
+              role="alert"
+              className="break-keep text-center text-body2b text-error"
+            >
+              {cancelTarget.guardianNote}
+            </p>
+          )}
           <div className="flex w-full gap-8">
             <button
               type="button"
