@@ -20,6 +20,7 @@ import {
 } from '../../../api/postApplication';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
+import { findRegistrationAnswerError } from '../../../lib/process/findRegistrationAnswerError';
 import {
   getApplicantLimit,
   getCompanionLimit,
@@ -80,6 +81,15 @@ const PreRegisterContainer = ({
     const session = Number(sessionId);
     if (!Number.isInteger(session) || session <= 0) {
       toast.error('신청할 회차를 선택해주세요');
+      return;
+    }
+
+    const answerError = findRegistrationAnswerError(
+      data as DynamicFormValues,
+      questions,
+    );
+    if (answerError) {
+      toast.error(answerError);
       return;
     }
 
