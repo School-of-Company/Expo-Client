@@ -133,7 +133,7 @@ const AttendanceOverview = () => {
               label="퇴장 처리"
               value={data.totals.exited.toLocaleString()}
               unit="건"
-              sub={`현재 체류 ${data.totals.stillInside.toLocaleString()}명`}
+              sub={`기록상 체류(참고) ${data.totals.stillInside.toLocaleString()}명`}
             />
             <StatCard
               label="최근 10분 입장"
@@ -143,11 +143,10 @@ const AttendanceOverview = () => {
             />
           </div>
         )}
-        {isAll && (
-          <p className="text-caption1r text-gray-400">
-            전체 기록은 박람회 전체 기간 집계입니다.
-          </p>
-        )}
+        <p className="break-keep text-caption1r text-gray-400">
+          {isAll && '전체 기록은 박람회 전체 기간 집계입니다. '}
+          기록상 체류는 퇴장 미스캔 등으로 실제 현장 인원과 다를 수 있습니다.
+        </p>
       </div>
 
       <div className="grid grid-cols-[2fr_1fr] gap-[32px] tablet:grid-cols-1">
