@@ -40,6 +40,21 @@ const seats = (capacity: number, waitingCapacity: number) =>
   }`;
 
 /**
+ * 프로그램 접수 상태 표시. 안내용이며 신청 가능 여부는 제출할 때 서버가 판정한다.
+ * 참가자용 잔여석 API 가 없어 정원 마감은 여기서 알 수 없다
+ */
+export const getProgramRecruitmentLabel = (
+  policy: ProgramPolicy | null | undefined,
+  now: Date = new Date(),
+) => {
+  if (!policy) return '모집 설정 필요';
+  if (policy.closed) return '운영 마감';
+  if (now < new Date(policy.applicationStartedAt)) return '접수 전';
+  if (now >= new Date(policy.applicationEndedAt)) return '접수 기간 종료';
+  return '접수 중';
+};
+
+/**
  * 프로그램 모집 정책 안내 문구. 화면 안내용이며 자격·채널·정원·기간의 최종 판정은 신청할 때 서버가 한다.
  * 잔여석 공개 API 가 없어 남은 자리는 보여 주지 않는다.
  */

@@ -26,6 +26,7 @@ import {
   ProgramApplyOutcome,
   getProgramFormId,
   getProgramPolicyNotes,
+  getProgramRecruitmentLabel,
 } from '../../model/programApply';
 import { useMyApplications } from '../../model/useMyApplications';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
@@ -335,7 +336,12 @@ const ProgramApplyContainer = ({
               className="flex flex-col gap-16 rounded-sm border-1 border-solid border-gray-200 p-24"
             >
               <div className="flex items-center justify-between gap-16">
-                <p className="text-body1b">{program.title}</p>
+                <div className="flex flex-wrap items-center gap-8">
+                  <p className="text-body1b">{program.title}</p>
+                  <span className="rounded-sm border-1 border-solid border-gray-200 px-8 py-4 text-caption2r text-gray-500">
+                    {getProgramRecruitmentLabel(program.policy)}
+                  </span>
+                </div>
                 <Button
                   type="button"
                   disabled={!formId}
