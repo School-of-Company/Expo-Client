@@ -21,6 +21,7 @@ import { formatOccurredAt } from '../../model/adminChangeHistory';
 import {
   ActivityFilter,
   getActivityActionLabel,
+  getActivityActorLabel,
   getActivityActionTone,
   getActivityErrorMessage,
   INITIAL_ACTIVITY_FILTER,
@@ -34,9 +35,18 @@ import LoadMoreButton from '../LoadMoreButton';
 const isLedgerStatus = (status: string): status is AdminApplicationStatus =>
   status in LEDGER_STATUS_LABEL;
 
-/** 표에 그리는 행 */
+const renderStatus = (status: string) =>
+  isLedgerStatus(status) ? (
+    <span className={LEDGER_STATUS_STYLE[status]}>
+      {LEDGER_STATUS_LABEL[status]}
+    </span>
+  ) : (
+    status
+  );
+
+/** 표에 그리는 행. currentTitle 은 현재 회차 목록의 제목이다 */
 interface ActivityRow extends AdminApplicationActivity {
-  programTitle: string | null;
+  currentTitle: string | null;
 }
 
 const COLUMNS: TableColumn<ActivityRow>[] = [
@@ -64,19 +74,42 @@ const COLUMNS: TableColumn<ActivityRow>[] = [
   {
     key: 'participant',
     label: '참가자',
-    render: ({ participantId }) => `참가자 #${participantId}`,
+    render: ({ participantId, participantName }) => (
+      <div>
+        <p className="break-words text-black">
+          {participantName ?? `참가자 #${participantId}`}
+        </p>
+        <p className="text-caption1r text-gray-400">
+          {participantName
+            ? `#${participantId} · 처리 당시`
+            : '표시정보 미기록'}
+        </p>
+      </div>
+    ),
   },
   {
     key: 'program',
     label: '프로그램',
     flex: 1.6,
-    render: ({ programType, programId, programTitle }) => (
+    render: ({
+      programType,
+      programId,
+      programTitle,
+      sessionTitle,
+      currentTitle,
+    }) => (
       <div>
         <p className="break-words text-black">
-          {programTitle ?? `프로그램 #${programId}`}
+          {programTitle ?? currentTitle ?? `프로그램 #${programId}`}
         </p>
         <p className="text-caption1r text-gray-400">
           {PROGRAM_TYPE_LABEL[programType] ?? programType}
+          {sessionTitle && ` · ${sessionTitle}`}
+          {programTitle
+            ? ' · 처리 당시'
+            : currentTitle
+              ? ' · 현재 정보'
+              : ' · 삭제됨 또는 미기록'}
         </p>
       </div>
     ),
@@ -93,25 +126,28 @@ const COLUMNS: TableColumn<ActivityRow>[] = [
   {
     key: 'actor',
     label: '처리주체',
-    // 관리자 처리만 actorId 가 남고, 사용자·자동 처리는 서버가 구분하지 않는다
-    render: ({ actorId }) =>
-      actorId === null ? (
-        <p className="text-gray-300">사용자·자동</p>
+    render: (row) =>
+      row.actorType ? (
+        <p>{getActivityActorLabel(row)}</p>
       ) : (
-        <p>관리자 #{actorId}</p>
+        <p className="text-gray-300">미기록</p>
       ),
   },
   {
     key: 'status',
-    label: '처리 후 상태',
-    render: ({ status }) =>
-      isLedgerStatus(status) ? (
-        <span className={LEDGER_STATUS_STYLE[status]}>
-          {LEDGER_STATUS_LABEL[status]}
-        </span>
-      ) : (
-        status
-      ),
+    label: '변경 전 → 후',
+    flex: 1.4,
+    render: ({ status, previousStatus, previousStatusRecorded }) => {
+      // 상태를 화면에서 추정하지 않는다. 서버가 준 값만 보여 준다
+      let before: React.ReactNode = '미기록';
+      if (previousStatus) before = renderStatus(previousStatus);
+      else if (previousStatusRecorded) before = '없음(신규)';
+      return (
+        <p>
+          {before} → {renderStatus(status)}
+        </p>
+      );
+    },
   },
 ];
 
@@ -155,7 +191,7 @@ const ApplicationActivitySection = ({
     () =>
       items.map((item) => ({
         ...item,
-        programTitle:
+        currentTitle:
           titleByKey.get(
             toSessionKey({ programType: item.programType, id: item.programId }),
           ) ?? null,
@@ -200,12 +236,16 @@ const ApplicationActivitySection = ({
           />
         </div>
         <p className="text-caption1r text-gray-400">
-          처리일 조건을 반영한 건수입니다. 처리유형 조건과 상관없이 유형별로
-          나눠 보여 줍니다.
+          검색·프로그램·처리 후 상태·처리주체·처리일 조건을 반영한 건수입니다.
+          처리유형 조건만 제외하고 유형별로 나눠 보여 줍니다.
         </p>
       </div>
 
-      <ApplicationActivityFilters filter={filter} onChange={setFilter} />
+      <ApplicationActivityFilters
+        filter={filter}
+        sessions={sessions ?? []}
+        onChange={setFilter}
+      />
 
       {isRangeInvalid ? (
         <p role="alert" className="text-body2r text-error">
