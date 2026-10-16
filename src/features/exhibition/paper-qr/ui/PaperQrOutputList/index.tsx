@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Input } from '@/shared/ui';
+import { Button, Input } from '@/shared/ui';
 import { PaperQrItem } from '../../api/qrTokensApi';
 import { DEFAULT_LABEL_SIZE } from '../../model/constants';
 import { printPaperQrA4 } from '../../model/printPaperQrA4';
@@ -30,9 +30,6 @@ interface PaperQrOutputListProps {
 
 // 수천 장을 한 화면에 그리면 느려서 미리보기는 앞부분만 보인다
 const PREVIEW_LIMIT = 120;
-
-const actionButton =
-  'rounded-sm px-16 py-8 text-caption1b whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-40';
 
 const PaperQrOutputList = ({
   output,
@@ -98,31 +95,26 @@ const PaperQrOutputList = ({
           </p>
         </div>
         <div className="flex flex-wrap gap-8">
-          <button
-            type="button"
-            className={`${actionButton} bg-main-600 text-white`}
-            onClick={() => print('a4')}
-            disabled={!canPrint}
-          >
+          <Button size="small" onClick={() => print('a4')} disabled={!canPrint}>
             A4 인쇄
-          </button>
-          <button
-            type="button"
-            className={`${actionButton} border-1 border-solid border-main-600 text-main-600`}
+          </Button>
+          <Button
+            size="small"
+            variant="white"
             onClick={() => print('label')}
             disabled={!canPrint || !isLabelSizeValid}
           >
             라벨 인쇄
-          </button>
+          </Button>
           {output?.kind === 'lookup' && onNextLookup && (
-            <button
-              type="button"
-              className={`${actionButton} bg-gray-100 text-gray-700`}
+            <Button
+              size="small"
+              variant="gray"
               onClick={onNextLookup}
               disabled={isLookingUp}
             >
               다음 연번 조회
-            </button>
+            </Button>
           )}
         </div>
       </div>
