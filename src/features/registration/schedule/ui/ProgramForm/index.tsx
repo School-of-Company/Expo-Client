@@ -154,6 +154,13 @@ const ProgramForm = ({
             />
           </Field>
         )}
+        <Field label="장소 (선택)">
+          <Input
+            placeholder="비우면 '장소 추후 안내'로 표시됩니다."
+            value={form.place}
+            onChange={(e) => update({ place: e.target.value })}
+          />
+        </Field>
       </div>
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         <Field label="시작">
