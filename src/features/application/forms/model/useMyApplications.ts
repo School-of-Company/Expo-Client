@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { getErrorStatus } from '@/shared/libs/http/apiError';
+import { getSessionIssue } from '@/features/phone-verification';
 import {
   OwnerApplicationType,
   cancelMyApplication,
@@ -11,16 +11,16 @@ import {
   getMyPreRegisterWaitlist,
 } from '../api/myApplications';
 
-// 401(인증 전)은 정상 흐름이라 오류로 보지 않는다
+// 401 은 세션 문제(sessionIssue)로 따로 안내하므로 오류 문구에서 뺀다. 5xx·네트워크 오류는 오류로 보여 준다
 const visibleError = (error: Error | null) =>
-  error && getErrorStatus(error) !== 401 ? error.message : undefined;
+  error && !getSessionIssue(error) ? error.message : undefined;
 
 export const useMyApplications = (expoId: string) => {
   const queryClient = useQueryClient();
   const queryKey = ['myApplications', expoId];
   const waitlistKey = ['myPreRegisterWaitlist', expoId];
 
-  const { data, error } = useQuery({
+  const { data, error, refetch } = useQuery({
     queryKey,
     queryFn: () => getMyApplications(expoId),
     retry: false,
@@ -29,7 +29,11 @@ export const useMyApplications = (expoId: string) => {
   });
 
   // 대기 일행은 User 에 없어 위 목록에 나오지 않으므로 따로 조회한다
-  const { data: waitlist, error: waitlistError } = useQuery({
+  const {
+    data: waitlist,
+    error: waitlistError,
+    refetch: refetchWaitlist,
+  } = useQuery({
     queryKey: waitlistKey,
     queryFn: () => getMyPreRegisterWaitlist(expoId),
     retry: false,
@@ -75,7 +79,10 @@ export const useMyApplications = (expoId: string) => {
   return {
     participants: data?.participants ?? [],
     applications: data?.applications ?? [],
+    // required: 인증한 적 없음, expired: 만료. 취소 뒤 재조회가 401 이면 이쪽으로 드러난다
+    sessionIssue: getSessionIssue(error) ?? getSessionIssue(waitlistError),
     errorMessage: visibleError(error),
+    retry: () => Promise.all([refetch(), refetchWaitlist()]),
     waitlist: waitlist ?? null,
     waitlistErrorMessage: visibleError(waitlistError),
     cancel,

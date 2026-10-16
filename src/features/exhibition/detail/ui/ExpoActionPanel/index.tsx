@@ -69,6 +69,10 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
             >
               <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
                 {renderAction(actions.program)}
+                {renderAction(actions.programSchedule)}
+              </div>
+              <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
+                {renderAction(actions.programForm)}
                 {renderAction(actions.message)}
               </div>
               {renderAction(actions.paperQr)}

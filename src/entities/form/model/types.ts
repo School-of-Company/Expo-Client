@@ -85,6 +85,16 @@ export interface ProgramFormVersionResponseDto {
   version: number;
 }
 
+/** 행사별 프로그램용 폼 목록 항목(Expo-Form-Server#141). 문항·행사·용도는 담지 않는다 */
+export interface ProgramFormListItemDto {
+  id: string;
+  title: string;
+  participantType: FormParticipantType | null;
+  startDate: string;
+  endDate: string;
+  version: number;
+}
+
 export interface ProgramFormResponseDto extends Omit<
   CreateProgramFormRequestDto,
   'dynamicForm'

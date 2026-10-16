@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toStatusMessage } from '@/shared/libs/handler/serverMessage';
 import clientInstance from '@/shared/libs/http/clientInstance';
 import { FormattedApplicationData } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
@@ -14,7 +15,7 @@ const URL_MAP: Record<string, string> = {
 const MAX_NETWORK_RETRIES = 2;
 
 const APPLICATION_ERROR_MESSAGES: Record<number, string> = {
-  400: '신청 기간이 아니거나 입력한 답변이 올바르지 않습니다.',
+  400: '신청이 거절되었습니다. 입력한 답변(직업·지역·소속 학교 등)과 신청 기간을 확인한 뒤 다시 시도해주세요.',
   401: '인증이 만료되었습니다. 다시 인증한 뒤 신청해주세요.',
   403: '이 신청을 할 권한이 없습니다. 다시 인증해주세요.',
   404: '신청서나 회차를 찾을 수 없습니다. 안내받은 링크를 다시 확인해주세요.',
@@ -75,12 +76,16 @@ const submit = async (
       if (error.response) {
         const { status, data: body } = error.response;
         const code = typeof body?.code === 'string' ? body.code : undefined;
-        const fallback = messages[status] || '폼 등록 실패';
+        // 서버가 사유를 주지 않으면 프록시가 상태별 공통 문구를 싣는다. 그때는 신청 화면용 안내를 쓴다
+        const serverText = body?.error || body?.message;
+        const specific =
+          serverText !== toStatusMessage(status) ? serverText : undefined;
         throw new ApplicationSubmitError(
           (code && APPLICATION_ERROR_CODE_MESSAGES[code]) ||
-            body?.error ||
-            body?.message ||
-            fallback,
+            specific ||
+            messages[status] ||
+            serverText ||
+            '폼 등록 실패',
           status,
           code,
         );

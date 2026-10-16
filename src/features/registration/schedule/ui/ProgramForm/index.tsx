@@ -171,12 +171,17 @@ const ProgramForm = ({
       </div>
       <div className="flex items-center justify-between gap-16">
         <div className="space-y-6">
-          <FieldLabel>모집 정책</FieldLabel>
+          <FieldLabel>온라인 신청 받기 (신청 폼·모집 정책)</FieldLabel>
           <p className="text-caption1r text-gray-500">
             {canTogglePolicy
-              ? '정책이 있는 프로그램만 참가자가 프로그램별로 신청할 수 있습니다.'
-              : '이미 정책이 있는 프로그램은 정책을 끌 수 없습니다.'}
+              ? '켜면 프로그램 폼을 연결하고 정원·모집 기간을 정해 참가자가 이 프로그램을 신청할 수 있습니다.'
+              : '이미 신청을 받는 프로그램은 끌 수 없습니다.'}
           </p>
+          {!form.hasPolicy && (
+            <p className="text-caption1r text-error">
+              끄면 신청 폼 없이 저장되어 참가자가 온라인으로 신청할 수 없습니다.
+            </p>
+          )}
         </div>
         <ToggleButton
           value={form.hasPolicy}

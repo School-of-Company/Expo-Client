@@ -81,7 +81,8 @@ export const EMPTY_PROGRAM_FORM: ProgramForm = {
   startedAt: null,
   endedAt: null,
   category: 'CHOICE',
-  hasPolicy: false,
+  // 새 프로그램은 신청을 받는 것이 기본이라 폼 선택이 처음부터 보이게 한다. 정책 없는 기존 프로그램은 toProgramForm 이 그대로 둔다
+  hasPolicy: true,
   policy: EMPTY_POLICY_FORM,
 };
 

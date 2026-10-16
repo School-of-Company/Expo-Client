@@ -47,7 +47,7 @@ const SessionCreateForm = ({ expoId, onClose }: SessionCreateFormProps) => {
   return (
     <div className="space-y-[20px] rounded-sm border-1 border-solid border-gray-200 px-30 py-20 mobile:px-16">
       <div className="grid grid-cols-4 gap-16 mobile:grid-cols-1 tablet:grid-cols-2">
-        <Field label="회차명">
+        <Field label="사전등록 회차명">
           <Input
             placeholder="예: 10월 31일(토) 오전"
             value={form.title}
@@ -113,7 +113,7 @@ const SessionCreateForm = ({ expoId, onClose }: SessionCreateFormProps) => {
           취소
         </Button>
         <Button disabled={isPending} onClick={handleSubmit}>
-          {isPending ? '추가 중...' : '회차 추가'}
+          {isPending ? '추가 중...' : '사전등록 회차 추가'}
         </Button>
       </div>
     </div>

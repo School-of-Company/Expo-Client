@@ -14,4 +14,7 @@ export const formKeys = {
 export const programFormKeys = {
   all: ['programForms'] as const,
   detail: (formId: string) => [...programFormKeys.all, formId] as const,
+  /** 폼 ID 는 UUID 라 'list' 와 겹치지 않는다 */
+  lists: () => [...programFormKeys.all, 'list'] as const,
+  list: (expoId: string) => [...programFormKeys.lists(), expoId] as const,
 };

@@ -1,6 +1,6 @@
 import { ScheduleProgram, toOffsetDateTime } from '../../common';
 import { ProgramSessionType } from '../../common/api/ledgerApi';
-import { PolicyForm, ProgramForm } from './policyForm';
+import { PolicyForm, ProgramForm, toProgramForm } from './policyForm';
 import type {
   FormParticipantType,
   ProgramFormResponseDto,
@@ -26,14 +26,6 @@ export const FORM_PARTICIPANT_LABEL: Record<FormParticipantType, string> = {
   TRAINEE: '교원 연수자',
 };
 
-/** 이 행사 회차가 쓰는 폼 ID. 행사별 폼 목록 API 가 생기기 전까지 고를 수 있는 폼의 출처다 */
-export const getLinkedFormIds = (programs: ScheduleProgram[]) =>
-  Array.from(
-    new Set(
-      programs.flatMap(({ policy }) => (policy?.formId ? [policy.formId] : [])),
-    ),
-  );
-
 /** 이 폼을 쓰는 회차. 폼을 고치면 이 회차들이 모두 영향을 받는다 */
 export const getProgramsUsingForm = (
   programs: ScheduleProgram[],
@@ -51,7 +43,7 @@ export const getProgramGroups = (
 ): ProgramGroup[] => {
   const groups = new Map<string, ScheduleProgram[]>();
   programs.forEach((program) => {
-    const groupId = program.policy?.groupId ?? program.groupId;
+    const groupId = getProgramGroupId(program);
     if (!groupId) return;
     groups.set(groupId, [...(groups.get(groupId) ?? []), program]);
   });
@@ -59,6 +51,24 @@ export const getProgramGroups = (
     groupId,
     programs: members,
   }));
+};
+
+/** 묶음 ID. 정책 쪽 값이 우선이다 */
+export const getProgramGroupId = (program: ScheduleProgram) =>
+  program.policy?.groupId ?? program.groupId;
+
+/**
+ * 같은 묶음에 새 회차를 추가할 때의 초안. 구분·이름·폼·정원·모집 조건은 그대로 두고,
+ * 회차마다 다른 일정은 비우고 마감 여부는 모집 중으로 되돌린다
+ */
+export const toGroupSessionForm = (program: ScheduleProgram): ProgramForm => {
+  const form = toProgramForm(program);
+  return {
+    ...form,
+    startedAt: null,
+    endedAt: null,
+    policy: { ...form.policy, closed: false },
+  };
 };
 
 const sameId = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
