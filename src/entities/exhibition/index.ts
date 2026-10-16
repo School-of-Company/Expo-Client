@@ -1,6 +1,5 @@
-export { getExpoActions, getExpoActionGroups } from './model/expoActions';
+export { getExpoActionGroups } from './model/expoActions';
 export type {
-  ExpoAction,
   ExpoActionGroup,
   ExpoActionItem,
   ExpoActionLink,
