@@ -3,8 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
-import { NavigationBar } from '@/shared/ui';
-import SmallButton from '@/shared/ui/SmallButton';
+import { Button, NavigationBar } from '@/shared/ui';
 import { SectionError, useRegistrationExpo } from '../../../common';
 import {
   INITIAL_LEDGER_FILTER,
@@ -28,9 +27,6 @@ import ExcelDownloadModal from '../ExcelDownloadModal';
 import GroupMessageModal from '../GroupMessageModal';
 import LedgerFilters from '../LedgerFilters';
 import LedgerTable from '../LedgerTable';
-
-const OUTLINE_ACTION =
-  'rounded-sm border-1 border-solid border-gray-200 bg-white px-16 py-6 text-body2r text-gray-500 duration-200 hover:border-main-600 hover:text-main-600';
 
 const ApplicationLedger = () => {
   const router = useRouter();
@@ -154,17 +150,19 @@ const ApplicationLedger = () => {
                 {' · '}취소 {statusCounts.CANCELLED ?? 0}
               </p>
               <div className="flex flex-wrap items-center gap-8">
-                <button
-                  type="button"
+                <Button
+                  size="small"
+                  variant="white"
                   onClick={() => setIsExcelModalOpen(true)}
-                  className={OUTLINE_ACTION}
                 >
                   엑셀 다운로드
-                </button>
-                <SmallButton
-                  text={`그룹 메시지${selected.size > 0 ? ` (${selected.size})` : ''}`}
+                </Button>
+                <Button
+                  size="small"
                   onClick={() => setIsMessageModalOpen(true)}
-                />
+                >
+                  그룹 메시지{selected.size > 0 ? ` (${selected.size})` : ''}
+                </Button>
               </div>
             </div>
 
