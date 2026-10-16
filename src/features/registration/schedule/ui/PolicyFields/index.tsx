@@ -79,7 +79,7 @@ const PolicyFields = ({
     });
 
   return (
-    <div className="space-y-[20px]">
+    <div className="space-y-20">
       <Field label="프로그램 폼">
         <ProgramFormPicker
           expoId={expoId}
@@ -91,18 +91,7 @@ const PolicyFields = ({
           onCreateForm={onCreateForm}
         />
       </Field>
-      <Field label="프로그램 묶음 (선택)">
-        <ProgramGroupPicker
-          programs={programs}
-          programKey={programKey}
-          value={value.groupId}
-          onChange={(groupId) => onChange({ groupId })}
-        />
-        <p className="text-caption1r text-gray-500">
-          같은 묶음의 회차 중에서는 하나만 신청할 수 있습니다.
-        </p>
-      </Field>
-      <div className="grid grid-cols-4 gap-16 mobile:grid-cols-1 tablet:grid-cols-2">
+      <div className="grid grid-cols-3 gap-x-16 gap-y-20 mobile:grid-cols-1">
         <Field label="사전 접수 정원">
           <Input
             type="number"
@@ -123,9 +112,6 @@ const PolicyFields = ({
             }
           />
         </Field>
-        <Field label="총정원">
-          <p className="flex h-[48px] items-center">{totals.capacity}명</p>
-        </Field>
         <Field label="대기 정원">
           <Input
             type="number"
@@ -136,16 +122,11 @@ const PolicyFields = ({
             }
           />
         </Field>
-        <Field label="모집 마감">
-          <div className="flex h-[48px] items-center">
-            <ToggleButton
-              value={value.closed}
-              onChange={(closed) => onChange({ closed })}
-            />
-          </div>
-        </Field>
       </div>
-      <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
+      <p className="-mt-8 text-caption1r text-gray-500">
+        총정원 {totals.capacity}명
+      </p>
+      <div className="grid grid-cols-2 gap-x-16 gap-y-20 mobile:grid-cols-1">
         <Field label="모집 시작">
           <DateTimeInput
             value={value.applicationStartedAt}
@@ -160,116 +141,145 @@ const PolicyFields = ({
             onChange={(applicationEndedAt) => onChange({ applicationEndedAt })}
           />
         </Field>
-        <Field label="취소 마감">
-          <DateTimeInput
-            value={value.cancelEndedAt}
-            onChange={(cancelEndedAt) => onChange({ cancelEndedAt })}
-          />
-        </Field>
-        <Field label="대기 승급 마감">
-          <DateTimeInput
-            value={value.promotionEndedAt}
-            onChange={(promotionEndedAt) => onChange({ promotionEndedAt })}
-          />
-        </Field>
       </div>
-      <Field label="신청 가능 직업 (하나 이상)">
-        <div className="flex flex-wrap gap-8">
-          {OCCUPATIONS.map((occupation) => {
-            const isSelected = value.allowedOccupations.includes(occupation);
-            return (
-              <button
-                key={occupation}
-                type="button"
-                aria-pressed={isSelected}
-                onClick={() => toggleOccupation(occupation)}
-                className={`rounded-sm border-1 border-solid px-12 py-6 text-caption1r ${
-                  isSelected
-                    ? 'border-main-600 text-main-600'
-                    : 'border-gray-200 text-gray-500'
-                }`}
-              >
-                {OCCUPATION_LABEL[occupation]}
-              </button>
-            );
-          })}
-        </div>
-      </Field>
-      <Field label="초등 1~3학년 보호자 동반 필수">
-        <div className="flex h-[48px] items-center">
-          <ToggleButton
-            value={value.guardianPolicy !== null}
-            onChange={(on) =>
-              onChange({
-                guardianPolicy: on ? EMPTY_GUARDIAN_POLICY_FORM : null,
-              })
-            }
-          />
-        </div>
-      </Field>
-      {guardian && (
-        <div className="space-y-[12px]">
-          <p className="break-keep text-caption1r text-gray-500">
-            학년은 학생이 폼에 입력한 답변으로만 판정합니다. 문항 제목·선택지
-            라벨이 아니라 폼의 문항 ID와 선택지 키(jsonData)를 입력하세요. 이
-            회차에만 적용되며, 활성 신청이 있으면 서버가 변경을 막습니다.
-          </p>
-          <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
-            <Field label="참조 폼 버전">
-              <Input
-                type="number"
-                min={1}
-                value={guardian.formVersion}
-                onChange={(e) => patchGuardian({ formVersion: e.target.value })}
+      <details className="rounded-sm border-1 border-solid border-gray-200">
+        <summary className="cursor-pointer px-16 py-12 text-body2b text-black">
+          상세 설정 (묶음·취소·승급·자격)
+        </summary>
+        <div className="space-y-20 border-t-1 border-solid border-gray-100 p-16">
+          <Field label="프로그램 묶음 (같은 묶음 중 하나만 신청)">
+            <ProgramGroupPicker
+              programs={programs}
+              programKey={programKey}
+              value={value.groupId}
+              onChange={(groupId) => onChange({ groupId })}
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-x-16 gap-y-20 mobile:grid-cols-1">
+            <Field label="취소 마감">
+              <DateTimeInput
+                value={value.cancelEndedAt}
+                onChange={(cancelEndedAt) => onChange({ cancelEndedAt })}
               />
             </Field>
-            <Field label="학교급 문항 ID">
-              <Input
-                type="number"
-                min={1}
-                value={guardian.schoolTypeQuestionId}
-                onChange={(e) =>
-                  patchGuardian({ schoolTypeQuestionId: e.target.value })
-                }
-              />
-            </Field>
-            <Field label="초등학생 선택지 키">
-              <Input
-                value={guardian.elementarySchoolValue}
-                onChange={(e) =>
-                  patchGuardian({ elementarySchoolValue: e.target.value })
-                }
-              />
-            </Field>
-            <Field label="학년 문항 ID">
-              <Input
-                type="number"
-                min={1}
-                value={guardian.gradeQuestionId}
-                onChange={(e) =>
-                  patchGuardian({ gradeQuestionId: e.target.value })
-                }
+            <Field label="대기 승급 마감">
+              <DateTimeInput
+                value={value.promotionEndedAt}
+                onChange={(promotionEndedAt) => onChange({ promotionEndedAt })}
               />
             </Field>
           </div>
-          <div className="grid grid-cols-3 gap-16 mobile:grid-cols-2">
-            {guardian.gradeKeys.map((key, index) => (
-              <Field key={index} label={`${index + 1}학년 선택지 키`}>
-                <Input
-                  value={key}
-                  onChange={(e) =>
-                    patchGuardian({
-                      gradeKeys: guardian.gradeKeys.map((item, i) =>
-                        i === index ? e.target.value : item,
-                      ),
-                    })
-                  }
-                />
-              </Field>
-            ))}
+          <div className="flex items-center justify-between gap-16">
+            <FieldLabel>모집 마감</FieldLabel>
+            <ToggleButton
+              label="모집 마감"
+              value={value.closed}
+              onChange={(closed) => onChange({ closed })}
+            />
           </div>
+          <Field label="신청 가능 직업 (하나 이상)">
+            <div className="flex flex-wrap gap-8">
+              {OCCUPATIONS.map((occupation) => {
+                const isSelected =
+                  value.allowedOccupations.includes(occupation);
+                return (
+                  <button
+                    key={occupation}
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() => toggleOccupation(occupation)}
+                    className={`rounded-sm border-1 border-solid px-12 py-6 text-caption1r ${
+                      isSelected
+                        ? 'border-main-600 text-main-600'
+                        : 'border-gray-200 text-gray-500'
+                    }`}
+                  >
+                    {OCCUPATION_LABEL[occupation]}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+          <Field label="초등 1~3학년 보호자 동반 필수">
+            <div className="flex h-[48px] items-center">
+              <ToggleButton
+                value={value.guardianPolicy !== null}
+                onChange={(on) =>
+                  onChange({
+                    guardianPolicy: on ? EMPTY_GUARDIAN_POLICY_FORM : null,
+                  })
+                }
+              />
+            </div>
+          </Field>
+          {guardian && (
+            <div className="space-y-[12px]">
+              <p className="break-keep text-caption1r text-gray-500">
+                학년은 학생이 폼에 입력한 답변으로만 판정합니다. 문항
+                제목·선택지 라벨이 아니라 폼의 문항 ID와 선택지 키(jsonData)를
+                입력하세요. 이 회차에만 적용되며, 활성 신청이 있으면 서버가
+                변경을 막습니다.
+              </p>
+              <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
+                <Field label="참조 폼 버전">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={guardian.formVersion}
+                    onChange={(e) =>
+                      patchGuardian({ formVersion: e.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="학교급 문항 ID">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={guardian.schoolTypeQuestionId}
+                    onChange={(e) =>
+                      patchGuardian({ schoolTypeQuestionId: e.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="초등학생 선택지 키">
+                  <Input
+                    value={guardian.elementarySchoolValue}
+                    onChange={(e) =>
+                      patchGuardian({ elementarySchoolValue: e.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="학년 문항 ID">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={guardian.gradeQuestionId}
+                    onChange={(e) =>
+                      patchGuardian({ gradeQuestionId: e.target.value })
+                    }
+                  />
+                </Field>
+              </div>
+              <div className="grid grid-cols-3 gap-16 mobile:grid-cols-2">
+                {guardian.gradeKeys.map((key, index) => (
+                  <Field key={index} label={`${index + 1}학년 선택지 키`}>
+                    <Input
+                      value={key}
+                      onChange={(e) =>
+                        patchGuardian({
+                          gradeKeys: guardian.gradeKeys.map((item, i) =>
+                            i === index ? e.target.value : item,
+                          ),
+                        })
+                      }
+                    />
+                  </Field>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </details>
     </div>
   );
 };

@@ -26,9 +26,11 @@ import {
   DRAFT_QUERY,
   getFormLinkProblem,
   saveProgramDraft,
+  toGroupSessionForm,
   toProgramKey,
 } from '../../model/programFormLink';
 import PolicyFields, { Field } from '../PolicyFields';
+import ScheduleModal from '../ScheduleModal';
 import { FieldLabel } from '../ScheduleSection';
 
 interface ProgramFormProps {
@@ -118,11 +120,39 @@ const ProgramForm = ({
   const canTogglePolicy = !program?.policy;
 
   return (
-    <div className="space-y-[20px] rounded-sm border-1 border-solid border-gray-200 px-30 py-20 mobile:px-16">
-      <p className="text-body1b text-black">
-        {program ? `${program.title} 수정` : '새 프로그램'}
-      </p>
-      <div className="grid grid-cols-4 gap-16 mobile:grid-cols-1 tablet:grid-cols-2">
+    <ScheduleModal
+      title={program ? `${program.title} 수정` : '프로그램 추가'}
+      onClose={onClose}
+      canClose={!isPending}
+      footer={
+        <>
+          <Button variant="gray" width="120px" onClick={onClose}>
+            취소
+          </Button>
+          <Button width="200px" disabled={isPending} onClick={handleSubmit}>
+            {isPending ? '저장 중...' : program ? '수정 저장' : '추가'}
+          </Button>
+        </>
+      }
+    >
+      {!program && programs.length > 0 && (
+        <RegistrationSelect
+          ariaLabel="기존 회차에서 복사"
+          value=""
+          options={[
+            { value: '', label: '기존 회차에서 복사 (선택)' },
+            ...programs.map((item) => ({
+              value: toProgramKey(item),
+              label: `[${PROGRAM_TYPE_LABEL[item.programType]}] ${item.title}`,
+            })),
+          ]}
+          onChange={(key) => {
+            const source = programs.find((item) => toProgramKey(item) === key);
+            if (source) setForm(toGroupSessionForm(source));
+          }}
+        />
+      )}
+      <div className="grid grid-cols-2 gap-x-16 gap-y-20 mobile:grid-cols-1">
         <Field label="구분">
           {program ? (
             <p className="flex h-[48px] items-center text-body2r text-black">
@@ -140,13 +170,6 @@ const ProgramForm = ({
             />
           )}
         </Field>
-        <Field label="프로그램명">
-          <Input
-            placeholder="프로그램명을 입력해주세요."
-            value={form.title}
-            onChange={(e) => update({ title: e.target.value })}
-          />
-        </Field>
         {form.programType === 'TRAINING' && (
           <Field label="연수 구분">
             <RegistrationSelect
@@ -158,15 +181,15 @@ const ProgramForm = ({
             />
           </Field>
         )}
-        <Field label="장소 (선택)">
-          <Input
-            placeholder="비우면 '장소 추후 안내'로 표시됩니다."
-            value={form.place}
-            onChange={(e) => update({ place: e.target.value })}
-          />
-        </Field>
-      </div>
-      <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
+        <div className="col-span-2 mobile:col-span-1">
+          <Field label="프로그램명">
+            <Input
+              placeholder="프로그램명을 입력해주세요."
+              value={form.title}
+              onChange={(e) => update({ title: e.target.value })}
+            />
+          </Field>
+        </div>
         <Field label="시작">
           <DateTimeInput
             value={form.startedAt}
@@ -179,22 +202,29 @@ const ProgramForm = ({
             onChange={(endedAt) => update({ endedAt })}
           />
         </Field>
+        <div className="col-span-2 mobile:col-span-1">
+          <Field label="장소 (선택)">
+            <Input
+              placeholder="비우면 '장소 추후 안내'로 표시됩니다."
+              value={form.place}
+              onChange={(e) => update({ place: e.target.value })}
+            />
+          </Field>
+        </div>
       </div>
-      <div className="flex items-center justify-between gap-16">
-        <div className="space-y-6">
-          <FieldLabel>온라인 신청 받기 (신청 폼·모집 정책)</FieldLabel>
+      <div className="flex items-center justify-between gap-16 rounded-sm border-1 border-solid border-gray-200 px-16 py-12">
+        <div className="space-y-4">
+          <FieldLabel>온라인 신청 받기</FieldLabel>
           <p className="text-caption1r text-gray-500">
-            {canTogglePolicy
-              ? '켜면 프로그램 폼을 연결하고 정원·모집 기간을 정해 참가자가 이 프로그램을 신청할 수 있습니다.'
-              : '이미 신청을 받는 프로그램은 끌 수 없습니다.'}
+            {!canTogglePolicy
+              ? '이미 신청을 받는 프로그램은 끌 수 없습니다.'
+              : form.hasPolicy
+                ? '신청 폼과 정원·모집 기간을 정합니다.'
+                : '끄면 참가자가 온라인으로 신청할 수 없습니다.'}
           </p>
-          {!form.hasPolicy && (
-            <p className="text-caption1r text-error">
-              끄면 신청 폼 없이 저장되어 참가자가 온라인으로 신청할 수 없습니다.
-            </p>
-          )}
         </div>
         <ToggleButton
+          label="온라인 신청 받기"
           value={form.hasPolicy}
           disabled={!canTogglePolicy}
           onChange={(hasPolicy) => update({ hasPolicy })}
@@ -216,15 +246,7 @@ const ProgramForm = ({
           onCreateForm={handleCreateForm}
         />
       )}
-      <div className="grid grid-cols-2 gap-16">
-        <Button variant="gray" onClick={onClose}>
-          취소
-        </Button>
-        <Button disabled={isPending} onClick={handleSubmit}>
-          {isPending ? '저장 중...' : program ? '수정 저장' : '프로그램 등록'}
-        </Button>
-      </div>
-    </div>
+    </ScheduleModal>
   );
 };
 
