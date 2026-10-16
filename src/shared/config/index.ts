@@ -9,3 +9,4 @@ export {
   toLowercaseUuid,
 } from './expoRoutes';
 export { FUTURE_EDU_EXPO_ID, FUTURE_EDU_EXPO_PATH } from './futureEduExpo';
+export { DEFAULT_EXPO_ID, EXPO_LIST_PATH } from './defaultExpo';
