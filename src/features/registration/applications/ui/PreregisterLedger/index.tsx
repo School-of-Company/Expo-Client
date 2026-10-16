@@ -5,7 +5,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
 import { NavigationBar } from '@/shared/ui';
 import {
-  RefreshStatus,
   SectionError,
   usePreregisterSessions,
   useRegistrationExpo,
@@ -13,7 +12,6 @@ import {
 import {
   formatDefinitionSchedule,
   LEDGER_PAGE_SIZE,
-  LEDGER_REFRESH_MS,
 } from '../../../common/model/ledger';
 import {
   describePreregisterFilter,
@@ -30,7 +28,7 @@ import PreregisterTable from '../PreregisterTable';
 const DISABLED_ACTION =
   'cursor-not-allowed rounded-sm border-1 border-solid border-gray-200 bg-gray-50 px-16 py-6 text-body2r text-gray-300';
 
-/** 접수 관리대장의 사전등록 탭. 이 탭의 조건은 프로그램·연수 탭과 섞이지 않는다 */
+/** 행사 사전등록 관리대장 */
 const PreregisterLedger = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,15 +42,11 @@ const PreregisterLedger = () => {
   const [detailKey, setDetailKey] = useState<string | null>(null);
   const closeDetail = useCallback(() => setDetailKey(null), []);
 
-  const {
-    data,
-    error,
-    isLoading,
-    isError,
-    isFetching,
-    dataUpdatedAt,
-    refetch,
-  } = usePreregisterLedger(expoId, filter, page - 1);
+  const { data, error, isLoading, isError, refetch } = usePreregisterLedger(
+    expoId,
+    filter,
+    page - 1,
+  );
   const { data: sessions = [] } = usePreregisterSessions(expoId);
   // 행사 전체 인원 집계. 실패해도 목록은 보여 주고 이 값만 비워 둔다
   const summary = usePreregisterSummary(expoId);
@@ -83,8 +77,8 @@ const PreregisterLedger = () => {
   const handleFilterChange = useCallback(
     (next: PreregisterFilter) => {
       setFilter(next);
-      // 조건이 바뀌면 첫 페이지로. 탭 구분은 유지한다
-      router.replace('?tab=pre');
+      // 조건이 바뀌면 첫 페이지로
+      router.replace('?');
     },
     [router],
   );
@@ -92,16 +86,9 @@ const PreregisterLedger = () => {
   return withLoading({
     isLoading: isLoading && !data,
     children: (
-      <div className="flex w-full flex-1 flex-col space-y-[54px] overflow-y-auto">
+      <div className="flex w-full flex-1 flex-col space-y-16 overflow-y-auto">
         <div className="space-y-16">
-          <div className="flex flex-wrap items-center justify-between gap-12">
-            <RefreshStatus
-              updatedAt={dataUpdatedAt}
-              isFetching={isFetching}
-              onRefresh={() => refetch()}
-              intervalMs={LEDGER_REFRESH_MS}
-              hasError={isError && !!data}
-            />
+          <div className="flex flex-wrap items-center justify-end gap-12">
             <div className="flex flex-wrap items-center gap-8">
               {/* Report·Notification 이 사전등록 대상을 받기 전이라 성공한 것처럼 보이지 않게 막아 둔다 */}
               <button

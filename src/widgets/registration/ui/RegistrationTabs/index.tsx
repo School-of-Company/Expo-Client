@@ -8,16 +8,15 @@ import { getExpoRoutes } from '@/shared/config';
 /** 박람회 관리 하위 화면을 오가는 탭. 대시보드는 하위 경로가 모두 앞에 붙어 있어 정확히 같을 때만 켠다 */
 const RegistrationTabs = () => {
   const pathname = usePathname();
-  const { expoId, expo, routes } = useRegistrationExpo();
+  const { expoId, routes } = useRegistrationExpo();
 
   const tabs = [
-    { href: routes.dashboard, label: '대시보드', exact: true },
+    { href: routes.dashboard, label: '모니터링', exact: true },
     { href: routes.applications, label: '접수대장' },
+    { href: routes.preregister, label: '사전등록' },
     { href: routes.schedule, label: '일정·모집' },
     { href: routes.programForms, label: '프로그램 폼' },
-    { href: routes.attendance, label: '실시간 입·퇴장' },
     { href: routes.participants, label: '참가자 검색' },
-    { href: routes.history, label: '행정 이력' },
     { href: routes.operations, label: '박람회 운영' },
     { href: routes.survey, label: '만족도 조사' },
   ];
@@ -30,9 +29,6 @@ const RegistrationTabs = () => {
   return (
     <div className="flex w-full justify-center px-16">
       <div className="flex w-full max-w-[1200px] flex-col gap-12">
-        {expo && (
-          <p className="truncate text-caption1b text-gray-500">{expo.title}</p>
-        )}
         <div className="flex items-center justify-between gap-16 mobile:flex-col mobile:items-stretch">
           <nav
             aria-label="박람회 관리 메뉴"
