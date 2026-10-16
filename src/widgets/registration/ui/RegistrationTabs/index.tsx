@@ -12,9 +12,8 @@ const RegistrationTabs = () => {
 
   const tabs = [
     { href: routes.dashboard, label: '대시보드', exact: true },
-    // 명단 조회와 접수대장·문자 발송을 한 페이지의 탭으로 오간다
-    { href: routes.applications, label: '참가자·문자' },
-    // 프로그램 조회·출석, 회차·모집, 신청 폼은 프로그램 페이지 안의 탭으로 오간다
+    { href: routes.applications, label: '접수대장' },
+    // 프로그램 조회·출석, 회차·모집, 신청 폼은 프로그램 페이지 한 화면에 모았다
     { href: routes.programs, label: '프로그램' },
     { href: routes.attendance, label: '실시간 입·퇴장' },
     { href: routes.participants, label: '참가자 검색' },
