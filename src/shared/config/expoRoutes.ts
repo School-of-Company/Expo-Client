@@ -25,10 +25,14 @@ export const normalizeExpoId = (expoId: string) =>
 export const getExpoRoutes = (expoId: string) => {
   const id = segment(expoId);
   return {
-    participants: `/exhibition/participants/${id}?page=1&userType=STANDARD`,
     checkIn: `/exhibition/check-in/${id}`,
-    program: `/program/${id}?navigation=standard`,
     paperQr: `/exhibition/paper-qr/${id}`,
+    // 현장 신청용 QR 을 화면에 띄운다. 연수자는 사전 등록만 있다
+    accessQr: (
+      userType: 'STANDARD' | 'TRAINEE',
+      applicationType: 'PRE' | 'FIELD',
+    ) =>
+      `/exhibition/access-qr/${id}?userType=${userType}&applicationType=${applicationType}`,
     lottery: `/exhibition/lottery/${id}`,
     edit: `/exhibition/edit/${id}`,
     // 참가자가 보는 신청 폼 모음
@@ -41,15 +45,19 @@ export const getRegistrationRoutes = (expoId: string) => {
   return {
     dashboard: base,
     applications: `${base}/applications`,
-    schedule: `${base}/schedule`,
+    // 접수대장과 같은 페이지의 입장자·연수자 명단 탭
+    roster: `${base}/applications/roster`,
+    // 프로그램 조회·출석, 회차·모집, 프로그램 신청 폼을 탭으로 묶은 페이지
+    programs: `${base}/programs`,
+    schedule: `${base}/programs/schedule`,
     history: `${base}/history`,
     attendance: `${base}/attendance`,
     participants: `${base}/participants`,
     operations: `${base}/operations`,
-    programForms: `${base}/program-forms`,
-    programFormNew: `${base}/program-forms/new`,
+    programForms: `${base}/programs/forms`,
+    programFormNew: `${base}/programs/forms/new`,
     programForm: (formId: string) =>
-      `${base}/program-forms/${encodeURIComponent(formId)}`,
+      `${base}/programs/forms/${encodeURIComponent(formId)}`,
     survey: `${base}/survey`,
   };
 };

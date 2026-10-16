@@ -1,18 +1,20 @@
 'use client';
 
 import { ScheduleManager } from '@/features/registration/schedule';
-import { Header } from '@/widgets/layout';
-import { RegistrationTabs } from '@/widgets/registration';
+import { PageShell } from '@/widgets/layout';
+import { ProgramsHubTabs, RegistrationTabs } from '@/widgets/registration';
 
+/** 프로그램 페이지의 회차·모집 탭 */
 const RegistrationSchedulePage = () => {
   return (
-    <div className="flex min-h-screen flex-col gap-[30px]">
-      <Header />
-      <RegistrationTabs />
-      <div className="flex flex-1 justify-center p-16">
+    <PageShell subHeader={<RegistrationTabs />}>
+      <div className="flex w-full flex-col items-center gap-24">
+        <div className="w-full max-w-[1200px]">
+          <ProgramsHubTabs />
+        </div>
         <ScheduleManager />
       </div>
-    </div>
+    </PageShell>
   );
 };
 
