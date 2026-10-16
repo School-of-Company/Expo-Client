@@ -25,12 +25,14 @@ import { formatFormPeriod } from '../../model/formPeriodStatus';
 import {
   OUTCOME_LABEL,
   ProgramApplyOutcome,
+  REUSED_GUARDIAN_NOTE,
   getProgramFormId,
   getProgramPolicyNotes,
   getProgramRecruitmentLabel,
 } from '../../model/programApply';
 import { getGroupApplications, groupPrograms } from '../../model/programGroups';
 import { useMyApplications } from '../../model/useMyApplications';
+import CompanionApplyFlow from '../CompanionApplyFlow';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
 const PROGRAM_LABEL: Record<ProgramType, string> = {
@@ -232,17 +234,33 @@ const ParticipantLookup = ({
         )}
       </p>
     );
-  const members = data.participants.map(({ participant, eligible }) => ({
-    participantId: participant.participantId,
-    name: participant.name,
-    eligible,
-  }));
+  const members = data.participants.map(
+    ({ participant, eligible, guardianApplied }) => ({
+      participantId: participant.participantId,
+      name: participant.name,
+      eligible,
+      occupation: participant.occupation,
+      grade: participant.grade,
+      guardianApplied,
+    }),
+  );
   if (!members.some((m) => m.eligible))
     return (
       <p className="break-keep text-body2r text-gray-600">
         이 프로그램을 신청할 수 있는 참가자가 없습니다. 직업·정원·신청 기간 또는
         이미 신청한 같은 묶음 프로그램을 확인해주세요.
       </p>
+    );
+  if (program.policy?.companionRequired)
+    return (
+      <CompanionApplyFlow
+        expoId={expoId}
+        programType={programType}
+        program={program}
+        formId={formId}
+        participants={members}
+        onResult={onResult}
+      />
     );
   return (
     <ProgramApplyForm
@@ -462,6 +480,12 @@ const ProgramApplyContainer = ({
                   {outcome.kind === 'FAILED'
                     ? outcome.message
                     : OUTCOME_LABEL[outcome.kind]}
+                  {outcome.kind !== 'FAILED' && outcome.reusedGuardian && (
+                    <>
+                      <br />
+                      {REUSED_GUARDIAN_NOTE}
+                    </>
+                  )}
                 </p>
               )}
               {formId && isOpen && (

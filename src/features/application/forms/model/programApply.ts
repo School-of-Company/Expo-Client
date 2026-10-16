@@ -14,7 +14,11 @@ export const getProgramFormId = (program: Pick<Program, 'policy'>) =>
 
 /** 프로그램 하나의 제출 결과. 한 프로그램의 실패가 다른 프로그램의 성공 표시를 가리지 않게 따로 둔다. */
 export type ProgramApplyOutcome =
-  | { kind: 'CONFIRMED' | 'WAITING' | 'PROCESSING' }
+  | {
+      kind: 'CONFIRMED' | 'WAITING' | 'PROCESSING';
+      // 기존에 신청한 보호자를 재사용한 일괄 신청
+      reusedGuardian?: boolean;
+    }
   | { kind: 'FAILED'; message: string };
 
 export const OUTCOME_LABEL: Record<
@@ -26,6 +30,9 @@ export const OUTCOME_LABEL: Record<
   PROCESSING:
     '처리 중입니다. 잠시 후 같은 신청서로 다시 눌러 결과를 확인해주세요.',
 };
+
+export const REUSED_GUARDIAN_NOTE =
+  '보호자는 기존 신청이 유지되고, 추가한 학생만 위 결과로 접수되었습니다.';
 
 const occupations = (list: ProgramOccupation[]) =>
   list
