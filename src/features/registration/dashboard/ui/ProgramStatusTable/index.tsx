@@ -66,7 +66,7 @@ interface ProgramStatusTableProps {
   summaries: AdminSessionSummary[] | null;
 }
 
-/** 현재 회차를 프로그램별로 묶어 정원과 확정·대기를 합친다 */
+/** 현재 회차를 묶음별로 묶어 정원과 확정·대기를 합친다 */
 const ProgramStatusTable = ({
   sessions,
   summaries,
@@ -79,7 +79,8 @@ const ProgramStatusTable = ({
   return (
     <>
       <p className="mb-8 text-caption1r text-gray-400">
-        구분과 이름이 같은 회차를 한 프로그램으로 묶었습니다.
+        같은 묶음(groupId)의 회차를 한 프로그램으로 묶었습니다. 묶음이 없는
+        회차는 따로 표시하며, 확정·대기는 회차별 신청 건수의 합입니다.
       </p>
       <RegistrationTable
         columns={COLUMNS}
