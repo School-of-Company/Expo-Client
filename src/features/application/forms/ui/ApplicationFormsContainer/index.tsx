@@ -115,7 +115,8 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
                   title="프로그램 신청"
                   description="사전등록이 확정된 참가자가 일반 프로그램을 골라 신청합니다."
                   period="프로그램별 신청 기간"
-                  statusLabel="신청 가능"
+                  // 회차마다 기간·마감이 달라 이 카드에서 접수 가능 여부를 단정하지 않는다
+                  statusLabel="프로그램·회차 확인"
                   isOpen
                   buttonLabel="프로그램 신청하기"
                   href={`/application/forms/${expoId}/program`}

@@ -34,7 +34,20 @@ const COLUMNS: TableColumn<ProgramGroup>[] = [
     key: 'capacity',
     label: '전체 정원',
     flex: 0.8,
-    render: ({ capacity }) => capacity.toLocaleString(),
+    // 정책이 없는 회차는 정원에 넣지 않으므로, 정원 0 이나 마감으로 보이지 않게 따로 알린다
+    render: ({ capacity, sessionCount, unsetSessionCount }) =>
+      unsetSessionCount === sessionCount ? (
+        <span className="text-caption1r text-gray-500">모집 설정 필요</span>
+      ) : (
+        <>
+          <p>{capacity.toLocaleString()}</p>
+          {unsetSessionCount > 0 && (
+            <p className="text-caption2r">
+              모집 설정 필요 {unsetSessionCount}회차 제외
+            </p>
+          )}
+        </>
+      ),
   },
   {
     key: 'confirmed',
@@ -50,7 +63,10 @@ const COLUMNS: TableColumn<ProgramGroup>[] = [
     key: 'waitingCapacity',
     label: '대기 정원',
     flex: 0.8,
-    render: ({ waitingCapacity }) => waitingCapacity.toLocaleString(),
+    render: ({ waitingCapacity, sessionCount, unsetSessionCount }) =>
+      unsetSessionCount === sessionCount
+        ? '-'
+        : waitingCapacity.toLocaleString(),
   },
   {
     key: 'waiting',

@@ -16,57 +16,73 @@ interface Props {
   finishedDay: string;
   /** 없으면(조회 전·실패) 표시하지 않는다 */
   formStatus?: ExpoValid;
+  /** 조회 중이면 undefined, 실패하면 null */
+  programFormCount?: number | null;
 }
 
-const FORM_ITEMS = [
-  ['preStandardFormCreatedStatus', '사전 폼'],
-  ['siteStandardFormCreatedStatus', '현장 폼'],
-  ['traineeFormCreatedStatus', '연수 폼'],
+// 등록 폼·설문은 행사마다 필요한 것만 만든다. 미생성을 준비 미완료로 보이지 않게 있는 것만 센다
+const REGISTRATION_FORM_ITEMS = [
+  ['preStandardFormCreatedStatus', '사전'],
+  ['siteStandardFormCreatedStatus', '현장'],
+  ['traineeFormCreatedStatus', '연수'],
 ] as const;
 
 const SURVEY_ITEMS = [
-  ['standardSurveyCreatedStatus', '일반 설문'],
-  ['traineeSurveyCreatedStatus', '연수 설문'],
+  ['standardSurveyCreatedStatus', '일반'],
+  ['traineeSurveyCreatedStatus', '연수'],
 ] as const;
 
-type StatusItems = typeof FORM_ITEMS | typeof SURVEY_ITEMS;
+const createdNames = (
+  items: typeof REGISTRATION_FORM_ITEMS | typeof SURVEY_ITEMS,
+  status: ExpoValid,
+) => items.filter(([key]) => status[key]).map(([, name]) => name);
 
-const CreatedCount = ({
-  label,
-  items,
+/** 등록 폼 유형·프로그램 폼 수·설문 수를 한 줄로 보인다 */
+const FormStatus = ({
   status,
+  programFormCount,
 }: {
-  label: string;
-  items: StatusItems;
-  status: ExpoValid;
+  status?: ExpoValid;
+  programFormCount?: number | null;
 }) => {
-  const created = items.filter(([key]) => status[key]).length;
+  const registration = status
+    ? createdNames(REGISTRATION_FORM_ITEMS, status)
+    : null;
+  const surveys = status ? createdNames(SURVEY_ITEMS, status) : null;
+  const items = [
+    registration &&
+      (registration.length
+        ? `등록 폼 ${registration.join('·')}`
+        : '등록 폼 없음'),
+    programFormCount === null
+      ? '프로그램 폼 확인 실패'
+      : programFormCount !== undefined && `프로그램 폼 ${programFormCount}개`,
+    surveys && `설문 ${surveys.length}개`,
+  ].filter((item): item is string => Boolean(item));
+
+  if (!items.length) return null;
+  const summary = [
+    registration && `등록 폼: ${registration.join(', ') || '없음'}`,
+    surveys && `설문: ${surveys.join(', ') || '없음'}`,
+  ]
+    .filter(Boolean)
+    .join(' / ');
+
   return (
-    <span
-      className={created === items.length ? 'text-main-600' : 'text-gray-400'}
+    <p
+      className="flex flex-wrap gap-x-6 text-caption2r text-gray-500"
+      title={summary}
     >
-      {label} {created}/{items.length}
-    </span>
-  );
-};
-
-/** 폼·설문 생성 개수를 한 줄로 보이고, 빠진 항목은 툴팁으로 알린다 */
-const FormStatus = ({ status }: { status: ExpoValid }) => {
-  const missing = [...FORM_ITEMS, ...SURVEY_ITEMS]
-    .filter(([key]) => !status[key])
-    .map(([, name]) => name);
-  const summary = missing.length
-    ? `미생성: ${missing.join(', ')}`
-    : '폼·설문을 모두 만들었습니다';
-
-  return (
-    <p className="flex gap-6 text-caption2r" title={summary}>
-      <CreatedCount label="폼" items={FORM_ITEMS} status={status} />
-      <span className="text-gray-300" aria-hidden>
-        ·
-      </span>
-      <CreatedCount label="설문" items={SURVEY_ITEMS} status={status} />
-      <span className="sr-only">{summary}</span>
+      {items.map((item, index) => (
+        <span key={item} className="flex gap-6">
+          {index > 0 && (
+            <span className="text-gray-300" aria-hidden>
+              ·
+            </span>
+          )}
+          {item}
+        </span>
+      ))}
     </p>
   );
 };
@@ -79,7 +95,9 @@ const ExpoListItem = ({
   startedDay,
   finishedDay,
   formStatus,
+  programFormCount,
 }: Props) => {
+  const hasFormStatus = Boolean(formStatus) || programFormCount !== undefined;
   const formatDate = (date: string) => {
     const [, month, day] = date.split('-');
     return `${month}.${day}`;
@@ -146,14 +164,19 @@ const ExpoListItem = ({
               style={{
                 display: '-webkit-box',
                 // 생성 여부 줄이 들어가면 카드 높이에 맞춰 한 줄 줄인다
-                WebkitLineClamp: formStatus ? 2 : 3,
+                WebkitLineClamp: hasFormStatus ? 2 : 3,
                 WebkitBoxOrient: 'vertical',
                 textOverflow: 'ellipsis',
               }}
             >
               {description}
             </p>
-            {formStatus && <FormStatus status={formStatus} />}
+            {hasFormStatus && (
+              <FormStatus
+                status={formStatus}
+                programFormCount={programFormCount}
+              />
+            )}
           </div>
         </div>
       </div>
