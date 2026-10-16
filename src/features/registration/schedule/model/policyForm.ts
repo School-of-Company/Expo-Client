@@ -268,8 +268,8 @@ export const toProgramRequest = (
   title: form.title.trim(),
   startedAt: toProgramDateTime(form.startedAt ?? ''),
   endedAt: toProgramDateTime(form.endedAt ?? ''),
-  // 비우면 null 로 보내 수정 때 기존 장소를 지운다. 장소 필드 전 초안에는 값이 없을 수 있다
-  place: (form.place ?? '').trim() || null,
+  // 서버는 null 이면 기존 장소를 두고 빈 문자열이면 지운다. 비운 칸은 빈 문자열로 보낸다. 장소 필드 전 초안에는 값이 없을 수 있다
+  place: (form.place ?? '').trim(),
   ...(form.programType === 'TRAINING' ? { category: form.category } : {}),
   policy: form.hasPolicy ? toProgramPolicy(form.policy) : null,
 });
