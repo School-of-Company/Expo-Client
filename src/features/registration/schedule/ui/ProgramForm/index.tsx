@@ -105,6 +105,10 @@ const ProgramForm = ({
       );
       return;
     }
+    // 브라우저 뒤로 가기로 돌아와도 초안이 다시 열리도록 지금 주소에 이어서 편집 표시를 남긴다
+    const url = new URL(window.location.href);
+    url.searchParams.set(DRAFT_QUERY.resume, '1');
+    window.history.replaceState(null, '', url);
     router.push(
       `${getRegistrationRoutes(expoId).programFormNew}?${DRAFT_QUERY.returnTo}=schedule`,
     );
