@@ -16,8 +16,8 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
   return (
     <div className="flex w-full flex-col gap-24 rounded-sm border-1 border-solid border-gray-200 p-[18px] tablet:border-none tablet:px-0">
       {groups.map((group) => (
-        <section key={group.key} className="space-y-12">
-          <h2 className="text-caption1b text-gray-500">{group.title}</h2>
+        // 그룹 제목은 보이지 않고, 그룹 사이 간격으로만 묶음을 나눈다
+        <section key={group.key} aria-label={group.title}>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,180px),1fr))] gap-12">
             {group.actions
               .flatMap(({ primary, more = [] }) => [primary, ...more])
