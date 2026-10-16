@@ -59,7 +59,7 @@ export const getProgramGroupId = (program: ScheduleProgram) =>
 
 /**
  * 같은 묶음에 새 회차를 추가할 때의 초안. 구분·이름·폼·정원·모집 조건은 그대로 두고,
- * 회차마다 다른 일정은 비우고 마감 여부는 모집 중으로 되돌린다
+ * 회차마다 다른 일정·장소는 비우고 마감 여부는 모집 중으로 되돌린다
  */
 export const toGroupSessionForm = (program: ScheduleProgram): ProgramForm => {
   const form = toProgramForm(program);
@@ -67,6 +67,7 @@ export const toGroupSessionForm = (program: ScheduleProgram): ProgramForm => {
     ...form,
     startedAt: null,
     endedAt: null,
+    place: '',
     policy: { ...form.policy, closed: false },
   };
 };
