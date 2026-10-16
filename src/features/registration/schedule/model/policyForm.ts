@@ -32,6 +32,9 @@ export interface ChannelForm {
 export interface PolicyForm {
   capacity: number;
   waitingCapacity: number;
+  /** 둘 다 null 이면 정원을 나누지 않는다. 나누면 capacity 는 둘의 합이다(계약 확정 전 임시 이름) */
+  preRegisterCapacity: number | null;
+  onsiteCapacity: number | null;
   applicationStartedAt: string | null;
   applicationEndedAt: string | null;
   cancelEndedAt: string | null;
@@ -57,6 +60,8 @@ export interface ProgramForm {
 export const EMPTY_POLICY_FORM: PolicyForm = {
   capacity: 1,
   waitingCapacity: 0,
+  preRegisterCapacity: null,
+  onsiteCapacity: null,
   applicationStartedAt: null,
   applicationEndedAt: null,
   cancelEndedAt: null,
@@ -91,6 +96,8 @@ export const EMPTY_PROGRAM_FORM: ProgramForm = {
 const toPolicyForm = (policy: ProgramPolicy): PolicyForm => ({
   capacity: policy.capacity ?? 1,
   waitingCapacity: policy.waitingCapacity ?? 0,
+  preRegisterCapacity: policy.preRegisterCapacity ?? null,
+  onsiteCapacity: policy.onsiteCapacity ?? null,
   applicationStartedAt: fromOffsetDateTime(policy.applicationStartedAt),
   applicationEndedAt: fromOffsetDateTime(policy.applicationEndedAt),
   cancelEndedAt: fromOffsetDateTime(policy.cancelEndedAt),
@@ -103,10 +110,21 @@ const toPolicyForm = (policy: ProgramPolicy): PolicyForm => ({
   channels: policy.channels ?? [],
 });
 
+const isSplit = (p: {
+  preRegisterCapacity?: number | null;
+  onsiteCapacity?: number | null;
+}) => p.preRegisterCapacity != null || p.onsiteCapacity != null;
+
 /** 채널이 있으면 정원·대기 정원은 채널 합, 신청 가능 직업은 채널 직업 합집합으로 맞춘다 */
 export const withChannelTotals = (policy: PolicyForm): PolicyForm =>
   policy.channels.length === 0
-    ? policy
+    ? isSplit(policy)
+      ? {
+          ...policy,
+          capacity:
+            (policy.preRegisterCapacity ?? 0) + (policy.onsiteCapacity ?? 0),
+        }
+      : policy
     : {
         ...policy,
         capacity: policy.channels.reduce((sum, c) => sum + c.capacity, 0),
@@ -175,6 +193,23 @@ const getChannelProblem = (policy: ProgramPolicy): string | null => {
   return null;
 };
 
+/** 사전·현장 정원 규칙. 계약(Expo-Expo-Server#123) 확정 전 임시 규칙이라 이 함수만 고친다. 나누지 않으면 null */
+const getSplitProblem = (policy: ProgramPolicy): string | null => {
+  if (!isSplit(policy)) return null;
+  const { preRegisterCapacity: pre, onsiteCapacity: onsite } = policy;
+  if (pre == null || onsite == null)
+    return '사전·현장 정원을 모두 입력해주세요.';
+  if (!Number.isInteger(pre) || pre < 0)
+    return '사전 접수 정원을 확인해주세요.';
+  if (!Number.isInteger(onsite) || onsite < 0)
+    return '현장 접수 정원을 확인해주세요.';
+  if (policy.channels?.length)
+    return '신청 채널별 정원과 사전·현장 정원은 함께 쓸 수 없습니다.';
+  if (pre + onsite !== policy.capacity)
+    return '정원이 사전·현장 정원의 합과 같아야 합니다.';
+  return null;
+};
+
 /**
  * 서버 ProgramPolicyRequest.validate() 와 같은 규칙. 문제가 없으면 null.
  * 모집 시작 < 모집 종료, 취소 마감·대기 승급 마감 ≥ 모집 시작, 직업 1개 이상, 채널 합 일치
@@ -190,7 +225,7 @@ export const getPolicyProblem = (policy: ProgramPolicy): string | null => {
   // 일괄 적용은 조회한 정책을 그대로 합치므로 값이 빠져 와도 TypeError 대신 사유로 막는다
   if (!policy.allowedOccupations?.length)
     return '신청 가능 직업을 하나 이상 선택해주세요.';
-  return getChannelProblem(policy);
+  return getSplitProblem(policy) ?? getChannelProblem(policy);
 };
 
 // 'YYYY-MM-DDTHH:mm'(로컬) → UTC 오프셋 ISO 8601. 정책 일시는 서버 필수값이라 비어 있으면 보내기 전에 막는다
@@ -243,6 +278,13 @@ export const toProgramPolicy = (form: PolicyForm): ProgramPolicy => {
   return {
     capacity: policy.capacity,
     waitingCapacity: policy.waitingCapacity,
+    // 나누지 않으면 키를 빼서 기존 정책 형식으로 보낸다
+    ...(isSplit(policy)
+      ? {
+          preRegisterCapacity: policy.preRegisterCapacity,
+          onsiteCapacity: policy.onsiteCapacity,
+        }
+      : {}),
     applicationStartedAt: toPolicyDateTime(policy.applicationStartedAt),
     applicationEndedAt: toPolicyDateTime(policy.applicationEndedAt),
     cancelEndedAt: toPolicyDateTime(policy.cancelEndedAt),
