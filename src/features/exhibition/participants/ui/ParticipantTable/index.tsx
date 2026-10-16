@@ -150,13 +150,16 @@ const ParticipantTable = ({ id }: { id: string }) => {
             selectedDate={selectedDate || ''}
           />
         )}
+        {!isTrainee && (
+          <p className="text-caption1r text-gray-500">
+            선택한 날짜에 입장한 참가자입니다. 사전등록한 전체 신청자는
+            접수대장에서 확인할 수 있습니다.
+          </p>
+        )}
 
-        {/* 일반 참가자는 연수번호가 없어 검색 대상에서 뺀다 */}
         <SearchInput
-          label={isTrainee ? '이름·연락처·연수번호 검색' : '이름·연락처 검색'}
-          placeholder={
-            isTrainee ? '이름, 연락처, 연수번호로 검색' : '이름, 연락처로 검색'
-          }
+          label="이름, 연락처, 연수번호 검색"
+          placeholder="이름, 연락처, 연수번호로 검색"
           value={searchQuery}
           onChange={setSearchQuery}
         />

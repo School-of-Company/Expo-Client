@@ -7,7 +7,6 @@ import { validateProgramForm } from '@/features/form/program';
 import { ArrowDown } from '@/shared/assets/icons';
 import { ApiError } from '@/shared/libs/http/apiError';
 import { Button, Input } from '@/shared/ui';
-import DateTimeInput from '@/shared/ui/DateTimeInput';
 import {
   EMPTY_PROGRAM_FORM_VALUES,
   ProgramFormValues,
@@ -48,6 +47,15 @@ const ErrorText = ({ message }: { message?: string }) =>
   message ? (
     <p className="whitespace-pre-line text-caption1r text-error">{message}</p>
   ) : null;
+
+/** 달력 아이콘만이 아니라 칸 어디를 눌러도 날짜 선택을 연다. 지원하지 않는 브라우저는 기본 동작 그대로다. */
+const openPicker = (e: React.MouseEvent<HTMLInputElement>) => {
+  try {
+    e.currentTarget.showPicker?.();
+  } catch {
+    // 사용자 동작이 아니라고 판단되면 던진다. 기본 입력은 그대로 쓸 수 있다
+  }
+};
 
 const dateInputClass =
   'w-full rounded-sm border-1 border-solid border-gray-200 px-16 py-12 text-body4';
@@ -145,27 +153,22 @@ const ProgramFormEditor = ({
       <div className="space-y-[10px]">
         <Label>적용 기간</Label>
         <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
-          {(
-            [
-              ['startDate', '시작 일시', '시작 일시를 입력해주세요.'],
-              ['endDate', '종료 일시', '종료 일시를 입력해주세요.'],
-            ] as const
-          ).map(([name, label, required]) => (
-            <div key={name} className="space-y-4">
-              <p className="text-caption1r text-gray-500">{label}</p>
-              <Controller
-                control={control}
-                name={name}
-                rules={{ required }}
-                render={({ field }) => (
-                  <DateTimeInput
-                    value={field.value || null}
-                    onChange={(next) => field.onChange(next ?? '')}
-                  />
-                )}
-              />
-            </div>
-          ))}
+          <input
+            type="datetime-local"
+            onClick={openPicker}
+            aria-label="시작 일시"
+            className={`${dateInputClass} cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
+            {...register('startDate', {
+              required: '시작 일시를 입력해주세요.',
+            })}
+          />
+          <input
+            type="datetime-local"
+            onClick={openPicker}
+            aria-label="종료 일시"
+            className={`${dateInputClass} cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
+            {...register('endDate', { required: '종료 일시를 입력해주세요.' })}
+          />
         </div>
         <ErrorText message={errors.startDate?.message} />
         <ErrorText message={errors.endDate?.message} />

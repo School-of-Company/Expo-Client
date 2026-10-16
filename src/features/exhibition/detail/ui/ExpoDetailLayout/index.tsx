@@ -1,30 +1,27 @@
 'use client';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import {
   ContentListText,
   ContentText,
-  copyExpoLink,
   KaKaoMap,
   ShowLocation,
 } from '@/entities/exhibition';
 import DefaultExpo from '@/shared/assets/png/DefaultExpo.png';
 import { Share } from '@/shared/assets/svg';
-import { getExpoRoutes } from '@/shared/config';
 import { isValidSrc } from '@/shared/model';
 import {
   ExpoDetail,
   ExpoStandard,
   ExpoTrainingDetail,
 } from '@/shared/types/exhibition/detail/type';
-import { PageTitle } from '@/shared/ui';
+import DetailHeader from '@/shared/ui/DetailHeader';
 
 const ExpoDetailLayout = ({
   expoDetail,
   expoStandard,
   expoTraining,
-  expoId,
+  openModal,
 }: {
   expoDetail: ExpoDetail;
   expoStandard: ExpoStandard[];
@@ -32,9 +29,8 @@ const ExpoDetailLayout = ({
     essential: ExpoTrainingDetail[];
     choice: ExpoTrainingDetail[];
   };
-  expoId: string;
+  openModal: (type: string, content: string) => void;
 }) => {
-  const router = useRouter();
   const date = `${expoDetail?.startedDay} ~ ${expoDetail?.finishedDay}`;
 
   const safeSrc =
@@ -44,26 +40,16 @@ const ExpoDetailLayout = ({
 
   return (
     <div className="flex w-full flex-col space-y-48">
-      <PageTitle
-        title={expoDetail?.title}
-        onBack={() => router.back()}
-        action={
-          // PC 는 오른쪽 운영 패널에 같은 버튼이 있고, 패널이 아래로 내려가는 태블릿 이하에서만 보인다
-          <button
-            type="button"
-            aria-label="신청 폼 링크 복사"
-            onClick={() =>
-              copyExpoLink(
-                getExpoRoutes(expoId).applicationForms,
-                '신청 폼 링크',
-              )
-            }
-            className="hidden h-[44px] w-[44px] items-center justify-center tablet:flex"
-          >
-            <Share />
-          </button>
-        }
-      />
+      <div className="relative">
+        <DetailHeader textCenter={true} headerTitle={expoDetail?.title} />
+        <button
+          type="button"
+          onClick={() => openModal('share', '공유할 항목을 선택하세요.')}
+          className="absolute right-0 top-1/2 hidden -translate-y-1/2 tablet:block"
+        >
+          <Share />
+        </button>
+      </div>
 
       <div className="w-full space-y-36">
         <div className="relative h-[360px] w-full">

@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { TextButton } from '@/shared/ui';
 
 interface Props {
   title: string;
@@ -28,17 +27,14 @@ const ContentText = ({ title, content }: Props) => {
         >
           {content}
         </p>
-        {/* 긴 소개가 프로그램·지도를 밀어내지 않게 5줄까지만 보이고 펼칠 수 있게 둔다 */}
         {isExpandable && (
-          <TextButton
-            size="small"
-            tone={show ? 'gray' : 'main'}
-            aria-expanded={show}
-            className="mt-8"
+          <button
+            type="button"
+            className={`text-left text-caption1r ${show ? 'text-main-600' : 'text-gray-300'}`}
             onClick={() => setShow(!show)}
           >
-            {show ? '접기' : '전체 보기'}
-          </TextButton>
+            {show ? '접기' : '더보기'}
+          </button>
         )}
       </div>
     </div>

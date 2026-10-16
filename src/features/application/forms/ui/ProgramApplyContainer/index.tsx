@@ -448,12 +448,6 @@ const ProgramApplyContainer = ({
             applications,
             participants,
           );
-          // 확정된 신청이 있으면 버튼에 알린다. 다른 참가자의 신청이 남을 수 있어 누를 수는 있게 둔다
-          const isConfirmed =
-            outcome?.kind === 'CONFIRMED' ||
-            existing.some(
-              ({ application }) => application.status === 'CONFIRMED',
-            );
           return (
             <section
               key={group.key}
@@ -560,7 +554,7 @@ const ProgramApplyContainer = ({
                 disabled={!formId}
                 onClick={() => setOpenGroupKey(isOpen ? null : group.key)}
               >
-                {isOpen ? '닫기' : isConfirmed ? '신청되었습니다' : '신청'}
+                {isOpen ? '닫기' : '신청'}
               </Button>
               {outcome && (
                 <p

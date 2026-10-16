@@ -68,7 +68,7 @@ const PreregisterFilters = ({
       <button
         type="button"
         onClick={onReset}
-        className="justify-self-start whitespace-nowrap px-8 text-body2r text-gray-500 underline"
+        className="whitespace-nowrap px-8 text-body2r text-gray-500 underline"
       >
         초기화
       </button>
