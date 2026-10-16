@@ -5,7 +5,8 @@ import { useExpoQueries } from '@/features/exhibition/detail';
 import { withLoading } from '@/shared/hocs';
 import { FormTypeModal, QueryError } from '@/shared/ui';
 import { ExhibitionDetailContent } from '@/widgets/exhibition/detail';
-import { ModalLayout, PageShell } from '@/widgets/layout';
+import { Header } from '@/widgets/layout';
+import { ModalLayout } from '@/widgets/layout';
 
 const ExhibitionDetailPage = ({ params }: { params: string }) => {
   const {
@@ -42,7 +43,8 @@ const ExhibitionDetailPage = ({ params }: { params: string }) => {
   };
 
   return (
-    <PageShell>
+    <div className="flex min-h-screen flex-col gap-30">
+      <Header />
       {withLoading({
         isLoading,
         children:
@@ -71,7 +73,7 @@ const ExhibitionDetailPage = ({ params }: { params: string }) => {
           />
         </ModalLayout>
       )}
-    </PageShell>
+    </div>
   );
 };
 

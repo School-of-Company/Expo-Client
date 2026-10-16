@@ -8,7 +8,6 @@ import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
 import { useAddressSearch } from '@/features/exhibition/common/hooks/useAddressSearch';
 import { Location } from '@/shared/assets/icons';
 import { COLORS } from '@/shared/config';
-import { dateFromString } from '@/shared/lib/dateTime';
 import { handleFormErrors } from '@/shared/model';
 import { showError } from '@/shared/model';
 import {
@@ -106,7 +105,6 @@ const ExhibitionForm = ({
                   setValue('startedDay', date ? format(date, 'yyyy-MM-dd') : '')
                 }
                 placeholder="시작일"
-                maxDate={dateFromString(watch('finishedDay')) ?? undefined}
               />
               <SelectDateInput
                 value={
@@ -119,7 +117,6 @@ const ExhibitionForm = ({
                   )
                 }
                 placeholder="마감일"
-                minDate={dateFromString(watch('startedDay')) ?? undefined}
               />
             </div>
           </div>

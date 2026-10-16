@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { handleDateChange } from '@/features/exhibition/common/lib/handleDateChange';
 import { XMark } from '@/shared/assets/icons';
-import { dateFromString } from '@/shared/lib/dateTime';
 import { ModalProps } from '@/shared/types/exhibition/type';
 import { Button, CheckBox } from '@/shared/ui';
 import SelectDateInput from '@/shared/ui/SelectDateInput';
@@ -10,10 +9,6 @@ import SelectTimeInput from '@/shared/ui/SelectTimeInput';
 const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
   const initialStarted = watch(`${fieldName}.${index}.startedAt`);
   const initialEnded = watch(`${fieldName}.${index}.endedAt`);
-
-  // 프로그램은 박람회 기간 안에서만 열린다
-  const expoStart = dateFromString(watch('startedDay')) ?? undefined;
-  const expoEnd = dateFromString(watch('finishedDay')) ?? undefined;
 
   const [startedDate, setStartedDate] = useState<Date | null>(null);
   const [startedTime, setStartedTime] = useState<Date | null>(null);
@@ -65,15 +60,13 @@ const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
           <div className="space-y-12">
             <div className="flex w-full flex-col space-y-10">
               <p className="text-left text-sm text-gray-600">시작 시간</p>
-              <div className="flex items-start gap-12">
+              <div className="flex items-center gap-12">
                 <SelectDateInput
                   value={startedDate}
                   onChange={(date) => setStartedDate(date)}
                   placeholder="날짜"
                   inputClassName="px-8 py-4"
                   emptyCenter={true}
-                  minDate={expoStart}
-                  maxDate={expoEnd}
                 />
                 <SelectTimeInput
                   value={startedTime}
@@ -85,15 +78,13 @@ const Modal = ({ setModal, setValue, watch, index, fieldName }: ModalProps) => {
 
             <div className="flex w-full flex-col space-y-10">
               <p className="text-left text-sm text-gray-600">마감 시간</p>
-              <div className="flex items-start gap-12">
+              <div className="flex items-center gap-12">
                 <SelectDateInput
                   value={endedDate}
                   onChange={(date) => setEndedDate(date)}
                   placeholder="날짜"
                   inputClassName="px-8 py-4"
                   emptyCenter={true}
-                  minDate={expoStart}
-                  maxDate={expoEnd}
                 />
                 <SelectTimeInput
                   value={endedTime}

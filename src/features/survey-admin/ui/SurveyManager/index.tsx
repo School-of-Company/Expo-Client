@@ -10,6 +10,7 @@ import { withLoading } from '@/shared/hocs';
 import { FormValues, SurveyFormRequest } from '@/shared/types/form/create/type';
 import { Button } from '@/shared/ui';
 import { ModalLayout } from '@/widgets/layout';
+import LotterySettingsForm from '../../lottery/ui/LotterySettingsForm';
 import {
   useDeleteSurvey,
   useSaveSurvey,
@@ -128,6 +129,11 @@ const SurveyManager = () => {
                 isSuccess={false}
                 hideBack
               />
+
+              {/* 경품 추첨은 공개 링크(일반 참가자) 설문에만 있다 */}
+              {type === 'STANDARD' && isEdit && (
+                <LotterySettingsForm expoId={expoId} />
+              )}
             </div>
           ),
         })
