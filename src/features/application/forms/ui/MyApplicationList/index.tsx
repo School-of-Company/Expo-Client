@@ -51,16 +51,19 @@ const BLOCKED_REASON_LABEL: Record<string, string> = {
     '동행자의 사전등록을 먼저 취소해주세요. 대표자는 마지막에 취소할 수 있습니다.',
 };
 
-// 서버가 연결 정보를 주는 학생 신청에만 안내한다. 실제 취소 가능 여부와 제한은 서버가 정한다
-const getGuardianCancelNote = ({
-  linkedGuardianApplicationId,
-  linkedStudentCount,
-}: OwnerApplication) => {
-  if (!linkedGuardianApplicationId) return undefined;
-  return linkedStudentCount === 1
-    ? '연결된 마지막 학생이라 보호자의 신청도 함께 취소되고 자리가 반환됩니다.'
-    : '같은 보호자에 연결된 다른 학생이 있어 보호자의 신청은 유지됩니다.';
-};
+// 서버가 학생·보호자 연결 정보를 주지 않으므로 학생 신청에만 일반 안내를 한다.
+// 마지막 연결 학생을 취소하면 서버가 보호자 신청도 함께 취소하고, 다른 학생이 있으면 보호자는 유지한다
+const GUARDIAN_CANCEL_NOTE =
+  '보호자와 함께 신청한 마지막 학생이면 보호자의 신청도 함께 취소됩니다. 같은 보호자에 연결된 다른 학생이 있으면 보호자는 유지됩니다.';
+
+const getGuardianCancelNote = (
+  application: OwnerApplication,
+  participant?: OwnerParticipant,
+) =>
+  application.type !== 'PREREGISTER' &&
+  participant?.occupation === 'ELEMENTARY_STUDENT'
+    ? GUARDIAN_CANCEL_NOTE
+    : undefined;
 
 interface QrTarget {
   participantId: number;
@@ -151,7 +154,7 @@ const ApplicationRow = ({
                   applicationId,
                   title,
                   session: sessionLabel,
-                  guardianNote: getGuardianCancelNote(application),
+                  guardianNote: getGuardianCancelNote(application, participant),
                 })
               }
               className="whitespace-nowrap rounded-sm border-1 border-solid border-error px-16 py-8 text-caption1b text-error"
