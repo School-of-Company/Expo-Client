@@ -164,6 +164,31 @@ const PreRegisterContainer = ({
       </p>
     );
 
+  // 참가자용 회차 목록 API 가 없어 회차를 고를 수 없다. 임의 회차로 신청시키지 않고 돌아갈 곳을 안내한다
+  if (!sessionId)
+    return (
+      <div className="mt-30 flex w-full max-w-[816px] flex-col gap-30">
+        <p className="border-b-1 border-solid border-gray-200 pb-24 text-h2b text-black mobile:text-h3b">
+          사전등록 신청
+        </p>
+        <div className="flex flex-col gap-8 rounded-sm border-1 border-solid border-main-300 bg-main-100 p-24">
+          <p className="text-body2b text-main-600">
+            신청할 회차가 지정되지 않았습니다
+          </p>
+          <p className="break-keep text-body2r text-gray-600">
+            사전등록은 회차를 정해서 신청합니다. 운영 측에서 안내받은 회차별
+            신청 링크로 다시 접속해 주세요.
+          </p>
+        </div>
+        <Link
+          href={backHref}
+          className="rounded-sm bg-gray-100 px-24 py-14 text-center text-body2b text-gray-700"
+        >
+          신청 폼 모음으로
+        </Link>
+      </div>
+    );
+
   return withLoading({
     isLoading,
     children: (
