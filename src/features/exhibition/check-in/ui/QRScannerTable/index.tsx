@@ -206,7 +206,11 @@ const QRScannerTable = ({ id }: { id: string }) => {
           isProcessing={scannedQR !== null}
         />
       </section>
-      <WalkInPanel expoId={id} />
+      <WalkInPanel
+        expoId={id}
+        scannerName={scannerName}
+        isExitMode={mode === 'exit'}
+      />
       <EntrySummaryPanel expoId={id} />
       {paperQrCount > 0 && (
         <p className="text-body2r text-gray-500">
