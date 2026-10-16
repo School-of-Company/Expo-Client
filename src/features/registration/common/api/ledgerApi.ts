@@ -47,6 +47,9 @@ export interface ProgramSessionDefinition {
 export interface ProgramSessionPolicy {
   capacity: number;
   waitingCapacity: number;
+  /** 계약 확정 전 임시 이름. 없으면 나누지 않은 정원이다 */
+  preRegisterCapacity?: number | null;
+  onsiteCapacity?: number | null;
   closed: boolean;
 }
 

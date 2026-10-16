@@ -40,6 +40,10 @@ export interface ProgramPolicy {
   cancelEndedAt: string;
   promotionEndedAt: string;
   closed: boolean;
+  // 사전·현장 접수 정원. 서버 계약(Expo-Expo-Server#123) 확정 전 임시 이름이다.
+  // 둘 다 없으면(구형 응답) 나누지 않은 capacity 하나로 본다
+  preRegisterCapacity?: number | null;
+  onsiteCapacity?: number | null;
   // 없으면 채널 없이 capacity·waitingCapacity 하나로 모집한다.
   // 있으면 정원·대기 정원은 채널 합, 신청 가능 직종은 채널 직종 합집합이어야 한다
   channels?: ProgramChannel[] | null;
