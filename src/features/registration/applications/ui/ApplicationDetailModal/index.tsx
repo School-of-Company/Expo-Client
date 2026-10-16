@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { AnswerList } from '@/entities/form';
 import { XMark } from '@/shared/assets/icons';
 import { Button, Loading } from '@/shared/ui';
 import { formatDateTime, SectionError } from '../../../common';
@@ -30,37 +31,26 @@ const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
   </div>
 );
 
-// 답변은 임의 JSON 이라 값 모양을 가정하지 않고 문자열로 풀어 보여 준다
-const toAnswerText = (value: unknown) =>
-  typeof value === 'string' ? value : JSON.stringify(value);
-
 const AnswerSection = ({
   title,
+  questions,
   answers,
+  currentInfo,
 }: {
   title: string;
+  questions: unknown;
   answers: Record<string, unknown> | null;
-}) => {
-  const entries = Object.entries(answers ?? {});
-  return (
-    <section className="space-y-[10px]">
-      <p className="text-h3b text-black">{title}</p>
-      {entries.length === 0 ? (
-        <p className="text-body2r text-gray-400">답변이 없습니다.</p>
-      ) : (
-        <dl className="space-y-8">
-          {entries.map(([key, value]) => (
-            <Field
-              key={key}
-              label={key}
-              value={<span className="break-all">{toAnswerText(value)}</span>}
-            />
-          ))}
-        </dl>
-      )}
-    </section>
-  );
-};
+  currentInfo?: boolean;
+}) => (
+  <section className="space-y-[10px]">
+    <p className="text-h3b text-black">{title}</p>
+    <AnswerList
+      questions={questions}
+      answers={answers}
+      currentInfo={currentInfo}
+    />
+  </section>
+);
 
 /** 신청 한 건을 원장에서 다시 조회해 최신 상태와 상태 변경 이력을 보여 준다 */
 const ApplicationDetailModal = ({
@@ -166,7 +156,9 @@ const ApplicationDetailModal = ({
 
         <AnswerSection
           title="참가자 등록 답변 (현재)"
+          questions={null}
           answers={data?.participant.information ?? null}
+          currentInfo
         />
 
         <section className="space-y-[10px]">
@@ -196,7 +188,11 @@ const ApplicationDetailModal = ({
           </dl>
         </section>
 
-        <AnswerSection title="신청 당시 답변" answers={data?.answers ?? null} />
+        <AnswerSection
+          title="신청 당시 답변"
+          questions={data?.questions ?? null}
+          answers={data?.answers ?? null}
+        />
 
         <section className="space-y-[10px]">
           <p className="text-h3b text-black">상태 변경 이력</p>
