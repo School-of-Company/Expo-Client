@@ -3,19 +3,11 @@
 import { useEffect, useState } from 'react';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { RegistrationSelect } from '../../../common';
-import { PreregisterSort } from '../../../common/api/preregisterLedgerApi';
+import { Q_MAX_LENGTH } from '../../../common/model/ledger';
 import {
-  ACTIVE_STATUS_FILTER,
-  LEDGER_STATUS_LABEL,
-  LedgerStatusFilter,
-  Q_MAX_LENGTH,
-} from '../../../common/model/ledger';
-import { PreregisterFilter } from '../../../common/model/preregisterLedger';
-
-const SORT_OPTIONS: { value: PreregisterSort; label: string }[] = [
-  { value: 'CREATED_DESC', label: '최근 신청순' },
-  { value: 'CREATED_ASC', label: '오래된 신청순' },
-];
+  PREREGISTER_STATUS_FILTERS,
+  PreregisterFilter,
+} from '../../../common/model/preregisterLedger';
 
 interface PreregisterFiltersProps {
   filter: PreregisterFilter;
@@ -53,8 +45,8 @@ const PreregisterFilters = ({
     <div className="grid grid-cols-4 items-center gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
       <div className="col-span-2 mobile:col-span-1">
         <SearchInput
-          label="대표자·동행자 이름·연락처 검색"
-          placeholder="대표자·동행자 이름·연락처"
+          label="사전등록 이름·연락처 검색"
+          placeholder="이름·연락처 (대기 일행은 대표자만)"
           value={keyword}
           onChange={(value) => setKeyword(value.slice(0, Q_MAX_LENGTH))}
         />
@@ -70,21 +62,8 @@ const PreregisterFilters = ({
       <RegistrationSelect
         ariaLabel="상태"
         value={filter.status}
-        onChange={(status) => update({ status: status as LedgerStatusFilter })}
-        options={[
-          { value: '', label: '전체 상태' },
-          { value: ACTIVE_STATUS_FILTER, label: '확정+대기' },
-          ...Object.entries(LEDGER_STATUS_LABEL).map(([value, label]) => ({
-            value,
-            label,
-          })),
-        ]}
-      />
-      <RegistrationSelect
-        ariaLabel="정렬"
-        value={filter.sort}
-        onChange={(sort) => update({ sort: sort as PreregisterSort })}
-        options={SORT_OPTIONS}
+        onChange={(status) => update({ status })}
+        options={PREREGISTER_STATUS_FILTERS}
       />
       <button
         type="button"

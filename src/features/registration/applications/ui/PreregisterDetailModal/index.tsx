@@ -1,25 +1,21 @@
 'use client';
 
 import { useEffect } from 'react';
+import { AnswerList } from '@/entities/form';
 import { XMark } from '@/shared/assets/icons';
-import { Button, Loading } from '@/shared/ui';
+import { Loading } from '@/shared/ui';
 import { formatDateTime, SectionError } from '../../../common';
-import { PreregisterMember } from '../../../common/api/preregisterLedgerApi';
-import {
-  LEDGER_STATUS_LABEL,
-  LEDGER_STATUS_STYLE,
-  OCCUPATION_LABEL,
-} from '../../../common/model/ledger';
+import { OCCUPATION_LABEL } from '../../../common/model/ledger';
 import {
   getPreregisterErrorMessage,
-  isCancellablePreregister,
-  useCancelPreregistration,
+  PREREGISTER_STATUS_LABEL,
+  toPreregisterRow,
   usePreregisterDetail,
 } from '../../../common/model/preregisterLedger';
 
 interface PreregisterDetailModalProps {
   expoId: string;
-  reservationId: string;
+  rowKey: string;
   sessionLabel: (sessionId: number) => string;
   onClose: () => void;
 }
@@ -31,40 +27,17 @@ const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
   </div>
 );
 
-const MemberCard = ({
-  title,
-  member,
-}: {
-  title: string;
-  member: PreregisterMember;
-}) => (
-  <dl className="space-y-8 rounded-sm border-1 border-solid border-gray-200 p-16">
-    <Field label="구분" value={title} />
-    <Field label="이름" value={member.name} />
-    <Field
-      label="직업"
-      value={member.occupation ? OCCUPATION_LABEL[member.occupation] : '-'}
-    />
-    <Field label="개인 번호" value={member.phoneNumber ?? '없음'} />
-    <Field
-      label="대표 수신 번호"
-      value={member.notificationPhoneNumber ?? '없음'}
-    />
-  </dl>
-);
-
-/** 사전등록 일행 한 건을 다시 조회해 최신 상태와 이력을 보여 주고 취소한다 */
+/** 목록 행의 key 로 한 행을 다시 조회한다. 참가자 행은 User 현재 정보, 예약 행은 제출 당시 스냅샷을 보여 준다 */
 const PreregisterDetailModal = ({
   expoId,
-  reservationId,
+  rowKey,
   sessionLabel,
   onClose,
 }: PreregisterDetailModalProps) => {
   const { data, error, isLoading, isError, refetch } = usePreregisterDetail(
     expoId,
-    reservationId,
+    rowKey,
   );
-  const cancellation = useCancelPreregistration(expoId);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -77,26 +50,6 @@ const PreregisterDetailModal = ({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [onClose]);
-
-  const history = [...(data?.history ?? [])].sort((a, b) =>
-    a.createdAt.localeCompare(b.createdAt),
-  );
-
-  const handleCancel = () => {
-    if (!data) return;
-    // 확정 취소는 빈 자리로 대기 일행이 자동 승급된다
-    const promotion =
-      data.status === 'CONFIRMED'
-        ? ' 대기 일행이 있으면 자동으로 확정됩니다.'
-        : '';
-    if (
-      !window.confirm(
-        `${data.representative.name}님 일행(${data.applicants}명) 전체의 사전등록을 취소할까요?${promotion} 취소한 신청은 되돌릴 수 없습니다.`,
-      )
-    )
-      return;
-    cancellation.mutate(data.reservationId);
-  };
 
   const renderBody = () => {
     if (isLoading) {
@@ -117,79 +70,86 @@ const PreregisterDetailModal = ({
         />
       );
     }
+    const row = toPreregisterRow(data);
     return (
       <>
         <section className="space-y-[10px]">
+          <p className="text-h3b text-black">
+            {row.isReservation ? '대기·처리중 일행 (대표자)' : '참가자'}
+          </p>
+          <dl className="space-y-8">
+            <Field label="이름" value={row.name ?? '-'} />
+            {!row.isReservation && (
+              <Field
+                label="구분"
+                value={row.relation === 'REPRESENTATIVE' ? '대표자' : '동행자'}
+              />
+            )}
+            {row.isReservation && (
+              <Field label="일행 인원" value={`${row.applicants}명`} />
+            )}
+            <Field
+              label="직업"
+              value={row.occupation ? OCCUPATION_LABEL[row.occupation] : '-'}
+            />
+            <Field label="개인 번호" value={row.phoneNumber ?? '없음'} />
+            {data.participant && (
+              <Field
+                label="대표 수신 번호"
+                value={data.participant.notificationPhoneNumber ?? '없음'}
+              />
+            )}
+          </dl>
+          {row.isReservation && (
+            <p className="text-caption1r text-gray-400">
+              User 저장 전이라 참가자 ID와 QR이 없습니다. 동행자는 아래 제출
+              당시 답변으로 확인합니다.
+            </p>
+          )}
+        </section>
+
+        <section className="space-y-[10px]">
           <p className="text-h3b text-black">신청</p>
           <dl className="space-y-8">
-            <Field label="회차" value={sessionLabel(data.sessionId)} />
+            <Field label="회차" value={sessionLabel(row.sessionId)} />
+            <Field label="상태" value={PREREGISTER_STATUS_LABEL[row.status]} />
             <Field
-              label="상태"
+              label="신청일시"
               value={
-                <span className={LEDGER_STATUS_STYLE[data.status]}>
-                  {LEDGER_STATUS_LABEL[data.status]}
-                  {data.status === 'WAITING' &&
-                    data.waitingPosition !== null &&
-                    ` (${data.waitingPosition}번째)`}
-                </span>
+                row.createdAt ? formatDateTime(row.createdAt) : '기록 없음'
               }
             />
-            <Field label="일행 인원" value={`${data.applicants}명`} />
-            <Field label="신청일시" value={formatDateTime(data.createdAt)} />
             <Field
-              label="신청 ID"
-              value={<span className="break-all">{data.reservationId}</span>}
+              label="행 ID"
+              value={<span className="break-all">{data.key}</span>}
             />
           </dl>
         </section>
 
-        <section className="space-y-[10px]">
-          <p className="text-h3b text-black">대표자·동행자</p>
-          <MemberCard title="대표자" member={data.representative} />
-          {data.companions.map((member, index) => (
-            <MemberCard
-              key={member.participantId ?? `companion-${index}`}
-              title={`동행자 ${index + 1}`}
-              member={member}
-            />
-          ))}
-        </section>
-
-        <section className="space-y-[10px]">
-          <p className="text-h3b text-black">상태 변경 이력</p>
-          {history.length === 0 ? (
-            <p className="text-body2r text-gray-400">이력이 없습니다.</p>
-          ) : (
-            <ol className="space-y-8">
-              {history.map((item) => (
-                <li key={item.id} className="flex gap-16 text-body2r">
-                  <span className="w-[120px] flex-none text-gray-500">
-                    {formatDateTime(item.createdAt)}
-                  </span>
-                  <span className={LEDGER_STATUS_STYLE[item.status]}>
-                    {LEDGER_STATUS_LABEL[item.status]}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </section>
-
-        {isCancellablePreregister(data.status) && (
+        {data.participant && (
           <section className="space-y-[10px]">
-            <p className="text-caption1r text-gray-400">
-              취소는 일행 전체에 적용됩니다. 이미 입장했거나 취소 기간이
-              끝났으면 서버가 취소를 거절합니다.
-            </p>
-            <Button
-              variant="white"
-              disabled={cancellation.isPending}
-              onClick={handleCancel}
-            >
-              {cancellation.isPending ? '취소하는 중...' : '신청 취소'}
-            </Button>
+            <p className="text-h3b text-black">참가자 등록 답변 (현재)</p>
+            <AnswerList
+              questions={null}
+              answers={data.participant.information}
+              currentInfo
+            />
           </section>
         )}
+
+        {data.reservation && (
+          <section className="space-y-[10px]">
+            <p className="text-h3b text-black">제출 당시 답변</p>
+            <AnswerList
+              questions={data.reservation.questions ?? null}
+              answers={data.reservation.informationJson ?? null}
+            />
+          </section>
+        )}
+
+        <p className="text-caption1r text-gray-400">
+          사전등록 관리자 취소는 서버 계약 확장 전이라 제공하지 않습니다.
+        </p>
       </>
     );
   };

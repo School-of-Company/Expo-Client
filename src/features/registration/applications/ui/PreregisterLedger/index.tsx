@@ -4,39 +4,33 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
 import { NavigationBar } from '@/shared/ui';
-import SmallButton from '@/shared/ui/SmallButton';
 import {
   RefreshStatus,
   SectionError,
   usePreregisterSessions,
   useRegistrationExpo,
 } from '../../../common';
-import { GroupMessageSource } from '../../../common/api/groupMessageApi';
 import {
   formatDefinitionSchedule,
   LEDGER_PAGE_SIZE,
   LEDGER_REFRESH_MS,
-  LEDGER_STATUS_LABEL,
 } from '../../../common/model/ledger';
 import {
   describePreregisterFilter,
   getPreregisterErrorMessage,
   INITIAL_PREREGISTER_FILTER,
   PreregisterFilter,
-  PreregisterRow,
-  toPreregisterTargetFilter,
   usePreregisterLedger,
 } from '../../../common/model/preregisterLedger';
-import GroupMessageModal, { Scope } from '../GroupMessageModal';
+import { usePreregisterSummary } from '../../../common/model/preregisterSummary';
 import PreregisterDetailModal from '../PreregisterDetailModal';
-import PreregisterExcelModal from '../PreregisterExcelModal';
 import PreregisterFilters from '../PreregisterFilters';
 import PreregisterTable from '../PreregisterTable';
 
-const OUTLINE_ACTION =
-  'rounded-sm border-1 border-solid border-gray-200 bg-white px-16 py-6 text-body2r text-gray-500 duration-200 hover:border-main-600 hover:text-main-600';
+const DISABLED_ACTION =
+  'cursor-not-allowed rounded-sm border-1 border-solid border-gray-200 bg-gray-50 px-16 py-6 text-body2r text-gray-300';
 
-/** 접수 관리대장의 사전등록 탭. 검색·선택·엑셀·메시지는 이 탭의 조건만 쓴다 */
+/** 접수 관리대장의 사전등록 탭. 이 탭의 조건은 프로그램·연수 탭과 섞이지 않는다 */
 const PreregisterLedger = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,14 +41,8 @@ const PreregisterLedger = () => {
   const [filter, setFilter] = useState<PreregisterFilter>(
     INITIAL_PREREGISTER_FILTER,
   );
-  // 서버 페이지를 넘겨도 선택이 유지되도록 선택한 행 자체를 보관한다
-  const [selected, setSelected] = useState<Map<string, PreregisterRow>>(
-    new Map(),
-  );
-  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
-  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
-  const [detailId, setDetailId] = useState<string | null>(null);
-  const closeDetail = useCallback(() => setDetailId(null), []);
+  const [detailKey, setDetailKey] = useState<string | null>(null);
+  const closeDetail = useCallback(() => setDetailKey(null), []);
 
   const {
     data,
@@ -62,11 +50,12 @@ const PreregisterLedger = () => {
     isLoading,
     isError,
     isFetching,
-    isPlaceholderData,
     dataUpdatedAt,
     refetch,
   } = usePreregisterLedger(expoId, filter, page - 1);
   const { data: sessions = [] } = usePreregisterSessions(expoId);
+  // 행사 전체 인원 집계. 실패해도 목록은 보여 주고 이 값만 비워 둔다
+  const summary = usePreregisterSummary(expoId);
 
   const sessionOptions = useMemo(
     () =>
@@ -85,19 +74,9 @@ const PreregisterLedger = () => {
 
   const rows = useMemo(() => data?.rows ?? [], [data]);
   const totalCount = data?.totalElements ?? 0;
-  const statusCounts = data?.statusCounts ?? {};
-  // 이전 필터 결과나 실패한 조회의 건수로 다운로드를 막지 않도록 현재 조건의 건수만 넘긴다
-  const confirmedCount =
-    data && !isPlaceholderData && !isError ? data.totalElements : undefined;
   const totalPage = Math.max(Math.ceil(totalCount / LEDGER_PAGE_SIZE), 1);
-  const selectedIds = useMemo(() => new Set(selected.keys()), [selected]);
-  const selectedRows = useMemo(() => Array.from(selected.values()), [selected]);
 
-  const appliedConditions = describePreregisterFilter(
-    filter,
-    (id) => sessionLabel(Number(id)),
-    LEDGER_STATUS_LABEL,
-  );
+  const appliedConditions = describePreregisterFilter(filter, sessionLabel);
   const filterSummary =
     appliedConditions.length > 0 ? appliedConditions.join(' · ') : '전체';
 
@@ -109,39 +88,6 @@ const PreregisterLedger = () => {
     },
     [router],
   );
-
-  const buildMessageScope = useCallback(
-    (scope: Scope): GroupMessageSource['scope'] =>
-      scope === 'SELECTED'
-        ? {
-            kind: 'PREREGISTER_SELECTED',
-            reservationIds: selectedRows.map(({ id }) => id),
-          }
-        : {
-            kind: 'PREREGISTER_FILTERED',
-            filter: toPreregisterTargetFilter(filter),
-          },
-    [selectedRows, filter],
-  );
-
-  const handleToggle = (id: string) =>
-    setSelected((prev) => {
-      const next = new Map(prev);
-      const row = rows.find((item) => item.id === id);
-      if (next.has(id)) next.delete(id);
-      else if (row) next.set(id, row);
-      return next;
-    });
-
-  const handleTogglePage = () =>
-    setSelected((prev) => {
-      const next = new Map(prev);
-      const isAllSelected = rows.every(({ id }) => next.has(id));
-      rows.forEach((row) =>
-        isAllSelected ? next.delete(row.id) : next.set(row.id, row),
-      );
-      return next;
-    });
 
   return withLoading({
     isLoading: isLoading && !data,
@@ -157,37 +103,49 @@ const PreregisterLedger = () => {
               hasError={isError && !!data}
             />
             <div className="flex flex-wrap items-center gap-8">
-              <SmallButton
-                text={`그룹 메시지 (${selected.size} 선택)`}
-                onClick={() => setIsMessageModalOpen(true)}
-              />
+              {/* Report·Notification 이 사전등록 대상을 받기 전이라 성공한 것처럼 보이지 않게 막아 둔다 */}
               <button
                 type="button"
-                onClick={() => setIsExcelModalOpen(true)}
-                className={OUTLINE_ACTION}
+                disabled
+                title="사전등록 엑셀은 Report 서버 계약 확장 후 제공됩니다"
+                className={DISABLED_ACTION}
               >
-                현재 조건 엑셀
+                엑셀 (준비 중)
+              </button>
+              <button
+                type="button"
+                disabled
+                title="사전등록 그룹 메시지는 Notification 서버 계약 확장 후 제공됩니다"
+                className={DISABLED_ACTION}
+              >
+                그룹 메시지 (준비 중)
               </button>
             </div>
           </div>
 
-          <div className="flex items-start justify-between gap-16 rounded-sm bg-main-100 px-20 py-16 mobile:flex-col mobile:px-16">
+          <div className="space-y-4 rounded-sm bg-main-100 px-20 py-16 mobile:px-16">
             <p className="text-body2r text-gray-500">
               <span className="text-body2b text-main-600">사전등록 탭</span> —
-              엑셀·그룹 메시지는 이 탭의 선택과 검색 결과에만 적용됩니다.
-              메시지는 대표자 번호로 보내며 동일한 연락처는 중복 발송하지
-              않습니다.
-              <br />
+              확정·취소는 참가자 1명, 대기·처리중은 예약 일행 1건이 한 행입니다.
+              행 수는 인원 수가 아닙니다. 엑셀·그룹 메시지·관리자 취소는 서버가
+              지원하는 대로 열립니다.
+            </p>
+            <p className="text-body2r text-gray-500">
               적용 중인 조건: {filterSummary}
             </p>
-            <p className="shrink-0 whitespace-nowrap text-body2r text-gray-500">
-              현재 조회 결과{' '}
-              <span className="text-body2b text-main-600">
-                {totalCount.toLocaleString()}
-              </span>
-              건
-            </p>
           </div>
+
+          {summary.data && (
+            <p className="text-body2r text-gray-500">
+              행사 전체 인원 — 확정{' '}
+              <span className="text-main-600">
+                {summary.data.confirmedUniqueParticipants}
+              </span>
+              명 · 대기 {summary.data.waitingParticipants}명 · 확정 처리중{' '}
+              {summary.data.pendingApplicants}명 · 취소 이력{' '}
+              {summary.data.cancelledUniqueParticipants}명 (필터와 무관)
+            </p>
+          )}
         </div>
 
         <PreregisterFilters
@@ -206,95 +164,26 @@ const PreregisterLedger = () => {
             onRetry={() => refetch()}
           />
         ) : (
-          <div className="space-y-16">
-            <div className="flex items-center justify-between gap-16 text-body2r text-gray-500">
-              <p>
-                검색 결과{' '}
-                <span className="text-black">
-                  {totalCount.toLocaleString()}
-                </span>
-                건(일행)
-                {data?.totalApplicants !== undefined && (
-                  <>
-                    {' · '}인원{' '}
-                    <span className="text-black">
-                      {data.totalApplicants.toLocaleString()}명
-                    </span>
-                  </>
-                )}
-                {' · '}확정{' '}
-                <span className="text-main-600">
-                  {statusCounts.CONFIRMED ?? 0}
-                </span>
-                {' · '}대기{' '}
-                <span className="text-black">{statusCounts.WAITING ?? 0}</span>
-                {' · '}취소 {statusCounts.CANCELLED ?? 0}
-              </p>
-              {selected.size > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setSelected(new Map())}
-                  className="text-caption1r text-gray-400 underline"
-                >
-                  선택 해제
-                </button>
-              )}
-            </div>
-
-            <PreregisterTable
-              rows={rows}
-              totalCount={totalCount}
-              sort={filter.sort}
-              onSortChange={(sort) => handleFilterChange({ ...filter, sort })}
-              sessionLabel={sessionLabel}
-              selectedIds={selectedIds}
-              onToggle={handleToggle}
-              onTogglePage={handleTogglePage}
-              onRowClick={({ id }) => setDetailId(id)}
-              footerActions={
-                <p className="text-body2r text-gray-500">
-                  선택 <span className="text-main-600">{selected.size}</span>
-                </p>
-              }
-            >
-              {totalPage > 1 && (
-                <div className="flex justify-center">
-                  <NavigationBar totalPage={totalPage} />
-                </div>
-              )}
-            </PreregisterTable>
-          </div>
+          <PreregisterTable
+            rows={rows}
+            totalCount={totalCount}
+            sessionLabel={sessionLabel}
+            onRowClick={({ id }) => setDetailKey(id)}
+          >
+            {totalPage > 1 && (
+              <div className="flex justify-center">
+                <NavigationBar totalPage={totalPage} />
+              </div>
+            )}
+          </PreregisterTable>
         )}
 
-        {detailId && (
+        {detailKey && (
           <PreregisterDetailModal
             expoId={expoId}
-            reservationId={detailId}
+            rowKey={detailKey}
             sessionLabel={sessionLabel}
             onClose={closeDetail}
-          />
-        )}
-
-        {isMessageModalOpen && (
-          <GroupMessageModal
-            expoId={expoId}
-            selectedCount={selected.size}
-            filterCount={totalCount}
-            buildScope={buildMessageScope}
-            filteredBlocker={null}
-            targetLabel="사전등록"
-            onClose={() => setIsMessageModalOpen(false)}
-          />
-        )}
-
-        {isExcelModalOpen && (
-          <PreregisterExcelModal
-            expoId={expoId}
-            selectedRows={selectedRows}
-            filter={filter}
-            filterCount={confirmedCount}
-            filterSummary={filterSummary}
-            onClose={() => setIsExcelModalOpen(false)}
           />
         )}
       </div>
