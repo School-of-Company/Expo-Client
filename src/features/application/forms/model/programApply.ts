@@ -65,6 +65,11 @@ export const getProgramPolicyNotes = (
     notes.push(
       `${occupations(policy.allowedOccupations)} 신청 가능 · ${seats(policy.capacity, policy.waitingCapacity)}`,
     );
+    // 사전·현장 정원은 안내만 한다. 이 화면은 사전 신청이며 어느 정원을 쓰는지는 서버가 판정한다
+    if (policy.preRegisterCapacity != null)
+      notes.push(
+        `사전 접수 정원 ${policy.preRegisterCapacity.toLocaleString()}명`,
+      );
   }
   // 서버는 묶음을 지정하지 않은 프로그램에도 고유 묶음을 넣으므로, 묶음을 함께 쓰는 프로그램이 있을 때만 안내한다
   if (sharedGroupLabel)
