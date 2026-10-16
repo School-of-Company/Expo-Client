@@ -4,6 +4,7 @@ import {
   WalkInCategory,
   WalkInCounts,
 } from '@/shared/types/exhibition/check-in/entry';
+import { scannerNameConfig } from './scannerNameHeader';
 
 // 참여 서비스 간편입장 카운터(관리자 전용, 박람회 ID 는 소문자 UUID). Gateway 경로는 /walk-in-counts 다
 const walkInPath = (expoId: string) =>
@@ -37,11 +38,13 @@ export interface RecordWalkInRequest {
 export const postWalkIn = async (
   expoId: string,
   data: RecordWalkInRequest,
+  scannerName?: string,
 ): Promise<WalkInCounts> => {
   try {
     const response = await clientTokenInstance.post<WalkInCounts>(
       walkInPath(expoId),
       data,
+      scannerNameConfig(scannerName),
     );
     return response.data;
   } catch (error) {

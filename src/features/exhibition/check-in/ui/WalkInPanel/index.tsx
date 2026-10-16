@@ -11,15 +11,29 @@ const CATEGORIES: { value: WalkInCategory; label: string }[] = [
 ];
 
 /** QR 없는 방문객을 개인정보 없이 구분별 인원수로만 센다 */
-const WalkInPanel = ({ expoId }: { expoId: string }) => {
+const WalkInPanel = ({
+  expoId,
+  scannerName,
+  isExitMode,
+}: {
+  expoId: string;
+  scannerName?: string;
+  isExitMode: boolean;
+}) => {
   const { data, error, isError, refetch, isFetching } = useWalkInCounts(expoId);
-  const { mutate, isPending } = useRecordWalkIn(expoId);
+  const { mutate, isPending } = useRecordWalkIn(expoId, scannerName);
 
   const countOf = (category: WalkInCategory) =>
     data?.counts?.find((item) => item.category === category)?.count ?? 0;
 
   // 조회가 안 되면 기록도 안 되므로 버튼을 막는다
   const isUnavailable = isError && !data;
+
+  // 퇴장 모드에서 +1 을 누르면 입장으로 잘못 세므로 버튼과 함께 요청도 막는다
+  const handleAdd = (category: WalkInCategory) => {
+    if (isExitMode) return;
+    mutate({ category, action: 'ADD' });
+  };
 
   return (
     <section className="space-y-16 rounded-sm border-1 border-solid border-gray-200 px-24 py-20 mobile:px-16">
@@ -33,8 +47,8 @@ const WalkInPanel = ({ expoId }: { expoId: string }) => {
         {CATEGORIES.map(({ value, label }) => (
           <div key={value} className="space-y-8">
             <Button
-              onClick={() => mutate({ category: value, action: 'ADD' })}
-              disabled={isUnavailable || isPending}
+              onClick={() => handleAdd(value)}
+              disabled={isExitMode || isUnavailable || isPending}
             >
               {label} +1
             </Button>
@@ -55,6 +69,11 @@ const WalkInPanel = ({ expoId }: { expoId: string }) => {
           </div>
         ))}
       </div>
+      {isExitMode && !isUnavailable && (
+        <p className="break-keep text-body2r text-main-600">
+          퇴장 모드에서는 간편입장 +1을 쓸 수 없습니다. 입장 모드로 바꿔 주세요.
+        </p>
+      )}
       {isUnavailable ? (
         <div role="alert" className="flex items-center justify-between gap-12">
           <p className="break-keep text-body2r text-gray-500">

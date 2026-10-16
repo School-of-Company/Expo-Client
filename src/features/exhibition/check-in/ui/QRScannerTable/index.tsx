@@ -4,6 +4,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 import { ExhibitionCheckInHeader } from '@/entities/exhibition';
+import { maskParticipantPhone } from '@/features/registration/participants/model/participantSearch';
 import { toRoleAuthority, USER_AUTHORITY } from '@/shared/config';
 import { useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
@@ -20,10 +21,12 @@ import { useExitUserMutation } from '../../model/useExitUserMutation';
 import { usePaperQrAttendanceMutation } from '../../model/usePaperQrAttendanceMutation';
 import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';
 import { toAttendUserRowKey, userQrPrint } from '../../model/userQrPrint';
+import { useScannerSettings } from '../../model/useScannerSettings';
 import CameraScanner from '../CameraScanner';
 import EntrySummaryPanel from '../EntrySummaryPanel';
 import ManualScanInput from '../ManualScanInput';
-import ScanModeToggle, { ScanMode } from '../ScanModeToggle';
+import ScanModeToggle from '../ScanModeToggle';
+import ScannerNameInput from '../ScannerNameInput';
 import ScanResultCard from '../ScanResultCard';
 import WalkInPanel from '../WalkInPanel';
 
@@ -31,11 +34,18 @@ const QRScannerTable = ({ id }: { id: string }) => {
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
   const [userData, setUserData] = useState<AttendUserResponse[]>([]);
   const [paperQrCount, setPaperQrCount] = useState(0);
-  const { mutateAsync: attendUser } = usePatchAttendUserMutation(id);
-  const { mutateAsync: attendPaperQr } = usePaperQrAttendanceMutation(id);
-  const { mutateAsync: exitUser } = useExitUserMutation(id);
+  // 스캐너 이름과 모드는 새로고침해도 유지되도록 박람회별로 저장한다
+  const { scannerName, setScannerName, mode, setMode } = useScannerSettings(id);
+  const { mutateAsync: attendUser } = usePatchAttendUserMutation(
+    id,
+    scannerName,
+  );
+  const { mutateAsync: attendPaperQr } = usePaperQrAttendanceMutation(
+    id,
+    scannerName,
+  );
+  const { mutateAsync: exitUser } = useExitUserMutation(id, scannerName);
   const invalidateSummary = useInvalidateEntrySummary(id);
-  const [mode, setMode] = useState<ScanMode>('entry');
   const [lastResult, setLastResult] = useState<ScanResult | null>(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
 
@@ -155,6 +165,12 @@ const QRScannerTable = ({ id }: { id: string }) => {
     handleScan();
   }, [scannedQR]);
 
+  // 표에는 참가자 검색과 같은 규칙으로 가린 번호만 보여 준다(번호 없으면 '-')
+  const maskedUserData = userData.map((user) => ({
+    ...user,
+    phoneNumber: maskParticipantPhone(user.phoneNumber),
+  }));
+
   const userQrPrintActions = {
     PrintBadge: (selectItem: string) => userQrPrint(userData, selectItem),
   };
@@ -165,14 +181,27 @@ const QRScannerTable = ({ id }: { id: string }) => {
         <ExhibitionCheckInHeader />
         <ScanModeToggle mode={mode} onChange={setMode} />
       </div>
-      {mode === 'exit' && (
-        <p className="break-keep text-body2r text-main-600">
+      {/* 지금 모드를 늘 보여 주고, 퇴장은 잘못 찍지 않도록 눈에 띄게 둔다 */}
+      {mode === 'exit' ? (
+        <p
+          role="status"
+          className="break-keep rounded-sm border-1 border-solid border-error px-16 py-12 text-body2b text-error"
+        >
           퇴장 모드입니다. 스캔한 QR은 퇴장으로 기록되고 아래 표에는 추가되지
           않습니다.
+        </p>
+      ) : (
+        <p
+          role="status"
+          className="break-keep rounded-sm border-1 border-solid border-main-600 px-16 py-12 text-body2b text-main-600"
+        >
+          입장 모드입니다. 스캔한 QR은 입장으로 기록됩니다.
         </p>
       )}
       <section className="grid grid-cols-2 gap-24 mobile:grid-cols-1">
         <div className="space-y-12">
+          <p className="text-body1b text-black">스캐너 이름</p>
+          <ScannerNameInput scannerName={scannerName} onSave={setScannerName} />
           <p className="text-body1b text-black">QR 스캔</p>
           <p className="break-keep text-body2r text-gray-500">
             USB 스캐너는 버튼 없이 바로 처리됩니다. 스캐너가 읽지 못하면 값을
@@ -195,7 +224,11 @@ const QRScannerTable = ({ id }: { id: string }) => {
           isProcessing={scannedQR !== null}
         />
       </section>
-      <WalkInPanel expoId={id} />
+      <WalkInPanel
+        expoId={id}
+        scannerName={scannerName}
+        isExitMode={mode === 'exit'}
+      />
       <EntrySummaryPanel expoId={id} />
       {paperQrCount > 0 && (
         <p className="text-body2r text-gray-500">
@@ -204,7 +237,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
       )}
       <TableForm
         categories={CHECK_IN_PRINT_CATEGORIES}
-        data={userData}
+        data={maskedUserData}
         getRowKey={toAttendUserRowKey}
         maxHeight="414px"
         footerType="print"
