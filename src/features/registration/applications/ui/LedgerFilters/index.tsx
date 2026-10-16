@@ -38,7 +38,6 @@ interface LedgerFiltersProps {
   onChange: (filter: LedgerFilter) => void;
   /** 박람회 기간의 날짜 (YYYY-MM-DD) */
   expoDays?: string[];
-  onReset: () => void;
 }
 
 // 검색어는 서버로 가므로 입력을 멈춘 뒤에 반영한다
@@ -49,7 +48,6 @@ const LedgerFilters = ({
   sessions,
   onChange,
   expoDays = [],
-  onReset,
 }: LedgerFiltersProps) => {
   const update = (patch: Partial<LedgerFilter>) =>
     onChange({ ...filter, ...patch });
@@ -71,17 +69,19 @@ const LedgerFilters = ({
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-4 items-center gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
-        <div className="col-span-2 mobile:col-span-1">
+      <div className="grid grid-cols-6 items-center gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
+        <div className="col-span-3 mobile:col-span-1 tablet:col-span-2">
           <SearchInput
+            className="[&_input]:py-12 [&_input]:text-body2r"
             label="참가자 이름·연락처 검색"
             placeholder="이름·연락처"
             value={keyword}
             onChange={(value) => setKeyword(value.slice(0, Q_MAX_LENGTH))}
           />
         </div>
-        <div className="col-span-2 mobile:col-span-1">
+        <div className="col-span-3 mobile:col-span-1 tablet:col-span-2">
           <SearchInput
+            className="[&_input]:py-12 [&_input]:text-body2r"
             label="제출 당시 제목 검색"
             placeholder="제출 당시 제목으로 검색"
             value={title}
@@ -92,7 +92,8 @@ const LedgerFilters = ({
           <RegistrationSelect
             ariaLabel="회차"
             value={filter.session}
-            onChange={(session) => update({ session })}
+            // 회차와 행사일은 서로 모순될 수 있어 하나를 고르면 다른 하나를 비운다
+            onChange={(session) => update({ session, eventDate: '' })}
             options={[
               { value: '', label: '전체 회차' },
               ...sessions.map((session) => ({
@@ -134,7 +135,7 @@ const LedgerFilters = ({
         <RegistrationSelect
           ariaLabel="행사일"
           value={filter.eventDate}
-          onChange={(eventDate) => update({ eventDate })}
+          onChange={(eventDate) => update({ eventDate, session: '' })}
           options={[
             { value: '', label: '전체 행사일' },
             ...expoDays.map((day) => ({
@@ -149,13 +150,6 @@ const LedgerFilters = ({
           onChange={(sort) => update({ sort: sort as AdminApplicationSort })}
           options={SORT_OPTIONS}
         />
-        <button
-          type="button"
-          onClick={onReset}
-          className="whitespace-nowrap px-8 text-body2r text-gray-500 underline"
-        >
-          초기화
-        </button>
       </div>
     </div>
   );
