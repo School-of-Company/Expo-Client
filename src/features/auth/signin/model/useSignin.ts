@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
+import { EXPO_LIST_PATH } from '@/shared/config';
 import { SignInData } from '@/shared/types/signin/type';
 import { postSignin, SigninError } from '../api/postSignin';
 
@@ -30,7 +31,7 @@ export const useSignin = () => {
     mutationFn: (data: SignInData) => postSignin(data),
     onSuccess: () => {
       toast.success('로그인이 완료되었습니다.');
-      router.push('/');
+      router.push(EXPO_LIST_PATH);
     },
     onError: (error: Error) => {
       if (error instanceof SigninError && error.status === 429) {

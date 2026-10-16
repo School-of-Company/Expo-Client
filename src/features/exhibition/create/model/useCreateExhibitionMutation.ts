@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import { EXPO_LIST_PATH } from '@/shared/config';
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 import { handleCreateExhibitionFormSubmit } from '../lib/handleCreateExhibitionFormSubmit';
 
@@ -15,7 +16,7 @@ export const useCreateExhibitionMutation = () => {
       queryClient.invalidateQueries({ queryKey: ['expoList'] });
       // 목록 카드의 폼·설문 생성 여부도 박람회 목록과 함께 바뀐다
       queryClient.invalidateQueries({ queryKey: ['expoValid'] });
-      router.push(`/`);
+      router.push(EXPO_LIST_PATH);
       toast.success('박람회가 생성되었습니다.');
     },
     onError: (error: Error) => {
