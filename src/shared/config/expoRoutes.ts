@@ -27,6 +27,12 @@ export const getExpoRoutes = (expoId: string) => {
   return {
     checkIn: `/exhibition/check-in/${id}`,
     paperQr: `/exhibition/paper-qr/${id}`,
+    // 프로그램 한 개의 출석 명단·QR 출석 체크
+    programAttendance: (
+      programType: 'STANDARD' | 'TRAINING',
+      programId: number,
+    ) =>
+      `/program/${id}/detail/${programId}?navigation=${programType === 'TRAINING' ? 'training' : 'standard'}`,
     // 현장 신청용 QR 을 화면에 띄운다. 연수자는 사전 등록만 있다
     accessQr: (
       userType: 'STANDARD' | 'TRAINEE',

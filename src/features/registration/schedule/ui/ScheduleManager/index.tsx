@@ -1,113 +1,77 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'react-toastify';
+import { useCallback, useMemo, useState } from 'react';
+import { retryProgramChanges } from '@/shared/api';
 import { withLoading } from '@/shared/hocs';
-import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { Button } from '@/shared/ui';
 import {
   deletePreregisterSession,
-  patchPreregisterSession,
+  deleteScheduleProgram,
   PreregisterSession,
   retryPreregisterSessionChange,
   ScheduleProgram,
   SectionError,
+  SegmentTabs,
   useInvalidateSchedule,
   usePreregisterSessions,
   useRegistrationExpo,
   useSchedulePrograms,
   useScheduleMutation,
 } from '../../../common';
-import { ProgramForm } from '../../model/policyForm';
 import {
-  SessionForm,
-  toSessionDefinition,
-  toSessionForm,
-  validateSessionForm,
-} from '../../model/sessionForm';
+  EMPTY_PROGRAM_FORM,
+  ProgramForm as ProgramFormValue,
+} from '../../model/policyForm';
+import { toProgramKey } from '../../model/programFormLink';
 import { useProgramDraftRestore } from '../../model/useProgramDraftRestore';
-import BulkPolicySection from '../BulkPolicySection';
-import CreateEntry from '../CreateEntry';
-import ProgramSection, {
-  PROGRAM_FORM_ID,
-  ProgramEditing,
-} from '../ProgramSection';
-import SessionSection, { SESSION_FORM_ID, SessionRow } from '../SessionSection';
+import BulkPolicyModal from '../BulkPolicyModal';
+import ProgramForm from '../ProgramForm';
+import ScheduleModal from '../ScheduleModal';
+import ScheduleTable, {
+  ScheduleItem,
+  ScheduleKind,
+  toSessionItemId,
+} from '../ScheduleTable';
+import SessionForm from '../SessionForm';
 
-// 상태를 바꾼 뒤 그려진 양식으로 스크롤한다
-const scrollToForm = (id: string) =>
-  requestAnimationFrame(() =>
-    document
-      .getElementById(id)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-  );
+type Filter = 'ALL' | ScheduleKind;
 
-/** 변경이 서버에 남아 재시도로 이어서 처리할 수 있는 실패 */
-const isRetryable = (error: unknown) => {
-  const status = getErrorStatus(error);
-  return status === 502 || status === 503;
-};
+/** 표 위에 열려 있는 양식. 회차 구분을 고르기 전에는 choose */
+type Panel =
+  | null
+  | { type: 'choose' }
+  | { type: 'program'; target: ScheduleProgram | 'new'; kind?: ScheduleKind }
+  | { type: 'session'; target: number | 'new' };
 
-interface ScheduleManagerProps {
-  /** 프로그램 화면의 사전등록 회차 탭. 프로그램 표와 왼쪽 메뉴(일괄 설정·개설 카드) 없이 사전등록 회차만 다룬다 */
-  sessionsOnly?: boolean;
-}
-
-const ScheduleManager = ({ sessionsOnly = false }: ScheduleManagerProps) => {
+const ScheduleManager = () => {
   const { expoId } = useRegistrationExpo();
   const sessionsQuery = usePreregisterSessions(expoId);
   const programsQuery = useSchedulePrograms(expoId);
   const invalidate = useInvalidateSchedule(expoId);
 
-  // 서버 값과 별개로 고친 회차만 보관한다
-  const [edits, setEdits] = useState<Map<number, SessionForm>>(new Map());
+  const [filter, setFilter] = useState<Filter>('ALL');
+  const [panel, setPanel] = useState<Panel>(null);
+  // 폼을 만들고 돌아왔을 때 열린 양식에 채울 회차 초안
+  const [draftForm, setDraftForm] = useState<ProgramFormValue>();
   const [retryIds, setRetryIds] = useState<Set<number>>(new Set());
-  const [isSaving, setIsSaving] = useState(false);
-  const isDirty = edits.size > 0;
-  const [isAsideOpen, setIsAsideOpen] = useState(true);
-  const [programEditing, setProgramEditing] = useState<ProgramEditing>(null);
-  const [draftForm, setDraftForm] = useState<ProgramForm>();
-  const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
 
-  useEffect(() => {
-    if (!isDirty) return undefined;
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = '';
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
+  const programs = useMemo(
+    () => programsQuery.data ?? [],
+    [programsQuery.data],
+  );
+  const sessions = useMemo(
+    () => sessionsQuery.data ?? [],
+    [sessionsQuery.data],
+  );
 
   useProgramDraftRestore(
     expoId,
-    // 사전등록 회차만 다룰 때는 프로그램 초안 복원을 프로그램 목록 화면이 맡는다
-    sessionsOnly ? undefined : programsQuery.data,
-    useCallback((target: ScheduleProgram | 'new', form: ProgramForm) => {
+    programsQuery.data,
+    useCallback((target: ScheduleProgram | 'new', form: ProgramFormValue) => {
       setDraftForm(form);
-      setProgramEditing(target);
-      scrollToForm(PROGRAM_FORM_ID);
+      setPanel({ type: 'program', target });
     }, []),
-  );
-
-  // 초안은 그 양식에만 채운다. 다른 회차를 열면 서버 값으로 시작한다
-  const handleProgramEditingChange = (editing: ProgramEditing) => {
-    setDraftForm(undefined);
-    setProgramEditing(editing);
-  };
-
-  const sessions = sessionsQuery.data;
-  const rows = useMemo<SessionRow[]>(
-    () =>
-      [...(sessions ?? [])]
-        .sort((a, b) => a.startedAt.localeCompare(b.startedAt))
-        .map((session) => ({
-          id: session.id,
-          session,
-          form: edits.get(session.id) ?? toSessionForm(session),
-          needsRetry: retryIds.has(session.id),
-        })),
-    [sessions, edits, retryIds],
   );
 
   const markRetry = (id: number, needsRetry: boolean) =>
@@ -118,207 +82,243 @@ const ScheduleManager = ({ sessionsOnly = false }: ScheduleManagerProps) => {
       return next;
     });
 
-  const { mutate: removeSession, isPending: isDeleting } = useScheduleMutation(
-    expoId,
-    (session: PreregisterSession) =>
-      deletePreregisterSession(expoId, session.id, session.revision),
-    '회차를 삭제했습니다.',
-  );
-  const { mutate: retrySession, isPending: isRetrying } = useScheduleMutation(
-    expoId,
-    async (session: PreregisterSession) => {
-      await retryPreregisterSessionChange(expoId, session.id);
-      markRetry(session.id, false);
-    },
-    '중단된 회차 변경을 다시 처리했습니다.',
-  );
-
-  const handleChange = (id: number, patch: Partial<SessionForm>) => {
-    const session = sessions?.find((item) => item.id === id);
-    if (!session) return;
-    setEdits((prev) =>
-      new Map(prev).set(id, {
-        ...(prev.get(id) ?? toSessionForm(session)),
-        ...patch,
-      }),
-    );
+  const openPanel = (next: Panel) => {
+    setDraftForm(undefined);
+    setPanel(next);
   };
 
-  const handleDelete = (session: PreregisterSession) => {
+  const { mutate: removeProgram, isPending: isDeletingProgram } =
+    useScheduleMutation(
+      expoId,
+      deleteScheduleProgram,
+      '프로그램을 삭제했습니다.',
+    );
+  const { mutate: removeSession, isPending: isDeletingSession } =
+    useScheduleMutation(
+      expoId,
+      (session: PreregisterSession) =>
+        deletePreregisterSession(expoId, session.id, session.revision),
+      '회차를 삭제했습니다.',
+    );
+  const { mutate: retryPrograms, isPending: isRetryingPrograms } =
+    useScheduleMutation(
+      expoId,
+      () => retryProgramChanges(expoId),
+      '중단된 프로그램 변경을 다시 처리했습니다.',
+    );
+  const { mutate: retrySession, isPending: isRetryingSession } =
+    useScheduleMutation(
+      expoId,
+      async (session: PreregisterSession) => {
+        await retryPreregisterSessionChange(expoId, session.id);
+        markRetry(session.id, false);
+      },
+      '중단된 회차 변경을 다시 처리했습니다.',
+    );
+  const isBusy =
+    isDeletingProgram ||
+    isDeletingSession ||
+    isRetryingPrograms ||
+    isRetryingSession;
+
+  const items = useMemo<ScheduleItem[]>(() => {
+    const programItems: ScheduleItem[] = programs.map((program) => ({
+      id: toProgramKey(program),
+      kind: 'program',
+      program,
+    }));
+    const sessionItems: ScheduleItem[] = [...sessions]
+      .sort((a, b) => a.startedAt.localeCompare(b.startedAt))
+      .map((session) => ({
+        id: toSessionItemId(session.id),
+        kind: 'session',
+        session,
+        needsRetry: retryIds.has(session.id),
+      }));
+    return [...programItems, ...sessionItems];
+  }, [programs, sessions, retryIds]);
+
+  const matches = (item: ScheduleItem, kind: Filter) => {
+    if (kind === 'ALL') return true;
+    if (kind === 'PRE') return item.kind === 'session';
+    return item.kind === 'program' && item.program.programType === kind;
+  };
+  const count = (kind: Filter) =>
+    items.filter((item) => matches(item, kind)).length;
+  const visibleItems = items.filter((item) => matches(item, filter));
+  const pendingCount = programs.filter(
+    ({ pendingRevision }) => pendingRevision !== null,
+  ).length;
+
+  const handleAdd = () => {
+    if (filter === 'PRE') openPanel({ type: 'session', target: 'new' });
+    else if (filter === 'ALL') openPanel({ type: 'choose' });
+    else openPanel({ type: 'program', target: 'new', kind: filter });
+  };
+
+  const handleDeleteProgram = (program: ScheduleProgram) => {
+    if (
+      !window.confirm(
+        `'${program.title}' 프로그램을 삭제할까요? 신청 이력이 있으면 삭제할 수 없습니다.`,
+      )
+    )
+      return;
+    removeProgram(program);
+  };
+
+  const handleDeleteSession = (session: PreregisterSession) => {
     if (!window.confirm(`'${session.title}' 회차를 삭제할까요?`)) return;
     removeSession(session);
   };
 
-  const handleCancel = () => {
-    if (!window.confirm('저장하지 않은 변경 내용을 모두 되돌릴까요?')) return;
-    setEdits(new Map());
-  };
+  const error = sessionsQuery.error ?? programsQuery.error;
+  const closePanel = () => setPanel(null);
 
-  const handleSave = async () => {
-    if (!sessions) return;
-    const targets = sessions.filter(({ id }) => edits.has(id));
-    for (const session of targets) {
-      const error = validateSessionForm(edits.get(session.id)!);
-      if (error) {
-        toast.error(`${session.title}: ${error}`);
-        return;
-      }
-    }
-
-    setIsSaving(true);
-    // 회차마다 revision 이 달라 한 건씩 보낸다. 실패한 회차는 수정 내용을 남겨 다시 저장할 수 있게 한다
-    const failed: string[] = [];
-    const remaining = new Map(edits);
-    for (const session of targets) {
-      try {
-        await patchPreregisterSession(
-          expoId,
-          session.id,
-          session.revision,
-          toSessionDefinition(edits.get(session.id)!),
-        );
-        remaining.delete(session.id);
-        markRetry(session.id, false);
-      } catch (error) {
-        if (isRetryable(error)) {
-          // 서버에 저장된 변경을 재시도로 이어서 처리한다
-          remaining.delete(session.id);
-          markRetry(session.id, true);
-        } else if (getErrorStatus(error) === 409) {
-          // 다른 변경이 먼저 반영돼 최신 revision 으로 다시 고쳐야 한다
-          remaining.delete(session.id);
-        }
-        failed.push(
-          `${session.title}: ${error instanceof Error ? error.message : '실패'}`,
-        );
-      }
-    }
-    await invalidate();
-    setEdits(remaining);
-    setIsSaving(false);
-
-    if (failed.length === 0) {
-      toast.success('회차 변경 내용을 저장했습니다.');
-    } else {
-      toast.error(
-        `${targets.length}개 중 ${failed.length}개를 저장하지 못했습니다. ${failed.join(' / ')}`,
+  const renderPanel = () => {
+    if (!panel) return null;
+    if (panel.type === 'choose')
+      return (
+        <ScheduleModal title="어떤 회차를 추가할까요?" onClose={closePanel}>
+          <div className="grid grid-cols-3 gap-12 pb-[28px] mobile:grid-cols-1">
+            <Button
+              variant="white"
+              onClick={() =>
+                openPanel({ type: 'program', target: 'new', kind: 'STANDARD' })
+              }
+            >
+              일반 프로그램
+            </Button>
+            <Button
+              variant="white"
+              onClick={() =>
+                openPanel({ type: 'program', target: 'new', kind: 'TRAINING' })
+              }
+            >
+              연수 프로그램
+            </Button>
+            <Button
+              variant="white"
+              onClick={() => openPanel({ type: 'session', target: 'new' })}
+            >
+              사전등록 회차
+            </Button>
+          </div>
+        </ScheduleModal>
+      );
+    if (panel.type === 'session') {
+      // 저장 뒤 최신 revision 을 쓰도록 목록에서 다시 찾는다
+      const session =
+        panel.target === 'new'
+          ? undefined
+          : sessions.find(({ id }) => id === panel.target);
+      return (
+        <SessionForm
+          key={panel.target}
+          expoId={expoId}
+          session={session}
+          onRetryable={(id) => markRetry(id, true)}
+          onClose={closePanel}
+        />
       );
     }
+    const { target, kind } = panel;
+    const initialForm =
+      draftForm ??
+      (target === 'new' && (kind === 'STANDARD' || kind === 'TRAINING')
+        ? { ...EMPTY_PROGRAM_FORM, programType: kind }
+        : undefined);
+    return (
+      <ProgramForm
+        key={target === 'new' ? `new-${kind}` : toProgramKey(target)}
+        expoId={expoId}
+        program={target === 'new' ? undefined : target}
+        programs={programs}
+        initialForm={initialForm}
+        onClose={closePanel}
+      />
+    );
   };
-
-  const error = sessionsQuery.error ?? programsQuery.error;
-  const programs = programsQuery.data ?? [];
-  const isSessionLocked = isDirty || isDeleting || isRetrying || isSaving;
 
   return withLoading({
     isLoading: sessionsQuery.isLoading || programsQuery.isLoading,
     children: (
-      // 왼쪽 메뉴를 접으면 표가 화면 너비를 모두 쓴다
-      <div
-        className={`flex w-full flex-1 flex-col space-y-[60px] pb-[120px] ${
-          isAsideOpen || sessionsOnly ? 'max-w-[1200px]' : ''
-        }`}
-      >
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col gap-24 pb-[120px]">
         {error ? (
           <SectionError
             message={error.message}
             onRetry={() => void invalidate()}
           />
         ) : (
-          <div className="flex items-start gap-30 tablet:flex-col tablet:items-stretch">
-            {!sessionsOnly && (
-              <aside
-                aria-label="일괄 설정·신규 등록"
-                className={`sticky top-[96px] max-h-[calc(100vh-112px)] w-[340px] flex-none space-y-16 overflow-y-auto tablet:static tablet:block tablet:max-h-none tablet:w-full tablet:overflow-visible ${
-                  isAsideOpen ? '' : 'hidden'
-                }`}
-              >
-                <BulkPolicySection
-                  expoId={expoId}
-                  programs={programs}
-                  disabled={isSaving}
-                />
-                <CreateEntry
-                  title="프로그램 신청 회차 추가"
-                  description="① 프로그램 신청 회차 표 아래에 양식을 엽니다. 신청 폼은 이 양식에서 연결합니다."
-                  buttonLabel="프로그램 회차 양식 열기"
-                  onClick={() => {
-                    handleProgramEditingChange('new');
-                    scrollToForm(PROGRAM_FORM_ID);
-                  }}
-                />
-                <CreateEntry
-                  title="사전등록 회차 개설"
-                  description={
-                    isSessionLocked
-                      ? '저장하지 않은 사전등록 회차 변경이 있으면 회차를 개설할 수 없습니다.'
-                      : '박람회 입장 사전등록 시간대를 만듭니다. 프로그램 회차가 아닙니다.'
-                  }
-                  buttonLabel="사전등록 회차 양식 열기"
-                  disabled={isSessionLocked}
-                  onClick={() => {
-                    setIsCreatingSession(true);
-                    scrollToForm(SESSION_FORM_ID);
-                  }}
-                />
-              </aside>
-            )}
-
-            <div className="min-w-0 flex-1 space-y-[60px]">
-              {!sessionsOnly && (
-                <div className="flex justify-end tablet:hidden">
-                  <button
-                    type="button"
-                    aria-expanded={isAsideOpen}
-                    onClick={() => setIsAsideOpen((prev) => !prev)}
-                    className="rounded-sm border-1 border-solid border-gray-200 bg-white px-16 py-8 text-caption1b text-gray-500 duration-200 hover:border-main-600 hover:text-main-600"
-                  >
-                    {isAsideOpen
-                      ? '표 넓게 보기 · 왼쪽 메뉴 접기'
-                      : '왼쪽 메뉴 펼치기'}
-                  </button>
-                </div>
-              )}
-              {!sessionsOnly && (
-                <ProgramSection
-                  expoId={expoId}
-                  programs={programs}
-                  editing={programEditing}
-                  onEditingChange={handleProgramEditingChange}
-                  draftForm={draftForm}
-                />
-              )}
-              <SessionSection
-                expoId={expoId}
-                rows={rows}
-                onChange={handleChange}
-                onDelete={handleDelete}
-                onRetry={retrySession}
-                isLocked={isSessionLocked}
-                isCreating={isCreatingSession}
-                onCreatingChange={setIsCreatingSession}
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-12">
+              <SegmentTabs
+                ariaLabel="회차 구분"
+                value={filter}
+                options={[
+                  { value: 'ALL', label: `전체 ${count('ALL')}` },
+                  { value: 'STANDARD', label: `일반 ${count('STANDARD')}` },
+                  { value: 'TRAINING', label: `연수 ${count('TRAINING')}` },
+                  { value: 'PRE', label: `사전등록 ${count('PRE')}` },
+                ]}
+                onChange={setFilter}
               />
-            </div>
-          </div>
-        )}
-
-        {isDirty && (
-          <div className="fixed inset-x-0 bottom-0 z-[5] flex justify-center border-t-1 border-solid border-gray-100 bg-white px-16 py-12 shadow-[0px_-4px_8px_0px_rgba(68,143,255,0.08)]">
-            <div className="w-full max-w-[1200px] space-y-8">
-              <p className="text-caption1r text-gray-500">
-                저장하지 않은 사전등록 회차 변경 {edits.size}건이 있습니다. 저장
-                전에는 사전등록 회차를 추가·삭제할 수 없습니다.
-              </p>
-              <div className="grid grid-cols-[1fr_3fr] gap-16">
-                <Button variant="gray" onClick={handleCancel}>
-                  변경 취소
+              <div className="flex gap-8">
+                <Button
+                  variant="white"
+                  width="120px"
+                  onClick={() => setIsBulkOpen(true)}
+                >
+                  일괄 설정
                 </Button>
-                <Button disabled={isSaving} onClick={handleSave}>
-                  {isSaving ? '저장 중...' : '변경 내용 일괄저장'}
+                <Button width="120px" onClick={handleAdd}>
+                  회차 추가
                 </Button>
               </div>
             </div>
-          </div>
+
+            {pendingCount > 0 && (
+              <div className="flex items-center justify-between gap-16 rounded-sm border-1 border-solid border-red-200 px-20 py-12 mobile:flex-col mobile:items-stretch">
+                <p className="text-body2r text-error">
+                  변경이 끝나지 않은 프로그램이 {pendingCount}개 있습니다. 끝날
+                  때까지 해당 프로그램은 수정할 수 없습니다.
+                </p>
+                <Button
+                  variant="white"
+                  width="120px"
+                  disabled={isRetryingPrograms}
+                  onClick={() => retryPrograms(undefined)}
+                >
+                  {isRetryingPrograms ? '처리 중...' : '다시 처리'}
+                </Button>
+              </div>
+            )}
+
+            {renderPanel()}
+
+            <ScheduleTable
+              expoId={expoId}
+              items={visibleItems}
+              programs={programs}
+              isBusy={isBusy}
+              onEditProgram={(program) =>
+                openPanel({ type: 'program', target: program })
+              }
+              onDeleteProgram={handleDeleteProgram}
+              onEditSession={(session) =>
+                openPanel({ type: 'session', target: session.id })
+              }
+              onDeleteSession={handleDeleteSession}
+              onRetrySession={retrySession}
+            />
+          </>
+        )}
+
+        {isBulkOpen && (
+          <BulkPolicyModal
+            expoId={expoId}
+            programs={programs}
+            onClose={() => setIsBulkOpen(false)}
+          />
         )}
       </div>
     ),
