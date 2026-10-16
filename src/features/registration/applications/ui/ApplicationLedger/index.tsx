@@ -65,6 +65,7 @@ const ApplicationLedger = () => {
     isLoading,
     isError,
     isFetching,
+    isPlaceholderData,
     dataUpdatedAt,
     refetch,
   } = useLedger(expoId, filter, page - 1);
@@ -87,6 +88,9 @@ const ApplicationLedger = () => {
     [expo],
   );
   const totalCount = data?.totalElements ?? 0;
+  // 이전 필터 결과나 실패한 조회의 건수로 다운로드를 막지 않도록 현재 조건의 건수만 넘긴다
+  const confirmedCount =
+    data && !isPlaceholderData && !isError ? data.totalElements : undefined;
   const totalPage = Math.max(Math.ceil(totalCount / LEDGER_PAGE_SIZE), 1);
   const selectedIds = useMemo(() => new Set(selected.keys()), [selected]);
   const selectedRows = useMemo(() => Array.from(selected.values()), [selected]);
@@ -272,7 +276,7 @@ const ApplicationLedger = () => {
             expoId={expoId}
             selectedRows={selectedRows}
             filter={filter}
-            filterCount={totalCount}
+            filterCount={confirmedCount}
             filterStatusCounts={statusCounts}
             onClose={() => setIsExcelModalOpen(false)}
           />

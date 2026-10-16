@@ -28,8 +28,8 @@ interface ExcelDownloadModalProps {
   expoId: string;
   selectedRows: LedgerRow[];
   filter: LedgerFilter;
-  /** 현재 필터 전체 건수와 상태 집계 (서버 기준) */
-  filterCount: number;
+  /** 현재 필터 전체 건수와 상태 집계 (서버 기준). 조회가 끝나지 않았으면 건수는 비워 둔다 */
+  filterCount?: number;
   filterStatusCounts: StatusCounts;
   onClose: () => void;
 }
@@ -112,7 +112,7 @@ const ExcelDownloadModal = ({
   const scopeOptions: {
     value: ReportExcelScope;
     label: string;
-    count: number;
+    count?: number;
   }[] = [
     { value: 'SELECTED', label: '선택한 신청', count: selectedRows.length },
     {
@@ -183,13 +183,15 @@ const ExcelDownloadModal = ({
                 {scope === value ? <CheckedBoxIcon /> : <CheckBoxIcon />}
                 <span className="text-body2r text-black">{label}</span>
                 <span className="ml-auto text-body2r text-main-600">
-                  {count}
+                  {count ?? '-'}
                 </span>
               </button>
             ))}
           </div>
           <p className="text-caption1r text-gray-500">
-            대상 신청 {targetCount}건 ({describeStatus(targetStatusCounts)})
+            {targetCount === undefined
+              ? '현재 필터 건수를 확인하고 있습니다'
+              : `대상 신청 ${targetCount}건 (${describeStatus(targetStatusCounts)})`}
             {scope === 'FILTER' &&
               '. 화면 페이지와 관계없이 서버가 필터 조건 전체를 대상으로 고정합니다(최대 10000건, 15분 유지). 상태를 고르지 않으면 모든 상태가 포함됩니다'}
             {isPersonDeduped &&
