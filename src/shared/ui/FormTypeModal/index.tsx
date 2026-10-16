@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { toast } from 'react-toastify';
 import { XMark } from '@/shared/assets/icons';
 import { getRegistrationRoutes } from '@/shared/config';
 import { ApplicationType } from '@/shared/types/exhibition/type';
@@ -11,7 +10,6 @@ import Button from '../Button';
 import SelectDateInput from '../SelectDateInput';
 
 const CATEGORIES = {
-  EXHIBITION: '박람회',
   FORM: '등록용 폼',
   SURVEY: '만족도 조사',
 };
@@ -40,19 +38,11 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  // 신청 기간은 폼을 만들거나 고칠 때만 쓴다. 현장 등록 QR 은 날짜 없이 바로 고른다
+  const needsPeriod = modalType === 'formcreate' || modalType === 'edit';
+  const hasPeriod = !needsPeriod || (!!startDate && !!endDate);
 
   const handleCategorySelect = (category: string) => {
-    if (category === CATEGORIES.EXHIBITION) {
-      if (!startDate || !endDate) {
-        toast.error('시작 날짜와 마감 날짜를 먼저 선택해주세요.');
-        return;
-      }
-      router.push(
-        `/exhibition/edit/${params}?startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
-      );
-      return;
-    }
-
     setSelectedCategory(category);
 
     if (category === CATEGORIES.FORM) {
@@ -77,8 +67,6 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   };
 
   const handleFinalSelection = (userType: string, appType: ApplicationType) => {
-    const baseURL = window.location.origin;
-
     if (modalType === 'edit' && selectedFormType) {
       router.push(
         `/form/edit/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
@@ -87,16 +75,6 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       router.push(
         `/form/create/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
       );
-    } else if (modalType === 'share' && selectedFormType) {
-      const url = `${baseURL}/application/${params}?formType=${selectedFormType}&userType=${userType}&applicationType=${appType}`;
-      navigator.clipboard
-        .writeText(url)
-        .then(() => {
-          toast.success('URL이 클립보드에 복사되었습니다.');
-        })
-        .catch(() => {
-          toast.error('URL 복사에 실패했습니다. 다시 시도해주세요.');
-        });
     } else if (modalType === 'FIELD') {
       router.push(
         `/exhibition/access-qr/${params}?userType=${userType}&applicationType=${appType}`,
@@ -134,26 +112,17 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
     }
 
     if (
-      (modalType === 'edit' ||
-        modalType === 'formcreate' ||
-        modalType === 'share') &&
+      (modalType === 'edit' || modalType === 'formcreate') &&
       !selectedCategory
     ) {
-      const categories =
-        modalType === 'edit'
-          ? [CATEGORIES.EXHIBITION, CATEGORIES.FORM, CATEGORIES.SURVEY]
-          : [CATEGORIES.FORM, CATEGORIES.SURVEY];
-
-      return categories.map((category) => ({
+      return [CATEGORIES.FORM, CATEGORIES.SURVEY].map((category) => ({
         label: category,
         onClick: () => handleCategorySelect(category),
       }));
     }
 
     if (
-      (modalType === 'edit' ||
-        modalType === 'formcreate' ||
-        modalType === 'share') &&
+      (modalType === 'edit' || modalType === 'formcreate') &&
       selectedCategory &&
       !selectedUserType
     ) {
@@ -170,9 +139,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
     }
 
     if (
-      (modalType === 'edit' ||
-        modalType === 'formcreate' ||
-        modalType === 'share') &&
+      (modalType === 'edit' || modalType === 'formcreate') &&
       selectedCategory === CATEGORIES.FORM &&
       selectedUserType === USER_TYPES.STANDARD
     ) {
@@ -223,7 +190,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
           )}
         </div>
         <div className="flex items-center gap-12">
-          {!(startDate && endDate) && (
+          {!hasPeriod && (
             <>
               <SelectDateInput
                 placeholder="시작 날짜"
@@ -238,8 +205,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
             </>
           )}
 
-          {startDate &&
-            endDate &&
+          {hasPeriod &&
             renderButtons().map((button, index) => (
               <Button key={index} variant="white" onClick={button.onClick}>
                 {button.label}
