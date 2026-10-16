@@ -391,6 +391,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
 
       {!sessionIssue && waitlist && (
         <PreRegisterWaitlist
+          expoId={expoId}
           waitlist={waitlist}
           onCancel={() => setIsWaitlistCancelOpen(true)}
           isCancelling={isCancellingWaitlist}
