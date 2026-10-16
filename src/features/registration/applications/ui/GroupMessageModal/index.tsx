@@ -6,6 +6,7 @@ import { XMark } from '@/shared/assets/icons';
 import { CheckBoxIcon, CheckedBoxIcon } from '@/shared/assets/svg';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { useModalDialog } from '@/shared/model';
+import { useExpoDetail } from '@/shared/queries';
 import { Button, Loading } from '@/shared/ui';
 import { formatDateTime, SectionError } from '../../../common';
 import {
@@ -31,7 +32,7 @@ import {
   useGroupMessageConfig,
   useGroupMessageJob,
 } from '../../model/groupMessage';
-import { MESSAGE_TEMPLATES } from '../../model/messageTemplates';
+import { getMessageTemplates } from '../../model/messageTemplates';
 import GroupMessageJobItems from '../GroupMessageJobItems';
 import KakaoTemplatePanel from '../KakaoTemplatePanel';
 
@@ -91,6 +92,12 @@ const GroupMessageModal = ({
 
   const config = useGroupMessageConfig(expoId);
   const job = useGroupMessageJob(expoId, jobId);
+  // 예시 문구 머리말은 지금 박람회 제목으로 만든다. 제목을 받기 전에는 예시를 고를 수 없다
+  const expo = useExpoDetail(expoId);
+  const messageTemplates = useMemo(
+    () => getMessageTemplates(expo.data?.title ?? ''),
+    [expo.data?.title],
+  );
 
   // 닫기 버튼과 같이 Escape 로도 닫는다. 보내기 버튼은 기본 포커스로 두지 않는다
   const dialogRef = useModalDialog({ onClose });
@@ -391,11 +398,11 @@ const GroupMessageModal = ({
                   <span className="text-caption1r text-gray-400">
                     예시 문구
                   </span>
-                  {MESSAGE_TEMPLATES.map((template) => (
+                  {messageTemplates.map((template) => (
                     <button
                       key={template.label}
                       type="button"
-                      disabled={!isEditable}
+                      disabled={!isEditable || expo.isLoading}
                       onClick={() => handleTemplateClick(template.body)}
                       className="rounded-full bg-main-100 px-12 py-4 text-caption1r text-main-600 hover:bg-main-200"
                     >
