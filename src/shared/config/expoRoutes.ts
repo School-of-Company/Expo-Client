@@ -44,9 +44,8 @@ export const getRegistrationRoutes = (expoId: string) => {
   return {
     dashboard: base,
     applications: `${base}/applications`,
+    preregister: `${base}/preregister`,
     schedule: `${base}/schedule`,
-    history: `${base}/history`,
-    attendance: `${base}/attendance`,
     participants: `${base}/participants`,
     operations: `${base}/operations`,
     // 접수대장 페이지의 입장자 명단 탭

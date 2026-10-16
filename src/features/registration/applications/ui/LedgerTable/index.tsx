@@ -74,13 +74,13 @@ const COLUMNS: TableColumn<LedgerViewRow>[] = [
   },
   {
     key: 'phone',
-    label: '개인 번호 / 대표 수신 번호',
+    label: '연락처',
     flex: 1.4,
     // 두 번호를 구분해 보여 주고, 없는 번호를 다른 번호로 채워 발송 가능한 것처럼 보이게 하지 않는다
     render: (row) => (
       <>
         <p className={row.phoneNumber ? 'text-black' : 'text-gray-300'}>
-          {row.phoneNumber ?? '개인 번호 없음'}
+          {row.phoneNumber ?? '번호 없음'}
         </p>
         <p className="text-caption2r">
           {row.notificationPhoneNumber

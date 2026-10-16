@@ -85,6 +85,7 @@ const RecentLedgerTable = ({ rows }: { rows: LedgerRow[] }) => (
     footerCount={rows.length}
     maxHeight="none"
     minWidth="840px"
+    compact
   />
 );
 

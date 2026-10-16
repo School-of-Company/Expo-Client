@@ -1,20 +1,14 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
 import { NavigationBar } from '@/shared/ui';
 import SmallButton from '@/shared/ui/SmallButton';
-import {
-  RefreshStatus,
-  SectionError,
-  useRegistrationExpo,
-} from '../../../common';
+import { SectionError, useRegistrationExpo } from '../../../common';
 import {
   INITIAL_LEDGER_FILTER,
   LEDGER_PAGE_SIZE,
-  LEDGER_REFRESH_MS,
   LedgerFilter,
   getLedgerErrorMessage,
   isParticipantSourceError,
@@ -43,7 +37,7 @@ const ApplicationLedger = () => {
   const searchParams = useSearchParams();
   // URL 의 ?page 는 1부터, 서버 페이지는 0부터
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
-  const { expoId, expo, routes } = useRegistrationExpo();
+  const { expoId, expo } = useRegistrationExpo();
 
   // 대시보드 회차 표에서 ?session=TYPE:ID 로 들어오면 그 회차로 시작한다
   const [filter, setFilter] = useState<LedgerFilter>(() => {
@@ -59,16 +53,8 @@ const ApplicationLedger = () => {
   const [detailId, setDetailId] = useState<string | null>(null);
   const closeDetail = useCallback(() => setDetailId(null), []);
 
-  const {
-    data,
-    error,
-    isLoading,
-    isError,
-    isFetching,
-    isPlaceholderData,
-    dataUpdatedAt,
-    refetch,
-  } = useLedger(expoId, filter, page - 1);
+  const { data, error, isLoading, isError, isPlaceholderData, refetch } =
+    useLedger(expoId, filter, page - 1);
   // 같은 조건의 고유 참가자 수. 실패해도 목록은 보여 주고 이 값만 비워 둔다
   const summary = useLedgerSummary(expoId, filter);
   const { data: sessions = [] } = useCurrentSessions(expoId);
@@ -127,63 +113,12 @@ const ApplicationLedger = () => {
   return withLoading({
     isLoading: isLoading && !data,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px] overflow-y-auto">
-        <div className="space-y-16">
-          <div className="flex flex-wrap items-center justify-between gap-12">
-            <RefreshStatus
-              updatedAt={dataUpdatedAt}
-              isFetching={isFetching}
-              onRefresh={() => refetch()}
-              intervalMs={LEDGER_REFRESH_MS}
-              hasError={isError && !!data}
-            />
-            <div className="flex flex-wrap items-center gap-8">
-              <SmallButton
-                text={`그룹 메시지 (${selected.size} 선택)`}
-                onClick={() => setIsMessageModalOpen(true)}
-              />
-              <button
-                type="button"
-                onClick={() => setIsExcelModalOpen(true)}
-                className={OUTLINE_ACTION}
-              >
-                현재 조건 엑셀
-              </button>
-              <Link href={routes.schedule} className={OUTLINE_ACTION}>
-                모집 제어
-              </Link>
-              <Link href={routes.dashboard} className={OUTLINE_ACTION}>
-                대시보드
-              </Link>
-            </div>
-          </div>
-
-          <div className="flex items-start justify-between gap-16 rounded-sm bg-main-100 px-20 py-16 mobile:flex-col mobile:px-16">
-            <p className="text-body2r text-gray-500">
-              <span className="text-body2b text-main-600">
-                그룹 메시지 발송
-              </span>{' '}
-              — 체크한 신청자에게 보내거나, 현재 필터 결과 전체에 한 번에 발송할
-              수 있습니다. 프로그램·상태·회차를 먼저 필터링하면
-              프로그램별/확정자별/대기자별/회차별 그룹 메시지가 됩니다. 동일한
-              연락처는 중복 발송하지 않습니다.
-            </p>
-            <p className="shrink-0 whitespace-nowrap text-body2r text-gray-500">
-              현재 조회 결과{' '}
-              <span className="text-body2b text-main-600">
-                {totalCount.toLocaleString()}
-              </span>
-              건
-            </p>
-          </div>
-        </div>
-
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-12 overflow-y-auto">
         <LedgerFilters
           filter={filter}
           sessions={sessions}
           onChange={handleFilterChange}
           expoDays={expoDays}
-          onReset={() => handleFilterChange(INITIAL_LEDGER_FILTER)}
         />
 
         {isError && (!data || isParticipantSourceError(error)) ? (
@@ -196,7 +131,7 @@ const ApplicationLedger = () => {
           />
         ) : (
           <div className="space-y-16">
-            <div className="flex items-center justify-between gap-16 text-body2r text-gray-500">
+            <div className="flex flex-wrap items-center justify-between gap-12 text-body2r text-gray-500">
               <p>
                 검색 결과{' '}
                 <span className="text-black">
@@ -218,15 +153,19 @@ const ApplicationLedger = () => {
                 <span className="text-black">{statusCounts.WAITING ?? 0}</span>
                 {' · '}취소 {statusCounts.CANCELLED ?? 0}
               </p>
-              {selected.size > 0 && (
+              <div className="flex flex-wrap items-center gap-8">
                 <button
                   type="button"
-                  onClick={() => setSelected(new Map())}
-                  className="text-caption1r text-gray-400 underline"
+                  onClick={() => setIsExcelModalOpen(true)}
+                  className={OUTLINE_ACTION}
                 >
-                  선택 해제
+                  엑셀 다운로드
                 </button>
-              )}
+                <SmallButton
+                  text={`그룹 메시지${selected.size > 0 ? ` (${selected.size})` : ''}`}
+                  onClick={() => setIsMessageModalOpen(true)}
+                />
+              </div>
             </div>
 
             <LedgerTable

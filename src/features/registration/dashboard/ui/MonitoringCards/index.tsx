@@ -19,7 +19,7 @@ const MonitoringCards = ({ expoId, sessionCounts }: MonitoringCardsProps) => {
   const pageViewsError = isPageViewsError && !pageViews;
 
   return (
-    <div className="grid grid-cols-1 gap-12 mobile:!grid-cols-1 tablet:grid-cols-2">
+    <div className="grid grid-cols-4 gap-16 mobile:grid-cols-1 tablet:grid-cols-2">
       <StatCard
         label="모집 중 회차"
         value={formatCount(sessionCounts?.open)}

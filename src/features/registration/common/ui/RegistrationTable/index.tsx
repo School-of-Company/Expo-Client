@@ -22,6 +22,8 @@ interface RegistrationTableProps<T extends { id: RowId }> {
   footerActions?: ReactNode;
   maxHeight?: string;
   minWidth?: string;
+  /** 위아래 여백을 줄여 한 화면에 더 담는다 */
+  compact?: boolean;
   selectedIds?: Set<T['id']>;
   onToggleRow?: (id: T['id']) => void;
   onToggleAll?: () => void;
@@ -43,6 +45,7 @@ const RegistrationTable = <T extends { id: RowId }>({
   footerActions,
   maxHeight = '500px',
   minWidth = '800px',
+  compact = false,
   selectedIds,
   onToggleRow,
   onToggleAll,
@@ -56,10 +59,14 @@ const RegistrationTable = <T extends { id: RowId }>({
     rows.length > 0 && rows.every(({ id }) => selectedIds?.has(id));
 
   return (
-    <div className="space-y-[34px] rounded-sm border-1 border-solid border-gray-200 px-30 py-20 mobile:px-16">
+    <div
+      className={`rounded-sm border-1 border-solid border-gray-200 px-30 mobile:px-16 ${compact ? 'space-y-12 py-12' : 'space-y-[34px] py-20'}`}
+    >
       <div className="overflow-x-auto border-b-1 border-solid border-gray-100 pb-6">
         <div style={{ minWidth }}>
-          <div className="flex items-center border-b-1 border-solid border-gray-100 py-26">
+          <div
+            className={`flex items-center border-b-1 border-solid border-gray-100 ${compact ? 'py-12' : 'py-26'}`}
+          >
             {isSelectable && (
               <button
                 type="button"
@@ -80,21 +87,21 @@ const RegistrationTable = <T extends { id: RowId }>({
                   <button
                     type="button"
                     onClick={() => onSort(column.sortKey!)}
-                    className={`text-caption1b ${sort?.key === column.sortKey ? 'text-main-600' : 'text-gray-500'}`}
+                    className={`text-body2b ${sort?.key === column.sortKey ? 'text-main-600' : 'text-gray-500'}`}
                   >
                     {column.label}
                     {sort?.key === column.sortKey &&
                       (sort.direction === 'asc' ? ' ↑' : ' ↓')}
                   </button>
                 ) : (
-                  <p className="text-caption1b text-gray-500">{column.label}</p>
+                  <p className="text-body2b text-gray-500">{column.label}</p>
                 )}
               </div>
             ))}
           </div>
 
           <div
-            className="space-y-20 overflow-y-auto pt-6"
+            className={`overflow-y-auto pt-6 ${compact ? 'space-y-8' : 'space-y-20'}`}
             style={{ maxHeight }}
           >
             {/* 표가 화면보다 넓은 모바일에서는 가운데 정렬이면 문구가 화면 밖으로 밀리므로 왼쪽에 붙인다 */}

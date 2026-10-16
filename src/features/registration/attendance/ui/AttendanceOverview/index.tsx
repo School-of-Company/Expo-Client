@@ -13,7 +13,6 @@ import {
 import { useAttendanceActivity } from '../../model/attendanceActivity';
 import {
   ALL_DAYS,
-  ATTENDANCE_REFRESH_MS,
   getDefaultDay,
   getEntryMethodCounts,
   getExpoDays,
@@ -96,7 +95,6 @@ const AttendanceOverview = () => {
             updatedAt={summary.updatedAt}
             isFetching={summary.isFetching}
             onRefresh={summary.refetch}
-            intervalMs={ATTENDANCE_REFRESH_MS}
             hasError={summary.isError && Boolean(data)}
           />
         </div>
