@@ -22,3 +22,4 @@ export { default as ExhibitionAccessQr } from './ui/ExhibitionAccessQr';
 export { default as ExpoListItem } from './ui/ExpoListItem';
 export { default as CreateExpoCard } from './ui/CreateExpoCard';
 export { copyExpoLink } from './lib/copyExpoLink';
+export { useRunExpoAction } from './model/useRunExpoAction';
