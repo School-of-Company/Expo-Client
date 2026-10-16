@@ -18,7 +18,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
       {groups.map((group) => (
         <section key={group.key} className="space-y-12">
           <h2 className="text-caption1b text-gray-500">{group.title}</h2>
-          <div className="grid gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,180px),1fr))] gap-12">
             {group.actions.map(({ key, primary, more }) => (
               <div key={key} className="space-y-6">
                 <Button variant="white" onClick={() => run(primary)}>
