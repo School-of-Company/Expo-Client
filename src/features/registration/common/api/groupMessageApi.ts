@@ -5,6 +5,7 @@ import {
   AdminApplicationStatus,
   ProgramSessionType,
 } from './ledgerApi';
+import { PreregisterTargetFilter } from './preregisterLedgerApi';
 
 // Expo-Application-Server AdminGroupMessageController (docs/admin-group-messaging.md)
 
@@ -25,7 +26,10 @@ export interface GroupMessageFilter {
 
 export type GroupMessageScope =
   | { kind: 'SELECTED'; applicationIds: string[] }
-  | { kind: 'FILTERED'; filter: GroupMessageFilter };
+  | { kind: 'FILTERED'; filter: GroupMessageFilter }
+  // ponytail: Expo-Application-Server#123 확정 전 가정 계약. 사전등록은 예약/일행 ID 와 탭 필터를 보낸다
+  | { kind: 'PREREGISTER_SELECTED'; reservationIds: string[] }
+  | { kind: 'PREREGISTER_FILTERED'; filter: PreregisterTargetFilter };
 
 export type GroupMessageChannel = 'SMS' | 'KAKAO';
 

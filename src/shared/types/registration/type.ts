@@ -28,6 +28,14 @@ interface ReportExcelDownloadBase {
   traineeId?: number;
 }
 
+/** 사전등록 탭 대상 필터. 프로그램 필터와 섞이지 않도록 별도 필드로 보낸다 */
+export interface ReportPreregisterFilter {
+  q?: string;
+  sessionId?: number;
+  status?: ReportApplicationStatus[];
+  sort: 'CREATED_DESC' | 'CREATED_ASC';
+}
+
 export type ReportExcelDownloadRequest =
   | (ReportExcelDownloadBase & {
       scope: 'SELECTED';
@@ -36,4 +44,15 @@ export type ReportExcelDownloadRequest =
   | (ReportExcelDownloadBase & {
       scope: 'FILTER';
       filter: ReportApplicationFilter;
+    })
+  // ponytail: Expo-Application-Server#123 확정 전 가정 계약. 사전등록은 예약/일행 ID 를 보낸다
+  | (ReportExcelDownloadBase & {
+      scope: 'SELECTED';
+      source: 'PREREGISTER';
+      reservationIds: string[];
+    })
+  | (ReportExcelDownloadBase & {
+      scope: 'FILTER';
+      source: 'PREREGISTER';
+      preregisterFilter: ReportPreregisterFilter;
     });
