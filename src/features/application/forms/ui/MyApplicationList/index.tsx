@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 import { AnswerList } from '@/entities/form';
 import { SessionNotice, getSessionIssue } from '@/features/phone-verification';
 import {
@@ -94,6 +95,10 @@ const ApplicationRow = ({
   } = application;
   const sessionLabel = `${session.title}${session.startedAt ? ` (${formatDefinitionSchedule(session.startedAt, session.endedAt)})` : ''}`;
   const reasonId = `cancel-blocked-${type}-${applicationId}`;
+  const blockedReason =
+    BLOCKED_REASON_LABEL[cancellationBlockedReason] ??
+    (cancellationBlockedReason ||
+      '지금은 취소할 수 없습니다. 운영 측에 문의해주세요.');
   const title = [participant?.name, TYPE_LABEL[type]]
     .filter(Boolean)
     .join(' · ');
@@ -143,22 +148,20 @@ const ApplicationRow = ({
             >
               신청취소
             </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                disabled
-                aria-describedby={reasonId}
-                className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 px-16 py-8 text-caption1b text-gray-400"
-              >
-                신청취소
-              </button>
-              <p id={reasonId} className="text-caption1r text-gray-500">
-                {BLOCKED_REASON_LABEL[cancellationBlockedReason] ??
-                  (cancellationBlockedReason ||
-                    '지금은 취소할 수 없습니다. 운영 측에 문의해주세요.')}
-              </p>
-            </>
+          ) : status === 'CANCELLED' ? null : (
+            // 취소할 수 없는 사유는 줄마다 펼쳐 두지 않고, 버튼을 누르면 알림으로 알려 준다
+            <button
+              type="button"
+              aria-disabled
+              aria-describedby={reasonId}
+              onClick={() => toast.info(blockedReason)}
+              className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 px-16 py-8 text-caption1b text-gray-400"
+            >
+              신청취소
+              <span id={reasonId} className="sr-only">
+                {blockedReason}
+              </span>
+            </button>
           )}
         </div>
       </div>
@@ -391,6 +394,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
 
       {!sessionIssue && waitlist && (
         <PreRegisterWaitlist
+          expoId={expoId}
           waitlist={waitlist}
           onCancel={() => setIsWaitlistCancelOpen(true)}
           isCancelling={isCancellingWaitlist}

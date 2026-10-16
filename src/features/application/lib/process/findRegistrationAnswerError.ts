@@ -9,6 +9,8 @@ import type {
 } from '@/shared/types/application/type';
 
 const SCHOOL_MAX_LENGTH = 100;
+// 동행자 이름과 같은 규칙. 넘으면 서버가 사유 없이 400 으로 거절한다
+const NAME_MAX_LENGTH = 10;
 
 const isOneOf = (options: readonly { key: string }[], value: unknown) =>
   options.some(({ key }) => key === value);
@@ -25,6 +27,16 @@ export const findRegistrationAnswerError = (
   items: DynamicFormItem[],
 ): string | undefined => {
   const valueOf = (item: DynamicFormItem) => data[String(item.id)];
+
+  const nameField = items.find((item) => item.dynamicFormType === 'NAME');
+  const name = nameField && valueOf(nameField);
+  if (
+    nameField &&
+    typeof name === 'string' &&
+    name.trim().length > NAME_MAX_LENGTH
+  ) {
+    return `'${nameField.title}' 항목은 ${NAME_MAX_LENGTH}자 이하로 입력해주세요.`;
+  }
 
   const occupationField = items.find(
     (item) => item.dynamicFormType === 'OCCUPATION',

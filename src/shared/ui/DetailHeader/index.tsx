@@ -22,12 +22,15 @@ const DetailHeader = ({
 
   return (
     <div className={`flex items-center ${className}`}>
-      <label
-        className="hover:cursor-pointer"
+      {/* 키보드로도 누를 수 있게 버튼으로 두고, 아이콘 크기는 그대로 누르는 영역만 44px 로 넓힌다 */}
+      <button
+        type="button"
+        aria-label="뒤로 가기"
+        className="-m-6 flex h-[44px] w-[44px] flex-none items-center justify-center"
         onClick={onBack ?? (() => router.back())}
       >
         <ArrowLeft size={32} />
-      </label>
+      </button>
       <p
         className={`flex-grow text-h2r text-black mobile:text-body1r ${
           textCenter ? 'text-center' : ''

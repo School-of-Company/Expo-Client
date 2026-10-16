@@ -22,7 +22,16 @@ const ProgramListTable = ({ expoId }: { expoId: string }) => {
     return navigation === 'training' ? trainingCategories : standardCategories;
   }, [navigation]);
 
-  const programData = programQueries.data || [];
+  // 서버는 'YYYY-MM-DDTHH:mm' 로 준다. 표에는 'T' 없이 날짜와 시각을 띄워 보여 준다
+  const programData = useMemo(
+    () =>
+      (programQueries.data || []).map((program) => ({
+        ...program,
+        startedAt: program.startedAt.slice(0, 16).replace('T', ' '),
+        endedAt: program.endedAt.slice(0, 16).replace('T', ' '),
+      })),
+    [programQueries.data],
+  );
 
   const routeActions = {
     RouteActions: (programId: number) => {

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { fromOffsetDateTime } from '@/features/registration/common/lib/dateTime';
 import clientInstance from '@/shared/libs/http/clientInstance';
 
 /** 화면 안내용 값. 최종 정원 판정은 제출 시 서버가 다시 한다. */
@@ -57,6 +58,7 @@ export const getPreRegisterCapacity = async (
 export interface PublicPreregisterSession {
   id: number;
   title: string;
+  /** 서버는 UTC(`...Z`)로 주고, 화면에는 로컬 'YYYY-MM-DDTHH:mm' 로 바꿔 넘긴다 */
   startedAt: string;
   endedAt: string;
   place: string | null;
@@ -78,7 +80,12 @@ export const getPublicPreregisterSessions = async (
     const response = await clientInstance.get<PublicPreregisterSession[]>(
       `/expo/${encodeURIComponent(expoId)}/preregister-sessions/public`,
     );
-    return response.data;
+    // 일시를 문자열 그대로 자르면 UTC 시각이 보이므로 로컬 시각으로 바꾼다
+    return response.data.map((session) => ({
+      ...session,
+      startedAt: fromOffsetDateTime(session.startedAt) ?? session.startedAt,
+      endedAt: fromOffsetDateTime(session.endedAt) ?? session.endedAt,
+    }));
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(

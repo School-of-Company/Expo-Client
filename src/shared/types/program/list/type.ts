@@ -51,7 +51,7 @@ export interface StandardProgramRequest {
   title: string;
   startedAt: string;
   endedAt: string;
-  // 회차 장소(선택). 서버 계약 확정 전 가정이다(Expo-Expo-Server#124 대기). 비우면 null 로 보낸다
+  // 회차 장소(선택). 생략·null 이면 수정 때 기존 장소를 두고, 빈 문자열이면 지운다(Expo-Expo-Server#124)
   place?: string | null;
   policy?: ProgramPolicy | null;
 }
