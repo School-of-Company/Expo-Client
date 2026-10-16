@@ -5,7 +5,6 @@ import { Suspense } from 'react';
 import { LotterySettingsForm, SurveyManager } from '@/features/survey-admin';
 import { TitleTabs } from '@/shared/ui';
 import { PageShell } from '@/widgets/layout';
-import { RegistrationTabs } from '@/widgets/registration';
 
 type SurveyView = 'survey' | 'lottery';
 
@@ -14,7 +13,7 @@ const VIEW_OPTIONS: { value: SurveyView; label: string }[] = [
   { value: 'lottery', label: '경품 추첨' },
 ];
 
-/** 만족도 조사 문항과 경품 추첨을 한 페이지의 두 탭으로 다룬다 */
+/** 만족도 조사 문항과 경품 추첨을 한 페이지의 두 탭으로 다룬다. 박람회 상세에서 들어오는 독립 페이지라 관리 탭 줄은 두지 않는다 */
 const SurveyViews = () => {
   const { expoId } = useParams<{ expoId: string }>();
   const router = useRouter();
@@ -43,7 +42,7 @@ const SurveyViews = () => {
 };
 
 const RegistrationSurveyPage = () => (
-  <PageShell subHeader={<RegistrationTabs />}>
+  <PageShell>
     <Suspense>
       <SurveyViews />
     </Suspense>

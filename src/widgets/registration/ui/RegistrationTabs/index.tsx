@@ -19,7 +19,6 @@ const RegistrationTabs = () => {
     { href: routes.participants, label: '참가자 검색' },
     { href: routes.history, label: '행정 이력' },
     { href: routes.operations, label: '박람회 운영' },
-    { href: routes.survey, label: '만족도 조사' },
   ];
 
   const isActive = (href: string, exact?: boolean) =>
