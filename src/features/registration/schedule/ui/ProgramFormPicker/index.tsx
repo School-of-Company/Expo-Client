@@ -1,10 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { useProgramFormsQuery } from '@/entities/form';
+import { useProgramFormListQuery, useProgramFormQuery } from '@/entities/form';
 import { getRegistrationRoutes } from '@/shared/config';
-import { Button, Input } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 import {
   fromOffsetDateTime,
   formatDateTimeValue,
@@ -15,8 +14,8 @@ import { ProgramSessionType } from '../../../common/api/ledgerApi';
 import { PolicyForm } from '../../model/policyForm';
 import {
   FORM_PARTICIPANT_LABEL,
+  FORM_PARTICIPANT_TYPE,
   getFormLinkProblem,
-  getLinkedFormIds,
   getProgramsUsingForm,
   toProgramKey,
 } from '../../model/programFormLink';
@@ -33,15 +32,12 @@ interface ProgramFormPickerProps {
   onCreateForm: () => void;
 }
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 const formatPeriod = (start: string | null, end: string | null) =>
   `${formatDateTimeValue(start)} ~ ${formatDateTimeValue(end)}`;
 
 /**
- * 회차에 연결할 프로그램 폼을 제목으로 고른다.
- * 행사별 폼 목록 API(Expo-Form-Server#141)가 없어 이 행사 회차가 쓰는 폼과 ID 로 불러온 폼만 보인다
+ * 회차에 연결할 프로그램 폼을 이 행사의 프로그램용 폼 목록에서 제목으로 고른다(Expo-Form-Server#141).
+ * 목록에는 문항·행사·용도가 없어, 고른 폼은 상세를 다시 읽어 연결 가능 여부를 확인한다
  */
 const ProgramFormPicker = ({
   expoId,
@@ -52,24 +48,32 @@ const ProgramFormPicker = ({
   onChange,
   onCreateForm,
 }: ProgramFormPickerProps) => {
-  const [loadedIds, setLoadedIds] = useState<string[]>([]);
-  const [idInput, setIdInput] = useState('');
-  const formIds = Array.from(
-    new Set([
-      ...getLinkedFormIds(programs),
-      ...loadedIds,
-      ...(policy.formId ? [policy.formId] : []),
-    ]),
+  const listQuery = useProgramFormListQuery(expoId);
+  const detailQuery = useProgramFormQuery(policy.formId);
+  const selected = detailQuery.data;
+  const allForms = listQuery.data ?? [];
+  // 대상이 정해진 폼은 같은 대상의 회차에만 연결할 수 있다
+  const forms = allForms.filter(
+    ({ participantType }) =>
+      !participantType ||
+      participantType === FORM_PARTICIPANT_TYPE[programType],
   );
-  const results = useProgramFormsQuery(formIds);
-  const forms = results.flatMap(({ data }) => (data ? [data] : []));
-  const selected = forms.find(({ id }) => id === policy.formId);
-  const isSelectedLoading =
-    Boolean(policy.formId) &&
-    results[formIds.indexOf(policy.formId)]?.isLoading;
+  const hiddenCount = allForms.length - forms.length;
+  const isListed = forms.some(({ id }) => id === policy.formId);
 
   const options = [
     { value: '', label: '폼을 선택해주세요' },
+    // 이미 연결된 폼이 목록에 없으면(다른 행사·등록용·대상 다름·삭제) 그대로 보여 주고 아래에서 사유를 알린다
+    ...(policy.formId && !isListed
+      ? [
+          {
+            value: policy.formId,
+            label: selected
+              ? `${selected.title} (이 회차에 연결할 수 없는 폼)`
+              : '현재 연결된 폼',
+          },
+        ]
+      : []),
     ...forms.map((form) => ({
       value: form.id,
       label: form.participantType
@@ -78,17 +82,11 @@ const ProgramFormPicker = ({
     })),
   ];
 
-  const handleLoadById = () => {
-    const id = idInput.trim().toLowerCase();
-    if (!UUID_PATTERN.test(id)) return;
-    setLoadedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
-    onChange(id);
-    setIdInput('');
-  };
-
   const problem = selected
     ? getFormLinkProblem(selected, expoId, programType, policy)
-    : null;
+    : detailQuery.error
+      ? '연결된 폼을 불러오지 못했습니다. 삭제됐거나 프로그램용 폼이 아닐 수 있으니 다른 폼을 선택해주세요.'
+      : null;
   const sharedPrograms = selected
     ? getProgramsUsingForm(programs, selected.id).filter(
         (program) => toProgramKey(program) !== programKey,
@@ -101,7 +99,7 @@ const ProgramFormPicker = ({
         <div className="min-w-0 flex-1">
           <RegistrationSelect
             ariaLabel="프로그램 폼"
-            value={selected ? policy.formId : ''}
+            value={policy.formId}
             options={options}
             onChange={onChange}
           />
@@ -113,8 +111,37 @@ const ProgramFormPicker = ({
         </div>
       </div>
 
-      {isSelectedLoading && (
+      {listQuery.error ? (
+        <p className="text-caption1r text-error">
+          {listQuery.error.message}{' '}
+          <button
+            type="button"
+            className="underline"
+            onClick={() => void listQuery.refetch()}
+          >
+            다시 불러오기
+          </button>
+        </p>
+      ) : (
+        listQuery.isSuccess &&
+        forms.length === 0 && (
+          <p className="text-caption1r text-gray-500">
+            이 구분에 연결할 수 있는 프로그램용 폼이 없습니다. 새 폼 만들기로
+            먼저 만들어 주세요.
+          </p>
+        )
+      )}
+      {hiddenCount > 0 && (
+        <p className="text-caption1r text-gray-500">
+          대상이 다른 폼 {hiddenCount}개는 이 구분에 연결할 수 없어 목록에서
+          뺐습니다.
+        </p>
+      )}
+      {detailQuery.isLoading && (
         <p className="text-caption1r text-gray-500">폼을 불러오는 중입니다.</p>
+      )}
+      {!selected && problem && (
+        <p className="text-caption1r text-error">{problem}</p>
       )}
 
       {selected && (
@@ -167,30 +194,6 @@ const ProgramFormPicker = ({
           </p>
         </div>
       )}
-
-      <div className="space-y-6">
-        <p className="text-caption1r text-gray-500">
-          아직 회차에 연결하지 않은 폼은 목록에 보이지 않습니다. 폼 편집 화면
-          주소의 ID 로 불러올 수 있습니다.
-        </p>
-        <div className="flex gap-8">
-          <Input
-            size="small"
-            aria-label="폼 ID로 불러오기"
-            placeholder="폼 ID"
-            value={idInput}
-            onChange={(e) => setIdInput(e.target.value)}
-          />
-          <button
-            type="button"
-            className="shrink-0 rounded-sm border-1 border-solid border-gray-200 px-16 text-caption1b text-gray-500 duration-200 hover:border-main-600 hover:text-main-600 disabled:opacity-40"
-            disabled={!UUID_PATTERN.test(idInput.trim())}
-            onClick={handleLoadById}
-          >
-            불러오기
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

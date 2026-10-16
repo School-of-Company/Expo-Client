@@ -2,6 +2,7 @@ import axios from 'axios';
 import clientInstance from '@/shared/libs/http/clientInstance';
 import { FormattedApplicationData } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
+import { ProgramType } from '@/shared/types/program/list/type';
 
 const URL_MAP: Record<string, string> = {
   STANDARD_PRE: '/application/pre-standard/',
@@ -102,37 +103,35 @@ export const postApplication = async (
   return (await submit(url, data, idempotencyKey)).data;
 };
 
-// 연수 프로그램별 신청의 상태 코드 안내. 서버 본문의 error/message 가 있으면 그쪽이 우선한다.
-// TODO(api): 409(같은 묶음 활성 신청·폼 버전 변경)와 403(허용 직업 아님) 을 본문 code 로 가르는지는
-// Application #43 계약 확정 전이라 모른다. 지금은 상태 코드 문구에 두 경우를 함께 적는다.
-const TRAINING_APPLY_ERROR_MESSAGES: Record<number, string> = {
-  ...APPLICATION_ERROR_MESSAGES,
-  403: '이 연수를 신청할 수 없는 대상입니다(허용되지 않은 직업이거나 인증이 필요합니다). 안내를 확인하거나 다시 인증해주세요.',
-  409: '같은 묶음의 다른 연수를 이미 신청했거나, 정원·대기가 마감됐거나, 신청서가 바뀌었습니다. 내 신청을 확인하고 신청서를 다시 불러온 뒤 시도해주세요.',
+// 프로그램별 신청(일반·연수 공통)의 상태 코드 안내. 서버 본문의 error/message 가 있으면 그쪽이 우선한다.
+const PROGRAM_APPLY_ERROR_MESSAGES: Record<number, string> = {
+  400: '요청이나 신청서 답변이 올바르지 않습니다. 입력 내용을 확인해주세요.',
+  401: '참가자 인증이 만료되었습니다. 다시 인증한 뒤 신청해주세요.',
+  403: '신청 자격이 없거나 요청 검증에 실패했습니다. 새로고침 후 다시 시도하고, 계속되면 사전등록 상태를 확인해주세요.',
+  404: '프로그램이나 신청서를 찾을 수 없습니다. 안내받은 링크를 다시 확인해주세요.',
+  409: '이미 신청했거나, 정원이 마감됐거나, 신청서가 바뀌었습니다. 내 신청을 확인하고 신청서를 다시 불러온 뒤 시도해주세요.',
+  502: '프로그램 신청 서버 응답에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+  503: '지금은 신청할 수 없습니다. 잠시 후 다시 시도해주세요.',
 };
 
-/** 프로그램별 신청 결과. 201 은 확정, 202 는 대기(또는 처리 중). */
-export type TrainingApplyResult = 'CONFIRMED' | 'WAITING' | 'PROCESSING';
+/** 프로그램별 신청 결과. 201 본문의 status 가 확정·대기·처리 중을 알려 준다. */
+export type ProgramApplyResult = 'CONFIRMED' | 'WAITING' | 'PROCESSING';
 
-// TODO(api): 경로는 이슈 #370 계약. 요청 본문 키(formVersion/answers)와 202 본문의 status 값은
-// Application #43 에서 확정되기 전까지 미확인이다.
-export const postTrainingProgramApplication = async (
+export const postProgramApplication = async (
+  programType: ProgramType,
   expoId: string,
   programId: string,
   payload: unknown,
   csrfHeaders: Record<string, string>,
   idempotencyKey: string,
-): Promise<TrainingApplyResult> => {
+): Promise<ProgramApplyResult> => {
   const response = await submit(
-    `/application/expos/${encodeURIComponent(expoId)}/program-sessions/TRAINING/${encodeURIComponent(programId)}/applications`,
+    `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${encodeURIComponent(programId)}/applications`,
     payload,
     idempotencyKey,
     csrfHeaders,
-    TRAINING_APPLY_ERROR_MESSAGES,
+    PROGRAM_APPLY_ERROR_MESSAGES,
   );
-  // 서버는 대기 접수도 201 로 주고 본문 status 에 CONFIRMED/WAITING 을 담는다. 202 는 처리 중(또는 대기)이다.
   const status = response.data?.status;
-  if (status === 'WAITING' || status === 'PROCESSING') return status;
-  if (response.status === 202) return 'WAITING';
-  return 'CONFIRMED';
+  return status === 'WAITING' || status === 'PROCESSING' ? status : 'CONFIRMED';
 };

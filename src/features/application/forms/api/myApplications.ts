@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   AdminApplicationStatus,
   AdminOccupation,
@@ -62,9 +63,14 @@ const toError = (
   fallback: string,
 ) => {
   const status = getErrorStatus(error);
-  return status === undefined
-    ? error
-    : new ApiError(messages[status] ?? fallback, status);
+  if (status === undefined) return error;
+  // 401 은 코드로 SESSION_REQUIRED(미인증)와 SESSION_EXPIRED(만료)를 가른다
+  const code = axios.isAxiosError(error) ? error.response?.data?.code : null;
+  return new ApiError(
+    messages[status] ?? fallback,
+    status,
+    typeof code === 'string' ? code : undefined,
+  );
 };
 
 export const getMyApplications = async (
@@ -103,6 +109,60 @@ export const cancelMyApplication = async (
         409: '취소할 수 없는 신청입니다. 새로고침 후 다시 확인해주세요.',
       },
       '신청 취소에 실패했습니다.',
+    );
+  }
+};
+
+/**
+ * 사전등록 대기 일행. 대기자는 User 에 저장되기 전이라 my-applications 참가자 목록에 없고 QR 도 없다.
+ * PROCESSING 은 승급 뒤 저장 중, PROMOTION_ENDED 는 회차 시작으로 승급이 끝난 상태다.
+ */
+export interface MyPreRegisterWaitlist {
+  sessionId: number;
+  /** 대표자를 포함한 일행 인원 */
+  applicants: number;
+  status: 'WAITING' | 'PROCESSING' | 'PROMOTION_ENDED';
+  /** 일행 단위 대기 순번(1부터). WAITING 이 아니면 null */
+  position: number | null;
+  csrfToken?: string;
+}
+
+// 404 는 대기 일행이 없다는 뜻이라 null 로 돌려준다. 그 밖의 오류는 대기 없음으로 위장하지 않는다
+export const getMyPreRegisterWaitlist = async (
+  expoId: string,
+): Promise<MyPreRegisterWaitlist | null> => {
+  try {
+    const { data, headers } = await clientInstance.get<MyPreRegisterWaitlist>(
+      `/application/expos/${expoId}/my-applications/preregister-waitlist`,
+    );
+    return { ...data, csrfToken: headers['x-csrf-token'] };
+  } catch (error) {
+    if (getErrorStatus(error) === 404) return null;
+    throw toError(error, COMMON_ERRORS, '대기 내역을 불러오지 못했습니다.');
+  }
+};
+
+/** 대기 일행 전체 취소. 일부만 취소할 수 없고, 취소한 대기는 같은 신청으로 되살릴 수 없다 */
+export const cancelMyPreRegisterWaitlist = async (
+  expoId: string,
+  csrfToken?: string,
+) => {
+  try {
+    await clientInstance.post(
+      `/application/expos/${expoId}/my-applications/preregister-waitlist/cancellation`,
+      undefined,
+      { headers: { 'X-CSRF-TOKEN': csrfToken } },
+    );
+  } catch (error) {
+    throw toError(
+      error,
+      {
+        ...COMMON_ERRORS,
+        403: '요청을 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.',
+        404: '취소할 대기 신청이 없습니다.',
+        409: '대기에서 확정으로 처리 중이라 지금은 취소할 수 없습니다. 잠시 후 다시 확인해주세요.',
+      },
+      '대기 취소에 실패했습니다.',
     );
   }
 };

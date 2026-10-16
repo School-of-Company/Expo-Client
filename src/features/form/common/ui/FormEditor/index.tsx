@@ -186,6 +186,7 @@ const FormEditor = ({
                   key={field.id}
                   {...{
                     expoId,
+                    type,
                     options: filteredSelectOptions,
                     formRemove: remove,
                     index,
@@ -224,7 +225,13 @@ const FormEditor = ({
           </div>
         </div>
         <Button type="submit" disabled={isLoading || isSuccess}>
-          {isLoading ? '제출 중...' : isSuccess ? '완료됨' : '생성하기'}
+          {isLoading
+            ? '제출 중...'
+            : isSuccess
+              ? '완료됨'
+              : defaultValues
+                ? '수정하기'
+                : '생성하기'}
         </Button>
       </div>
     </form>

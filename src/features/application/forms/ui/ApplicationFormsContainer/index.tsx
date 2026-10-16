@@ -109,6 +109,18 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
                   );
                 },
               )}
+              {current.key === 'PRE' && (
+                <ApplicationFormCard
+                  category="일반"
+                  title="프로그램 신청"
+                  description="사전등록이 확정된 참가자가 일반 프로그램을 골라 신청합니다."
+                  period="프로그램별 신청 기간"
+                  statusLabel="신청 가능"
+                  isOpen
+                  buttonLabel="프로그램 신청하기"
+                  href={`/application/forms/${expoId}/program`}
+                />
+              )}
             </div>
           </>
         )}

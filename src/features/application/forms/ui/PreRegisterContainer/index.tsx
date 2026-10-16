@@ -10,6 +10,11 @@ import { useFormQuery } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
+import {
+  SessionIssue,
+  SessionNotice,
+  getSessionIssue,
+} from '@/features/phone-verification';
 import { withLoading } from '@/shared/hocs';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
@@ -23,6 +28,7 @@ import { createStandardApplicationFormatter } from '../../../lib/formatter/creat
 import {
   getApplicantLimit,
   getCompanionLimit,
+  getWaitingLimit,
   isWaitingParty,
 } from '../../model/sessionSeats';
 import { usePreRegisterCapacity } from '../../model/usePreRegister';
@@ -50,6 +56,7 @@ const PreRegisterContainer = ({
     sessionId,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionIssue, setSessionIssue] = useState<SessionIssue>();
   // 같은 내용을 다시 보내면(연타·네트워크 재시도·오류 뒤 재제출) 같은 키로 보낸다
   const submissionKeys = useRef(createSubmissionKeys());
 
@@ -105,6 +112,11 @@ const PreRegisterContainer = ({
         return;
       }
       submissionKeys.current.reset();
+      // 신청 폼 모음의 내 신청·대기 현황이 이전 결과를 보여 주지 않게 한다
+      queryClient.invalidateQueries({ queryKey: ['myApplications', expoId] });
+      queryClient.invalidateQueries({
+        queryKey: ['myPreRegisterWaitlist', expoId],
+      });
       // 서버가 대기로 접수하면(202) 확정이 아니므로 성공 페이지가 대기 접수와 순번을 안내한다
       const waiting =
         result?.status === 'WAITING'
@@ -114,6 +126,7 @@ const PreRegisterContainer = ({
         `/application/success/${expoId}?userType=STANDARD&formType=application${waiting}`,
       );
     } catch (submitError) {
+      setSessionIssue(getSessionIssue(submitError));
       // 취소한 대기의 같은 키 재전송은 거절된다. 다시 신청하려면 새 키가 필요하다
       if (
         submitError instanceof ApplicationSubmitError &&
@@ -145,6 +158,7 @@ const PreRegisterContainer = ({
     isLoading,
     children: (
       <div className="mt-30 flex w-full max-w-[816px] flex-col gap-30">
+        {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
         <div className="flex flex-col gap-8 border-b-1 border-solid border-gray-200 pb-24">
           <p className="text-h2b text-black mobile:text-h3b">사전등록 신청</p>
           <p className="text-body2r text-gray-500">
@@ -181,6 +195,8 @@ const PreRegisterContainer = ({
                 대표자를 포함해 {applicantLimit?.toLocaleString()}명까지 신청할
                 수 있습니다. 한 일행은 나뉘지 않고 모두 확정되거나 모두 대기로
                 접수됩니다.
+                {getWaitingLimit(capacity) === 0 &&
+                  ' 이 회차는 대기를 받지 않아 자리가 부족하면 신청이 거절됩니다.'}
               </p>
             )}
             <p className="text-caption1r text-gray-500">

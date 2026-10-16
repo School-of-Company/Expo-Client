@@ -1,5 +1,8 @@
 export { getExpoDetail } from './getExpoDetail';
-export { getStandardProgram } from './getStandardProgram';
+export {
+  getPublicStandardProgram,
+  getStandardProgram,
+} from './getStandardProgram';
 export {
   getAdminTrainingProgram,
   getTrainingProgram,
