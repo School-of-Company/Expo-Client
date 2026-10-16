@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Button, Input, Section } from '@/shared/ui';
+import { Input } from '@/shared/ui';
 import { revokeQrToken } from '../../api/qrTokensApi';
 import { PAPER_QR_CATEGORIES, PaperQrCategory } from '../../model/constants';
 import { paperQrSummaryQueryKey } from '../../model/usePaperQrSummary';
@@ -71,11 +71,15 @@ const PaperQrReprintCard = ({
   };
 
   return (
-    <Section
-      title="기존 QR 다시 인쇄"
-      description={`연번으로 찾아 다시 인쇄합니다. 한 번에 최대 ${MAX_REPRINT_LOOKUP}장`}
-    >
+    <section className="flex flex-col gap-24 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
       <div className="space-y-16">
+        <div className="space-y-8">
+          <p className="text-h3b text-black">기존 QR 다시 인쇄</p>
+          <p className="break-keep text-caption1r text-gray-500">
+            이미 발급한 QR을 연번으로 찾아 다시 인쇄합니다. 한 번에 최대{' '}
+            {MAX_REPRINT_LOOKUP}장까지 조회할 수 있습니다.
+          </p>
+        </div>
         <div className="grid grid-cols-3 gap-12 mobile:grid-cols-1">
           <label className="space-y-8">
             <p className="text-caption1r text-gray-600">유형</p>
@@ -124,16 +128,21 @@ const PaperQrReprintCard = ({
             />
           </div>
         </div>
-        <Button variant="white" onClick={onLookup} disabled={isLookingUp}>
+        <button
+          type="button"
+          className="w-full rounded-sm border-1 border-solid border-main-600 py-12 text-body2b text-main-600 disabled:opacity-40"
+          onClick={onLookup}
+          disabled={isLookingUp}
+        >
           {isLookingUp ? '조회 중...' : '조회하기'}
-        </Button>
+        </button>
       </div>
 
       <div className="space-y-12 border-t-1 border-solid border-gray-200 pt-24">
         <div className="space-y-8">
-          <p className="text-body2b text-black">분실 QR 사용 중지</p>
+          <p className="text-body2b text-black">분실 QR 무효화</p>
           <p className="break-keep text-caption1r text-gray-500">
-            코드를 입력하면 그 QR로는 입장할 수 없습니다.
+            잃어버린 QR의 코드를 입력하면 그 QR로는 입장할 수 없게 됩니다.
           </p>
         </div>
         <div className="flex gap-8 mobile:flex-col">
@@ -143,18 +152,17 @@ const PaperQrReprintCard = ({
             maxLength={CODE_MAX_LENGTH}
             onChange={(e) => setRevokeCode(e.target.value)}
           />
-          <div className="w-[140px] flex-none mobile:w-full">
-            <Button
-              variant="danger"
-              onClick={handleRevoke}
-              disabled={revokeCode.trim() === '' || isRevoking}
-            >
-              {isRevoking ? '처리 중...' : '사용 중지'}
-            </Button>
-          </div>
+          <button
+            type="button"
+            className="shrink-0 whitespace-nowrap rounded-sm bg-error px-20 py-12 text-body2b text-white disabled:cursor-not-allowed disabled:opacity-40"
+            onClick={handleRevoke}
+            disabled={revokeCode.trim() === '' || isRevoking}
+          >
+            {isRevoking ? '처리 중...' : '사용 중지'}
+          </button>
         </div>
       </div>
-    </Section>
+    </section>
   );
 };
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Button, HelpText, Input, Section } from '@/shared/ui';
+import { Input } from '@/shared/ui';
 import { PaperQrItem } from '../../api/qrTokensApi';
 import { DEFAULT_LABEL_SIZE } from '../../model/constants';
 import { printPaperQrA4 } from '../../model/printPaperQrA4';
@@ -30,6 +30,9 @@ interface PaperQrOutputListProps {
 
 // 수천 장을 한 화면에 그리면 느려서 미리보기는 앞부분만 보인다
 const PREVIEW_LIMIT = 120;
+
+const actionButton =
+  'rounded-sm px-16 py-8 text-caption1b whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-40';
 
 const PaperQrOutputList = ({
   output,
@@ -71,40 +74,58 @@ const PaperQrOutputList = ({
     ));
 
   return (
-    <Section
-      title={`출력 목록 · ${total}장${
-        printable.length < total
-          ? ` (인쇄 ${printable.length}장, 사용 중지 ${total - printable.length}장 제외)`
-          : ''
-      }`}
-      description={output?.range && `조회 범위: ${output.range}`}
-      action={
+    <section className="space-y-16 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
+      <div className="flex flex-wrap items-start justify-between gap-12">
+        <div className="space-y-4">
+          <p className="text-h3b text-black">
+            출력 목록 · {total}장
+            {printable.length < total &&
+              ` (인쇄 ${printable.length}장, 사용 중지 ${total - printable.length}장 제외)`}
+          </p>
+          {output?.range && (
+            <p className="text-body2r text-gray-700">
+              조회 범위: {output.range}
+            </p>
+          )}
+          {output?.notice && (
+            <p className="break-keep text-caption1b text-error">
+              {output.notice}
+            </p>
+          )}
+          <p className="break-keep text-caption1r text-gray-500">
+            A4 기준 3열 배열. 화면에서 QR이 정상 표시되면 인쇄 버튼을
+            눌러주세요.
+          </p>
+        </div>
         <div className="flex flex-wrap gap-8">
-          <Button size="small" onClick={() => print('a4')} disabled={!canPrint}>
+          <button
+            type="button"
+            className={`${actionButton} bg-main-600 text-white`}
+            onClick={() => print('a4')}
+            disabled={!canPrint}
+          >
             A4 인쇄
-          </Button>
-          <Button
-            size="small"
-            variant="white"
+          </button>
+          <button
+            type="button"
+            className={`${actionButton} border-1 border-solid border-main-600 text-main-600`}
             onClick={() => print('label')}
             disabled={!canPrint || !isLabelSizeValid}
           >
             라벨 인쇄
-          </Button>
+          </button>
           {output?.kind === 'lookup' && onNextLookup && (
-            <Button
-              size="small"
-              variant="gray"
+            <button
+              type="button"
+              className={`${actionButton} bg-gray-100 text-gray-700`}
               onClick={onNextLookup}
               disabled={isLookingUp}
             >
               다음 연번 조회
-            </Button>
+            </button>
           )}
         </div>
-      }
-    >
-      {output?.notice && <HelpText tone="error">{output.notice}</HelpText>}
+      </div>
 
       {printable.length > 0 && (
         <div className="flex flex-wrap items-end gap-12">
@@ -162,7 +183,7 @@ const PaperQrOutputList = ({
           )}
         </>
       )}
-    </Section>
+    </section>
   );
 };
 

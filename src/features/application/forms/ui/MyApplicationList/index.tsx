@@ -14,7 +14,6 @@ import {
 } from '@/features/registration/common/model/ledger';
 import { downloadQrImage } from '@/shared/libs/downloadQrImage';
 import { useModalDialog } from '@/shared/model';
-import { Button } from '@/shared/ui';
 import {
   getParticipantQr,
   OwnerApplication,
@@ -464,18 +463,23 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
             </p>
           )}
           <div className="flex w-full gap-8">
-            <Button variant="gray" onClick={() => setCancelTarget(null)}>
+            <button
+              type="button"
+              onClick={() => setCancelTarget(null)}
+              className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-body2b text-gray-700"
+            >
               닫기
-            </Button>
-            <Button
-              variant="danger"
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 cancel(cancelTarget);
                 setCancelTarget(null);
               }}
+              className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
             >
               신청 취소
-            </Button>
+            </button>
           </div>
         </Dialog>
       )}
@@ -491,21 +495,23 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
             신청하면 새 신청으로 맨 뒤에 접수됩니다.
           </p>
           <div className="flex w-full gap-8">
-            <Button
-              variant="gray"
+            <button
+              type="button"
               onClick={() => setIsWaitlistCancelOpen(false)}
+              className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-body2b text-gray-700"
             >
               닫기
-            </Button>
-            <Button
-              variant="danger"
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 cancelWaitlist();
                 setIsWaitlistCancelOpen(false);
               }}
+              className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
             >
               대기 취소
-            </Button>
+            </button>
           </div>
         </Dialog>
       )}

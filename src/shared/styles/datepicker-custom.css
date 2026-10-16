@@ -1,8 +1,3 @@
-/* 모달(z-10) 안의 입력도 달력이 모달 위에 뜨게 한다. 기본값(1)이면 모달 뒤에 가려진다 */
-.react-datepicker-popper {
-  z-index: 50;
-}
-
 .react-datepicker {
   font-family: 'Inter', sans-serif;
   width: 100%;

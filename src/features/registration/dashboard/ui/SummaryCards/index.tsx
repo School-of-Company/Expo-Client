@@ -42,6 +42,7 @@ const SummaryCards = ({
       label="프로그램 신청 고유 참가자"
       value={uniqueParticipants?.toLocaleString() ?? '-'}
       unit="명"
+      sub="휴대전화 인증 건수: 집계 미연결"
     />
   </div>
 );

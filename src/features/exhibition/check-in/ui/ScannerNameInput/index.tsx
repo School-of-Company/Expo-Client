@@ -58,9 +58,15 @@ const ScannerNameInput = ({
           </Button>
         </div>
       </div>
-      {isInvalid && (
+      {isInvalid ? (
         <p role="alert" className="break-keep text-caption1r text-error">
           영문·숫자·기호만 쓸 수 있습니다.
+        </p>
+      ) : (
+        <p className="break-keep text-caption1r text-gray-400">
+          {scannerName
+            ? `이 브라우저에서 처리한 입·퇴장은 '${scannerName}'(으)로 기록됩니다.`
+            : '이름을 저장하지 않으면 스캐너별 집계에 포함되지 않습니다.'}
         </p>
       )}
     </form>

@@ -194,8 +194,6 @@ export const useCurrentSessions = (expoId: string) =>
     queryKey: ['adminCurrentSessions', expoId],
     queryFn: () => getAllCurrentSessions(expoId),
     refetchInterval: LEDGER_REFRESH_MS,
-    // 30초마다 다시 조회해서 실패가 이어지면 토스트가 계속 뜬다. 화면에서 오류를 따로 보인다
-    meta: { silent: true },
   });
 
 // 회차별 집계는 페이지로 나뉜다. 대시보드는 한 번에 보여 줄 수 있는 최대치를 읽는다

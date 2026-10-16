@@ -9,40 +9,6 @@ const nextConfig = {
         destination: '/admin/registration/:expoId/:path*',
         permanent: false,
       },
-      // 프로그램 조회·출석, 일정·모집, 프로그램 폼 목록은 프로그램 페이지 한 화면에 모았다
-      {
-        source: '/program/:expoId',
-        destination: '/admin/registration/:expoId/programs',
-        permanent: false,
-      },
-      {
-        source: '/admin/registration/:expoId/schedule',
-        destination: '/admin/registration/:expoId/programs',
-        permanent: false,
-      },
-      {
-        source: '/admin/registration/:expoId/program-forms',
-        destination: '/admin/registration/:expoId/programs',
-        permanent: false,
-      },
-      // 폼 만들기·편집은 따로 여는 화면이라 경로만 옮겼다
-      {
-        source: '/admin/registration/:expoId/program-forms/:path+',
-        destination: '/admin/registration/:expoId/programs/forms/:path+',
-        permanent: false,
-      },
-      // 경품 추첨은 만족도 조사 페이지의 경품 추첨 탭으로 합쳤다
-      {
-        source: '/exhibition/lottery/:expoId',
-        destination: '/admin/registration/:expoId/survey?view=lottery',
-        permanent: false,
-      },
-      // 참가자 명단은 접수대장 페이지의 입장자 명단 탭으로 합쳤다
-      {
-        source: '/exhibition/participants/:expoId',
-        destination: '/admin/registration/:expoId/applications?view=roster',
-        permanent: false,
-      },
     ];
   },
   async headers() {

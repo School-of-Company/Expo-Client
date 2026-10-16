@@ -28,21 +28,3 @@ export const White: Story = {
     width: '100%',
   },
 };
-
-export const Danger: Story = {
-  args: {
-    children: '삭제',
-    variant: 'danger',
-    disabled: false,
-    width: '100%',
-  },
-};
-
-export const Small: Story = {
-  args: {
-    children: '다시 불러오기',
-    variant: 'white',
-    size: 'small',
-    disabled: false,
-  },
-};
