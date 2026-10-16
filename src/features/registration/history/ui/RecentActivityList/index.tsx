@@ -17,6 +17,7 @@ import { formatOccurredAt } from '../../model/adminChangeHistory';
 import {
   getActivityActionLabel,
   getActivityActionTone,
+  getActivityActorLabel,
   getActivityErrorMessage,
   useAdminApplicationActivities,
 } from '../../model/applicationActivity';
@@ -56,13 +57,12 @@ const COLUMNS: TableColumn<RecentActivityRow>[] = [
   },
   {
     key: 'actorId',
-    label: '처리자',
-    render: ({ actorId }) =>
-      actorId === null ? (
-        <span className="text-gray-400">사용자·자동</span>
-      ) : (
-        `관리자 #${actorId}`
-      ),
+    label: '처리주체',
+    render: (row) => (
+      <span className={row.actorType ? undefined : 'text-gray-400'}>
+        {getActivityActorLabel(row)}
+      </span>
+    ),
   },
 ];
 
