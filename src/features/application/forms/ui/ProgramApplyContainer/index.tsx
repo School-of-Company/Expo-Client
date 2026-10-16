@@ -536,15 +536,14 @@ const ProgramApplyContainer = ({
                   onResult={(next) => {
                     setOutcomes((prev) => ({ ...prev, [program.id]: next }));
                     // 접수·거절 모두 내 신청·취소 가능 여부가 바뀔 수 있어 다시 받는다
-                    [
-                      'myApplications',
-                      'programParticipants',
-                      'applyPrograms',
-                    ].forEach((key) =>
+                    ['myApplications', 'programParticipants'].forEach((key) =>
                       queryClient.invalidateQueries({
                         queryKey: [key, expoId],
                       }),
                     );
+                    queryClient.invalidateQueries({
+                      queryKey: ['applyPrograms', programType, expoId],
+                    });
                   }}
                 />
               )}
