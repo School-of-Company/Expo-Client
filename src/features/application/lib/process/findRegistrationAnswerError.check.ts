@@ -85,4 +85,23 @@ assert.match(
   /운영자에게 문의/,
 );
 
+// 대표자 이름은 동행자처럼 10자까지만 받는다
+const name: DynamicFormItem = {
+  id: 4,
+  title: '이름',
+  formType: 'SENTENCE',
+  jsonData: {},
+  requiredStatus: true,
+  otherJson: null,
+  dynamicFormType: 'NAME',
+};
+assert.equal(
+  findRegistrationAnswerError({ '4': '가'.repeat(11) }, [name]),
+  "'이름' 항목은 10자 이하로 입력해주세요.",
+);
+assert.equal(
+  findRegistrationAnswerError({ '4': ` ${'가'.repeat(10)} ` }, [name]),
+  undefined,
+);
+
 console.log('findRegistrationAnswerError.check: ok');
