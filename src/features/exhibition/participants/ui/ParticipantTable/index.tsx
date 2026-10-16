@@ -158,6 +158,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
         )}
 
         <SearchInput
+          label="이름, 연락처, 연수번호 검색"
           placeholder="이름, 연락처, 연수번호로 검색"
           value={searchQuery}
           onChange={setSearchQuery}

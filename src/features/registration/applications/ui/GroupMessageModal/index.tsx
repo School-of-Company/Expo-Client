@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { XMark } from '@/shared/assets/icons';
 import { CheckBoxIcon, CheckedBoxIcon } from '@/shared/assets/svg';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
+import { useModalDialog } from '@/shared/model';
 import { Button, Loading } from '@/shared/ui';
 import { formatDateTime, SectionError } from '../../../common';
 import {
@@ -91,12 +92,8 @@ const GroupMessageModal = ({
   const config = useGroupMessageConfig(expoId);
   const job = useGroupMessageJob(expoId, jobId);
 
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
+  // 닫기 버튼과 같이 Escape 로도 닫는다. 보내기 버튼은 기본 포커스로 두지 않는다
+  const dialogRef = useModalDialog({ onClose });
 
   const channels = config.data?.enabled ? config.data.channels : {};
   const smsEnabled = channels.SMS?.enabled === true;
@@ -277,10 +274,12 @@ const GroupMessageModal = ({
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="group-message-title"
-        className="flex max-h-[90vh] w-full max-w-[792px] flex-col gap-[32px] overflow-y-auto rounded-sm bg-white px-[40px] py-[36px] mobile:px-20"
+        tabIndex={-1}
+        className="flex max-h-[90vh] w-full max-w-[792px] flex-col gap-[32px] overflow-y-auto rounded-sm bg-white px-[40px] py-[36px] outline-none mobile:px-20"
       >
         <div className="flex items-center">
           <p
@@ -289,7 +288,12 @@ const GroupMessageModal = ({
           >
             문자·알림톡 보내기
           </p>
-          <button type="button" onClick={onClose} aria-label="닫기">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="닫기"
+            className="-m-10 flex h-[44px] w-[44px] shrink-0 items-center justify-center"
+          >
             <XMark />
           </button>
         </div>

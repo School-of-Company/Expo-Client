@@ -64,7 +64,7 @@ const ExhibitionDetailPage = ({ params }: { params: string }) => {
           ),
       })}
       {isModalOpen && (
-        <ModalLayout>
+        <ModalLayout label={modalContent} onClose={closeModal}>
           <FormTypeModal
             text={modalContent}
             onClose={closeModal}

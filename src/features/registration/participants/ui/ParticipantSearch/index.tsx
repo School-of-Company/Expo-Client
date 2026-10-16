@@ -3,6 +3,7 @@
 import { QRCodeCanvas } from 'qrcode.react';
 import { useEffect, useRef, useState } from 'react';
 import { downloadQrImage } from '@/shared/libs/downloadQrImage';
+import { useModalDialog } from '@/shared/model';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { RegistrationTable, SectionError, TableColumn } from '../../../common';
 import { useRegistrationExpo } from '../../../common';
@@ -36,25 +37,21 @@ const QrDialog = ({
     target.participantId,
   );
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+  const dialogRef = useModalDialog({ onClose });
 
   return (
     <div
-      role="dialog"
-      aria-modal
-      aria-label={`${target.name} 입장 QR`}
       className="fixed inset-0 z-10 flex items-center justify-center px-[18px]"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       onClick={onClose}
     >
       <div
-        className="flex w-full max-w-[360px] flex-col items-center gap-16 rounded-sm bg-white p-24"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${target.name} 입장 QR`}
+        tabIndex={-1}
+        className="flex w-full max-w-[360px] flex-col items-center gap-16 rounded-sm bg-white p-24 outline-none"
         onClick={(event) => event.stopPropagation()}
       >
         <p className="text-h3b text-black">{target.name}</p>
@@ -179,6 +176,7 @@ const ParticipantSearch = () => {
       </div>
 
       <SearchInput
+        label="참가자 이름 또는 전화번호 검색"
         placeholder="이름 또는 전화번호"
         value={keyword}
         onChange={(value) => setKeyword(value.slice(0, Q_MAX_LENGTH))}
