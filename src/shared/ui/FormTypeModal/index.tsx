@@ -154,9 +154,9 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
               className="text-main-600 underline"
               onClick={onClose}
             >
-              프로그램 페이지의 신청 폼 탭
+              프로그램 페이지
             </Link>
-            에서 만들고 회차·모집 탭의 회차에 연결합니다.
+            의 신청 폼에서 만들고 회차·모집의 회차에 연결합니다.
           </p>
         </div>
         <div className="flex items-start gap-12">

@@ -45,16 +45,17 @@ export const getRegistrationRoutes = (expoId: string) => {
   return {
     dashboard: base,
     applications: `${base}/applications`,
-    // 접수대장과 같은 페이지의 입장자·연수자 명단 탭
-    roster: `${base}/applications/roster`,
-    // 프로그램 조회·출석, 회차·모집, 프로그램 신청 폼을 탭으로 묶은 페이지
-    programs: `${base}/programs`,
-    schedule: `${base}/programs/schedule`,
+    schedule: `${base}/schedule`,
     history: `${base}/history`,
     attendance: `${base}/attendance`,
     participants: `${base}/participants`,
     operations: `${base}/operations`,
-    programForms: `${base}/programs/forms`,
+    // 접수대장 페이지의 입장자 명단 탭
+    roster: `${base}/applications?view=roster`,
+    // 프로그램 조회·출석, 회차·모집, 프로그램 신청 폼을 한 화면에 모은 페이지.
+    // schedule·programForms 목록 주소는 next.config 리다이렉트로 이 페이지에 온다
+    programs: `${base}/programs`,
+    programForms: `${base}/program-forms`,
     programFormNew: `${base}/programs/forms/new`,
     programForm: (formId: string) =>
       `${base}/programs/forms/${encodeURIComponent(formId)}`,
