@@ -20,10 +20,12 @@ import { useExitUserMutation } from '../../model/useExitUserMutation';
 import { usePaperQrAttendanceMutation } from '../../model/usePaperQrAttendanceMutation';
 import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';
 import { toAttendUserRowKey, userQrPrint } from '../../model/userQrPrint';
+import { useScannerSettings } from '../../model/useScannerSettings';
 import CameraScanner from '../CameraScanner';
 import EntrySummaryPanel from '../EntrySummaryPanel';
 import ManualScanInput from '../ManualScanInput';
-import ScanModeToggle, { ScanMode } from '../ScanModeToggle';
+import ScanModeToggle from '../ScanModeToggle';
+import ScannerNameInput from '../ScannerNameInput';
 import ScanResultCard from '../ScanResultCard';
 import WalkInPanel from '../WalkInPanel';
 
@@ -31,11 +33,18 @@ const QRScannerTable = ({ id }: { id: string }) => {
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
   const [userData, setUserData] = useState<AttendUserResponse[]>([]);
   const [paperQrCount, setPaperQrCount] = useState(0);
-  const { mutateAsync: attendUser } = usePatchAttendUserMutation(id);
-  const { mutateAsync: attendPaperQr } = usePaperQrAttendanceMutation(id);
-  const { mutateAsync: exitUser } = useExitUserMutation(id);
+  // 스캐너 이름과 모드는 새로고침해도 유지되도록 박람회별로 저장한다
+  const { scannerName, setScannerName, mode, setMode } = useScannerSettings(id);
+  const { mutateAsync: attendUser } = usePatchAttendUserMutation(
+    id,
+    scannerName,
+  );
+  const { mutateAsync: attendPaperQr } = usePaperQrAttendanceMutation(
+    id,
+    scannerName,
+  );
+  const { mutateAsync: exitUser } = useExitUserMutation(id, scannerName);
   const invalidateSummary = useInvalidateEntrySummary(id);
-  const [mode, setMode] = useState<ScanMode>('entry');
   const [lastResult, setLastResult] = useState<ScanResult | null>(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
 
@@ -173,6 +182,8 @@ const QRScannerTable = ({ id }: { id: string }) => {
       )}
       <section className="grid grid-cols-2 gap-24 mobile:grid-cols-1">
         <div className="space-y-12">
+          <p className="text-body1b text-black">스캐너 이름</p>
+          <ScannerNameInput scannerName={scannerName} onSave={setScannerName} />
           <p className="text-body1b text-black">QR 스캔</p>
           <p className="break-keep text-body2r text-gray-500">
             USB 스캐너는 버튼 없이 바로 처리됩니다. 스캐너가 읽지 못하면 값을
