@@ -20,12 +20,14 @@ import {
 } from '../../../api/postApplication';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { getProgramParticipants } from '../../api/programParticipants';
+import { formatFormPeriod } from '../../model/formPeriodStatus';
 import {
   OUTCOME_LABEL,
   ProgramApplyOutcome,
   getProgramFormId,
   getProgramPolicyNotes,
 } from '../../model/programApply';
+import { getGroupApplications, groupPrograms } from '../../model/programGroups';
 import { useMyApplications } from '../../model/useMyApplications';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
@@ -278,8 +280,13 @@ const ProgramApplyContainer = ({
   });
   const queryClient = useQueryClient();
   // 사전등록 대기 중인 일행이 있으면 "미등록" 대신 대기 안내를 보여 준다
-  const { waitlist } = useMyApplications(expoId);
-  const [openId, setOpenId] = useState<number | null>(null);
+  const { waitlist, applications, participants } = useMyApplications(expoId);
+  const groups = useMemo(() => groupPrograms(programs ?? []), [programs]);
+  // 묶음별로 고른 회차와 신청서를 연 묶음. 회차를 바꾸면 신청서를 닫아 이전 회차의 선택·답변이 남지 않게 한다
+  const [selectedByGroup, setSelectedByGroup] = useState<
+    Record<string, number>
+  >({});
+  const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);
   const [outcomes, setOutcomes] = useState<Record<number, ProgramApplyOutcome>>(
     {},
   );
@@ -298,12 +305,22 @@ const ProgramApplyContainer = ({
             신청할 수 있는 {label}이 없습니다.
           </p>
         )}
-        {programs?.map((program) => {
+        {groups.map((group) => {
+          const program =
+            group.sessions.find((s) => s.id === selectedByGroup[group.key]) ??
+            group.sessions[0];
           const formId = getProgramFormId(program);
           const outcome = outcomes[program.id];
+          const isOpen = openGroupKey === group.key;
+          const existing = getGroupApplications(
+            group,
+            programType,
+            applications,
+            participants,
+          );
           return (
             <section
-              key={program.id}
+              key={group.key}
               className="flex flex-col gap-16 rounded-sm border-1 border-solid border-gray-200 p-24"
             >
               <div className="flex items-center justify-between gap-16">
@@ -311,13 +328,70 @@ const ProgramApplyContainer = ({
                 <Button
                   type="button"
                   disabled={!formId}
-                  onClick={() =>
-                    setOpenId(openId === program.id ? null : program.id)
-                  }
+                  onClick={() => setOpenGroupKey(isOpen ? null : group.key)}
                 >
-                  {openId === program.id ? '닫기' : '신청'}
+                  {isOpen ? '닫기' : '신청'}
                 </Button>
               </div>
+              {group.sessions.length > 1 && (
+                <fieldset className="flex flex-col gap-8">
+                  <legend className="mb-8 text-body2b">회차 선택</legend>
+                  {group.sessions.map((session) => (
+                    <label
+                      key={session.id}
+                      className="flex flex-wrap items-center gap-8 text-body2r"
+                    >
+                      <input
+                        type="radio"
+                        name={`session-${group.key}`}
+                        checked={session.id === program.id}
+                        onChange={() => {
+                          setSelectedByGroup((prev) => ({
+                            ...prev,
+                            [group.key]: session.id,
+                          }));
+                          // 신청서를 닫아 이전 회차의 참가자 선택·답변·정책을 버린다. 다시 열면 새 회차로 조회한다
+                          setOpenGroupKey(null);
+                        }}
+                      />
+                      {session.title} · {formatFormPeriod(session.startedAt)} ~{' '}
+                      {formatFormPeriod(session.endedAt)}
+                      {session.policy?.closed && (
+                        <span className="text-caption1r text-gray-500">
+                          (마감)
+                        </span>
+                      )}
+                    </label>
+                  ))}
+                </fieldset>
+              )}
+              {existing.length > 0 && (
+                <div
+                  role="status"
+                  className="flex flex-col gap-4 break-keep text-caption1r text-gray-600"
+                >
+                  {existing.map(({ application, participantName, session }) => (
+                    <p key={application.applicationId}>
+                      {participantName}: {session.title}{' '}
+                      {formatFormPeriod(session.startedAt)} 회차{' '}
+                      {application.status === 'CONFIRMED' ? '확정' : '대기'}
+                    </p>
+                  ))}
+                  <p>
+                    같은 묶음은 참가자마다 하나만 신청할 수 있습니다. 회차를
+                    바꾸려면{' '}
+                    <Link
+                      href={`/application/forms/${expoId}`}
+                      className="text-main-600 underline"
+                    >
+                      내 신청
+                    </Link>
+                    에서 기존 신청을 확인하고, 취소가 가능하면 취소한 뒤 다시
+                    신청해주세요. 자동으로 바뀌지 않으며 최종 판정은 서버가
+                    합니다.
+                  </p>
+                </div>
+              )}
               {program.policy && (
                 <ul className="flex flex-col gap-4 text-caption1r text-gray-600">
                   {getProgramPolicyNotes(program.policy).map((note) => (
@@ -345,8 +419,9 @@ const ProgramApplyContainer = ({
                     : OUTCOME_LABEL[outcome.kind]}
                 </p>
               )}
-              {formId && openId === program.id && (
+              {formId && isOpen && (
                 <ParticipantLookup
+                  key={program.id}
                   expoId={expoId}
                   programType={programType}
                   program={program}

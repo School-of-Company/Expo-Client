@@ -64,7 +64,7 @@ export const getProgramPolicyNotes = (policy: ProgramPolicy): string[] => {
   }
   if (policy.groupId)
     notes.push(
-      '같은 묶음의 연수는 참가자마다 하나만 확정 또는 대기로 신청할 수 있습니다.',
+      '같은 묶음의 회차는 참가자마다 하나만 확정 또는 대기로 신청할 수 있습니다.',
     );
   if (policy.closed) notes.push('운영 측에서 신청을 마감했습니다.');
   return notes;
