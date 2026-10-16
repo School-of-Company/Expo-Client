@@ -15,6 +15,8 @@ export interface ReportApplicationFilter {
   programId?: number;
   /** null 이면 모든 상태, 생략하면 서버 기본값 CONFIRMED */
   status: ReportApplicationStatus | null;
+  /** 제출 당시 회차 제목 검색어(1–200자). 대장의 제목 검색과 같은 조건 */
+  search?: string;
   sort?: 'CREATED_DESC' | 'CREATED_ASC';
 }
 
