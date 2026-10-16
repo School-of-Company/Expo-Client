@@ -13,8 +13,8 @@ const ExhibitionPaperQrPage = ({ id }: { id: string }) => {
             <div className="space-y-8">
               <p className="text-h2b text-black">현장 배부용 QR 인쇄</p>
               <p className="break-keep text-body2r text-gray-500">
-                개인정보 없는 입장 전용 QR입니다. 골든벨·교원연수 신청 권한은
-                없습니다.
+                개인정보 없는 박람회 입장 전용 QR입니다. 프로그램 신청이나 출석
+                확인에는 쓸 수 없습니다.
               </p>
             </div>
             <Link

@@ -4,8 +4,13 @@ import {
   DetailedHTMLProps,
   InputHTMLAttributes,
   ReactNode,
+  createContext,
   forwardRef,
+  useContext,
 } from 'react';
+
+/** 입력 위에 따로 그린 제목의 id. 제목과 입력이 떨어져 있어도 입력의 접근성 이름으로 쓴다 */
+export const InputLabelContext = createContext<string | undefined>(undefined);
 
 interface Props extends Omit<
   DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>,
@@ -13,6 +18,8 @@ interface Props extends Omit<
 > {
   icon?: ReactNode;
   onIconClick?: () => void;
+  /** 아이콘 버튼의 접근성 이름 */
+  iconLabel?: string;
   size?: 'default' | 'small';
   error?: boolean;
 }
@@ -46,12 +53,18 @@ const Input = forwardRef<HTMLInputElement, Props>(
       onChange,
       value,
       onIconClick,
+      iconLabel = '비밀번호 표시 전환',
       size,
       error,
       ...props
     },
     ref,
   ) => {
+    const contextLabelId = useContext(InputLabelContext);
+    // 직접 받은 이름이 있으면 그것을 쓴다
+    const labelledBy =
+      props['aria-labelledby'] ??
+      (props['aria-label'] ? undefined : contextLabelId);
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (onChange) {
         onChange(e);
@@ -68,6 +81,8 @@ const Input = forwardRef<HTMLInputElement, Props>(
         <label className={inputStyles({ size, error })}>
           <input
             {...props}
+            aria-labelledby={labelledBy}
+            aria-invalid={error || props['aria-invalid']}
             ref={ref}
             type={type}
             className="text-body4 w-full border-none bg-transparent outline-none"
@@ -77,14 +92,15 @@ const Input = forwardRef<HTMLInputElement, Props>(
             value={value}
           />
           {icon && (
-            <div
-              className="h-5 w-5 cursor-pointer"
+            // 키보드로도 누를 수 있게 버튼으로 둔다. 보이는 아이콘은 그대로 두고 누르는 영역만 넓힌다
+            <button
+              type="button"
+              className="-my-12 -mr-12 flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center"
               onClick={onIconClick}
-              role="button"
-              aria-label="비밀번호 표시 전환"
+              aria-label={iconLabel}
             >
-              {icon}
-            </div>
+              <span className="h-5 w-5">{icon}</span>
+            </button>
           )}
         </label>
       </div>

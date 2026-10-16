@@ -197,9 +197,14 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
         <div className="flex flex-col gap-12">
           <div className="flex w-full justify-between">
             <p className="text-h2b mobile:text-body1b">{text}</p>
-            <label className="hover:cursor-pointer" onClick={onClose}>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="닫기"
+              className="-m-10 flex h-[44px] w-[44px] shrink-0 items-center justify-center"
+            >
               <XMark />
-            </label>
+            </button>
           </div>
           {/* 여기서 만드는 폼은 사전·현장 등록용이다. 프로그램·연수 신청 폼은 회차에 연결하는 별도 폼이다 */}
           {(modalType === 'formcreate' || modalType === 'edit') && (

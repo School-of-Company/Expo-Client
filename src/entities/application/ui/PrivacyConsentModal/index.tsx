@@ -13,7 +13,12 @@ const PrivacyConsentModal = ({
     <div className="w-full max-w-[656px] space-y-16 rounded-sm bg-white p-28">
       <div className="flex items-center justify-between">
         <h1 className="text-h2b text-black">개인정보 동의</h1>
-        <button type="button" onClick={onClose}>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="닫기"
+          className="-m-10 flex h-[44px] w-[44px] shrink-0 items-center justify-center"
+        >
           <XMark />
         </button>
       </div>

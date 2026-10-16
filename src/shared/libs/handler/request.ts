@@ -8,6 +8,8 @@ import {
 import { isFileDownloadRequest } from './proxyTarget';
 import { RequestData } from './type';
 
+const SCANNER_NAME_HEADER = 'X-Scanner-Name';
+
 export async function parseRequestData(
   req: NextRequest,
   originalBody?: string | FormData,
@@ -47,6 +49,9 @@ export async function sendRequest(
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
+  // 입퇴장 스캐너별 집계용 기기 이름(Attendance X-Scanner-Name). 다른 요청 헤더는 넘기지 않는다
+  const scannerName = req.headers.get(SCANNER_NAME_HEADER);
+  if (scannerName) headers[SCANNER_NAME_HEADER] = scannerName;
 
   const isFileDownload = isFileDownloadRequest(req);
   // 파일은 메모리에 모으지 않고 받는 대로 브라우저로 흘려보낸다

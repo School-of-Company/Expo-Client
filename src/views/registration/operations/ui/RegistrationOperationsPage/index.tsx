@@ -23,7 +23,7 @@ const RegistrationOperationsPage = () => {
         />
       </div>
       {modal && (
-        <ModalLayout>
+        <ModalLayout label={modal.text} onClose={() => setModal(null)}>
           <FormTypeModal
             text={modal.text}
             onClose={() => setModal(null)}

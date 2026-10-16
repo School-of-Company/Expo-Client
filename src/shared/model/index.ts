@@ -12,3 +12,4 @@ export {
 } from './trainingProgramQuestion';
 export { useTimer } from './useTimer';
 export { useExcelDownload } from './useExcelDownload';
+export { useModalDialog } from './useModalDialog';

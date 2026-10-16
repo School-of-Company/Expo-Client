@@ -21,7 +21,7 @@ export const useWalkInCounts = (expoId: string) =>
     meta: { silent: true },
   });
 
-export const useRecordWalkIn = (expoId: string) => {
+export const useRecordWalkIn = (expoId: string, scannerName?: string) => {
   const queryClient = useQueryClient();
   const invalidateSummary = useInvalidateEntrySummary(expoId);
 
@@ -33,11 +33,15 @@ export const useRecordWalkIn = (expoId: string) => {
       category: WalkInCategory;
       action: 'ADD' | 'UNDO';
     }) =>
-      postWalkIn(expoId, {
-        category,
-        action,
-        requestId: crypto.randomUUID(),
-      }),
+      postWalkIn(
+        expoId,
+        {
+          category,
+          action,
+          requestId: crypto.randomUUID(),
+        },
+        scannerName,
+      ),
     onSuccess: (counts) => {
       queryClient.setQueryData(walkInQueryKey(expoId), counts);
       invalidateSummary();

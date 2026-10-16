@@ -12,6 +12,13 @@ import type {
 export const getProgramFormId = (program: Pick<Program, 'policy'>) =>
   program.policy?.formId || undefined;
 
+/**
+ * 회차 장소 표시. 장소는 회차마다 따로 두며 행사·사전등록 장소로 채우지 않는다.
+ * 입력하지 않았거나 서버가 아직 주지 않는 회차는 추후 안내로 표시한다
+ */
+export const formatProgramPlace = (place: string | null | undefined) =>
+  place?.trim() || '장소 추후 안내';
+
 /** 프로그램 하나의 제출 결과. 한 프로그램의 실패가 다른 프로그램의 성공 표시를 가리지 않게 따로 둔다. */
 export type ProgramApplyOutcome =
   | { kind: 'CONFIRMED' | 'WAITING' | 'PROCESSING' }
@@ -38,6 +45,21 @@ const seats = (capacity: number, waitingCapacity: number) =>
       ? `대기 ${waitingCapacity.toLocaleString()}명`
       : '대기 없음'
   }`;
+
+/**
+ * 프로그램 접수 상태 표시. 안내용이며 신청 가능 여부는 제출할 때 서버가 판정한다.
+ * 참가자용 잔여석 API 가 없어 정원 마감은 여기서 알 수 없다
+ */
+export const getProgramRecruitmentLabel = (
+  policy: ProgramPolicy | null | undefined,
+  now: Date = new Date(),
+) => {
+  if (!policy) return '모집 설정 필요';
+  if (policy.closed) return '운영 마감';
+  if (now < new Date(policy.applicationStartedAt)) return '접수 전';
+  if (now >= new Date(policy.applicationEndedAt)) return '접수 기간 종료';
+  return '접수 중';
+};
 
 /**
  * 프로그램 모집 정책 안내 문구. 화면 안내용이며 자격·채널·정원·기간의 최종 판정은 신청할 때 서버가 한다.

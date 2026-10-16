@@ -12,6 +12,7 @@ import {
   PROGRAM_TYPE_LABEL,
 } from '@/features/registration/common/model/ledger';
 import { downloadQrImage } from '@/shared/libs/downloadQrImage';
+import { useModalDialog } from '@/shared/model';
 import {
   getParticipantQr,
   OwnerApplication,
@@ -67,7 +68,6 @@ const SESSION_STATE_NOTE: Partial<Record<SessionInfo['state'], string>> = {
   loading: '회차 정보를 불러오는 중입니다.',
   error: '회차 정보를 불러오지 못했습니다.',
   missing: '삭제되었거나 변경되어 회차 정보를 찾을 수 없습니다.',
-  unsupported: '사전등록 회차의 이름과 일정은 아직 제공되지 않습니다.',
 };
 
 const ApplicationRow = ({
@@ -163,11 +163,18 @@ const ApplicationRow = ({
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <p className="text-body2b text-black">{session.title}</p>
+      <div className="flex min-w-0 flex-col gap-4">
+        <p className="break-words break-keep text-body2b text-black">
+          {session.title}
+        </p>
         {session.startedAt && (
           <p className="text-caption1r text-gray-500">
             {formatDefinitionSchedule(session.startedAt, session.endedAt)}
+          </p>
+        )}
+        {session.place && (
+          <p className="break-words break-keep text-caption1r text-gray-500">
+            장소: {session.place}
           </p>
         )}
         {SESSION_STATE_NOTE[session.state] && (
@@ -196,27 +203,35 @@ const ApplicationRow = ({
 };
 
 const Dialog = ({
+  label,
   onClose,
   children,
 }: {
+  label: string;
   onClose: () => void;
   children: React.ReactNode;
-}) => (
-  <div
-    role="dialog"
-    aria-modal
-    className="fixed inset-0 z-10 flex items-center justify-center px-[18px]"
-    style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-    onClick={onClose}
-  >
+}) => {
+  const dialogRef = useModalDialog({ onClose });
+  return (
     <div
-      className="flex w-full max-w-[360px] flex-col items-center gap-16 rounded-sm bg-white p-24"
-      onClick={(event) => event.stopPropagation()}
+      className="fixed inset-0 z-10 flex items-center justify-center px-[18px]"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      onClick={onClose}
     >
-      {children}
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        tabIndex={-1}
+        className="flex w-full max-w-[360px] flex-col items-center gap-16 rounded-sm bg-white p-24 outline-none"
+        onClick={(event) => event.stopPropagation()}
+      >
+        {children}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const QrDialog = ({
   expoId,
@@ -238,7 +253,7 @@ const QrDialog = ({
   const sessionIssue = getSessionIssue(error);
 
   return (
-    <Dialog onClose={onClose}>
+    <Dialog label={`${target.title} 입장 QR`} onClose={onClose}>
       <p className="text-h3b text-black">{target.title}</p>
       {!data && isFetching && (
         <p role="status" className="text-body2r text-gray-500">
@@ -409,7 +424,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
       )}
 
       {cancelTarget && (
-        <Dialog onClose={() => setCancelTarget(null)}>
+        <Dialog label="신청 취소 확인" onClose={() => setCancelTarget(null)}>
           <p className="text-h3b text-black">신청을 취소할까요?</p>
           <p className="break-keep text-center text-body2r text-gray-500">
             {cancelTarget.title}
@@ -441,7 +456,10 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
       )}
 
       {isWaitlistCancelOpen && (
-        <Dialog onClose={() => setIsWaitlistCancelOpen(false)}>
+        <Dialog
+          label="대기 신청 취소 확인"
+          onClose={() => setIsWaitlistCancelOpen(false)}
+        >
           <p className="text-h3b text-black">대기 신청을 취소할까요?</p>
           <p className="break-keep text-center text-body2r text-gray-500">
             일행 전체의 대기가 함께 취소되고 대기 순번이 사라집니다. 다시

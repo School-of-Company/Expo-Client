@@ -1,6 +1,7 @@
 'use client';
 
-import { Input, ToggleButton } from '@/shared/ui';
+import { useId } from 'react';
+import { Input, InputLabelContext, ToggleButton } from '@/shared/ui';
 import { DateTimeInput, ScheduleProgram } from '../../../common';
 import {
   AdminOccupation,
@@ -32,18 +33,24 @@ interface PolicyFieldsProps {
 
 const OCCUPATIONS = Object.keys(OCCUPATION_LABEL) as AdminOccupation[];
 
+/** 제목과 안의 입력(Input)을 접근성 이름으로 잇는다 */
 export const Field = ({
   label,
   children,
 }: {
   label: string;
   children: React.ReactNode;
-}) => (
-  <div className="space-y-[10px]">
-    <FieldLabel>{label}</FieldLabel>
-    {children}
-  </div>
-);
+}) => {
+  const labelId = useId();
+  return (
+    <div className="space-y-[10px]">
+      <FieldLabel id={labelId}>{label}</FieldLabel>
+      <InputLabelContext.Provider value={labelId}>
+        {children}
+      </InputLabelContext.Provider>
+    </div>
+  );
+};
 
 /**
  * 프로그램 모집 정책(ProgramPolicyRequest) 입력.

@@ -1,7 +1,11 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getPreRegisterCapacity } from '../api/preRegister';
+import {
+  getPreRegisterCapacity,
+  getPublicPreregisterSessions,
+  PublicPreregisterSession,
+} from '../api/preRegister';
 
 /**
  * 회차 잔여석(안내용). 조회에 실패하면 잔여석을 알 수 없으므로 화면이 알리고 신청을 막는다.
@@ -15,3 +19,34 @@ export const usePreRegisterCapacity = (expoId: string, sessionId: string) =>
     // 회차 없이 들어온 링크는 화면이 회차 선택을 안내하므로 조회하지 않는다
     enabled: !!sessionId,
   });
+
+/** 참가자용 사전등록 회차 목록. 시작 시각 순으로 온다 */
+export const usePreRegisterSessions = (expoId: string) =>
+  useQuery({
+    queryKey: ['preRegisterSessions', expoId],
+    queryFn: () => getPublicPreregisterSessions(expoId),
+    retry: false,
+    // 실패는 회차 선택 화면이 직접 안내한다
+    meta: { silent: true },
+  });
+
+export type PreRegisterSessionState = 'OPEN' | 'CLOSED' | 'ENDED';
+
+export const PRE_REGISTER_SESSION_STATE_LABEL: Record<
+  PreRegisterSessionState,
+  string
+> = {
+  OPEN: '신청 가능',
+  CLOSED: '접수 마감',
+  ENDED: '종료',
+};
+
+/** 화면 안내용 상태. 정원·접수 기간의 최종 판정은 신청할 때 서버가 한다 */
+export const getPreRegisterSessionState = (
+  session: PublicPreregisterSession,
+  now: Date = new Date(),
+): PreRegisterSessionState => {
+  if (session.closed) return 'CLOSED';
+  const end = new Date(session.endedAt).getTime();
+  return !Number.isNaN(end) && end < now.getTime() ? 'ENDED' : 'OPEN';
+};
