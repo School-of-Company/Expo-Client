@@ -6,6 +6,7 @@ import {
   serverInstance,
 } from '@/shared/libs/http/serverInstance';
 import { isFileDownloadRequest } from './proxyTarget';
+import { scannerNameHeaders } from './scannerName';
 import { RequestData } from './type';
 
 export async function parseRequestData(
@@ -60,6 +61,11 @@ export async function sendRequest(
     headers: {
       ...headers,
       ...clientIpHeaders(req),
+      ...scannerNameHeaders(
+        req.method,
+        req.nextUrl.pathname.replace(/^\/api\/server\/token/, ''),
+        req.headers.get('X-Scanner-Name'),
+      ),
       // 압축을 풀면 Content-Length 가 실제 본문과 달라지므로 원본 그대로 받는다(XLSX 는 이미 zip 이다)
       ...(isFileDownload && { 'Accept-Encoding': 'identity' }),
     } as AxiosRequestConfig['headers'],
