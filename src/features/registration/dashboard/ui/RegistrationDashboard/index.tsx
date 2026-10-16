@@ -28,7 +28,7 @@ import {
 import { activeQrQueryKey } from '../../model/activeQr';
 import { applicationPageViewsQueryKey } from '../../model/applicationPageViews';
 import {
-  countOpenSessions,
+  countSessionsByRecruitment,
   groupSessionsByProgram,
 } from '../../model/programGroups';
 import MonitoringCards from '../MonitoringCards';
@@ -126,8 +126,8 @@ const RegistrationDashboard = ({
     );
 
   const counts = summary.data?.statusCounts;
-  const openSessionCount = sessions.data
-    ? countOpenSessions(sessions.data)
+  const sessionCounts = sessions.data
+    ? countSessionsByRecruitment(sessions.data)
     : null;
   const programCount = useMemo(
     () =>
@@ -249,15 +249,7 @@ const RegistrationDashboard = ({
           )}
         </Section>
         <Section title="운영 지표">
-          <MonitoringCards
-            expoId={expoId}
-            openSessionCount={openSessionCount}
-            closedSessionCount={
-              sessions.data && openSessionCount !== null
-                ? sessions.data.length - openSessionCount
-                : null
-            }
-          />
+          <MonitoringCards expoId={expoId} sessionCounts={sessionCounts} />
         </Section>
       </div>
 
