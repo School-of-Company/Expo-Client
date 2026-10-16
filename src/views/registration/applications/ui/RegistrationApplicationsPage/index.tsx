@@ -1,19 +1,21 @@
 import { Suspense } from 'react';
 import { RegistrationLedger } from '@/features/registration/applications';
-import { Header } from '@/widgets/layout';
-import { RegistrationTabs } from '@/widgets/registration';
+import { PageShell } from '@/widgets/layout';
+import { ApplicationsHubTabs, RegistrationTabs } from '@/widgets/registration';
 
+/** 참가자·문자 페이지의 접수대장·문자 탭 */
 const RegistrationApplicationsPage = () => {
   return (
-    <div className="flex min-h-screen flex-col gap-[30px]">
-      <Header />
-      <RegistrationTabs />
-      <div className="flex flex-1 justify-center p-16">
+    <PageShell subHeader={<RegistrationTabs />}>
+      <div className="flex w-full flex-col items-center gap-24">
+        <div className="w-full max-w-[1200px]">
+          <ApplicationsHubTabs />
+        </div>
         <Suspense>
           <RegistrationLedger />
         </Suspense>
       </div>
-    </div>
+    </PageShell>
   );
 };
 
