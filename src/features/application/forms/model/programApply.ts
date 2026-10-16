@@ -3,6 +3,7 @@ import { formatFormPeriod } from './formPeriodStatus';
 import type {
   ProgramOccupation,
   ProgramPolicy,
+  ProgramSeats,
   Program,
 } from '@/shared/types/program/list/type';
 
@@ -74,3 +75,19 @@ export const getProgramPolicyNotes = (
   if (policy.closed) notes.push('운영 측에서 신청을 마감했습니다.');
   return notes;
 };
+
+// ponytail: 코드명은 Expo-Application-Server#126 확정 전 가정값. 확정되면 이 맵만 맞춘다
+export const INELIGIBLE_REASON_LABEL: Record<string, string> = {
+  TARGET_MISMATCH: '신청 대상이 아닙니다',
+  GROUP_ALREADY_APPLIED: '같은 묶음에 이미 신청했습니다',
+  TIME_CONFLICT: '운영 시간이 겹치는 신청이 있습니다',
+};
+
+export const getIneligibleLabel = (reason?: string | null) =>
+  (reason && INELIGIBLE_REASON_LABEL[reason]) || '신청할 수 없는 참가자';
+
+/** 회차의 현재 잔여석·대기 현황. 서버가 주기 전에는 null 이라 정원을 잔여석처럼 보이지 않는다. */
+export const getSeatsLabel = (seats?: ProgramSeats | null): string | null =>
+  seats
+    ? `잔여 ${seats.remaining.toLocaleString()}명 · 대기 ${seats.waitingCount.toLocaleString()}명(대기 가능 ${seats.waitingRemaining.toLocaleString()}명)`
+    : null;

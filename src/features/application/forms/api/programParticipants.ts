@@ -6,6 +6,8 @@ import { OwnerParticipant } from './myApplications';
 export interface ProgramParticipant {
   participant: OwnerParticipant;
   eligible: boolean;
+  // 신청 불가 사유 코드. 계약 미확정(Expo-Application-Server#126)이라 문자열로 받는다
+  ineligibleReason?: string | null;
 }
 
 export interface ProgramParticipants {
