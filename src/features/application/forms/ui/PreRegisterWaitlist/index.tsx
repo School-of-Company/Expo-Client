@@ -1,4 +1,6 @@
+import { formatDefinitionSchedule } from '@/features/registration/common/model/ledger';
 import { MyPreRegisterWaitlist } from '../../api/myApplications';
+import { usePreRegisterSessions } from '../../model/usePreRegister';
 
 const STATUS_LABEL: Record<MyPreRegisterWaitlist['status'], string> = {
   WAITING: '대기',
@@ -19,22 +21,30 @@ const STATUS_GUIDE: Record<MyPreRegisterWaitlist['status'], string> = {
  * 승급 처리 중(PROCESSING)에는 서버가 취소를 막으므로 버튼을 숨긴다.
  */
 const PreRegisterWaitlist = ({
+  expoId,
   waitlist,
   onCancel,
   isCancelling,
 }: {
+  expoId: string;
   waitlist: MyPreRegisterWaitlist;
   onCancel: () => void;
   isCancelling: boolean;
 }) => {
   const { sessionId, applicants, status, position } = waitlist;
+  // 회차 선택 화면과 같은 캐시. 목록을 못 받으면 회차 번호로 둔다
+  const { data: sessions } = usePreRegisterSessions(expoId);
+  const session = sessions?.find(({ id }) => id === sessionId);
 
   return (
     <div className="flex items-center justify-between gap-12 rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-18 mobile:flex-col mobile:items-stretch">
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center gap-8">
-          <p className="text-body2b text-black">
-            사전등록 대기 · 회차 {sessionId}
+          <p className="min-w-0 break-keep text-body2b text-black">
+            사전등록 대기 ·{' '}
+            {session
+              ? `${session.title} (${formatDefinitionSchedule(session.startedAt, session.endedAt)})`
+              : `회차 ${sessionId}`}
           </p>
           <p className="text-body2r text-gray-500">
             대표자 포함 {applicants.toLocaleString()}명

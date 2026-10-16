@@ -25,11 +25,21 @@ export const normalizeExpoId = (expoId: string) =>
 export const getExpoRoutes = (expoId: string) => {
   const id = segment(expoId);
   return {
-    participants: `/exhibition/participants/${id}?page=1&userType=STANDARD`,
     checkIn: `/exhibition/check-in/${id}`,
-    program: `/program/${id}?navigation=standard`,
     paperQr: `/exhibition/paper-qr/${id}`,
-    lottery: `/exhibition/lottery/${id}`,
+    // 프로그램 한 개의 출석 명단·QR 출석 체크
+    programAttendance: (
+      programType: 'STANDARD' | 'TRAINING',
+      programId: number,
+    ) =>
+      `/program/${id}/detail/${programId}?navigation=${programType === 'TRAINING' ? 'training' : 'standard'}`,
+    // 현장 신청용 QR 을 화면에 띄운다. 연수자는 사전 등록만 있다
+    accessQr: (
+      userType: 'STANDARD' | 'TRAINEE',
+      applicationType: 'PRE' | 'FIELD',
+    ) =>
+      `/exhibition/access-qr/${id}?userType=${userType}&applicationType=${applicationType}`,
+    edit: `/exhibition/edit/${id}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
   };
@@ -40,15 +50,19 @@ export const getRegistrationRoutes = (expoId: string) => {
   return {
     dashboard: base,
     applications: `${base}/applications`,
-    schedule: `${base}/schedule`,
-    history: `${base}/history`,
-    attendance: `${base}/attendance`,
+    preregister: `${base}/preregister`,
     participants: `${base}/participants`,
     operations: `${base}/operations`,
-    programForms: `${base}/program-forms`,
-    programFormNew: `${base}/program-forms/new`,
+    // 접수대장 페이지의 입장자 명단 탭
+    roster: `${base}/applications?view=roster`,
+    // 프로그램 조회·출석, 회차·모집, 프로그램 신청 폼을 한 화면에 모은 페이지
+    programs: `${base}/programs`,
+    // 회차·모집과 신청 폼 목록은 프로그램 페이지 안에 있다. 초안 복귀 쿼리를 붙이므로 해시 없이 둔다
+    schedule: `${base}/programs`,
+    programForms: `${base}/programs`,
+    programFormNew: `${base}/programs/forms/new`,
     programForm: (formId: string) =>
-      `${base}/program-forms/${encodeURIComponent(formId)}`,
+      `${base}/programs/forms/${encodeURIComponent(formId)}`,
     survey: `${base}/survey`,
   };
 };

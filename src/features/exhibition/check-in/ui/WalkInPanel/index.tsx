@@ -2,7 +2,7 @@
 
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { WalkInCategory } from '@/shared/types/exhibition/check-in/entry';
-import { Button } from '@/shared/ui';
+import { Button, Section } from '@/shared/ui';
 import { useRecordWalkIn, useWalkInCounts } from '../../model/useWalkIn';
 
 const CATEGORIES: { value: WalkInCategory; label: string }[] = [
@@ -11,9 +11,17 @@ const CATEGORIES: { value: WalkInCategory; label: string }[] = [
 ];
 
 /** QR 없는 방문객을 개인정보 없이 구분별 인원수로만 센다 */
-const WalkInPanel = ({ expoId }: { expoId: string }) => {
+const WalkInPanel = ({
+  expoId,
+  scannerName,
+  isExitMode,
+}: {
+  expoId: string;
+  scannerName?: string;
+  isExitMode: boolean;
+}) => {
   const { data, error, isError, refetch, isFetching } = useWalkInCounts(expoId);
-  const { mutate, isPending } = useRecordWalkIn(expoId);
+  const { mutate, isPending } = useRecordWalkIn(expoId, scannerName);
 
   const countOf = (category: WalkInCategory) =>
     data?.counts?.find((item) => item.category === category)?.count ?? 0;
@@ -21,20 +29,27 @@ const WalkInPanel = ({ expoId }: { expoId: string }) => {
   // 조회가 안 되면 기록도 안 되므로 버튼을 막는다
   const isUnavailable = isError && !data;
 
+  // 퇴장 모드에서 +1 을 누르면 입장으로 잘못 세므로 버튼과 함께 요청도 막는다
+  const handleAdd = (category: WalkInCategory) => {
+    if (isExitMode) return;
+    mutate({ category, action: 'ADD' });
+  };
+
   return (
-    <section className="space-y-16 rounded-sm border-1 border-solid border-gray-200 px-24 py-20 mobile:px-16">
-      <div className="flex items-center justify-between gap-12">
-        <p className="text-body1b text-black">QR 없는 방문객 · 간편입장</p>
+    <Section
+      title="QR 없는 방문객 · 간편입장"
+      action={
         <p className="text-caption1r text-gray-400">
           오늘 합계 {data?.total ?? 0}명
         </p>
-      </div>
+      }
+    >
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         {CATEGORIES.map(({ value, label }) => (
           <div key={value} className="space-y-8">
             <Button
-              onClick={() => mutate({ category: value, action: 'ADD' })}
-              disabled={isUnavailable || isPending}
+              onClick={() => handleAdd(value)}
+              disabled={isExitMode || isUnavailable || isPending}
             >
               {label} +1
             </Button>
@@ -43,41 +58,41 @@ const WalkInPanel = ({ expoId }: { expoId: string }) => {
                 오늘 {label}{' '}
                 <span className="text-black">{countOf(value)}</span>명
               </p>
-              <button
-                type="button"
+              <Button
+                size="small"
+                variant="gray"
                 onClick={() => mutate({ category: value, action: 'UNDO' })}
                 disabled={isUnavailable || isPending || countOf(value) === 0}
-                className="text-caption1r text-gray-500 underline disabled:text-gray-300"
               >
                 잘못 누름 1 취소
-              </button>
+              </Button>
             </div>
           </div>
         ))}
       </div>
-      {isUnavailable ? (
+      {isExitMode && !isUnavailable && (
+        <p className="break-keep text-body2r text-main-600">
+          퇴장 모드에서는 간편입장 +1을 쓸 수 없습니다. 입장 모드로 바꿔 주세요.
+        </p>
+      )}
+      {isUnavailable && (
         <div role="alert" className="flex items-center justify-between gap-12">
           <p className="break-keep text-body2r text-gray-500">
             {getErrorStatus(error) === 404
               ? '간편입장을 아직 쓸 수 없습니다. 서버 연결(Gateway 간편입장 경로)을 준비 중이거나 박람회를 찾지 못했습니다.'
               : '간편입장 집계를 불러오지 못했습니다.'}
           </p>
-          <button
-            type="button"
+          <Button
+            size="small"
+            variant="white"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="shrink-0 text-body2r text-main-600 underline disabled:text-gray-300"
           >
             다시 시도
-          </button>
+          </Button>
         </div>
-      ) : (
-        <p className="break-keep text-caption1r text-gray-400">
-          개인정보 없이 방문 인원수만 집계합니다. 인쇄한 종이 QR은 위 스캐너로
-          스캔해 주세요.
-        </p>
       )}
-    </section>
+    </Section>
   );
 };
 

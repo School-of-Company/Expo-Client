@@ -115,7 +115,11 @@ const EditForm = ({ id }: { id: string }) => {
         ),
       })}
       {confirming && (
-        <ModalLayout>
+        <ModalLayout
+          label="폼 삭제 확인"
+          onClose={() => setConfirming(false)}
+          canClose={!remove.isPending}
+        >
           <div className="flex w-full max-w-[656px] flex-col gap-40 rounded-sm bg-white p-28">
             <div className="space-y-12">
               <div className="flex w-full justify-between">
@@ -124,6 +128,8 @@ const EditForm = ({ id }: { id: string }) => {
                   type="button"
                   disabled={remove.isPending}
                   onClick={() => setConfirming(false)}
+                  aria-label="닫기"
+                  className="-m-10 flex h-[44px] w-[44px] shrink-0 items-center justify-center"
                 >
                   <XMark />
                 </button>

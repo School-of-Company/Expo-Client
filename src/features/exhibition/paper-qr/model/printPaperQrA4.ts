@@ -2,7 +2,7 @@
 
 import { renderQRCodeSVG } from '@/shared/model';
 import { PaperQrItem } from '../api/qrTokensApi';
-import { getCategoryLabel } from './constants';
+import { getCategoryLabel, getCategoryPrintColor } from './constants';
 
 interface PrintOptions {
   expoTitle: string;
@@ -17,7 +17,12 @@ const A4_STYLE = `
   @page { size: A4; margin: 10mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body { font-family: 'Pretendard', 'Arial', sans-serif; color: #000; }
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Arial', sans-serif;
+    color: #121212;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .page {
     display: grid;
     grid-template-columns: repeat(${COLUMNS}, 1fr);
@@ -27,28 +32,58 @@ const A4_STYLE = `
     page-break-after: always;
   }
   .page:last-child { break-after: auto; page-break-after: auto; }
+  /* 바깥 점선은 자르는 선, 안쪽 카드가 실제 입장권이다 */
   .ticket {
-    border: 1px dashed #999;
-    padding: 4mm;
+    border: 0.2mm dashed #bdbdbd;
+    padding: 3mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .card {
+    height: 100%;
+    border: 0.3mm solid #d3d3d3;
+    border-radius: 2.5mm;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .band {
+    padding: 2mm 3mm;
+    color: #fff;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2mm;
+  }
+  .category { font-size: 12pt; font-weight: 700; line-height: 1.2; }
+  .kind { font-size: 7pt; font-weight: 600; letter-spacing: 0.04em; opacity: 0.9; }
+  .body {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2mm;
-    overflow: hidden;
-    break-inside: avoid;
-    page-break-inside: avoid;
+    gap: 1.5mm;
+    padding: 2mm 3mm;
   }
-  .category { font-size: 13pt; font-weight: 700; line-height: 1.2; }
-  .qr { width: 40mm; height: 40mm; }
-  .qr svg { width: 100%; height: 100%; display: block; }
-  .token { font-size: 9pt; font-weight: 700; line-height: 1.2; }
   .expo {
-    font-size: 7pt;
-    line-height: 1.2;
+    font-size: 8pt;
+    font-weight: 700;
+    line-height: 1.25;
     text-align: center;
     word-break: keep-all;
+    max-height: 2.5em;
+    overflow: hidden;
   }
+  .qr { width: 34mm; height: 34mm; }
+  .qr svg { width: 100%; height: 100%; display: block; }
+  .code {
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .note { font-size: 6.5pt; color: #646464; line-height: 1.2; }
 `;
 
 // 숨긴 iframe으로 인쇄한다. printPaperQrLabels와 같은 방식이다
@@ -87,28 +122,49 @@ export const printPaperQrA4 = (
         .forEach(({ category, token, code }) => {
           const ticket = doc.createElement('div');
           ticket.className = 'ticket';
+          const card = doc.createElement('div');
+          card.className = 'card';
+          ticket.appendChild(card);
 
+          // 구분은 띠 색과 글로 함께 보여 흑백 인쇄에서도 읽힌다
+          const band = doc.createElement('div');
+          band.className = 'band';
+          band.style.background = getCategoryPrintColor(category);
           const categoryText = doc.createElement('div');
           categoryText.className = 'category';
-          categoryText.textContent = `${getCategoryLabel(category)} 입장권`;
-          ticket.appendChild(categoryText);
+          categoryText.textContent = getCategoryLabel(category);
+          band.appendChild(categoryText);
+          const kindText = doc.createElement('div');
+          kindText.className = 'kind';
+          kindText.textContent = '입장권';
+          band.appendChild(kindText);
+          card.appendChild(band);
 
-          const qr = doc.createElement('div');
-          qr.className = 'qr';
-          qr.innerHTML = renderQRCodeSVG(token);
-          ticket.appendChild(qr);
-
-          const tokenText = doc.createElement('div');
-          tokenText.className = 'token';
-          // 분실 신고 때 이 코드로 사용 중지한다
-          tokenText.textContent = code;
-          ticket.appendChild(tokenText);
+          const body = doc.createElement('div');
+          body.className = 'body';
 
           const expoText = doc.createElement('div');
           expoText.className = 'expo';
           expoText.textContent = expoTitle;
-          ticket.appendChild(expoText);
+          body.appendChild(expoText);
 
+          const qr = doc.createElement('div');
+          qr.className = 'qr';
+          qr.innerHTML = renderQRCodeSVG(token);
+          body.appendChild(qr);
+
+          const tokenText = doc.createElement('div');
+          tokenText.className = 'code';
+          // 분실 신고 때 이 코드로 사용 중지한다
+          tokenText.textContent = code;
+          body.appendChild(tokenText);
+
+          const note = doc.createElement('div');
+          note.className = 'note';
+          note.textContent = '박람회 입장 전용 · 하루 1회';
+          body.appendChild(note);
+
+          card.appendChild(body);
           page.appendChild(ticket);
         });
 

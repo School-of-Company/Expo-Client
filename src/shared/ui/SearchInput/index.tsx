@@ -2,6 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { SearchIcon, XMark } from '@/shared/assets/svg';
 
 interface SearchInputProps {
+  /** 접근성 이름. placeholder 는 입력하면 사라져 이름을 대신하지 않는다 */
+  label: string;
   value?: string;
   onChange?: (value: string) => void;
   placeholder?: string;
@@ -11,6 +13,7 @@ interface SearchInputProps {
 }
 
 export const SearchInput: React.FC<SearchInputProps> = ({
+  label,
   value: controlledValue,
   onChange,
   placeholder = '검색어를 입력하세요',
@@ -55,6 +58,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
 
       <input
         type="text"
+        aria-label={label}
         value={inputValue}
         onChange={handleChange}
         placeholder={placeholder}
@@ -66,7 +70,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         <button
           type="button"
           onClick={handleClear}
-          className="absolute right-3 flex items-center text-gray-400 transition-colors hover:text-gray-600"
+          className="absolute right-0 flex h-[44px] w-[44px] items-center justify-center text-gray-400 transition-colors hover:text-gray-600"
           aria-label="검색어 지우기"
         >
           <XMark className="h-5 w-5" />

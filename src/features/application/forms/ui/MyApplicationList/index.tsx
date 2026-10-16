@@ -3,19 +3,28 @@
 import { useQuery } from '@tanstack/react-query';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useRef, useState } from 'react';
+import { toast } from 'react-toastify';
+import { AnswerList } from '@/entities/form';
 import { SessionNotice, getSessionIssue } from '@/features/phone-verification';
 import {
   LEDGER_STATUS_LABEL,
   OCCUPATION_LABEL,
+  formatDefinitionSchedule,
   PROGRAM_TYPE_LABEL,
 } from '@/features/registration/common/model/ledger';
 import { downloadQrImage } from '@/shared/libs/downloadQrImage';
+import { useModalDialog } from '@/shared/model';
+import { Button } from '@/shared/ui';
 import {
   getParticipantQr,
   OwnerApplication,
   OwnerApplicationType,
   OwnerParticipant,
 } from '../../api/myApplications';
+import {
+  SessionInfo,
+  useApplicationSessions,
+} from '../../model/useApplicationSessions';
 import { useMyApplications } from '../../model/useMyApplications';
 import PreRegisterWaitlist from '../PreRegisterWaitlist';
 
@@ -44,6 +53,20 @@ const BLOCKED_REASON_LABEL: Record<string, string> = {
     '동행자의 사전등록을 먼저 취소해주세요. 대표자는 마지막에 취소할 수 있습니다.',
 };
 
+// 서버가 학생·보호자 연결 정보를 주지 않으므로 학생 신청에만 일반 안내를 한다.
+// 마지막 연결 학생을 취소하면 서버가 보호자 신청도 함께 취소하고, 다른 학생이 있으면 보호자는 유지한다
+const GUARDIAN_CANCEL_NOTE =
+  '보호자와 함께 신청한 마지막 학생이면 보호자의 신청도 함께 취소됩니다. 같은 보호자에 연결된 다른 학생이 있으면 보호자는 유지됩니다.';
+
+const getGuardianCancelNote = (
+  application: OwnerApplication,
+  participant?: OwnerParticipant,
+) =>
+  application.type !== 'PREREGISTER' &&
+  participant?.occupation === 'ELEMENTARY_STUDENT'
+    ? GUARDIAN_CANCEL_NOTE
+    : undefined;
+
 interface QrTarget {
   participantId: number;
   title: string;
@@ -53,16 +76,28 @@ interface CancelTarget {
   type: OwnerApplicationType;
   applicationId: string;
   title: string;
+  // 어느 참가자의 어느 회차인지 확인 문구
+  session: string;
+  // 학생 신청에 연결된 보호자가 있을 때의 안내(마지막 연결 학생이면 보호자도 함께 취소된다)
+  guardianNote?: string;
 }
+
+const SESSION_STATE_NOTE: Partial<Record<SessionInfo['state'], string>> = {
+  loading: '회차 정보를 불러오는 중입니다.',
+  error: '회차 정보를 불러오지 못했습니다.',
+  missing: '삭제되었거나 변경되어 회차 정보를 찾을 수 없습니다.',
+};
 
 const ApplicationRow = ({
   application,
   participant,
   onCancel,
   onShowQr,
+  session,
 }: {
   application: OwnerApplication;
   participant?: OwnerParticipant;
+  session: SessionInfo;
   onCancel: (target: CancelTarget) => void;
   onShowQr: (target: QrTarget) => void;
 }) => {
@@ -72,93 +107,152 @@ const ApplicationRow = ({
     status,
     cancellable,
     cancellationBlockedReason,
+    questions,
+    answers,
   } = application;
+  const sessionLabel = `${session.title}${session.startedAt ? ` (${formatDefinitionSchedule(session.startedAt, session.endedAt)})` : ''}`;
   const reasonId = `cancel-blocked-${type}-${applicationId}`;
+  const blockedReason =
+    BLOCKED_REASON_LABEL[cancellationBlockedReason] ??
+    (cancellationBlockedReason ||
+      '지금은 취소할 수 없습니다. 운영 측에 문의해주세요.');
   const title = [participant?.name, TYPE_LABEL[type]]
     .filter(Boolean)
     .join(' · ');
 
   return (
-    <li className="flex items-center justify-between gap-12 py-12 mobile:flex-col mobile:items-stretch">
-      <div className="flex flex-wrap items-center gap-8">
-        <p className="text-body2b text-black">{title}</p>
-        {participant && (
-          <p className="text-body2r text-gray-500">
-            {participant.representative ? '대표자' : '참여자'} ·{' '}
-            {participant.occupation &&
-              (OCCUPATION_LABEL[participant.occupation] ??
-                participant.occupation)}
+    <li className="flex flex-col gap-8 py-12">
+      <div className="flex items-center justify-between gap-12 mobile:flex-col mobile:items-stretch">
+        <div className="flex flex-wrap items-center gap-8">
+          <p className="text-body2b text-black">{title}</p>
+          {participant && (
+            <p className="text-body2r text-gray-500">
+              {participant.representative ? '대표자' : '참여자'} ·{' '}
+              {participant.occupation &&
+                (OCCUPATION_LABEL[participant.occupation] ??
+                  participant.occupation)}
+            </p>
+          )}
+          <p className="text-caption1b text-main-600">
+            {LEDGER_STATUS_LABEL[status] ?? status}
           </p>
-        )}
-        <p className="text-caption1b text-main-600">
-          {LEDGER_STATUS_LABEL[status] ?? status}
-        </p>
-      </div>
+        </div>
 
-      <div className="flex items-center gap-8 mobile:[&>button]:flex-1">
-        {status === 'CONFIRMED' && (
-          <button
-            type="button"
-            onClick={() =>
-              onShowQr({ participantId: application.participantId, title })
-            }
-            className="whitespace-nowrap rounded-sm bg-main-600 px-16 py-8 text-caption1b text-white"
-          >
-            QR 보기
-          </button>
-        )}
-        {cancellable ? (
-          <button
-            type="button"
-            onClick={() => onCancel({ type, applicationId, title })}
-            className="whitespace-nowrap rounded-sm border-1 border-solid border-error px-16 py-8 text-caption1b text-error"
-          >
-            신청취소
-          </button>
-        ) : (
-          <>
+        <div className="flex items-center gap-8 mobile:[&>button]:flex-1">
+          {status === 'CONFIRMED' && (
             <button
               type="button"
-              disabled
-              aria-describedby={reasonId}
-              className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 px-16 py-8 text-caption1b text-gray-400"
+              onClick={() =>
+                onShowQr({ participantId: application.participantId, title })
+              }
+              className="whitespace-nowrap rounded-sm bg-main-600 px-16 py-8 text-caption1b text-white"
+            >
+              QR 보기
+            </button>
+          )}
+          {cancellable ? (
+            <button
+              type="button"
+              onClick={() =>
+                onCancel({
+                  type,
+                  applicationId,
+                  title,
+                  session: sessionLabel,
+                  guardianNote: getGuardianCancelNote(application, participant),
+                })
+              }
+              className="whitespace-nowrap rounded-sm border-1 border-solid border-error px-16 py-8 text-caption1b text-error"
             >
               신청취소
             </button>
-            <p id={reasonId} className="text-caption1r text-gray-500">
-              {BLOCKED_REASON_LABEL[cancellationBlockedReason] ??
-                (cancellationBlockedReason ||
-                  '지금은 취소할 수 없습니다. 운영 측에 문의해주세요.')}
-            </p>
-          </>
+          ) : status === 'CANCELLED' ? null : (
+            // 취소할 수 없는 사유는 줄마다 펼쳐 두지 않고, 버튼을 누르면 알림으로 알려 준다
+            <button
+              type="button"
+              aria-disabled
+              aria-describedby={reasonId}
+              onClick={() => toast.info(blockedReason)}
+              className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 px-16 py-8 text-caption1b text-gray-400"
+            >
+              신청취소
+              <span id={reasonId} className="sr-only">
+                {blockedReason}
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex min-w-0 flex-col gap-4">
+        <p className="break-words break-keep text-body2b text-black">
+          {session.title}
+        </p>
+        {session.startedAt && (
+          <p className="text-caption1r text-gray-500">
+            {formatDefinitionSchedule(session.startedAt, session.endedAt)}
+          </p>
+        )}
+        {session.place && (
+          <p className="break-words break-keep text-caption1r text-gray-500">
+            장소: {session.place}
+          </p>
+        )}
+        {SESSION_STATE_NOTE[session.state] && (
+          <p className="text-caption1r text-gray-500">
+            {SESSION_STATE_NOTE[session.state]}
+          </p>
         )}
       </div>
+
+      <details className="rounded-sm bg-gray-50 px-12 py-8">
+        <summary className="cursor-pointer text-caption1b text-gray-600">
+          신청 당시 답변
+        </summary>
+        <div className="pt-8">
+          {questions == null && answers == null ? (
+            <p className="text-caption1r text-gray-500">
+              접수 당시 문항과 답변이 저장되어 있지 않습니다.
+            </p>
+          ) : (
+            <AnswerList questions={questions} answers={answers} />
+          )}
+        </div>
+      </details>
     </li>
   );
 };
 
 const Dialog = ({
+  label,
   onClose,
   children,
 }: {
+  label: string;
   onClose: () => void;
   children: React.ReactNode;
-}) => (
-  <div
-    role="dialog"
-    aria-modal
-    className="fixed inset-0 z-10 flex items-center justify-center px-[18px]"
-    style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-    onClick={onClose}
-  >
+}) => {
+  const dialogRef = useModalDialog({ onClose });
+  return (
     <div
-      className="flex w-full max-w-[360px] flex-col items-center gap-16 rounded-sm bg-white p-24"
-      onClick={(event) => event.stopPropagation()}
+      className="fixed inset-0 z-10 flex items-center justify-center px-[18px]"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+      onClick={onClose}
     >
-      {children}
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        tabIndex={-1}
+        className="flex w-full max-w-[360px] flex-col items-center gap-16 rounded-sm bg-white p-24 outline-none"
+        onClick={(event) => event.stopPropagation()}
+      >
+        {children}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const QrDialog = ({
   expoId,
@@ -180,7 +274,7 @@ const QrDialog = ({
   const sessionIssue = getSessionIssue(error);
 
   return (
-    <Dialog onClose={onClose}>
+    <Dialog label={`${target.title} 입장 QR`} onClose={onClose}>
       <p className="text-h3b text-black">{target.title}</p>
       {!data && isFetching && (
         <p role="status" className="text-body2r text-gray-500">
@@ -254,6 +348,10 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     cancelWaitlist,
     isCancellingWaitlist,
   } = useMyApplications(expoId);
+  const { getSession, hasLookupError, retryLookup } = useApplicationSessions(
+    expoId,
+    applications,
+  );
   const [qrTarget, setQrTarget] = useState<QrTarget | null>(null);
   const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null);
   const [isWaitlistCancelOpen, setIsWaitlistCancelOpen] = useState(false);
@@ -296,8 +394,25 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         </div>
       )}
 
+      {!sessionIssue && hasLookupError && (
+        <div role="alert" className="flex flex-col gap-8">
+          <p className="text-body2r text-error">
+            프로그램·회차 이름과 일정을 불러오지 못했습니다. 신청 내역은 아래에
+            회차 번호로 표시됩니다.
+          </p>
+          <button
+            type="button"
+            onClick={() => retryLookup()}
+            className="self-start rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-caption1b text-main-600"
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
+
       {!sessionIssue && waitlist && (
         <PreRegisterWaitlist
+          expoId={expoId}
           waitlist={waitlist}
           onCancel={() => setIsWaitlistCancelOpen(true)}
           isCancelling={isCancellingWaitlist}
@@ -314,6 +429,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
                 (participant) =>
                   participant.participantId === application.participantId,
               )}
+              session={getSession(application)}
               onCancel={setCancelTarget}
               onShowQr={setQrTarget}
             />
@@ -330,59 +446,66 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
       )}
 
       {cancelTarget && (
-        <Dialog onClose={() => setCancelTarget(null)}>
+        <Dialog label="신청 취소 확인" onClose={() => setCancelTarget(null)}>
           <p className="text-h3b text-black">신청을 취소할까요?</p>
           <p className="break-keep text-center text-body2r text-gray-500">
-            {cancelTarget.title}의 신청이 취소됩니다. 다시 신청하면 새 신청으로
-            처리되어 지금 자리가 보장되지 않습니다.
+            {cancelTarget.title}
+            <br />
+            {cancelTarget.session}
+            <br />이 신청이 취소됩니다. 다시 신청하면 새 신청으로 처리되어 지금
+            자리가 보장되지 않습니다.
           </p>
-          <div className="flex w-full gap-8">
-            <button
-              type="button"
-              onClick={() => setCancelTarget(null)}
-              className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-body2b text-gray-700"
+          {cancelTarget.guardianNote && (
+            <p
+              role="alert"
+              className="break-keep text-center text-body2b text-error"
             >
+              {cancelTarget.guardianNote}
+            </p>
+          )}
+          <div className="flex w-full gap-8">
+            <Button variant="gray" onClick={() => setCancelTarget(null)}>
               닫기
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="danger"
               onClick={() => {
                 cancel(cancelTarget);
                 setCancelTarget(null);
               }}
-              className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
             >
               신청 취소
-            </button>
+            </Button>
           </div>
         </Dialog>
       )}
 
       {isWaitlistCancelOpen && (
-        <Dialog onClose={() => setIsWaitlistCancelOpen(false)}>
+        <Dialog
+          label="대기 신청 취소 확인"
+          onClose={() => setIsWaitlistCancelOpen(false)}
+        >
           <p className="text-h3b text-black">대기 신청을 취소할까요?</p>
           <p className="break-keep text-center text-body2r text-gray-500">
             일행 전체의 대기가 함께 취소되고 대기 순번이 사라집니다. 다시
             신청하면 새 신청으로 맨 뒤에 접수됩니다.
           </p>
           <div className="flex w-full gap-8">
-            <button
-              type="button"
+            <Button
+              variant="gray"
               onClick={() => setIsWaitlistCancelOpen(false)}
-              className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-body2b text-gray-700"
             >
               닫기
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="danger"
               onClick={() => {
                 cancelWaitlist();
                 setIsWaitlistCancelOpen(false);
               }}
-              className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
             >
               대기 취소
-            </button>
+            </Button>
           </div>
         </Dialog>
       )}

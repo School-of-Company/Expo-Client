@@ -32,7 +32,7 @@ export interface PreregisterSession extends PreregisterSessionDefinition {
 
 // 프로그램·모집 정책 형식은 박람회 화면과 같이 shared 타입을 쓴다
 export type {
-  ProgramChannel,
+  ProgramGuardianPolicy,
   ProgramPolicy,
   TrainingCategory,
 } from '@/shared/types/program/list/type';

@@ -1,7 +1,7 @@
 import { cva, VariantProps } from 'class-variance-authority';
 
 import { Check, Trash } from '@/shared/assets/icons';
-import SmallButton from '@/shared/ui/SmallButton';
+import Button from '@/shared/ui/Button';
 
 type ActionKeys =
   | 'CheckBadge'
@@ -69,11 +69,13 @@ const TableFooter = <Id extends string | number>({
       {type === 'file' && (
         <div className="flex items-center gap-20 mobile:gap-16">
           <p className="text-body1r text-gray-400">출력</p>
-          <SmallButton
-            text={isExporting ? '받는 중...' : 'Excel'}
+          <Button
+            size="small"
             onClick={() => handleActionClick('exportExcel')}
             disabled={isExporting}
-          />
+          >
+            {isExporting ? '받는 중...' : 'Excel'}
+          </Button>
         </div>
       )}
 
@@ -82,10 +84,9 @@ const TableFooter = <Id extends string | number>({
           <p className="text-body2r text-gray-400 mobile:text-caption1r">
             출력
           </p>
-          <SmallButton
-            text="QR출력"
-            onClick={() => handleActionClick('PrintBadge')}
-          />
+          <Button size="small" onClick={() => handleActionClick('PrintBadge')}>
+            QR출력
+          </Button>
         </div>
       )}
 
@@ -130,10 +131,12 @@ const TableFooter = <Id extends string | number>({
       )}
       {type === 'route' && (
         <div className="flex items-center gap-20">
-          <SmallButton
-            text="이동"
+          <Button
+            size="small"
             onClick={() => handleActionClick('RouteActions')}
-          />
+          >
+            이동
+          </Button>
         </div>
       )}
     </div>

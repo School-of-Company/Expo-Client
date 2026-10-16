@@ -7,6 +7,7 @@ import { forbiddenPathResponse, toGatewayUrl } from './proxyTarget';
 import {
   toServerCode,
   toServerFieldErrors,
+  toServerIneligibleReason,
   toServerMessage,
 } from './serverMessage';
 
@@ -122,6 +123,7 @@ export async function baseHandleRequest(
           error: message,
           status,
           code: toServerCode(axiosError.response?.data),
+          ineligibleReason: toServerIneligibleReason(axiosError.response?.data),
           errors: toServerFieldErrors(axiosError.response?.data),
         },
         { status },

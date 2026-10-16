@@ -15,6 +15,7 @@ import {
   SessionNotice,
   getSessionIssue,
 } from '@/features/phone-verification';
+import { formatDefinitionSchedule } from '@/features/registration/common/model/ledger';
 import { withLoading } from '@/shared/hocs';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
@@ -25,13 +26,18 @@ import {
 } from '../../../api/postApplication';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
+import { findRegistrationAnswerError } from '../../../lib/process/findRegistrationAnswerError';
 import {
   getApplicantLimit,
   getCompanionLimit,
   getWaitingLimit,
   isWaitingParty,
 } from '../../model/sessionSeats';
-import { usePreRegisterCapacity } from '../../model/usePreRegister';
+import {
+  usePreRegisterCapacity,
+  usePreRegisterSessions,
+} from '../../model/usePreRegister';
+import PreRegisterSessionSelect from '../PreRegisterSessionSelect';
 
 /**
  * 사전등록 신청. 입력 항목은 Form 서비스의 일반 참가자 사전 폼 정의를 그대로 그리고,
@@ -54,6 +60,11 @@ const PreRegisterContainer = ({
   const { data: capacity, error: sessionError } = usePreRegisterCapacity(
     expoId,
     sessionId,
+  );
+  // 고른 회차의 일정을 보여 준다. 목록을 못 받아도 신청은 잔여석 조회로 판단한다
+  const { data: sessions } = usePreRegisterSessions(expoId);
+  const selectedSession = sessions?.find(
+    (session) => String(session.id) === sessionId,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionIssue, setSessionIssue] = useState<SessionIssue>();
@@ -86,6 +97,15 @@ const PreRegisterContainer = ({
     const session = Number(sessionId);
     if (!Number.isInteger(session) || session <= 0) {
       toast.error('신청할 회차를 선택해주세요');
+      return;
+    }
+
+    const answerError = findRegistrationAnswerError(
+      data as DynamicFormValues,
+      questions,
+    );
+    if (answerError) {
+      toast.error(answerError);
       return;
     }
 
@@ -154,6 +174,9 @@ const PreRegisterContainer = ({
       </p>
     );
 
+  // 회차 없이 들어온 링크는 회차를 고르게 한다. 임의 회차로 신청시키지 않는다
+  if (!sessionId) return <PreRegisterSessionSelect expoId={expoId} />;
+
   return withLoading({
     isLoading,
     children: (
@@ -165,6 +188,42 @@ const PreRegisterContainer = ({
             대표자가 함께 오는 사람까지 한 번에 신청합니다. 신청한 사람마다 QR이
             대표자 번호로 발송됩니다.
           </p>
+        </div>
+
+        <div className="flex items-start justify-between gap-16 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:flex-col mobile:gap-8 mobile:p-16">
+          <div className="flex min-w-0 flex-col gap-4">
+            <p className="text-caption1r text-gray-500">신청 회차</p>
+            {selectedSession ? (
+              <>
+                <p className="break-keep text-body1b text-black mobile:text-body2b">
+                  {selectedSession.title}
+                </p>
+                <p className="text-body2r text-gray-600">
+                  {formatDefinitionSchedule(
+                    selectedSession.startedAt,
+                    selectedSession.endedAt,
+                  )}
+                </p>
+                {selectedSession.place && (
+                  <p className="break-words break-keep text-body2r text-gray-500">
+                    장소: {selectedSession.place}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-body2r text-gray-600">
+                {sessions
+                  ? '회차 정보를 찾을 수 없습니다'
+                  : `회차 ${sessionId}`}
+              </p>
+            )}
+          </div>
+          <Link
+            href={`/application/forms/${expoId}/pre-register`}
+            className="flex-none text-body2b text-main-600 underline"
+          >
+            다른 회차 선택
+          </Link>
         </div>
 
         {sessionError && (
@@ -253,7 +312,7 @@ const PreRegisterContainer = ({
                       href={backHref}
                       className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-center text-body2b text-gray-700"
                     >
-                      프로그램 목록으로
+                      신청 폼 모음으로
                     </Link>
                     <div className="flex-1">
                       <Button

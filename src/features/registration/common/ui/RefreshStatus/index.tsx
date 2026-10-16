@@ -3,8 +3,6 @@ interface RefreshStatusProps {
   updatedAt: number;
   isFetching: boolean;
   onRefresh: () => void;
-  /** 자동 갱신 주기(ms) */
-  intervalMs: number;
   /** 마지막 갱신에서 실패한 영역이 있으면 이전 값을 보여 주는 중임을 알린다 */
   hasError?: boolean;
 }
@@ -17,17 +15,15 @@ const RefreshStatus = ({
   updatedAt,
   isFetching,
   onRefresh,
-  intervalMs,
   hasError = false,
 }: RefreshStatusProps) => (
   <div className="flex items-center gap-12 text-caption1r text-gray-400">
     <p aria-live="polite">
-      {updatedAt > 0 ? `마지막 갱신 ${formatTime(updatedAt)}` : '갱신 전'}
-      {` · ${intervalMs / 1000}초마다 자동 갱신`}
+      {updatedAt > 0 ? `갱신 ${formatTime(updatedAt)}` : '갱신 전'}
     </p>
     {hasError && (
       <p role="status" className="text-error">
-        일부 영역 갱신 실패 · 이전 값 표시 중
+        갱신 실패
       </p>
     )}
     <button

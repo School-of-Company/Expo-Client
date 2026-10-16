@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { fromOffsetDateTime } from '@/features/registration/common/lib/dateTime';
 import clientInstance from '@/shared/libs/http/clientInstance';
 
 /** 화면 안내용 값. 최종 정원 판정은 제출 시 서버가 다시 한다. */
@@ -30,7 +31,7 @@ export const getPreRegisterCapacity = async (
   expoId: string,
   sessionId: string,
 ): Promise<PreRegisterCapacity> => {
-  // 회차 목록 공개 API 가 없어 링크의 sessionId 로만 회차를 안다
+  // 회차는 링크의 sessionId 로 정한다. 없으면 화면이 회차 목록에서 고르게 한다
   if (!sessionId)
     throw new Error(
       '회차가 지정되지 않았습니다. 안내받은 링크로 다시 접속해 주세요.',
@@ -47,6 +48,49 @@ export const getPreRegisterCapacity = async (
       throw new Error(
         CAPACITY_ERRORS[error.response.status] ||
           '잔여석 정보를 불러오지 못했습니다.',
+      );
+    }
+    throw error;
+  }
+};
+
+/** 참가자용 사전등록 회차(Expo GET /expo/{expoId}/preregister-sessions/public). 정원은 capacity 로 따로 본다 */
+export interface PublicPreregisterSession {
+  id: number;
+  title: string;
+  /** 서버는 UTC(`...Z`)로 주고, 화면에는 로컬 'YYYY-MM-DDTHH:mm' 로 바꿔 넘긴다 */
+  startedAt: string;
+  endedAt: string;
+  place: string | null;
+  /** 관리자가 접수를 마감한 회차. 끝난 회차와 함께 목록에 그대로 온다 */
+  closed: boolean;
+  cancelEndedAt: string | null;
+}
+
+const SESSION_LIST_ERRORS: Record<number, string> = {
+  404: '박람회를 찾을 수 없습니다.',
+  502: '서버 응답에 문제가 있어 회차를 불러오지 못했습니다.',
+  503: '연동 서버를 사용할 수 없어 회차를 불러오지 못했습니다.',
+};
+
+export const getPublicPreregisterSessions = async (
+  expoId: string,
+): Promise<PublicPreregisterSession[]> => {
+  try {
+    const response = await clientInstance.get<PublicPreregisterSession[]>(
+      `/expo/${encodeURIComponent(expoId)}/preregister-sessions/public`,
+    );
+    // 일시를 문자열 그대로 자르면 UTC 시각이 보이므로 로컬 시각으로 바꾼다
+    return response.data.map((session) => ({
+      ...session,
+      startedAt: fromOffsetDateTime(session.startedAt) ?? session.startedAt,
+      endedAt: fromOffsetDateTime(session.endedAt) ?? session.endedAt,
+    }));
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        SESSION_LIST_ERRORS[error.response.status] ||
+          '사전등록 회차를 불러오지 못했습니다.',
       );
     }
     throw error;
