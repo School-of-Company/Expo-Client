@@ -9,6 +9,7 @@ import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter
 import { buildProgramApplyPayload } from '@/features/form/program';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
+import { SessionNotice } from '@/features/phone-verification';
 import { getPublicStandardProgram, getTrainingProgram } from '@/shared/api';
 import { withLoading } from '@/shared/hocs';
 import { getProgramSessionCsrfHeaders } from '@/shared/libs/http/programSessionCsrf';
@@ -278,7 +279,8 @@ const ProgramApplyContainer = ({
   });
   const queryClient = useQueryClient();
   // 사전등록 대기 중인 일행이 있으면 "미등록" 대신 대기 안내를 보여 준다
-  const { waitlist } = useMyApplications(expoId);
+  const { waitlist, errorMessage, sessionIssue, retry } =
+    useMyApplications(expoId);
   const [openId, setOpenId] = useState<number | null>(null);
   const [outcomes, setOutcomes] = useState<Record<number, ProgramApplyOutcome>>(
     {},
@@ -293,6 +295,19 @@ const ProgramApplyContainer = ({
           신청할 {label}마다 따로 신청합니다. 결과도 {label}별로 표시됩니다.
         </p>
         {error && <p className="text-body2r text-error">{error.message}</p>}
+        {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
+        {errorMessage && (
+          <div role="alert" className="flex flex-col gap-8">
+            <p className="text-body2r text-error">{errorMessage}</p>
+            <button
+              type="button"
+              onClick={() => retry()}
+              className="self-start rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-caption1b text-main-600"
+            >
+              다시 시도
+            </button>
+          </div>
+        )}
         {programs?.length === 0 && (
           <p className="text-body2r text-gray-500">
             신청할 수 있는 {label}이 없습니다.

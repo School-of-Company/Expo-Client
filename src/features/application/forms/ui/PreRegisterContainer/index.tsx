@@ -10,6 +10,11 @@ import { useFormQuery } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
+import {
+  SessionIssue,
+  SessionNotice,
+  getSessionIssue,
+} from '@/features/phone-verification';
 import { withLoading } from '@/shared/hocs';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
@@ -51,6 +56,7 @@ const PreRegisterContainer = ({
     sessionId,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionIssue, setSessionIssue] = useState<SessionIssue>();
   // 같은 내용을 다시 보내면(연타·네트워크 재시도·오류 뒤 재제출) 같은 키로 보낸다
   const submissionKeys = useRef(createSubmissionKeys());
 
@@ -120,6 +126,7 @@ const PreRegisterContainer = ({
         `/application/success/${expoId}?userType=STANDARD&formType=application${waiting}`,
       );
     } catch (submitError) {
+      setSessionIssue(getSessionIssue(submitError));
       // 취소한 대기의 같은 키 재전송은 거절된다. 다시 신청하려면 새 키가 필요하다
       if (
         submitError instanceof ApplicationSubmitError &&
@@ -151,6 +158,7 @@ const PreRegisterContainer = ({
     isLoading,
     children: (
       <div className="mt-30 flex w-full max-w-[816px] flex-col gap-30">
+        {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
         <div className="flex flex-col gap-8 border-b-1 border-solid border-gray-200 pb-24">
           <p className="text-h2b text-black mobile:text-h3b">사전등록 신청</p>
           <p className="text-body2r text-gray-500">

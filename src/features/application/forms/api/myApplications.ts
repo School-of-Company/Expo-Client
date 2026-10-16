@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   AdminApplicationStatus,
   AdminOccupation,
@@ -62,9 +63,14 @@ const toError = (
   fallback: string,
 ) => {
   const status = getErrorStatus(error);
-  return status === undefined
-    ? error
-    : new ApiError(messages[status] ?? fallback, status);
+  if (status === undefined) return error;
+  // 401 은 코드로 SESSION_REQUIRED(미인증)와 SESSION_EXPIRED(만료)를 가른다
+  const code = axios.isAxiosError(error) ? error.response?.data?.code : null;
+  return new ApiError(
+    messages[status] ?? fallback,
+    status,
+    typeof code === 'string' ? code : undefined,
+  );
 };
 
 export const getMyApplications = async (
