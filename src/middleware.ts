@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { EXPO_LIST_PATH } from '@/shared/config/defaultExpo';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
@@ -17,7 +18,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isPublicPath && accessToken) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL(EXPO_LIST_PATH, request.url));
   }
 
   return NextResponse.next();
@@ -33,6 +34,5 @@ export const config = {
     '/program/:path*',
     '/signin',
     '/signup',
-    '/',
   ],
 };
