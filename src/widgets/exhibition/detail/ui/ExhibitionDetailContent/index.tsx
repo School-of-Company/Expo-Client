@@ -34,7 +34,7 @@ const ExhibitionDetailContent = ({
             expoDetail={expoDetail}
             expoStandard={expoStandard}
             expoTraining={expoTraining}
-            openModal={openModal}
+            expoId={params}
           />
         </div>
         <div className="w-full max-w-[210px] tablet:w-full tablet:max-w-none">
