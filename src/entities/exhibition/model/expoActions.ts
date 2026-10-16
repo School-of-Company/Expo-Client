@@ -1,7 +1,7 @@
 import { getExpoRoutes, getRegistrationRoutes } from '@/shared/config';
 
-/** FormTypeModal 의 modalType */
-export type ExpoActionModalType = 'formcreate' | 'FIELD' | 'edit';
+/** FormTypeModal 의 modalType. 'form' 은 만들기·수정을 모달 안에서 고른다 */
+export type ExpoActionModalType = 'form';
 
 /** 누르면 하는 일. copy 는 경로를 이 사이트 주소로 바꿔 클립보드에 복사한다 */
 export type ExpoActionTarget =
@@ -29,7 +29,7 @@ export interface ExpoActionGroup {
 
 /**
  * 박람회 상세 패널과 박람회 운영 화면이 함께 쓰는 운영 기능 그룹.
- * 뜻이 겹치던 항목은 하나로 묶고, 묶인 기능은 more 로 남겨 진입점이 사라지지 않게 한다
+ * 뜻이 겹치던 항목은 한 페이지(프로그램, 현장 QR, 참가자·문자)나 한 모달(등록 폼)로 합쳤다
  */
 export const getExpoActionGroups = (expoId: string): ExpoActionGroup[] => {
   const routes = getExpoRoutes(expoId);
@@ -52,15 +52,9 @@ export const getExpoActionGroups = (expoId: string): ExpoActionGroup[] => {
           title: '등록 폼',
           description: '사전·현장 등록 폼과 만족도 조사 만들기·수정',
           primary: {
-            label: '폼 만들기',
-            modal: { type: 'formcreate', text: '생성할 항목을 선택하세요.' },
+            label: '등록 폼',
+            modal: { type: 'form', text: '등록 폼 작업을 선택하세요.' },
           },
-          more: [
-            {
-              label: '폼 수정',
-              modal: { type: 'edit', text: '수정할 항목을 선택하세요.' },
-            },
-          ],
         },
         {
           key: 'expoEdit',
@@ -78,11 +72,7 @@ export const getExpoActionGroups = (expoId: string): ExpoActionGroup[] => {
           key: 'program',
           title: '프로그램',
           description: '프로그램 조회·출석, 회차·모집 설정, 신청 폼 관리',
-          primary: { label: '프로그램 조회·출석', href: routes.program },
-          more: [
-            { label: '회차·모집 설정', href: registration.schedule },
-            { label: '프로그램 신청 폼', href: registration.programForms },
-          ],
+          primary: { label: '프로그램', href: registration.programs },
         },
       ],
     },
@@ -100,19 +90,14 @@ export const getExpoActionGroups = (expoId: string): ExpoActionGroup[] => {
           key: 'qr',
           title: '현장 QR',
           description: '현장 신청용 QR 띄우기와 종이 입장 QR 발급',
-          primary: {
-            label: '현장 등록 QR',
-            modal: { type: 'FIELD', text: '대상을 선택하세요.' },
-          },
-          more: [{ label: '종이 QR 발급', href: routes.paperQr }],
+          primary: { label: '현장 QR', href: routes.paperQr },
         },
         {
           key: 'participants',
-          title: '참가자',
-          description: '입장자·연수자 명단 조회와 문자·카카오 발송',
-          primary: { label: '참가자 조회', href: routes.participants },
-          // 단체 발송은 접수 목록의 그룹 발송 모달이 맡는다
-          more: [{ label: '문자 전송', href: registration.applications }],
+          title: '참가자·문자',
+          description:
+            '입장자·연수자 명단 조회와 접수대장에서 문자·카카오 발송',
+          primary: { label: '참가자·문자', href: registration.roster },
         },
         {
           key: 'lottery',
