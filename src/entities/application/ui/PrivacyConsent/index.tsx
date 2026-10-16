@@ -36,7 +36,10 @@ const PrivacyConsent = ({ content, watch, setValue }: PrivacyConsentProps) => {
       </div>
 
       {isModalOpen && (
-        <ModalLayout>
+        <ModalLayout
+          label="개인정보 동의"
+          onClose={() => setIsModalOpen(false)}
+        >
           <PrivacyConsentModal
             content={content}
             onClose={() => setIsModalOpen(false)}
