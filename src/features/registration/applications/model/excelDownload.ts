@@ -158,12 +158,14 @@ const planFilter = (
     return null;
   }
 
-  // Report 필터에는 제출 당시 제목, 참가자 이름·번호와 직업 조건이 없다. 조용히 빼면 화면과 다른 대상이 나간다
-  if (filter.search.trim()) {
+  // 대장 건수가 0건이면 서버 대상도 없다. 건수를 모르면 서버 판정에 맡긴다
+  if (filterCount === 0) {
     blockers.push(
-      '제목 검색은 다운로드 필터에 없습니다. 검색어를 지우거나 신청을 선택해서 받아주세요.',
+      '현재 필터 결과가 0건이라 다운로드할 대상이 없습니다. 필터를 바꾸거나 신청을 선택해서 받아주세요.',
     );
   }
+
+  // Report 필터에는 참가자 이름·번호와 직업 조건이 없다. 조용히 빼면 화면과 다른 대상이 나간다
   if (filter.q.trim()) {
     blockers.push(
       '이름·번호 검색은 다운로드 필터에 없습니다. 검색어를 지우거나 신청을 선택해서 받아주세요.',
@@ -191,6 +193,7 @@ const planFilter = (
     filter.status && filter.status !== ACTIVE_STATUS_FILTER
       ? filter.status
       : null;
+  const search = filter.search.trim();
 
   if (template === 'TRAINEE' && session?.programType === 'STANDARD') {
     blockers.push('연수자 명단은 연수 회차만 필터할 수 있습니다.');
@@ -225,6 +228,7 @@ const planFilter = (
     // 회차를 고르지 않아도 연수자 명단은 연수 신청만 대상으로 한다
     ...(template === 'TRAINEE' && { programType: 'TRAINING' }),
     status,
+    ...(search && { search }),
     // Report 는 신청일시 정렬만 받는다. 다른 정렬은 대상이 같고 순서만 달라 서버 기본값에 맡긴다
     ...((filter.sort === 'CREATED_ASC' || filter.sort === 'CREATED_DESC') && {
       sort: filter.sort,

@@ -15,6 +15,7 @@ import { DetailHeader, Button } from '@/shared/ui';
 import { postApplication } from '../../api/postApplication';
 import { createSubmissionKeys } from '../../lib/createSubmissionKeys';
 import { getFormatter } from '../../lib/formatterService';
+import { findRegistrationAnswerError } from '../../lib/process/findRegistrationAnswerError';
 
 const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
@@ -43,6 +44,15 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
   ): Promise<void> => {
     if (!data.privacyConsent) {
       toast.error('개인정보 제공 동의 여부를 체크해주세요');
+      return;
+    }
+
+    const answerError = findRegistrationAnswerError(
+      data as DynamicFormValues,
+      formList?.dynamicForm ?? [],
+    );
+    if (answerError) {
+      toast.error(answerError);
       return;
     }
 
