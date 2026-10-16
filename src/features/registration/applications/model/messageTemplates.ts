@@ -7,7 +7,8 @@ export interface MessageTemplate {
 const HEADER =
   '[AI교육원] 2026 AI 미래교육 박람회 안내\n{이름}님께 안내드립니다.\n\n';
 
-// {장소}는 사전등록 회차에만 값이 있어 프로그램 신청자는 발송에서 빠진다. 사전등록용 문구에만 쓴다
+// {장소}는 사전등록 회차와 장소를 입력한 프로그램·연수 회차에만 값이 있고(Expo-Expo-Server#124 대기),
+// 장소가 없는 신청은 발송에서 빠진다. 장소를 비운 회차가 있을 수 있어 프로그램용 문구에는 넣지 않는다
 export const MESSAGE_TEMPLATES: MessageTemplate[] = [
   {
     label: '행사 전날 안내',
