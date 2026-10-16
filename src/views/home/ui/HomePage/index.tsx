@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   Calendar,
@@ -9,6 +10,7 @@ import {
   Program,
   Typing,
 } from '@/shared/assets/icons';
+import heroImage from '@/shared/assets/images/home-hero.jpg';
 import { Logo } from '@/shared/assets/svg';
 import { COLORS, DEFAULT_EXPO_ID } from '@/shared/config';
 
@@ -133,11 +135,18 @@ const HomePage = () => {
       </header>
 
       <main className="flex flex-1 flex-col items-center px-16">
-        <section className="flex w-full max-w-[1080px] flex-col gap-24 py-100 mobile:py-60">
-          <p className="text-body2b text-main-600">박람회 운영 서비스 Expo</p>
-          <h1 className="break-keep text-[2.5rem] font-bold leading-tight text-black mobile:text-h1m mobile:font-bold">
-            박람회 신청부터 현장 입장까지,
-            <br />한 곳에서 관리합니다
+        <section className="flex w-full max-w-[1080px] flex-col gap-30 pb-100 pt-40 mobile:gap-24 mobile:pb-60 mobile:pt-20">
+          <Image
+            src={heroImage}
+            alt=""
+            priority
+            placeholder="blur"
+            sizes="(max-width: 1112px) 100vw, 1080px"
+            className="h-auto w-full rounded-2xl mobile:rounded-lg"
+          />
+          {/* 메인 이미지에 같은 문구가 있어 PC 에서는 화면리더에만 읽히고, 이미지 글자가 작아지는 모바일에서는 보인다 */}
+          <h1 className="sr-only break-keep text-h3b text-black mobile:not-sr-only">
+            교원 연수 및 박람회 사전 신청, 등록 서비스
           </h1>
           <p className="max-w-[640px] break-keep text-body1r text-gray-600 mobile:text-body2r">
             참가자는 회차를 골라 신청하고 QR로 입장합니다. 운영자는 정원과 대기,
