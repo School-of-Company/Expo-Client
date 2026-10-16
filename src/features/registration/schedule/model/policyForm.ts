@@ -41,6 +41,8 @@ export interface PolicyForm {
   formId: string;
   groupId: string;
   channels: ChannelForm[];
+  // 초등 1~3학년 보호자 동반 필수
+  companionRequired: boolean;
 }
 
 export interface ProgramForm {
@@ -66,6 +68,7 @@ export const EMPTY_POLICY_FORM: PolicyForm = {
   formId: '',
   groupId: '',
   channels: [],
+  companionRequired: false,
 };
 
 export const EMPTY_CHANNEL_FORM: ChannelForm = {
@@ -101,6 +104,7 @@ const toPolicyForm = (policy: ProgramPolicy): PolicyForm => ({
   groupId: policy.groupId ?? '',
   // 회차를 고쳐 저장할 때 채널이 빠지면 채널 없는 정책으로 바뀌므로 그대로 들고 있는다
   channels: policy.channels ?? [],
+  companionRequired: policy.companionRequired ?? false,
 });
 
 /** 채널이 있으면 정원·대기 정원은 채널 합, 신청 가능 직업은 채널 직업 합집합으로 맞춘다 */
@@ -255,6 +259,8 @@ export const toProgramPolicy = (form: PolicyForm): ProgramPolicy => {
     ...(policy.channels.length > 0
       ? { channels: policy.channels.map(toProgramChannel) }
       : {}),
+    // 꺼져 있으면 키를 빼서 기존 서버·정책과 같은 본문으로 보낸다
+    ...(policy.companionRequired ? { companionRequired: true } : {}),
   };
 };
 

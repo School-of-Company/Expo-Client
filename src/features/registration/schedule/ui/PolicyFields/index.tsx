@@ -179,6 +179,14 @@ const PolicyFields = ({
             />
           </div>
         </Field>
+        <Field label="초등 1~3학년 보호자 동반 필수">
+          <div className="flex h-[48px] items-center">
+            <ToggleButton
+              value={value.companionRequired}
+              onChange={(companionRequired) => onChange({ companionRequired })}
+            />
+          </div>
+        </Field>
       </div>
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         <Field label="모집 시작">
