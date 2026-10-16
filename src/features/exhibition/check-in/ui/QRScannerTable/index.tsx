@@ -174,10 +174,21 @@ const QRScannerTable = ({ id }: { id: string }) => {
         <ExhibitionCheckInHeader />
         <ScanModeToggle mode={mode} onChange={setMode} />
       </div>
-      {mode === 'exit' && (
-        <p className="break-keep text-body2r text-main-600">
+      {/* 지금 모드를 늘 보여 주고, 퇴장은 잘못 찍지 않도록 눈에 띄게 둔다 */}
+      {mode === 'exit' ? (
+        <p
+          role="status"
+          className="break-keep rounded-sm border-1 border-solid border-error px-16 py-12 text-body2b text-error"
+        >
           퇴장 모드입니다. 스캔한 QR은 퇴장으로 기록되고 아래 표에는 추가되지
           않습니다.
+        </p>
+      ) : (
+        <p
+          role="status"
+          className="break-keep rounded-sm border-1 border-solid border-main-600 px-16 py-12 text-body2b text-main-600"
+        >
+          입장 모드입니다. 스캔한 QR은 입장으로 기록됩니다.
         </p>
       )}
       <section className="grid grid-cols-2 gap-24 mobile:grid-cols-1">
