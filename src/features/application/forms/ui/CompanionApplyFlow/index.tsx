@@ -13,14 +13,17 @@ import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
 import {
   ApplicationSubmitError,
+  postProgramApplication,
   postProgramBatchApplication,
 } from '../../../api/postApplication';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import {
   CompanionCandidate,
+  buildBatchRequest,
   buildSteps,
   findReusedGuardian,
   isGuardian,
+  isLowGrade,
   moveStep,
   validateSelection,
 } from '../../model/companionSteps';
@@ -28,6 +31,9 @@ import { ProgramApplyOutcome } from '../../model/programApply';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
 type Candidate = CompanionCandidate & { eligible: boolean };
+
+// 신청 가능한 참가자이거나, 이 회차에 이미 신청해 재사용할 보호자
+const isSelectable = (p: Candidate) => p.eligible || !!p.guardianApplied;
 
 /**
  * 동반 필수 프로그램 신청. 학생·보호자를 고르고 사람별 폼을 한 명씩 작성한 뒤 마지막에 한 번에 제출한다.
@@ -74,7 +80,7 @@ const CompanionApplyFlow = ({
 
   const selected = selectedIds.flatMap((id) => {
     const found = participants.find(
-      (p) => p.participantId === id && p.eligible,
+      (p) => p.participantId === id && isSelectable(p),
     );
     return found ? [found] : [];
   });
@@ -114,42 +120,72 @@ const CompanionApplyFlow = ({
     setIsSubmitting(true);
     setMessage(undefined);
     try {
-      const guardian = reusedGuardian ?? selected.find((p) => isGuardian(p));
-      const payload = {
-        participants: steps.map((p) => ({
-          participantId: p.participantId,
-          ...buildProgramApplyPayload(
+      const guardianPolicy = program.policy?.guardianPolicy;
+      const answersById = Object.fromEntries(
+        steps.map((p) => [
+          p.participantId,
+          buildProgramApplyPayload(
             form,
             all[p.participantId] as DynamicFormValues,
-          ),
-        })),
-        ...(guardian && { guardianParticipantId: guardian.participantId }),
-      };
-      const result = await postProgramBatchApplication(
-        programType,
-        expoId,
-        String(program.id),
-        payload,
-        await getProgramSessionCsrfHeaders(),
-        submissionKeys.current.keyFor(JSON.stringify(payload)),
+          ).answers,
+        ]),
       );
+      const hasGuardian = selected.some(isGuardian);
+      // 초등 1~3학년은 보호자와 함께 신청해야 한다. 최종 판정은 서버가 하지만 보내기 전에 안내한다
+      if (
+        !hasGuardian &&
+        guardianPolicy &&
+        steps.some((p) =>
+          isLowGrade(
+            guardianPolicy,
+            (answersById[p.participantId] ?? {}) as Record<string, unknown>,
+          ),
+        )
+      ) {
+        setMessage(
+          '초등 1~3학년 학생은 보호자와 함께 신청해야 합니다. 처음 단계로 돌아가 보호자를 선택해주세요.',
+        );
+        return;
+      }
+      const csrfHeaders = await getProgramSessionCsrfHeaders();
+      // 보호자 없는 학생 한 명은 기존 단건 신청이다(서버가 저학년 단독 신청을 막는다)
+      const single = hasGuardian ? null : steps[0];
+      const payload = single
+        ? {
+            participantId: single.participantId,
+            formVersion: form.version,
+            answers: answersById[single.participantId],
+          }
+        : buildBatchRequest(selected, form.version, answersById);
+      const key = submissionKeys.current.keyFor(JSON.stringify(payload));
+      const result = single
+        ? await postProgramApplication(
+            programType,
+            expoId,
+            String(program.id),
+            payload,
+            csrfHeaders,
+            key,
+          )
+        : await postProgramBatchApplication(
+            programType,
+            expoId,
+            String(program.id),
+            payload as ReturnType<typeof buildBatchRequest>,
+            csrfHeaders,
+            key,
+          );
+      const status = typeof result === 'string' ? result : result.status;
       // PROCESSING 은 같은 키로 다시 확인해야 하므로 답변과 키를 유지한다
-      if (result.status === 'PROCESSING') {
+      if (status === 'PROCESSING') {
         onResult({ kind: 'PROCESSING' });
         return;
       }
       submissionKeys.current.reset();
-      if (result.status === 'REJECTED') {
-        onResult({
-          kind: 'FAILED',
-          message:
-            '남은 자리가 부족하거나 조건이 맞지 않아 전원 거절되었습니다. 일행은 나뉘지 않고 함께 거절됩니다.',
-        });
-        return;
-      }
       onResult({
-        kind: result.status,
-        reusedGuardian: result.reusedGuardian,
+        kind: status,
+        reusedGuardian:
+          typeof result !== 'string' && result.reusedParticipantIds.length > 0,
       });
       setValues({});
       setSelectedIds([]);
@@ -195,7 +231,7 @@ const CompanionApplyFlow = ({
               <input
                 type="checkbox"
                 checked={selectedIds.includes(p.participantId)}
-                disabled={!p.eligible}
+                disabled={!isSelectable(p)}
                 onChange={() => toggle(p.participantId)}
               />
               {p.name}
@@ -208,7 +244,7 @@ const CompanionApplyFlow = ({
                   받거나 좌석을 추가하지 않습니다.
                 </span>
               )}
-              {!p.eligible && (
+              {!isSelectable(p) && (
                 <span className="text-caption1r text-gray-500">
                   (신청할 수 없는 참가자)
                 </span>

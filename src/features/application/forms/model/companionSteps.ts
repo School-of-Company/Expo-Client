@@ -1,22 +1,34 @@
+import type { ProgramGuardianPolicy } from '@/shared/types/program/list/type';
+
 export interface CompanionCandidate {
   participantId: number;
   name: string;
   occupation: string | null;
-  // 서버가 내려 주는 학년. 없으면 클라이언트가 학년을 추측하지 않고 서버 판정에 맡긴다
-  grade?: number | null;
-  // 이 회차에 이미 다른 학생과 신청한 보호자. 폼·좌석을 다시 만들지 않고 재사용한다
+  // 이 회차에 이미 신청한 보호자(GROUP_ALREADY_APPLIED). 폼·좌석을 다시 만들지 않고 재사용한다
   guardianApplied?: boolean;
 }
 
 export const isGuardian = (p: Pick<CompanionCandidate, 'occupation'>) =>
   p.occupation === 'PARENT';
 
-/** 서버가 준 학년이 초등 1~3학년일 때만 보호자가 필요하다고 안내한다 */
-export const needsGuardian = (p: CompanionCandidate) =>
-  p.occupation === 'ELEMENTARY_STUDENT' &&
-  typeof p.grade === 'number' &&
-  p.grade >= 1 &&
-  p.grade <= 3;
+/**
+ * 학생 본인이 입력한 학교급·학년 답변이 초등 1~3학년인지. 문항 ID·선택지 키는 정책이 정하며
+ * 라벨로 추측하지 않는다. 안내용이며 최종 판정은 서버가 한다
+ */
+export const isLowGrade = (
+  policy: ProgramGuardianPolicy,
+  answers: Record<string, unknown>,
+) => {
+  if (
+    answers[String(policy.schoolTypeQuestionId)] !==
+    policy.elementarySchoolValue
+  )
+    return false;
+  const grade = answers[String(policy.gradeQuestionId)];
+  const value =
+    typeof grade === 'string' ? policy.gradeValues[grade] : undefined;
+  return value !== undefined && value >= 1 && value <= 3;
+};
 
 /** 선택이 올바르지 않으면 사유를, 올바르면 null 을 돌려 준다. 최종 판정은 서버가 한다 */
 export const validateSelection = (
@@ -29,8 +41,8 @@ export const validateSelection = (
       ? '보호자만 단독으로 신청할 수 없습니다. 학생을 함께 선택해주세요.'
       : '신청할 학생을 선택해주세요.';
   if (guardians.length > 1) return '보호자는 한 명만 선택할 수 있습니다.';
-  if (guardians.length === 0 && students.some(needsGuardian))
-    return '초등 1~3학년 학생은 보호자와 함께 신청해야 합니다. 보호자를 선택해주세요.';
+  if (guardians.length === 0 && students.length > 1)
+    return '학생 여러 명은 보호자와 함께 신청해야 합니다. 보호자를 선택해주세요.';
   return null;
 };
 
@@ -49,3 +61,34 @@ export const findReusedGuardian = (selected: CompanionCandidate[]) =>
 /** 단계 이동. 범위를 벗어나지 않는다 */
 export const moveStep = (current: number, delta: 1 | -1, total: number) =>
   Math.min(Math.max(current + delta, 0), Math.max(total - 1, 0));
+
+/**
+ * 일괄 신청 본문. 새로 폼을 받은 사람은 formVersion·answers 를 싣고, 재사용 보호자는 참가자 ID 만 싣는다.
+ * 모든 학생을 보호자에게 연결한다
+ */
+export const buildBatchRequest = (
+  selected: CompanionCandidate[],
+  formVersion: number,
+  answersById: Record<number, unknown>,
+) => {
+  const guardian = selected.find(isGuardian);
+  if (!guardian) throw new Error('보호자가 필요합니다.');
+  return {
+    participants: [
+      ...buildSteps(selected).map(({ participantId }) => ({
+        participantId,
+        formVersion,
+        answers: answersById[participantId],
+      })),
+      ...(guardian.guardianApplied
+        ? [{ participantId: guardian.participantId }]
+        : []),
+    ],
+    links: selected
+      .filter((p) => !isGuardian(p))
+      .map(({ participantId }) => ({
+        studentId: participantId,
+        guardianId: guardian.participantId,
+      })),
+  };
+};

@@ -235,13 +235,15 @@ const ParticipantLookup = ({
       </p>
     );
   const members = data.participants.map(
-    ({ participant, eligible, guardianApplied }) => ({
+    ({ participant, eligible, ineligibleReason }) => ({
       participantId: participant.participantId,
       name: participant.name,
       eligible,
       occupation: participant.occupation,
-      grade: participant.grade,
-      guardianApplied,
+      // 이미 신청한 보호자는 신청 불가로 내려오지만 재사용 후보다. 재사용 가능 여부는 서버가 판정한다
+      guardianApplied:
+        participant.occupation === 'PARENT' &&
+        ineligibleReason === 'GROUP_ALREADY_APPLIED',
     }),
   );
   if (!members.some((m) => m.eligible))
@@ -251,7 +253,7 @@ const ParticipantLookup = ({
         이미 신청한 같은 묶음 프로그램을 확인해주세요.
       </p>
     );
-  if (program.policy?.companionRequired)
+  if (program.policy?.guardianPolicy)
     return (
       <CompanionApplyFlow
         expoId={expoId}

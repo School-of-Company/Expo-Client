@@ -127,23 +127,30 @@ const PROGRAM_APPLY_ERROR_MESSAGES: Record<number, string> = {
 // 일괄 신청은 한 명의 문제로도 전원이 함께 거절된다. 서버 본문의 사유가 있으면 그쪽이 우선한다
 const PROGRAM_BATCH_ERROR_MESSAGES: Record<number, string> = {
   ...PROGRAM_APPLY_ERROR_MESSAGES,
-  400: '선택한 학생·보호자의 조합이나 신청서 답변이 올바르지 않습니다. 보호자 동반 조건과 입력 내용을 확인해주세요.',
-  409: '남은 자리가 부족하거나, 이미 신청한 참가자가 있거나, 신청서가 바뀌어 전원 접수되지 않았습니다. 일부만 접수되지 않으며 답변은 유지됩니다. 내 신청을 확인한 뒤 다시 시도해주세요.',
+  400: '선택한 학생·보호자의 연결이나 신청서 답변이 올바르지 않습니다. 입력 내용을 확인해주세요.',
+  403: '보호자 동반 조건(학년·역할)을 충족하지 않거나 신청 자격이 없습니다. 초등 1~3학년은 보호자와 함께 신청해야 합니다.',
+  409: '남은 자리가 부족하거나, 이미 신청했거나, 시간이 겹치거나, 신청서가 바뀌어 전원 접수되지 않았습니다. 일부만 접수되지 않으며 답변은 유지됩니다. 내 신청을 확인한 뒤 다시 시도해주세요.',
+  503: '보호자 동반 신청을 지금은 처리할 수 없습니다. 잠시 후 다시 시도해주세요.',
 };
 
+/**
+ * 학생·보호자 일괄 신청(Expo-Application-Server#128, `application-batches`).
+ * 신규 참가자는 전원 확정 또는 전원 대기이고, 기존 확정 보호자는 formVersion·answers 없이 참가자로만 넣어 재사용한다.
+ */
 export interface ProgramBatchRequest {
   participants: {
     participantId: number;
-    formVersion: number;
-    answers: unknown;
+    formVersion?: number;
+    answers?: unknown;
   }[];
-  // 이 회차에 이미 신청해 재사용하는 보호자 또는 participants 에 포함된 보호자
-  guardianParticipantId?: number;
+  links: { studentId: number; guardianId: number }[];
 }
 
 export interface ProgramBatchResult {
-  status: 'CONFIRMED' | 'WAITING' | 'PROCESSING' | 'REJECTED';
-  reusedGuardian: boolean;
+  // 새로 접수된 신청의 결과. 하나라도 대기면 대기다
+  status: 'CONFIRMED' | 'WAITING';
+  // 기존 신청을 재사용한 보호자의 참가자 ID
+  reusedParticipantIds: number[];
 }
 
 export const postProgramBatchApplication = async (
@@ -155,19 +162,26 @@ export const postProgramBatchApplication = async (
   idempotencyKey: string,
 ): Promise<ProgramBatchResult> => {
   const response = await submit(
-    `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${encodeURIComponent(programId)}/applications/batch`,
+    `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${encodeURIComponent(programId)}/application-batches`,
     payload,
     idempotencyKey,
     csrfHeaders,
     PROGRAM_BATCH_ERROR_MESSAGES,
   );
-  const status = response.data?.status;
+  const applications: {
+    application?: { participantId?: number; status?: string };
+    reused?: boolean;
+  }[] = response.data?.applications ?? [];
+  const created = applications.filter(({ reused }) => !reused);
   return {
-    status:
-      status === 'WAITING' || status === 'PROCESSING' || status === 'REJECTED'
-        ? status
-        : 'CONFIRMED',
-    reusedGuardian: response.data?.reusedGuardian === true,
+    status: created.some(({ application }) => application?.status === 'WAITING')
+      ? 'WAITING'
+      : 'CONFIRMED',
+    reusedParticipantIds: applications.flatMap(({ application, reused }) =>
+      reused && application?.participantId !== undefined
+        ? [application.participantId]
+        : [],
+    ),
   };
 };
 
