@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { XMark } from '@/shared/assets/icons';
 import { CheckBoxIcon, CheckedBoxIcon } from '@/shared/assets/svg';
+import { useModalDialog } from '@/shared/model';
 import {
   ReportExcelScope,
   ReportExcelTemplate,
@@ -66,15 +67,10 @@ const ExcelDownloadModal = ({
     selectedRows.length > 0 ? 'SELECTED' : 'FILTER',
   );
 
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
-
   // 성공·실패와 관계없이 대장의 선택과 필터는 그대로 둔다
   const { mutate: download, isPending } = useReportExcelDownload(onClose);
+  // 파일을 만드는 중에는 닫기 버튼처럼 Escape 로도 닫지 않는다
+  const dialogRef = useModalDialog({ onClose, canClose: !isPending });
 
   const plan = useMemo(
     () =>
@@ -127,9 +123,19 @@ const ExcelDownloadModal = ({
       className="fixed inset-0 z-10 flex items-center justify-center px-[18px]"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
     >
-      <div className="flex max-h-[90vh] w-full max-w-[792px] flex-col gap-[40px] overflow-y-auto rounded-sm bg-white px-[40px] py-[36px] mobile:px-20">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="excel-download-title"
+        tabIndex={-1}
+        className="flex max-h-[90vh] w-full max-w-[792px] flex-col gap-[40px] overflow-y-auto rounded-sm bg-white px-[40px] py-[36px] outline-none mobile:px-20"
+      >
         <div className="flex items-center">
-          <p className="flex-grow text-center text-h2r text-black mobile:text-body1r">
+          <p
+            id="excel-download-title"
+            className="flex-grow text-center text-h2r text-black mobile:text-body1r"
+          >
             엑셀 다운로드
           </p>
           <button
@@ -137,6 +143,7 @@ const ExcelDownloadModal = ({
             onClick={onClose}
             disabled={isPending}
             aria-label="닫기"
+            className="-m-10 flex h-[44px] w-[44px] shrink-0 items-center justify-center"
           >
             <XMark />
           </button>
