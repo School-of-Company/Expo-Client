@@ -1,118 +1,47 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
-import { ExpoAction, getExpoActions } from '@/entities/exhibition';
-import { ArrowDown, ArrowUp } from '@/shared/assets/icons';
-import { Share } from '@/shared/assets/svg';
-import { COLORS } from '@/shared/config';
-import { Button } from '@/shared/ui';
+import { getExpoActionGroups, useRunExpoAction } from '@/entities/exhibition';
+import { Button, TextButton } from '@/shared/ui';
 
 interface ExpoActionPanelProps {
   params: string;
   openModal: (type: string, content: string) => void;
 }
 
+/** 박람회 상세 오른쪽 운영 기능. 더보기 없이 그룹별로 모두 보인다 */
 const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
-  const router = useRouter();
-  const [isMore, setIsMore] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const actions = getExpoActions(params);
-
-  const renderAction = (
-    action: ExpoAction,
-    variant: 'white' | 'gray' = 'white',
-  ) => (
-    <Button
-      variant={variant}
-      onClick={() =>
-        'href' in action
-          ? router.push(action.href)
-          : openModal(action.modal.type, action.modal.text)
-      }
-    >
-      {action.title}
-    </Button>
-  );
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 1024);
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
+  const run = useRunExpoAction(openModal);
+  const groups = getExpoActionGroups(params);
 
   return (
-    <div className="w-full">
-      <div className="flex w-full flex-col items-center gap-24">
-        <div className="h-fit w-full rounded-sm border-1 border-solid border-gray-200 p-[18px] tablet:w-full tablet:border-none tablet:px-0">
-          <div className="w-full space-y-8">
-            <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
-              {renderAction(actions.participants)}
-              {renderAction(actions.formCreate)}
-            </div>
-            <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
-              {renderAction(actions.fieldQr)}
-              {renderAction(actions.checkIn)}
-            </div>
-            <div
-              style={{
-                maxHeight: isMobile || isMore ? 'none' : '0px',
-              }}
-              className={`flex flex-col gap-8 overflow-hidden`}
-            >
-              <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
-                {renderAction(actions.program)}
-                {renderAction(actions.programSchedule)}
-              </div>
-              <div className="space-y-8 tablet:flex tablet:gap-16 tablet:space-y-0">
-                {renderAction(actions.programForm)}
-                {renderAction(actions.message)}
-              </div>
-              {renderAction(actions.paperQr)}
-              {renderAction(actions.lottery)}
-              {renderAction(actions.edit, 'gray')}
-            </div>
-            {!isMobile && (
-              <>
-                {isMore ? (
-                  <div
-                    className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-main-600"
-                    onClick={() => setIsMore(false)}
-                  >
-                    <span>접기</span>
-                    <ArrowUp fill={COLORS.main600} />
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => setIsMore(true)}
-                    className="mt-[1rem] flex w-full cursor-pointer justify-center gap-[0.5rem] text-h3r text-gray-400"
-                  >
-                    <span>더보기</span>
-                    <ArrowDown fill={COLORS.gray400} />
+    <div className="flex w-full flex-col gap-24 rounded-sm border-1 border-solid border-gray-200 p-[18px] tablet:border-none tablet:px-0">
+      {groups.map((group) => (
+        <section key={group.key} className="space-y-12">
+          <h2 className="text-caption1b text-gray-500">{group.title}</h2>
+          <div className="grid gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
+            {group.actions.map(({ key, primary, more }) => (
+              <div key={key} className="space-y-6">
+                <Button variant="white" onClick={() => run(primary)}>
+                  {primary.label}
+                </Button>
+                {more && (
+                  <div className="flex flex-wrap gap-x-12 gap-y-4 px-4">
+                    {more.map((link) => (
+                      <TextButton
+                        key={link.label}
+                        size="small"
+                        onClick={() => run(link)}
+                      >
+                        {link.label}
+                      </TextButton>
+                    ))}
                   </div>
                 )}
-              </>
-            )}
+              </div>
+            ))}
           </div>
-        </div>
-        {!isMobile && (
-          <button
-            type="button"
-            className="flex items-center gap-10"
-            onClick={() => openModal('share', '공유할 항목을 선택하세요.')}
-          >
-            <Share />
-            <p className="text-h3r text-gray-400">공유</p>
-          </button>
-        )}
-      </div>
+        </section>
+      ))}
     </div>
   );
 };
