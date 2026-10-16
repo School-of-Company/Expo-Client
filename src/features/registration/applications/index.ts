@@ -1,1 +1,1 @@
-export { default as ApplicationLedger } from './ui/ApplicationLedger';
+export { default as RegistrationLedger } from './ui/RegistrationLedger';
