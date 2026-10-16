@@ -60,11 +60,27 @@ const PolicyFields = ({
 }: PolicyFieldsProps) => {
   const hasChannels = value.channels.length > 0;
   const totals = withChannelTotals(value);
+  const isSplit =
+    value.preRegisterCapacity !== null || value.onsiteCapacity !== null;
+
+  const toggleSplit = (on: boolean) =>
+    onChange(
+      on
+        ? { preRegisterCapacity: value.capacity, onsiteCapacity: 0 }
+        : {
+            capacity: totals.capacity,
+            preRegisterCapacity: null,
+            onsiteCapacity: null,
+          },
+    );
 
   const toggleChannels = (on: boolean) => {
     if (on) {
       // 지금 정원·직업을 첫 채널로 옮겨 합계가 그대로 이어지게 한다
       onChange({
+        // 채널별 정원과 사전·현장 정원은 함께 쓰지 않는다
+        preRegisterCapacity: null,
+        onsiteCapacity: null,
         channels: [
           {
             ...EMPTY_CHANNEL_FORM,
@@ -133,6 +149,19 @@ const PolicyFields = ({
         </div>
         <ToggleButton value={hasChannels} onChange={toggleChannels} />
       </div>
+      {!hasChannels && (
+        <div className="flex items-center justify-between gap-16">
+          <div className="space-y-6">
+            <FieldLabel>사전·현장 접수 정원</FieldLabel>
+            <p className="text-caption1r text-gray-500">
+              {isSplit
+                ? `정원 ${totals.capacity}명 (사전 + 현장)`
+                : '사전 접수와 현장 접수 정원을 따로 관리할 때 켭니다.'}
+            </p>
+          </div>
+          <ToggleButton value={isSplit} onChange={toggleSplit} />
+        </div>
+      )}
       {hasChannels && (
         <ChannelFields
           value={value.channels}
@@ -142,16 +171,43 @@ const PolicyFields = ({
       <div className="grid grid-cols-4 gap-16 mobile:grid-cols-1 tablet:grid-cols-2">
         {!hasChannels && (
           <>
-            <Field label="정원">
-              <Input
-                type="number"
-                min={1}
-                value={value.capacity}
-                onChange={(e) =>
-                  onChange({ capacity: toCount(e.target.value) })
-                }
-              />
-            </Field>
+            {isSplit ? (
+              <>
+                <Field label="사전 접수 정원">
+                  <Input
+                    type="number"
+                    min={0}
+                    value={value.preRegisterCapacity ?? 0}
+                    onChange={(e) =>
+                      onChange({
+                        preRegisterCapacity: toCount(e.target.value),
+                      })
+                    }
+                  />
+                </Field>
+                <Field label="현장 접수 정원">
+                  <Input
+                    type="number"
+                    min={0}
+                    value={value.onsiteCapacity ?? 0}
+                    onChange={(e) =>
+                      onChange({ onsiteCapacity: toCount(e.target.value) })
+                    }
+                  />
+                </Field>
+              </>
+            ) : (
+              <Field label="정원">
+                <Input
+                  type="number"
+                  min={1}
+                  value={value.capacity}
+                  onChange={(e) =>
+                    onChange({ capacity: toCount(e.target.value) })
+                  }
+                />
+              </Field>
+            )}
             <Field label="대기 정원">
               <Input
                 type="number"
