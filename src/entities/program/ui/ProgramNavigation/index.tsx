@@ -3,6 +3,13 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
+// 사전등록 회차는 프로그램이 아니지만 같은 화면에서 탭으로 오간다
+const TABS = [
+  { value: 'standard', label: '일반 프로그램' },
+  { value: 'training', label: '연수 프로그램' },
+  { value: 'preregister', label: '사전등록' },
+];
+
 const ProgramNavigation = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -19,25 +26,20 @@ const ProgramNavigation = () => {
   };
 
   return (
-    <div className="flex justify-center gap-[18px]">
-      <button
-        type="button"
-        className={`text-h2b ${
-          navigation === 'standard' ? 'text-black' : 'text-gray-500'
-        }`}
-        onClick={() => handleNavigationChange('standard')}
-      >
-        일반 프로그램
-      </button>
-      <button
-        type="button"
-        className={`text-h2b ${
-          navigation === 'training' ? 'text-black' : 'text-gray-500'
-        }`}
-        onClick={() => handleNavigationChange('training')}
-      >
-        연수 프로그램
-      </button>
+    <div className="flex flex-wrap justify-center gap-x-[18px] gap-y-8">
+      {TABS.map(({ value, label }) => (
+        <button
+          key={value}
+          type="button"
+          aria-pressed={navigation === value}
+          className={`text-h2b mobile:text-body1b ${
+            navigation === value ? 'text-black' : 'text-gray-500'
+          }`}
+          onClick={() => handleNavigationChange(value)}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 };

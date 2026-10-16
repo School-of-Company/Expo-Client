@@ -1,16 +1,36 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useMemo } from 'react';
+import React, { ReactNode, useMemo } from 'react';
 import { ProgramNavigation } from '@/entities/program';
-import { getRegistrationRoutes } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
+import { Button } from '@/shared/ui';
 import { TableForm } from '@/shared/ui/Table';
 import { standardCategories, trainingCategories } from '../../model/category';
 import { useProgramQueries } from '../../model/useProgramData';
 
-const ProgramListTable = ({ expoId }: { expoId: string }) => {
+type ProgramType = 'STANDARD' | 'TRAINING';
+
+interface ProgramListTableProps {
+  expoId: string;
+  /** 넘기면 프로그램 추가·수정·삭제 버튼을 보인다 */
+  onAdd?: () => void;
+  onEdit?: (programType: ProgramType, programId: number) => void;
+  onRemove?: (programType: ProgramType, programId: number) => void;
+  /** 표 위에 여는 추가·수정 양식 */
+  editor?: ReactNode;
+  /** 프로그램 추가 버튼 옆에 둘 버튼 */
+  toolbar?: ReactNode;
+}
+
+const ProgramListTable = ({
+  expoId,
+  onAdd,
+  onEdit,
+  onRemove,
+  editor,
+  toolbar,
+}: ProgramListTableProps) => {
   const searchParams = useSearchParams();
   const navigation = searchParams.get('navigation') || 'standard';
 
@@ -33,12 +53,21 @@ const ProgramListTable = ({ expoId }: { expoId: string }) => {
     [programQueries.data],
   );
 
+  const programType: ProgramType =
+    navigation === 'training' ? 'TRAINING' : 'STANDARD';
+
   const routeActions = {
     RouteActions: (programId: number) => {
       router.push(
         `/program/${expoId}/detail/${programId}?navigation=${navigation}`,
       );
     },
+    ...(onEdit && {
+      EditActions: (programId: number) => onEdit(programType, programId),
+    }),
+    ...(onRemove && {
+      RemoveActions: (programId: number) => onRemove(programType, programId),
+    }),
   };
 
   return withLoading({
@@ -46,19 +75,21 @@ const ProgramListTable = ({ expoId }: { expoId: string }) => {
     children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-46 overflow-y-auto">
         <ProgramNavigation />
-        {/* 이 화면은 조회·출석용이다. 회차 추가·폼 연결·정원은 일정·모집 화면에서 정한다 */}
-        <div className="flex items-center justify-between gap-16 rounded-sm border-1 border-solid border-gray-200 px-20 py-12 mobile:flex-col mobile:items-stretch">
-          <p className="text-body2r text-gray-500">
-            프로그램 회차 추가, 묶음, 신청 폼 연결, 정원·모집 기간은 프로그램
-            신청 설정에서 바꿉니다.
+        <div className="flex items-center justify-between gap-16 mobile:flex-col mobile:items-stretch">
+          <p className="text-body2r text-gray-500 mobile:text-caption1r">
+            행을 고른 뒤 아래에서 수정·삭제하거나, 이동을 눌러 출석을
+            확인합니다.
           </p>
-          <Link
-            href={getRegistrationRoutes(expoId).schedule}
-            className="shrink-0 rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-center text-caption1b text-main-600"
-          >
-            프로그램 신청 설정
-          </Link>
+          <div className="flex flex-wrap justify-end gap-8">
+            {toolbar}
+            {onAdd && (
+              <Button size="small" onClick={onAdd}>
+                프로그램 추가
+              </Button>
+            )}
+          </div>
         </div>
+        {editor}
         <TableForm
           categories={requestPrintCategories}
           data={programData}

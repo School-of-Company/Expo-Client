@@ -13,8 +13,8 @@ const RegistrationTabs = () => {
   const tabs = [
     { href: routes.dashboard, label: '대시보드', exact: true },
     { href: routes.applications, label: '접수대장' },
-    { href: routes.schedule, label: '일정·모집' },
-    { href: routes.programForms, label: '프로그램 폼' },
+    // 프로그램 조회·출석, 회차·모집, 신청 폼은 프로그램 페이지 한 화면에 모았다
+    { href: routes.programs, label: '프로그램' },
     { href: routes.attendance, label: '실시간 입·퇴장' },
     { href: routes.participants, label: '참가자 검색' },
     { href: routes.history, label: '행정 이력' },

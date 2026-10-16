@@ -8,7 +8,9 @@ type ActionKeys =
   | 'DeleteBadge'
   | 'PrintBadge'
   | 'exportExcel'
-  | 'RouteActions';
+  | 'RouteActions'
+  | 'EditActions'
+  | 'RemoveActions';
 type ActionsType<Id> = Partial<Record<ActionKeys, (selectItem: Id) => void>>;
 
 type TableFooterProps<Id> = VariantProps<typeof tableFooterStyles> & {
@@ -130,7 +132,26 @@ const TableFooter = <Id extends string | number>({
         </div>
       )}
       {type === 'route' && (
-        <div className="flex items-center gap-20">
+        <div className="flex items-center gap-8">
+          {/* 고친 행을 수정·삭제할 수 있는 표만 actions 로 넘긴다 */}
+          {actions.EditActions && (
+            <Button
+              size="small"
+              variant="white"
+              onClick={() => handleActionClick('EditActions')}
+            >
+              수정
+            </Button>
+          )}
+          {actions.RemoveActions && (
+            <Button
+              size="small"
+              variant="danger"
+              onClick={() => handleActionClick('RemoveActions')}
+            >
+              삭제
+            </Button>
+          )}
           <Button
             size="small"
             onClick={() => handleActionClick('RouteActions')}
