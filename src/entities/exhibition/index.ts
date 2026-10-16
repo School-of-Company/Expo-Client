@@ -1,5 +1,11 @@
-export { getExpoActions } from './model/expoActions';
-export type { ExpoAction, ExpoActionModalType } from './model/expoActions';
+export { getExpoActions, getExpoActionGroups } from './model/expoActions';
+export type {
+  ExpoAction,
+  ExpoActionGroup,
+  ExpoActionItem,
+  ExpoActionLink,
+  ExpoActionModalType,
+} from './model/expoActions';
 export { default as ContentListText } from './ui/ContentListText';
 export { default as ContentText } from './ui/ContentText';
 export { default as ExpoInput } from './ui/ExpoInput';
