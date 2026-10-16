@@ -30,6 +30,7 @@ export const getExpoRoutes = (expoId: string) => {
     program: `/program/${id}?navigation=standard`,
     paperQr: `/exhibition/paper-qr/${id}`,
     lottery: `/exhibition/lottery/${id}`,
+    edit: `/exhibition/edit/${id}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
   };
