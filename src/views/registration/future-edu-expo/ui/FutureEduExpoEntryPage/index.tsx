@@ -5,7 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { getExpoPage } from '@/shared/api/getExpoPage';
-import { FUTURE_EDU_EXPO_ID, getRegistrationRoutes } from '@/shared/config';
+import {
+  EXPO_LIST_PATH,
+  FUTURE_EDU_EXPO_ID,
+  getRegistrationRoutes,
+} from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
 import { ExpoItem } from '@/shared/types/admin/type';
 import { QueryError } from '@/shared/ui';
@@ -67,7 +71,10 @@ const FutureEduExpoEntryPage = () => {
           <p className="break-keep text-body2r text-gray-500">
             제목에 &apos;미래교육박람회&apos;가 들어간 박람회가 없습니다.
           </p>
-          <Link href="/" className="text-body2r text-main-600 underline">
+          <Link
+            href={EXPO_LIST_PATH}
+            className="text-body2r text-main-600 underline"
+          >
             박람회 목록으로
           </Link>
         </div>

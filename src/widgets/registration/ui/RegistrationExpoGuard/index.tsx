@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRegistrationExpo } from '@/features/registration/common';
+import { EXPO_LIST_PATH } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { Header } from '@/widgets/layout';
@@ -40,7 +41,7 @@ const RegistrationExpoGuard = ({ children }: { children: React.ReactNode }) => {
                 </button>
               )}
               <Link
-                href="/"
+                href={EXPO_LIST_PATH}
                 className="rounded-sm border-1 border-solid border-gray-200 px-24 py-12 text-body2r text-black"
               >
                 박람회 목록으로
