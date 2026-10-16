@@ -1,74 +1,67 @@
 import { toApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
-import { AdminApplicationStatus, AdminOccupation } from './ledgerApi';
+import { AdminOccupation, AdminParticipantDetail } from './ledgerApi';
 
-// ponytail: Expo-Application-Server#123 이 확정되기 전의 가정 계약이다.
-// 경로·필드가 다르면 이 파일의 타입과 경로만 고친다. 화면은 이 파일의 타입만 쓴다.
-// 행 단위는 예약/일행이다. 대기 일행은 User 저장 전이라 참가자 ID 가 없을 수 있다
+// Expo-Application-Server AdminPreregistrationController (docs/admin-preregistration-ledger.md)
 
-export type PreregisterSort = 'CREATED_DESC' | 'CREATED_ASC';
+/** PENDING 은 User 확정 전 복구 중인 예약(좌석 보유)이다 */
+export type AdminPreregisterStatus =
+  | 'CONFIRMED'
+  | 'WAITING'
+  | 'CANCELLED'
+  | 'PENDING';
 
-export interface PreregisterMember {
-  /** 대기 일행은 User 저장 전이라 null 이다 */
-  participantId: number | null;
-  name: string;
-  phoneNumber: string | null;
-  /** 메시지가 실제로 가는 대표자 번호 */
-  notificationPhoneNumber: string | null;
-  occupation: AdminOccupation | null;
+/** 예약 일행의 제출 당시 스냅샷. 동행자는 질문·답변으로만 확인한다 */
+export interface PreregisterReservationSnapshot {
+  name?: string | null;
+  phoneNumber?: string | null;
+  occupation?: AdminOccupation | null;
+  informationJson?: Record<string, unknown> | null;
+  questions?: unknown;
 }
 
-export interface PreregisterHistory {
-  id: number;
-  status: AdminApplicationStatus;
-  createdAt: string;
-}
-
-/** 사전등록 신청 한 건 = 대표자 1명 + 동행자 일행 */
-export interface AdminPreregisterReservation {
-  reservationId: string;
+/**
+ * 목록의 한 행. 단위가 상태마다 다르다.
+ * - CONFIRMED / CANCELLED: 참가자 1명 (applicationId, applicants=1)
+ * - WAITING / PENDING / 철회된 대기 CANCELLED: User 저장 전 예약 일행 (reservationId, applicants=일행 인원)
+ */
+export interface AdminPreregisterRow {
+  /** 상세·선택에 그대로 쓰는 행 식별자 */
+  key: string;
+  expoId: string;
   sessionId: number;
-  status: AdminApplicationStatus;
-  createdAt: string;
-  /** 대표자 + 동행자 인원 */
+  status: AdminPreregisterStatus;
+  applicationId: number | null;
+  reservationId: string | null;
+  /** 예약 행은 null 이다. 참가자 ID 를 추정하지 않는다 */
+  participantId: number | null;
+  representativeId: number | null;
   applicants: number;
-  /** 대기 순번. 대기 상태에만 있다 */
-  waitingPosition: number | null;
-  representative: PreregisterMember;
-  companions: PreregisterMember[];
-  /** 상세 조회에만 있다 */
-  history?: PreregisterHistory[];
+  /** 예약 행은 생성 시각이 없어 null 이다 */
+  createdAt: string | null;
+  /** 참가자 행의 User 현재 정보 */
+  participant: AdminParticipantDetail | null;
+  /** 예약 행의 제출 당시 정보 */
+  reservation: PreregisterReservationSnapshot | null;
 }
 
 export interface AdminPreregisterPage {
-  items: AdminPreregisterReservation[];
-  /** 일행(신청) 수 */
+  items: AdminPreregisterRow[];
+  /** 서로 다른 단위의 행 수다. 인원 수가 아니다 */
   totalElements: number;
-  /** 일행 수 기준 상태별 건수 */
-  statusCounts: Partial<Record<AdminApplicationStatus, number>>;
-  /** 인원 합. 서버가 주지 않으면 비워 둔다 */
-  totalApplicants?: number;
   page: number;
   size: number;
 }
 
+/** 서버는 알 수 없거나 빈 파라미터를 400 으로 거절하므로 값이 있는 것만 보낸다 */
 export interface AdminPreregisterQuery {
-  /** 대표자·동행자 이름·번호 */
-  q?: string;
   sessionId?: number;
   /** 쉼표로 여러 상태 */
   status?: string;
-  sort?: PreregisterSort;
+  /** 1–50자 */
+  q?: string;
   page?: number;
   size?: number;
-}
-
-/** 엑셀·그룹 메시지가 목록과 같은 대상을 다시 계산하도록 보내는 필터. 탭의 현재 조건만 담는다 */
-export interface PreregisterTargetFilter {
-  q?: string;
-  sessionId?: number;
-  status?: AdminApplicationStatus[];
-  sort: PreregisterSort;
 }
 
 const basePath = (expoId: string) =>
@@ -95,36 +88,20 @@ export const getAdminPreregistrations = async (
   }
 };
 
+/** 목록 행의 key 로 한 행을 다시 읽는다. 사라진 key 는 404 이며 다른 행으로 바꿔 주지 않는다 */
 export const getAdminPreregistration = async (
   expoId: string,
-  reservationId: string,
-): Promise<AdminPreregisterReservation> => {
+  key: string,
+): Promise<AdminPreregisterRow> => {
   try {
     const response = await clientTokenInstance.get(
-      `${basePath(expoId)}/${encodeURIComponent(reservationId)}`,
+      `${basePath(expoId)}/detail`,
+      {
+        params: { key },
+      },
     );
     return response.data;
   } catch (error) {
     throw toApiError(error, '사전등록 상세를 불러오지 못했습니다.');
-  }
-};
-
-export interface AdminPreregisterCancellationResult {
-  reservationId: string;
-  status: 'CANCELLED';
-}
-
-/** 일행 단위 취소. 취소 정책·권한·보호 규칙은 서버가 기존 신청 취소와 같게 검사한다 */
-export const postAdminPreregistrationCancellation = async (
-  expoId: string,
-  reservationId: string,
-): Promise<AdminPreregisterCancellationResult> => {
-  try {
-    const response = await clientTokenInstance.post(
-      `${basePath(expoId)}/${encodeURIComponent(reservationId)}/cancellation`,
-    );
-    return response.data;
-  } catch (error) {
-    throw toApiError(error, '사전등록 신청을 취소하지 못했습니다.');
   }
 };
