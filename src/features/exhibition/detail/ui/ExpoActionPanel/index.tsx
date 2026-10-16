@@ -1,14 +1,14 @@
 'use client';
 
 import { getExpoActionGroups, useRunExpoAction } from '@/entities/exhibition';
-import { Button, TextButton } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 
 interface ExpoActionPanelProps {
   params: string;
   openModal: (type: string, content: string) => void;
 }
 
-/** 박람회 상세 오른쪽 운영 기능. 더보기 없이 그룹별로 모두 보인다 */
+/** 박람회 상세 오른쪽 운영 기능. 더보기 없이 그룹별로 모든 진입점을 같은 버튼으로 보인다 */
 const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
   const run = useRunExpoAction(openModal);
   const groups = getExpoActionGroups(params);
@@ -19,26 +19,17 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
         <section key={group.key} className="space-y-12">
           <h2 className="text-caption1b text-gray-500">{group.title}</h2>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,180px),1fr))] gap-12">
-            {group.actions.map(({ key, primary, more }) => (
-              <div key={key} className="space-y-6">
-                <Button variant="white" onClick={() => run(primary)}>
-                  {primary.label}
+            {group.actions
+              .flatMap(({ primary, more = [] }) => [primary, ...more])
+              .map((link) => (
+                <Button
+                  key={link.label}
+                  variant="white"
+                  onClick={() => run(link)}
+                >
+                  {link.label}
                 </Button>
-                {more && (
-                  <div className="flex flex-wrap gap-x-12 gap-y-4 px-4">
-                    {more.map((link) => (
-                      <TextButton
-                        key={link.label}
-                        size="small"
-                        onClick={() => run(link)}
-                      >
-                        {link.label}
-                      </TextButton>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+              ))}
           </div>
         </section>
       ))}

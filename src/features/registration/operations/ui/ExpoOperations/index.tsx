@@ -7,7 +7,7 @@ import {
   useRunExpoAction,
 } from '@/entities/exhibition';
 import { ArrowRight } from '@/shared/assets/icons';
-import { TextButton } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 import { useRegistrationExpo } from '../../../common';
 
 const MAIN_CLASS = 'flex w-full items-center justify-between gap-16 text-left';
@@ -60,15 +60,16 @@ const ExpoOperations = ({ onOpenModal }: ExpoOperationsProps) => {
                   </button>
                 )}
                 {action.more && (
-                  <div className="flex flex-wrap gap-x-16 gap-y-4">
+                  <div className="flex flex-wrap gap-8">
                     {action.more.map((link) => (
-                      <TextButton
+                      <Button
                         key={link.label}
                         size="small"
+                        variant="white"
                         onClick={() => run(link)}
                       >
                         {link.label}
-                      </TextButton>
+                      </Button>
                     ))}
                   </div>
                 )}
