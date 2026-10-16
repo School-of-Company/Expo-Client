@@ -10,3 +10,4 @@ export { default as DetailHeader } from './DetailHeader';
 export { default as DetailHeaderEditable } from './DetailHeaderEditable';
 export { default as NavigationBar } from './NavigationBar';
 export { default as MockDataBadge } from './MockDataBadge';
+export { default as Section } from './Section';
