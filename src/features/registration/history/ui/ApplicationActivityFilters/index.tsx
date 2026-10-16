@@ -9,13 +9,9 @@ import {
   PROGRAM_TYPE_LABEL,
   toSessionKey,
 } from '../../../common/model/ledger';
-import {
-  AdminApplicationAction,
-  AdminApplicationActorType,
-} from '../../api/applicationActivityApi';
+import { AdminApplicationAction } from '../../api/applicationActivityApi';
 import {
   ACTIVITY_ACTION_LABEL,
-  ACTIVITY_ACTOR_LABEL,
   ActivityFilter,
   INITIAL_ACTIVITY_FILTER,
   MAX_PARTICIPANT_LENGTH,
@@ -58,7 +54,8 @@ const ApplicationActivityFilters = ({
         <div className="col-span-2 space-y-6 mobile:col-span-1">
           <p className="text-caption1r text-gray-500">참가자 검색</p>
           <SearchInput
-            placeholder="참가자 검색"
+            label="참가자 이름·연락처 검색"
+            placeholder="참가자 이름·연락처 (현재 정보)"
             value={keyword}
             onChange={(value) =>
               setKeyword(value.slice(0, MAX_PARTICIPANT_LENGTH))
@@ -89,23 +86,6 @@ const ApplicationActivityFilters = ({
             options={[
               { value: '', label: '전체' },
               ...Object.entries(LEDGER_STATUS_LABEL).map(([value, label]) => ({
-                value,
-                label,
-              })),
-            ]}
-          />
-        </div>
-        <div className="space-y-6">
-          <p className="text-caption1r text-gray-500">처리주체</p>
-          <RegistrationSelect
-            ariaLabel="처리주체"
-            value={filter.actorType}
-            onChange={(actorType) =>
-              update({ actorType: actorType as AdminApplicationActorType | '' })
-            }
-            options={[
-              { value: '', label: '전체' },
-              ...Object.entries(ACTIVITY_ACTOR_LABEL).map(([value, label]) => ({
                 value,
                 label,
               })),

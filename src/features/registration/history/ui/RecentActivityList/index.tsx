@@ -48,9 +48,10 @@ const COLUMNS: TableColumn<RecentActivityRow>[] = [
     key: 'program',
     label: '프로그램',
     flex: 2,
-    render: ({ programType, programId, programTitle }) => (
+    render: ({ programType, programId, programTitle, definition }) => (
       <p className="break-words">
-        {programTitle ??
+        {definition?.title ??
+          programTitle ??
           `${PROGRAM_TYPE_LABEL[programType] ?? programType} #${programId}`}
       </p>
     ),
@@ -59,7 +60,13 @@ const COLUMNS: TableColumn<RecentActivityRow>[] = [
     key: 'actorId',
     label: '처리주체',
     render: (row) => (
-      <span className={row.actorType ? undefined : 'text-gray-400'}>
+      <span
+        className={
+          !row.actorType || row.actorType === 'UNKNOWN'
+            ? 'text-gray-400'
+            : undefined
+        }
+      >
         {getActivityActorLabel(row)}
       </span>
     ),

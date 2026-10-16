@@ -11,6 +11,7 @@ import {
 import { AdminApplicationStatus } from '../../../common/api/ledgerApi';
 import {
   LEDGER_STATUS_LABEL,
+  formatDefinitionSchedule,
   LEDGER_STATUS_STYLE,
   PROGRAM_TYPE_LABEL,
   toSessionKey,
@@ -74,15 +75,14 @@ const COLUMNS: TableColumn<ActivityRow>[] = [
   {
     key: 'participant',
     label: '참가자',
-    render: ({ participantId, participantName }) => (
+    // 서버 participant 는 현재 User 정보라 처리 당시 값과 다를 수 있다
+    render: ({ participantId, participant }) => (
       <div>
         <p className="break-words text-black">
-          {participantName ?? `참가자 #${participantId}`}
+          {participant?.name ?? `참가자 #${participantId}`}
         </p>
         <p className="text-caption1r text-gray-400">
-          {participantName
-            ? `#${participantId} · 처리 당시`
-            : '표시정보 미기록'}
+          #{participantId} · {participant ? '현재 정보' : '정보 없음'}
         </p>
       </div>
     ),
@@ -91,22 +91,18 @@ const COLUMNS: TableColumn<ActivityRow>[] = [
     key: 'program',
     label: '프로그램',
     flex: 1.6,
-    render: ({
-      programType,
-      programId,
-      programTitle,
-      sessionTitle,
-      currentTitle,
-    }) => (
+    // definition 은 제출 당시 스냅샷이다. 누락 필드는 서버가 채우지 않으므로 현재 회차로 보완한다
+    render: ({ programType, programId, definition, currentTitle }) => (
       <div>
         <p className="break-words text-black">
-          {programTitle ?? currentTitle ?? `프로그램 #${programId}`}
+          {definition?.title ?? currentTitle ?? `프로그램 #${programId}`}
         </p>
         <p className="text-caption1r text-gray-400">
           {PROGRAM_TYPE_LABEL[programType] ?? programType}
-          {sessionTitle && ` · ${sessionTitle}`}
-          {programTitle
-            ? ' · 처리 당시'
+          {definition?.startedAt &&
+            ` · ${formatDefinitionSchedule(definition.startedAt, definition.endedAt ?? null)}`}
+          {definition?.title
+            ? ' · 제출 당시'
             : currentTitle
               ? ' · 현재 정보'
               : ' · 삭제됨 또는 미기록'}
@@ -126,12 +122,17 @@ const COLUMNS: TableColumn<ActivityRow>[] = [
   {
     key: 'actor',
     label: '처리주체',
-    render: (row) =>
-      row.actorType ? (
-        <p>{getActivityActorLabel(row)}</p>
-      ) : (
-        <p className="text-gray-300">미기록</p>
-      ),
+    render: (row) => (
+      <p
+        className={
+          !row.actorType || row.actorType === 'UNKNOWN'
+            ? 'text-gray-300'
+            : undefined
+        }
+      >
+        {getActivityActorLabel(row)}
+      </p>
+    ),
   },
   {
     key: 'status',
@@ -236,8 +237,8 @@ const ApplicationActivitySection = ({
           />
         </div>
         <p className="text-caption1r text-gray-400">
-          검색·프로그램·처리 후 상태·처리주체·처리일 조건을 반영한 건수입니다.
-          처리유형 조건만 제외하고 유형별로 나눠 보여 줍니다.
+          검색·프로그램·처리 후 상태·처리일 조건을 반영한 건수입니다. 처리유형
+          조건만 제외하고 유형별로 나눠 보여 줍니다.
         </p>
       </div>
 
