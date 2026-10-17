@@ -28,8 +28,8 @@ const ProgramFormCreatePage = () => {
   const router = useRouter();
   const routes = getRegistrationRoutes(expoId);
   // 회차 편집 중에 넘어왔으면 저장 후 그 회차로 돌아가 새 폼을 연결한다
-  const returnsToSchedule =
-    searchParams.get(DRAFT_QUERY.returnTo) === 'schedule';
+  const returnTo = searchParams.get(DRAFT_QUERY.returnTo);
+  const returnsToSchedule = returnTo === 'schedule';
 
   // 초안은 sessionStorage 에 있어 서버 렌더와 맞추려고 마운트 뒤에 읽는다
   const [draft, setDraft] = useState<{
@@ -48,11 +48,14 @@ const ProgramFormCreatePage = () => {
     );
   }, [expoId, returnsToSchedule]);
 
+  // 박람회 상세의 폼 생성에서 왔으면 상세로 돌아간다
   const handleBack = () =>
     router.push(
       returnsToSchedule
         ? `${routes.schedule}?${DRAFT_QUERY.resume}=1`
-        : routes.programForms,
+        : returnTo === 'detail'
+          ? `/exhibition/detail/${encodeURIComponent(expoId)}`
+          : routes.programForms,
     );
 
   return (
