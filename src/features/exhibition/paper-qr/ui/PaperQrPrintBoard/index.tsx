@@ -110,8 +110,10 @@ const PaperQrPrintBoard = ({ expoId }: { expoId: string }) => {
         : null;
 
   const tabClass = (active: boolean) =>
-    `rounded-full px-16 py-6 text-caption1b ${
-      active ? 'bg-main-600 text-white' : 'bg-gray-100 text-gray-600'
+    `rounded-sm border-1 border-solid px-20 py-8 text-body2b mobile:px-12 mobile:text-caption1b ${
+      active
+        ? 'border-main-600 bg-main-600 text-white'
+        : 'border-gray-200 text-gray-500'
     }`;
 
   return (
