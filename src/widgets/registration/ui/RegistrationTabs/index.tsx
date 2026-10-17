@@ -18,9 +18,9 @@ const RegistrationTabs = () => {
 
   const tabs = [
     { href: routes.dashboard, label: '실시간 대시보드', exact: true },
+    { href: routes.attendance, label: '실시간 입·퇴장' },
     { href: routes.applications, label: '접수대장' },
     { href: routes.history, label: '행정 이력' },
-    { href: routes.attendance, label: '실시간 입·퇴장' },
   ];
 
   const isActive = (href: string, exact?: boolean) =>
