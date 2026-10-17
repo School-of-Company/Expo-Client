@@ -205,3 +205,8 @@
     margin: 0.03rem;
   }
 }
+
+/* 모달(z-10) 위에 달력이 뜨도록 한다 */
+.react-datepicker-popper {
+  z-index: 50;
+}

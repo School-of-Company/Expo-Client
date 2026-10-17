@@ -22,13 +22,27 @@ export const toLowercaseUuid = (expoId: string) => {
 export const normalizeExpoId = (expoId: string) =>
   toLowercaseUuid(expoId) ?? (isValidExpoId(expoId) ? expoId : null);
 
+// QR 화면(현장 등록 QR·박람회 입장·종이 QR 발급)의 탭. 주소의 tab 값이다
+export const EXPO_QR_TABS = {
+  access: 'access',
+  checkIn: 'check-in',
+  paper: 'paper',
+} as const;
+
+export type ExpoQrTab = (typeof EXPO_QR_TABS)[keyof typeof EXPO_QR_TABS];
+
 export const getExpoRoutes = (expoId: string) => {
   const id = segment(expoId);
+  const qr = `/exhibition/qr/${id}`;
   return {
     participants: `/exhibition/participants/${id}?page=1&userType=STANDARD`,
-    checkIn: `/exhibition/check-in/${id}`,
+    edit: `/exhibition/edit/${id}`,
+    qr,
+    accessQr: (userType: string, applicationType: string) =>
+      `${qr}?tab=${EXPO_QR_TABS.access}&userType=${encodeURIComponent(userType)}&applicationType=${encodeURIComponent(applicationType)}`,
+    checkIn: `${qr}?tab=${EXPO_QR_TABS.checkIn}`,
     program: `/program/${id}?navigation=standard`,
-    paperQr: `/exhibition/paper-qr/${id}`,
+    paperQr: `${qr}?tab=${EXPO_QR_TABS.paper}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
   };

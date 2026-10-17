@@ -2,13 +2,13 @@ import { Metadata } from 'next';
 import { RegistrationParticipantsPage } from '@/views/registration/participants';
 
 export const metadata: Metadata = {
-  title: '참가자 검색',
+  title: '참가자',
   description:
-    'QR 을 분실한 참가자를 검색해 입장 QR 을 확인하는 관리자 전용 페이지입니다.',
+    '선택한 날짜에 입장한 참가자를 조회하는 관리자 전용 페이지입니다.',
 };
 
-const Page = () => {
-  return <RegistrationParticipantsPage />;
+const Page = ({ params }: { params: { expoId: string } }) => {
+  return <RegistrationParticipantsPage expoId={params.expoId} />;
 };
 
 export default Page;

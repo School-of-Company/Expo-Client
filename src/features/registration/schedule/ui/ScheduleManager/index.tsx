@@ -26,13 +26,11 @@ import {
   validateSessionForm,
 } from '../../model/sessionForm';
 import { useProgramDraftRestore } from '../../model/useProgramDraftRestore';
-import BulkPolicySection from '../BulkPolicySection';
-import CreateEntry from '../CreateEntry';
 import ProgramSection, {
   PROGRAM_FORM_ID,
   ProgramEditing,
 } from '../ProgramSection';
-import SessionSection, { SESSION_FORM_ID, SessionRow } from '../SessionSection';
+import SessionSection, { SessionRow } from '../SessionSection';
 
 // 상태를 바꾼 뒤 그려진 양식으로 스크롤한다
 const scrollToForm = (id: string) =>
@@ -59,7 +57,6 @@ const ScheduleManager = () => {
   const [retryIds, setRetryIds] = useState<Set<number>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
   const isDirty = edits.size > 0;
-  const [isAsideOpen, setIsAsideOpen] = useState(true);
   const [programEditing, setProgramEditing] = useState<ProgramEditing>(null);
   const [draftForm, setDraftForm] = useState<ProgramForm>();
   const [isCreatingSession, setIsCreatingSession] = useState(false);
@@ -207,68 +204,15 @@ const ScheduleManager = () => {
   return withLoading({
     isLoading: sessionsQuery.isLoading || programsQuery.isLoading,
     children: (
-      // 왼쪽 메뉴를 접으면 표가 화면 너비를 모두 쓴다
-      <div
-        className={`flex w-full flex-1 flex-col space-y-[60px] pb-[120px] ${
-          isAsideOpen ? 'max-w-[1200px]' : ''
-        }`}
-      >
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[60px] pb-[120px]">
         {error ? (
           <SectionError
             message={error.message}
             onRetry={() => void invalidate()}
           />
         ) : (
-          <div className="flex items-start gap-30 tablet:flex-col tablet:items-stretch">
-            <aside
-              aria-label="일괄 설정·신규 등록"
-              className={`sticky top-[96px] max-h-[calc(100vh-112px)] w-[340px] flex-none space-y-16 overflow-y-auto tablet:static tablet:block tablet:max-h-none tablet:w-full tablet:overflow-visible ${
-                isAsideOpen ? '' : 'hidden'
-              }`}
-            >
-              <BulkPolicySection
-                expoId={expoId}
-                programs={programs}
-                disabled={isSaving}
-              />
-              <CreateEntry
-                title="프로그램 신청 회차 추가"
-                description="① 프로그램 신청 회차 표 아래에 양식을 엽니다. 신청 폼은 이 양식에서 연결합니다."
-                buttonLabel="프로그램 회차 양식 열기"
-                onClick={() => {
-                  handleProgramEditingChange('new');
-                  scrollToForm(PROGRAM_FORM_ID);
-                }}
-              />
-              <CreateEntry
-                title="사전등록 회차 개설"
-                description={
-                  isSessionLocked
-                    ? '저장하지 않은 사전등록 회차 변경이 있으면 회차를 개설할 수 없습니다.'
-                    : '박람회 입장 사전등록 시간대를 만듭니다. 프로그램 회차가 아닙니다.'
-                }
-                buttonLabel="사전등록 회차 양식 열기"
-                disabled={isSessionLocked}
-                onClick={() => {
-                  setIsCreatingSession(true);
-                  scrollToForm(SESSION_FORM_ID);
-                }}
-              />
-            </aside>
-
+          <div>
             <div className="min-w-0 flex-1 space-y-[60px]">
-              <div className="flex justify-end tablet:hidden">
-                <button
-                  type="button"
-                  aria-expanded={isAsideOpen}
-                  onClick={() => setIsAsideOpen((prev) => !prev)}
-                  className="rounded-sm border-1 border-solid border-gray-200 bg-white px-16 py-8 text-caption1b text-gray-500 duration-200 hover:border-main-600 hover:text-main-600"
-                >
-                  {isAsideOpen
-                    ? '표 넓게 보기 · 왼쪽 메뉴 접기'
-                    : '왼쪽 메뉴 펼치기'}
-                </button>
-              </div>
               <ProgramSection
                 expoId={expoId}
                 programs={programs}

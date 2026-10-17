@@ -8,7 +8,6 @@ import { PaperQrItem } from '../../api/qrTokensApi';
 import {
   getCategoryLabel,
   MAX_TOKENS_PER_ISSUE,
-  MAX_TOKENS_PER_REQUEST,
   PAPER_QR_CATEGORIES,
   PaperQrCategory,
 } from '../../model/constants';
@@ -46,14 +45,10 @@ const PaperQrIssueCard = ({
 
   const queryClient = useQueryClient();
   const summary = usePaperQrSummary(expoId);
+  // 구분별 현황은 칩으로, 그 밖의 상태는 한 줄 문구로 보여 준다
   const issueStatus = summary.data
     ? summary.data.length > 0
-      ? summary.data
-          .map(
-            ({ category, active, revoked }) =>
-              `${getCategoryLabel(category)} 사용 중 ${active}${revoked > 0 ? ` · 중지 ${revoked}` : ''}`,
-          )
-          .join(' / ')
+      ? null
       : '발급한 QR 없음'
     : summary.isError
       ? '불러오지 못했습니다'
@@ -119,19 +114,29 @@ const PaperQrIssueCard = ({
 
   return (
     <section className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
-      <div className="space-y-8">
-        <p className="text-h3b text-black">새 QR 발급</p>
-        <p className="break-keep text-caption1r text-gray-500">
-          한 장은 하루에 한 번 입장할 수 있습니다. 발급한 QR은 오른쪽에서
-          연번으로 다시 조회해 인쇄할 수 있습니다.
-        </p>
-        <p className="text-caption1r text-gray-600">
-          현재 발급 현황 {issueStatus}
-        </p>
+      <div className="space-y-12">
+        <p className="text-body1b text-black">새 QR 발급</p>
+        <div className="flex flex-wrap items-center gap-8">
+          <p className="text-caption1r text-gray-600">발급 현황</p>
+          {issueStatus ? (
+            <p className="text-caption1r text-gray-500">{issueStatus}</p>
+          ) : (
+            summary.data?.map(({ category, active, revoked }) => (
+              <span
+                key={category}
+                className="rounded-sm bg-gray-100 px-10 py-4 text-caption1b text-gray-700"
+              >
+                {getCategoryLabel(category)} {active}
+                {revoked > 0 && (
+                  <span className="text-error"> · 중지 {revoked}</span>
+                )}
+              </span>
+            ))
+          )}
+        </div>
       </div>
 
       <div className="space-y-12">
-        <p className="text-body2b text-black">구분별 장수</p>
         <div className="grid grid-cols-3 gap-12 mobile:grid-cols-1">
           {PAPER_QR_CATEGORIES.map(({ value, label }) => (
             <div key={value} className="space-y-8">
@@ -149,15 +154,23 @@ const PaperQrIssueCard = ({
             </div>
           ))}
         </div>
-        <p
-          className={`break-keep text-caption1r ${isOverLimit ? 'text-error' : 'text-gray-400'}`}
-        >
-          합계 {total}장 · 한 번에 최대 {MAX_TOKENS_PER_ISSUE}장,{' '}
-          {MAX_TOKENS_PER_REQUEST}장이 넘으면 나눠서 발급합니다.
-        </p>
       </div>
 
       <div className="mt-auto space-y-12">
+        <div className="flex items-baseline justify-between gap-8">
+          <p className="text-body2r text-gray-600">합계</p>
+          <p
+            className={`text-h3b ${isOverLimit ? 'text-error' : 'text-black'}`}
+          >
+            {total}장
+            {isOverLimit && (
+              <span className="text-caption1r">
+                {' '}
+                · 한 번에 최대 {MAX_TOKENS_PER_ISSUE}장
+              </span>
+            )}
+          </p>
+        </div>
         <Button
           onClick={handleIssue}
           disabled={isIssuing || total === 0 || isOverLimit}

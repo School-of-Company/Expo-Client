@@ -228,13 +228,7 @@ const SessionSection = ({
   ];
 
   return (
-    <ScheduleSection
-      title="② 행사 입장 사전등록 회차"
-      description="박람회 입장 사전등록을 받는 시간대입니다. 프로그램 신청 회차와 따로 운영되며 프로그램 폼을 연결하지 않습니다. 신청 이력이 있는 회차는 마감·재개만 바꿀 수 있고 삭제할 수 없습니다. 취소 마감을 비우면 참가자가 취소할 수 없습니다."
-    >
-      <p className="text-caption1r text-gray-500">
-        신청수는 확정 인원이며 대기 인원을 함께 표시합니다.
-      </p>
+    <ScheduleSection title="② 행사 입장 사전등록 회차">
       <RegistrationTable
         columns={columns}
         rows={rows}

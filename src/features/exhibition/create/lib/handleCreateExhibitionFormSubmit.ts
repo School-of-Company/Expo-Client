@@ -26,11 +26,13 @@ export const handleCreateExhibitionFormSubmit = async (
       title: standard.title,
       startedAt: `${standard.startedAt}`,
       endedAt: `${standard.endedAt}`,
+      place: standard.place,
     })),
     addTrainingProRequestDto: data.trainings.map((training) => ({
       title: training.title,
       startedAt: `${training.startedAt}`,
       endedAt: `${training.endedAt}`,
+      place: training.place,
       category: training.category ?? 'CHOICE',
     })),
   };

@@ -1,20 +1,9 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { normalizeExpoId } from '@/shared/config';
-import { ExhibitionCheckInPage } from '@/views/exhibition/check-in';
+import { redirect } from 'next/navigation';
+import { getExpoRoutes } from '@/shared/config';
 
-export const metadata: Metadata = {
-  title: '박람회 입장 체크인',
-  description:
-    '참가자의 QR 코드를 스캔하여 박람회 입장을 확인하고 체크인 정보를 기록할 수 있는 운영자 전용 페이지입니다.',
-};
-
+// 박람회 입장은 QR 화면의 탭으로 옮겼다. 예전 주소로 들어오면 그 탭으로 보낸다
 const page = ({ params }: { params: { expo_id: string } }) => {
-  // 출석 서버는 expoId를 소문자로 맞추지 않고 박람회 ID 비교가 대소문자를 가려 대문자면 404가 난다.
-  // UUID는 소문자로 맞추고, 숫자 ID는 관리 화면과 같이 그대로 받는다
-  const expoId = normalizeExpoId(params.expo_id);
-  if (!expoId) notFound();
-  return <ExhibitionCheckInPage id={expoId} />;
+  redirect(getExpoRoutes(params.expo_id).checkIn);
 };
 
 export default page;

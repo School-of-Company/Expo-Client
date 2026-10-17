@@ -33,7 +33,7 @@ class PanelErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <section className="rounded-sm border-1 border-solid border-gray-200 px-24 py-20 mobile:px-16">
+        <section className="rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
           <p role="alert" className="text-body2r text-gray-500">
             입장 처리 건수를 표시하지 못했습니다. 입장 스캔은 그대로 사용할 수
             있습니다.
@@ -54,20 +54,20 @@ const Item = ({
   value: number | string;
   sub?: string;
 }) => (
-  <div className="flex items-baseline gap-12">
-    <p className="w-[150px] flex-none break-keep text-body2r text-gray-500">
-      {label}
-    </p>
-    <p className="text-h3b text-black">{value}</p>
-    {sub && (
-      <p className="min-w-0 break-keep text-caption1r text-gray-400">{sub}</p>
-    )}
+  <div className="space-y-6 rounded-sm bg-gray-100 px-16 py-14">
+    <p className="break-keep text-caption1r text-gray-600">{label}</p>
+    <div className="flex items-baseline gap-8">
+      <p className="text-h2b text-black">{value}</p>
+      {sub && (
+        <p className="min-w-0 break-keep text-caption1r text-gray-500">{sub}</p>
+      )}
+    </div>
   </div>
 );
 
 // 응답에 필드가 빠져 와도 렌더가 멈추지 않도록 기본값을 둔다
 const SummaryItems = ({ summary }: { summary: EntrySummary }) => (
-  <div className="grid grid-cols-3 gap-x-[40px] gap-y-16 mobile:grid-cols-1 tablet:grid-cols-2">
+  <div className="grid grid-cols-4 gap-12 mobile:grid-cols-2 tablet:grid-cols-3">
     <Item label="입장 합계" value={summary.totals?.entered ?? 0} />
     <Item label="퇴장" value={summary.totals?.exited ?? 0} />
     {/* 체류 값이 빠져 오면 실제 0명으로 오인하지 않도록 0 대신 '-'로 둔다 */}
@@ -101,7 +101,7 @@ const EntrySummaryContent = ({ expoId }: { expoId: string }) => {
     useEntrySummary(expoId);
 
   return (
-    <section className="space-y-16 rounded-sm border-1 border-solid border-gray-200 px-24 py-20 mobile:px-16">
+    <section className="space-y-16 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
       <div className="flex items-center justify-between gap-12">
         <p className="text-body1b text-black">오늘 입장 처리 건수</p>
         <div className="flex items-center gap-12">
@@ -114,7 +114,7 @@ const EntrySummaryContent = ({ expoId }: { expoId: string }) => {
             type="button"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="text-caption1r text-main-600 underline disabled:text-gray-300"
+            className="rounded-sm border-1 border-solid border-gray-200 px-12 py-6 text-caption1b text-gray-700 disabled:text-gray-300"
           >
             새로고침
           </button>
@@ -130,11 +130,6 @@ const EntrySummaryContent = ({ expoId }: { expoId: string }) => {
       ) : (
         <SummaryItems summary={data} />
       )}
-      <p className="break-keep text-caption1r text-gray-400">
-        입장은 QR당 하루 한 번만 셉니다. 이 화면 집계가 생기기 전의 입장과
-        간편입장 퇴장은 포함되지 않습니다. 기록상 체류는 퇴장 미스캔 등으로 실제
-        현장 인원과 다를 수 있습니다.
-      </p>
     </section>
   );
 };
