@@ -92,12 +92,7 @@ const GroupMessageModal = ({
 
   const config = useGroupMessageConfig(expoId);
   const job = useGroupMessageJob(expoId, jobId);
-  // 예시 문구 머리말은 지금 박람회 제목으로 만든다. 제목을 받기 전에는 예시를 고를 수 없다
   const expo = useExpoDetail(expoId);
-  const messageTemplates = useMemo(
-    () => getMessageTemplates(expo.data?.title ?? ''),
-    [expo.data?.title],
-  );
 
   // 닫기 버튼과 같이 Escape 로도 닫는다. 보내기 버튼은 기본 포커스로 두지 않는다
   const dialogRef = useModalDialog({ onClose });
@@ -105,8 +100,17 @@ const GroupMessageModal = ({
   const channels = config.data?.enabled ? config.data.channels : {};
   const smsEnabled = channels.SMS?.enabled === true;
   const kakaoEnabled = channels.KAKAO?.enabled === true;
-  const kakaoTemplates = kakaoEnabled ? (channels.KAKAO?.templates ?? []) : [];
+  const kakaoTemplates = useMemo(
+    () => (kakaoEnabled ? (channels.KAKAO?.templates ?? []) : []),
+    [kakaoEnabled, channels.KAKAO?.templates],
+  );
   const template = kakaoTemplates.find(({ id }) => id === templateId);
+  // 문자 예시 문구는 카카오 승인 템플릿 본문으로 만들고 #{행사명}은 지금 박람회 제목으로 바꾼다.
+  // 카카오가 꺼져 있거나 템플릿이 없으면 예시 없이 직접 입력한다. 제목을 받기 전에는 예시를 고를 수 없다
+  const messageTemplates = useMemo(
+    () => getMessageTemplates(kakaoTemplates, expo.data?.title ?? ''),
+    [kakaoTemplates, expo.data?.title],
+  );
 
   // SMS 가 꺼져 있고 카카오만 쓸 수 있으면 카카오로 시작한다
   useEffect(() => {
@@ -118,9 +122,10 @@ const GroupMessageModal = ({
       scope === 'SELECTED'
         ? { kind: 'SELECTED', applicationIds: selectedRows.map(({ id }) => id) }
         : { kind: 'FILTERED', filter: toGroupMessageFilter(filter) };
+    // 카카오는 카톡을 받을 수 없는 번호에 같은 내용을 문자로 대신 보낸다
     return channel === 'SMS'
       ? { scope: target, channel: 'SMS', body, fallbackToSms: false }
-      : { scope: target, channel: 'KAKAO', templateId, fallbackToSms: false };
+      : { scope: target, channel: 'KAKAO', templateId, fallbackToSms: true };
   }, [scope, selectedRows, filter, channel, body, templateId]);
   const hasContent = channel === 'SMS' ? body.trim() !== '' : !!template;
   // 미리보기 뒤에 범위나 문구가 바뀌면 그 미리보기로는 보낼 수 없다
@@ -381,8 +386,8 @@ const GroupMessageModal = ({
                 })}
               </div>
               <p className="text-caption1r text-gray-500">
-                SMS 자동 대체는 사용하지 않습니다. 알림톡이 실패해도 문자로 대신
-                보내지 않습니다.
+                알림톡을 받을 수 없는 번호(카카오톡 미가입·채널 차단)는 같은
+                내용을 문자로 대신 보냅니다.
               </p>
             </section>
 
@@ -394,22 +399,24 @@ const GroupMessageModal = ({
                 >
                   내용
                 </label>
-                <div className="flex flex-wrap items-center gap-8">
-                  <span className="text-caption1r text-gray-400">
-                    예시 문구
-                  </span>
-                  {messageTemplates.map((template) => (
-                    <button
-                      key={template.label}
-                      type="button"
-                      disabled={!isEditable || expo.isLoading}
-                      onClick={() => handleTemplateClick(template.body)}
-                      className="rounded-full bg-main-100 px-12 py-4 text-caption1r text-main-600 hover:bg-main-200"
-                    >
-                      {template.label}
-                    </button>
-                  ))}
-                </div>
+                {messageTemplates.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-8">
+                    <span className="text-caption1r text-gray-400">
+                      예시 문구
+                    </span>
+                    {messageTemplates.map((template) => (
+                      <button
+                        key={template.id}
+                        type="button"
+                        disabled={!isEditable || expo.isLoading}
+                        onClick={() => handleTemplateClick(template.body)}
+                        className="rounded-full bg-main-100 px-12 py-4 text-caption1r text-main-600 hover:bg-main-200"
+                      >
+                        {template.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <textarea
                   id="group-message-body"
                   value={body}

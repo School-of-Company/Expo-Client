@@ -5,10 +5,12 @@ import {
 
 /** 서버가 템플릿 자리표시자에 채우는 신청 값. 관리자가 직접 입력하지 않는다 */
 const MAPPING_LABEL: Record<keyof KakaoVariableMapping, string> = {
+  expoName: '박람회 제목',
   name: '참가자 이름',
   programName: '프로그램 제목',
   sessionName: '회차 일시',
   location: '장소',
+  status: '신청 상태',
 };
 
 const KakaoTemplatePanel = ({ template }: { template: KakaoTemplate }) => {
@@ -37,6 +39,9 @@ const KakaoTemplatePanel = ({ template }: { template: KakaoTemplate }) => {
       <p className="text-caption1r text-gray-400">
         변수 값은 신청 시점 정보로 서버가 채웁니다. 값이 없는 신청은
         미리보기에서 제외 사유로 표시됩니다.
+      </p>
+      <p className="text-caption1r text-gray-400">
+        카카오톡을 받을 수 없는 번호는 같은 내용을 문자(LMS)로 보냅니다.
       </p>
     </div>
   );
