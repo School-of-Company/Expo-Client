@@ -10,24 +10,12 @@ const TrainingModule = ({
   watch,
   fieldName,
 }: FieldArrayProps) => {
-  const createEmptyField = () => {
-    if (fieldName === 'trainings') {
-      return {
-        title: '',
-        startedAt: '',
-        endedAt: '',
-        category: 'CHOICE',
-      };
-    }
-    return { title: '', startedAt: '', endedAt: '' };
-  };
-
   return (
     <div className="w-full rounded-sm border-1 border-solid border-gray-200 px-[30px] py-[16px]">
       <div className="w-full">
         <ExpoInput
           fields={fields}
-          append={() => append(createEmptyField())}
+          append={append}
           remove={remove}
           register={register}
           setValue={setValue}

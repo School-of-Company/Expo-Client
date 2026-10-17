@@ -111,11 +111,11 @@ const ProgramFormList = () => {
         ) : (
           <ScheduleSection
             title="프로그램용 폼"
-            description="회차 신청에 쓰는 폼입니다. 질문·필수 여부·안내·응답 기간은 폼에서, 신청 자격·정원·대기·모집 조건은 일정·모집의 회차에서 정합니다. 등록용 신청 폼과 만족도 조사는 박람회 운영에서 관리합니다."
+            description="회차 신청에 쓰는 폼입니다. 질문·필수 여부·안내·응답 기간은 폼에서, 신청 자격·정원·대기·모집 조건은 신청관리의 회차에서 정합니다. 등록용 신청 폼과 만족도 조사는 박람회 운영에서 관리합니다."
           >
             <div className="flex items-center justify-between gap-16 mobile:flex-col mobile:items-stretch">
               <p className="text-caption1r text-gray-500">
-                폼을 먼저 만들어 두고, 일정·모집의 프로그램 회차에서 제목으로
+                폼을 먼저 만들어 두고, 신청관리의 프로그램 회차에서 제목으로
                 골라 연결할 수 있습니다.
               </p>
               <div className="w-[200px] shrink-0 mobile:w-full">

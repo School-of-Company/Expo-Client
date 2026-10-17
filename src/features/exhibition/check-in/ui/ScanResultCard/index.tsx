@@ -17,9 +17,9 @@ const ScanResultCard = ({
     return (
       <div
         role="status"
-        className="flex min-h-[160px] flex-col items-center justify-center gap-8 rounded-sm border-1 border-solid border-main-300 px-20 py-24"
+        className="flex h-full min-h-[240px] flex-col items-center justify-center gap-8 rounded-sm border-1 border-solid border-main-300 bg-main-100 px-20 py-24"
       >
-        <p className="text-h3b text-main-600">{modeLabel} 처리 중...</p>
+        <p className="text-h2b text-main-600">{modeLabel} 처리 중...</p>
       </div>
     );
   }
@@ -28,12 +28,9 @@ const ScanResultCard = ({
     return (
       <div
         role="status"
-        className="flex min-h-[160px] flex-col items-center justify-center gap-8 rounded-sm border-1 border-dashed border-gray-300 px-20 py-24"
+        className="flex h-full min-h-[240px] flex-col items-center justify-center gap-8 rounded-sm bg-gray-100 px-20 py-24"
       >
-        <p className="text-h3b text-gray-500">{modeLabel} 스캔 대기</p>
-        <p className="text-body2r text-gray-400">
-          QR을 스캔하면 처리 결과가 여기에 표시됩니다.
-        </p>
+        <p className="text-h2b text-gray-400">{modeLabel} 스캔 대기</p>
       </div>
     );
   }
@@ -43,17 +40,17 @@ const ScanResultCard = ({
     <div
       role="status"
       aria-live="polite"
-      className={`flex min-h-[160px] flex-col items-center justify-center gap-8 rounded-sm border-1 border-solid px-20 py-24 text-center ${
+      className={`flex h-full min-h-[240px] flex-col items-center justify-center gap-10 rounded-sm border-2 border-solid px-20 py-24 text-center ${
         isSuccess ? 'border-main-600' : 'border-error'
       }`}
     >
-      <p className={`text-h3b ${isSuccess ? 'text-main-600' : 'text-error'}`}>
+      <p className={`text-h1m ${isSuccess ? 'text-main-600' : 'text-error'}`}>
         {result.title}
       </p>
       {result.detail && (
-        <p className="break-keep text-body2r text-gray-600">{result.detail}</p>
+        <p className="break-keep text-body1r text-gray-700">{result.detail}</p>
       )}
-      <p className="text-caption1r text-gray-400">{result.at}</p>
+      <p className="text-caption1r text-gray-500">{result.at}</p>
     </div>
   );
 };

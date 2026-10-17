@@ -9,6 +9,12 @@ const nextConfig = {
         destination: '/admin/registration/:expoId/:path*',
         permanent: false,
       },
+      // 경품 추첨은 만족도 조사 페이지의 경품 추첨 탭으로 합쳤다
+      {
+        source: '/exhibition/lottery/:expoId',
+        destination: '/admin/registration/:expoId/survey?view=lottery',
+        permanent: false,
+      },
     ];
   },
   async headers() {

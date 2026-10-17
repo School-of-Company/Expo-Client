@@ -1,19 +1,19 @@
 import { getExpoRoutes, getRegistrationRoutes } from '@/shared/config';
 
 /** FormTypeModal 의 modalType */
-export type ExpoActionModalType = 'formcreate' | 'FIELD' | 'edit';
+export type ExpoActionModalType = 'formcreate' | 'FIELD' | 'edit' | 'form';
 
 export type ExpoAction = {
   title: string;
   description: string;
 } & ({ href: string } | { modal: { type: ExpoActionModalType; text: string } });
 
-/** 박람회 상세 패널과 박람회 운영 페이지가 함께 쓰는 운영 기능 목록 */
+/** 박람회 상세 패널이 쓰는 운영 기능 목록 */
 export const getExpoActions = (expoId: string) => {
   const routes = getExpoRoutes(expoId);
   return {
     participants: {
-      title: '조회',
+      title: '참가자',
       description: '선택일 입장자·행사 연수자 명단 조회',
       href: routes.participants,
     },
@@ -61,7 +61,7 @@ export const getExpoActions = (expoId: string) => {
     lottery: {
       title: '경품 추첨',
       description: '만족도 조사 경품 추첨 설정과 당첨 번호 관리',
-      href: routes.lottery,
+      href: getRegistrationRoutes(expoId).lottery,
     },
     edit: {
       title: '수정',

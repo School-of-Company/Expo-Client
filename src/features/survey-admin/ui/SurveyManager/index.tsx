@@ -10,7 +10,6 @@ import { withLoading } from '@/shared/hocs';
 import { FormValues, SurveyFormRequest } from '@/shared/types/form/create/type';
 import { Button } from '@/shared/ui';
 import { ModalLayout } from '@/widgets/layout';
-import LotterySettingsForm from '../../lottery/ui/LotterySettingsForm';
 import {
   useDeleteSurvey,
   useSaveSurvey,
@@ -85,21 +84,23 @@ const SurveyManager = () => {
             );
           })}
         </div>
-        {isEdit && (
-          <div className="flex items-center gap-16">
-            <p className="whitespace-nowrap text-body2r text-gray-600">
-              응답 {survey.totalAnswers}건
-            </p>
-            <Button
-              variant="white"
-              width="120px"
-              onClick={handleDelete}
-              disabled={remove.isPending}
-            >
-              {remove.isPending ? '삭제 중...' : '설문 삭제'}
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-16">
+          {isEdit && (
+            <>
+              <p className="whitespace-nowrap text-body2r text-gray-600">
+                응답 {survey.totalAnswers}건
+              </p>
+              <Button
+                variant="white"
+                width="120px"
+                onClick={handleDelete}
+                disabled={remove.isPending}
+              >
+                {remove.isPending ? '삭제 중...' : '설문 삭제'}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {error ? (
@@ -129,11 +130,6 @@ const SurveyManager = () => {
                 isSuccess={false}
                 hideBack
               />
-
-              {/* 경품 추첨은 공개 링크(일반 참가자) 설문에만 있다 */}
-              {type === 'STANDARD' && isEdit && (
-                <LotterySettingsForm expoId={expoId} />
-              )}
             </div>
           ),
         })

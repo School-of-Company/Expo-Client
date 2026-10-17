@@ -1,1 +1,1 @@
-export { default as ParticipantSearch } from './ui/ParticipantSearch';
+export { maskParticipantPhone } from './model/participantSearch';
