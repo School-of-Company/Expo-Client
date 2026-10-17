@@ -58,7 +58,7 @@ const COLUMNS: TableColumn<RecentActivityRow>[] = [
   },
   {
     key: 'actorId',
-    label: '처리주체',
+    label: '처리자',
     render: (row) => (
       <span
         className={
