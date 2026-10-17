@@ -103,13 +103,9 @@ const CameraScanner = ({ onScan }: { onScan: (value: string) => void }) => {
           </p>
         )}
       </div>
-      {error ? (
+      {error && (
         <p role="alert" className="break-keep text-body2r text-error">
           {error}
-        </p>
-      ) : (
-        <p className="text-caption1r text-gray-400">
-          QR을 화면 가운데에 맞추면 자동으로 처리됩니다.
         </p>
       )}
     </div>
