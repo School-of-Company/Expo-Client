@@ -63,9 +63,9 @@ export interface SubmitPublicSurveyAnswerRequestDto {
   personalInformationStatus?: boolean;
 }
 
+// 서버는 당첨 여부만 준다. 몇 번째 응답인지(drawNumber)는 Expo-Form-Server#148 에서 뺐다
 export interface PublicSurveyAnswerResponseDto {
   won: boolean;
-  drawNumber: number | null;
 }
 
 export interface SurveyLotteryResponseDto {
