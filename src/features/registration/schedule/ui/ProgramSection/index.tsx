@@ -13,6 +13,7 @@ import {
   TableColumn,
   useScheduleMutation,
 } from '../../../common';
+import { ProgramSessionType } from '../../../common/api/ledgerApi';
 import {
   formatDefinitionSchedule,
   PROGRAM_TYPE_LABEL,
@@ -39,6 +40,8 @@ interface ProgramSectionProps {
   onEditingChange?: (editing: ProgramEditing) => void;
   /** 폼을 만들고 돌아왔을 때 열린 양식에 채울 회차 초안 */
   draftForm?: ProgramFormValue;
+  /** 넘기면 그 종류의 회차만 표에 보인다. 묶음 번호와 양식은 전체 프로그램 기준이다 */
+  type?: ProgramSessionType;
 }
 
 /** 연수·일반 프로그램 ID 는 서로 겹칠 수 있어 표 행 키를 구분한다 */
@@ -60,6 +63,7 @@ const ProgramSection = ({
   editing: controlledEditing,
   onEditingChange,
   draftForm,
+  type,
 }: ProgramSectionProps) => {
   const [ownEditing, setOwnEditing] = useState<ProgramEditing>(null);
   const editing =
@@ -212,13 +216,17 @@ const ProgramSection = ({
     },
   ];
 
-  const rows: ProgramRow[] = programs.map((program) => ({
-    id: toProgramKey(program),
-    program,
-  }));
+  const rows: ProgramRow[] = programs
+    .filter((program) => !type || program.programType === type)
+    .map((program) => ({
+      id: toProgramKey(program),
+      program,
+    }));
 
   return (
-    <ScheduleSection title="① 프로그램 신청 회차">
+    <ScheduleSection
+      title={type === 'TRAINING' ? '연수 회차' : '프로그램 회차'}
+    >
       {pendingCount > 0 && (
         <div className="flex items-center justify-between gap-16 rounded-sm border-1 border-solid border-red-200 px-20 py-12 mobile:flex-col mobile:items-stretch">
           <p className="text-body2r text-red-500">
@@ -239,7 +247,7 @@ const ProgramSection = ({
         rows={rows}
         emptyText="등록된 프로그램 회차가 없습니다."
         footerText="프로그램 회차"
-        footerCount={programs.length}
+        footerCount={rows.length}
         minWidth="1200px"
         maxHeight="none"
       >
