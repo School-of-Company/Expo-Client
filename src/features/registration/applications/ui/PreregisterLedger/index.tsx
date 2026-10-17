@@ -92,8 +92,8 @@ const PreregisterLedger = () => {
   return withLoading({
     isLoading: isLoading && !data,
     children: (
-      <div className="flex w-full flex-1 flex-col space-y-[54px] overflow-y-auto">
-        <div className="space-y-16">
+      <div className="flex w-full flex-1 flex-col space-y-20 overflow-y-auto">
+        <div className="space-y-8">
           <div className="flex flex-wrap items-center justify-between gap-12">
             <RefreshStatus
               updatedAt={dataUpdatedAt}
@@ -123,17 +123,15 @@ const PreregisterLedger = () => {
             </div>
           </div>
 
-          <div className="space-y-4 rounded-sm bg-main-100 px-20 py-16 mobile:px-16">
-            <p className="text-body2r text-gray-500">
-              <span className="text-body2b text-main-600">사전등록 탭</span> —
-              확정·취소는 참가자 1명, 대기·처리중은 예약 일행 1건이 한 행입니다.
-              행 수는 인원 수가 아닙니다. 엑셀·그룹 메시지·관리자 취소는 서버가
-              지원하는 대로 열립니다.
-            </p>
-            <p className="text-body2r text-gray-500">
-              적용 중인 조건: {filterSummary}
-            </p>
-          </div>
+          <p className="text-caption1r text-gray-500">
+            <span className="text-caption1b text-main-600">사전등록 탭</span> —
+            확정·취소는 참가자 1명, 대기·처리중은 예약 일행 1건이 한 행입니다.
+            행 수는 인원 수가 아닙니다. 엑셀·그룹 메시지·관리자 취소는 서버가
+            지원하는 대로 열립니다.
+          </p>
+          <p className="text-caption1r text-gray-500">
+            적용 중인 조건: {filterSummary}
+          </p>
 
           {summary.data && (
             <p className="text-body2r text-gray-500">
