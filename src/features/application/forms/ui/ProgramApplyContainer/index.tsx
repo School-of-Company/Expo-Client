@@ -32,9 +32,11 @@ import {
   getSeatsLabel,
   getProgramPolicyNotes,
   getProgramRecruitmentLabel,
+  isProgramApplicationEnded,
 } from '../../model/programApply';
 import { getGroupApplications, groupPrograms } from '../../model/programGroups';
 import { useMyApplications } from '../../model/useMyApplications';
+import { useNow } from '../../model/useNow';
 import CompanionApplyFlow from '../CompanionApplyFlow';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
@@ -364,7 +366,7 @@ const ProgramApplyContainer = ({
 }) => {
   const label = PROGRAM_LABEL[programType];
   const {
-    data: programs,
+    data: allPrograms,
     isLoading,
     error,
   } = useQuery<Program[]>({
@@ -376,6 +378,19 @@ const ProgramApplyContainer = ({
     retry: false,
   });
   const queryClient = useQueryClient();
+  // 신청 기간이 끝난 회차는 모집 목록에서만 숨긴다. 같은 쿼리를 내 신청 조회가 쓰므로 데이터는 거르지 않는다
+  const now = useNow(
+    (allPrograms ?? []).map(({ policy }) =>
+      new Date(policy?.applicationEndedAt ?? NaN).getTime(),
+    ),
+  );
+  const programs = useMemo(
+    () =>
+      allPrograms?.filter(
+        ({ policy }) => !isProgramApplicationEnded(policy, now),
+      ),
+    [allPrograms, now],
+  );
   // 사전등록 대기 중인 일행이 있으면 "미등록" 대신 대기 안내를 보여 준다
   const {
     waitlist,
