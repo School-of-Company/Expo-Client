@@ -93,12 +93,14 @@ const ApplicationRow = ({
   onCancel,
   onShowQr,
   session,
+  defaultOpen,
 }: {
   application: OwnerApplication;
   participant?: OwnerParticipant;
   session: SessionInfo;
   onCancel: (target: CancelTarget) => void;
   onShowQr: (target: QrTarget) => void;
+  defaultOpen: boolean;
 }) => {
   const {
     type,
@@ -123,15 +125,7 @@ const ApplicationRow = ({
     <li className="flex flex-col gap-8 py-12">
       <div className="flex items-center justify-between gap-12 mobile:flex-col mobile:items-stretch">
         <div className="flex flex-wrap items-center gap-8">
-          <p className="text-body2b text-black">{title}</p>
-          {participant && (
-            <p className="text-body2r text-gray-500">
-              {participant.representative ? '대표자' : '참여자'} ·{' '}
-              {participant.occupation &&
-                (OCCUPATION_LABEL[participant.occupation] ??
-                  participant.occupation)}
-            </p>
-          )}
+          <p className="text-body2b text-black">{TYPE_LABEL[type]}</p>
           <p className="text-caption1b text-main-600">
             {LEDGER_STATUS_LABEL[status] ?? status}
           </p>
@@ -183,40 +177,43 @@ const ApplicationRow = ({
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-col gap-4">
-        <p className="break-words break-keep text-body2b text-black">
+      <details open={defaultOpen} className="flex flex-col gap-8">
+        <summary className="cursor-pointer break-words break-keep text-body2b text-black">
           {session.title}
-        </p>
-        {session.startedAt && (
-          <p className="text-caption1r text-gray-500">
-            {formatDefinitionSchedule(session.startedAt, session.endedAt)}
-          </p>
-        )}
-        {session.place && (
-          <p className="break-words break-keep text-caption1r text-gray-500">
-            장소: {session.place}
-          </p>
-        )}
-        {SESSION_STATE_NOTE[session.state] && (
-          <p className="text-caption1r text-gray-500">
-            {SESSION_STATE_NOTE[session.state]}
-          </p>
-        )}
-      </div>
-
-      <details className="rounded-sm bg-gray-50 px-12 py-8">
-        <summary className="cursor-pointer text-caption1b text-gray-600">
-          신청 당시 답변
+          {session.startedAt && (
+            <span className="text-caption1r text-gray-500">
+              {' · '}
+              {formatDefinitionSchedule(session.startedAt, session.endedAt)}
+            </span>
+          )}
         </summary>
-        <div className="pt-8">
-          {questions == null && answers == null ? (
-            <p className="text-caption1r text-gray-500">
-              접수 당시 문항과 답변이 저장되어 있지 않습니다.
+        <div className="flex min-w-0 flex-col gap-4 pt-8">
+          {session.place && (
+            <p className="break-words break-keep text-caption1r text-gray-500">
+              장소: {session.place}
             </p>
-          ) : (
-            <AnswerList questions={questions} answers={answers} />
+          )}
+          {SESSION_STATE_NOTE[session.state] && (
+            <p className="text-caption1r text-gray-500">
+              {SESSION_STATE_NOTE[session.state]}
+            </p>
           )}
         </div>
+
+        <details className="mt-8 rounded-sm bg-gray-50 px-12 py-8">
+          <summary className="cursor-pointer text-caption1b text-gray-600">
+            신청 당시 답변
+          </summary>
+          <div className="pt-8">
+            {questions == null && answers == null ? (
+              <p className="text-caption1r text-gray-500">
+                접수 당시 문항과 답변이 저장되어 있지 않습니다.
+              </p>
+            ) : (
+              <AnswerList questions={questions} answers={answers} />
+            )}
+          </div>
+        </details>
       </details>
     </li>
   );
@@ -355,6 +352,27 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null);
   const [isWaitlistCancelOpen, setIsWaitlistCancelOpen] = useState(false);
 
+  // 참가자별로 묶고 대표자를 먼저 둔다. 서버가 주는 참가자 순서와 신청 순서는 그대로 지킨다
+  const groups = Array.from(new Set(applications.map((a) => a.participantId)))
+    .map((participantId) => {
+      const mine = applications.filter(
+        (a) => a.participantId === participantId,
+      );
+      return {
+        participantId,
+        participant: participants.find(
+          (p) => p.participantId === participantId,
+        ),
+        active: mine.filter((a) => a.status !== 'CANCELLED'),
+        cancelled: mine.filter((a) => a.status === 'CANCELLED'),
+      };
+    })
+    .sort(
+      (a, b) =>
+        Number(b.participant?.representative ?? false) -
+        Number(a.participant?.representative ?? false),
+    );
+
   // 조회 실패를 신청 없음으로 보이지 않게 오류를 그대로 알린다
   if (
     applications.length === 0 &&
@@ -418,23 +436,65 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         />
       )}
 
-      {!sessionIssue && applications.length > 0 && (
-        <ul className="flex flex-col divide-y divide-solid divide-gray-100 rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6">
-          {applications.map((application) => (
-            <ApplicationRow
-              key={`${application.type}-${application.applicationId}`}
-              application={application}
-              participant={participants.find(
-                (participant) =>
-                  participant.participantId === application.participantId,
-              )}
-              session={getSession(application)}
-              onCancel={setCancelTarget}
-              onShowQr={setQrTarget}
-            />
-          ))}
-        </ul>
-      )}
+      {!sessionIssue &&
+        groups.map(
+          ({ participantId, participant, active, cancelled }, index) => {
+            const renderRow = (
+              application: OwnerApplication,
+              open: boolean,
+            ) => (
+              <ApplicationRow
+                key={`${application.type}-${application.applicationId}`}
+                application={application}
+                participant={participant}
+                session={getSession(application)}
+                onCancel={setCancelTarget}
+                onShowQr={setQrTarget}
+                defaultOpen={open}
+              />
+            );
+            return (
+              // 신청이 쌓여도 사람별로 접어 두고, 취소된 신청은 한 번 더 접어서 현재 신청만 먼저 보이게 한다
+              <details
+                key={participantId}
+                open={index === 0}
+                className="rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6"
+              >
+                <summary className="flex cursor-pointer flex-wrap items-center gap-8 py-12">
+                  <span className="text-body2b text-black">
+                    {participant?.name ?? '참가자'}
+                  </span>
+                  {participant && (
+                    <span className="text-body2r text-gray-500">
+                      {participant.representative ? '대표자' : '참여자'}
+                      {participant.occupation &&
+                        ` · ${OCCUPATION_LABEL[participant.occupation] ?? participant.occupation}`}
+                    </span>
+                  )}
+                  <span className="text-caption1b text-main-600">
+                    신청 {active.length}건
+                  </span>
+                </summary>
+                <ul className="flex flex-col divide-y divide-solid divide-gray-100">
+                  {/* 3건 이상이면 첫 신청만 펼쳐 둔다 */}
+                  {active.map((a, i) =>
+                    renderRow(a, active.length < 3 || i === 0),
+                  )}
+                </ul>
+                {cancelled.length > 0 && (
+                  <details className="border-t-1 border-solid border-gray-100 py-8">
+                    <summary className="cursor-pointer text-caption1b text-gray-500">
+                      취소된 신청 {cancelled.length}건
+                    </summary>
+                    <ul className="flex flex-col divide-y divide-solid divide-gray-100">
+                      {cancelled.map((a) => renderRow(a, false))}
+                    </ul>
+                  </details>
+                )}
+              </details>
+            );
+          },
+        )}
 
       {qrTarget && (
         <QrDialog
