@@ -122,8 +122,8 @@ const RegistrationDashboard = () => {
   );
 
   return (
-    <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[56px] overflow-y-auto">
-      <div className="space-y-[26px]">
+    <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[48px] overflow-y-auto">
+      <div className="space-y-20">
         <div className="flex items-end justify-between gap-16 mobile:flex-col mobile:items-start">
           <p className="text-h1m text-black mobile:text-h2b">{expo?.title}</p>
           <RefreshStatus
@@ -158,86 +158,85 @@ const RegistrationDashboard = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-[2fr_1fr] gap-[32px] tablet:grid-cols-1">
-        <Section
-          title="프로그램별 신청 현황"
-          description="프로그램 회차 신청 기준입니다. 회차별 상세에서 행을 누르면 그 회차의 접수 관리대장으로 이동합니다."
-          href={routes.applications}
-        >
-          {preregister.isError && !preregister.data ? (
-            <SectionError
-              message={getSummaryErrorMessage(
-                preregister.error,
-                '사전등록 인원을 불러오지 못했습니다.',
-              )}
-              onRetry={() => preregister.refetch()}
-            />
-          ) : (
-            preregister.data && <PreregisterBanner summary={preregister.data} />
-          )}
-          <SegmentTabs
-            ariaLabel="신청 현황 보기"
-            value={programView}
-            options={PROGRAM_VIEW_OPTIONS}
-            onChange={setProgramView}
+      <Section title="운영 지표">
+        <MonitoringCards expoId={expoId} sessionCounts={sessionCounts} />
+      </Section>
+
+      <Section
+        title="프로그램별 신청 현황"
+        description="프로그램 회차 신청 기준입니다. 회차별 상세에서 행을 누르면 그 회차의 접수 관리대장으로 이동합니다."
+        href={routes.applications}
+      >
+        {preregister.isError && !preregister.data ? (
+          <SectionError
+            message={getSummaryErrorMessage(
+              preregister.error,
+              '사전등록 인원을 불러오지 못했습니다.',
+            )}
+            onRetry={() => preregister.refetch()}
           />
-          {programView === 'preregister' ? (
-            preregister.data ? (
-              <div className="space-y-12">
-                {preregisterSessions.isError && (
-                  <p role="status" className="text-caption1r text-gray-400">
-                    사전등록 회차 정보를 불러오지 못해 회차 번호로 표시합니다.
-                    대기 정원 적용은 회차 정보를 불러온 뒤 할 수 있습니다.
-                  </p>
-                )}
-                <PreregisterSessionTable
-                  expoId={expoId}
-                  summaries={preregister.data.sessions}
-                  sessions={preregisterSessions.data}
-                />
-                <p className="text-caption1r text-gray-400">
-                  행사 사전등록 기준 고유 인원입니다. 대표자와 동행자를 각각 한
-                  명으로 세며, 대기는 확정 전 일행 기준입니다. 선두 일행이 빈
-                  확정석보다 많으면 순서대로 승급하기 위해 대기 승급이 멈춥니다.
-                  대기 정원이 미적용인 회차는 대기를 받지 않으므로 현재 회차
-                  대기 정원을 적용해야 합니다.
-                </p>
-              </div>
-            ) : (
-              !preregister.isError && <SectionLoading />
-            )
-          ) : sessions.isError && !sessions.data ? (
-            <SectionError
-              message="회차 목록을 불러오지 못했습니다."
-              onRetry={() => sessions.refetch()}
-            />
-          ) : sessions.data ? (
-            <div>
-              {summary.isError && (
-                <p role="status" className="mb-8 text-caption1r text-gray-400">
-                  신청·출석 집계를 불러오지 못해 정원만 표시합니다.
+        ) : (
+          preregister.data && <PreregisterBanner summary={preregister.data} />
+        )}
+        <SegmentTabs
+          ariaLabel="신청 현황 보기"
+          value={programView}
+          options={PROGRAM_VIEW_OPTIONS}
+          onChange={setProgramView}
+        />
+        {programView === 'preregister' ? (
+          preregister.data ? (
+            <div className="space-y-12">
+              {preregisterSessions.isError && (
+                <p role="status" className="text-caption1r text-gray-400">
+                  사전등록 회차 정보를 불러오지 못해 회차 번호로 표시합니다.
+                  대기 정원 적용은 회차 정보를 불러온 뒤 할 수 있습니다.
                 </p>
               )}
-              {programView === 'program' ? (
-                <ProgramStatusTable
-                  sessions={sessions.data}
-                  summaries={summary.data?.sessions ?? null}
-                />
-              ) : (
-                <SessionStatusTable
-                  sessions={sessions.data}
-                  summaries={summary.data?.sessions ?? null}
-                />
-              )}
+              <PreregisterSessionTable
+                expoId={expoId}
+                summaries={preregister.data.sessions}
+                sessions={preregisterSessions.data}
+              />
+              <p className="text-caption1r text-gray-400">
+                행사 사전등록 기준 고유 인원입니다. 대표자와 동행자를 각각 한
+                명으로 세며, 대기는 확정 전 일행 기준입니다. 선두 일행이 빈
+                확정석보다 많으면 순서대로 승급하기 위해 대기 승급이 멈춥니다.
+                대기 정원이 미적용인 회차는 대기를 받지 않으므로 현재 회차 대기
+                정원을 적용해야 합니다.
+              </p>
             </div>
           ) : (
-            <SectionLoading />
-          )}
-        </Section>
-        <Section title="운영 지표">
-          <MonitoringCards expoId={expoId} sessionCounts={sessionCounts} />
-        </Section>
-      </div>
+            !preregister.isError && <SectionLoading />
+          )
+        ) : sessions.isError && !sessions.data ? (
+          <SectionError
+            message="회차 목록을 불러오지 못했습니다."
+            onRetry={() => sessions.refetch()}
+          />
+        ) : sessions.data ? (
+          <div>
+            {summary.isError && (
+              <p role="status" className="mb-8 text-caption1r text-gray-400">
+                신청·출석 집계를 불러오지 못해 정원만 표시합니다.
+              </p>
+            )}
+            {programView === 'program' ? (
+              <ProgramStatusTable
+                sessions={sessions.data}
+                summaries={summary.data?.sessions ?? null}
+              />
+            ) : (
+              <SessionStatusTable
+                sessions={sessions.data}
+                summaries={summary.data?.sessions ?? null}
+              />
+            )}
+          </div>
+        ) : (
+          <SectionLoading />
+        )}
+      </Section>
     </div>
   );
 };
