@@ -29,6 +29,8 @@ export type ProgramApplyOutcome =
       kind: 'CONFIRMED' | 'WAITING' | 'PROCESSING';
       // 기존에 신청한 보호자를 재사용한 일괄 신청
       reusedGuardian?: boolean;
+      // 현장 신청으로 접수한 결과
+      onsite?: boolean;
     }
   | { kind: 'FAILED'; message: string };
 
