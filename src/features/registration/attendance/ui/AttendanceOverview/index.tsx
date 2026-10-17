@@ -30,11 +30,14 @@ const Section = ({
   title: string;
   children: ReactNode;
 }) => (
-  <section className="min-w-0 space-y-16">
+  <section className="min-w-0 space-y-12">
     <p className="text-body1b text-black">{title}</p>
     {children}
   </section>
 );
+
+// 이보다 날짜가 많으면 버튼 대신 드롭다운으로 고른다
+const MAX_DAY_BUTTONS = 7;
 
 /** 영역마다 따로 불러와 하나가 실패해도 나머지는 보여 준다 */
 const QueryContent = <T,>({
@@ -81,16 +84,32 @@ const AttendanceOverview = () => {
   ];
 
   return (
-    <div className="flex w-full flex-col space-y-[40px]">
-      <div className="space-y-24">
-        <div className="flex items-center justify-between gap-16 tablet:flex-col tablet:items-start">
-          {days.length > 0 && (
-            <SegmentTabs
-              ariaLabel="조회 날짜"
+    <div className="flex w-full flex-col space-y-24">
+      <div className="space-y-16">
+        <div className="flex flex-wrap items-center justify-between gap-12">
+          {days.length > MAX_DAY_BUTTONS ? (
+            // 행사 기간이 길면 버튼이 여러 줄을 차지하므로 같은 선택지를 드롭다운으로 보여 준다
+            <select
+              aria-label="조회 날짜"
               value={day}
-              options={dayOptions}
-              onChange={setSelectedDay}
-            />
+              onChange={(e) => setSelectedDay(e.target.value)}
+              className="h-[44px] w-[220px] rounded-sm border-1 border-solid border-gray-200 bg-white px-12 text-body2b text-black mobile:w-full"
+            >
+              {dayOptions.map(({ value, label }) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            days.length > 0 && (
+              <SegmentTabs
+                ariaLabel="조회 날짜"
+                value={day}
+                options={dayOptions}
+                onChange={setSelectedDay}
+              />
+            )
           )}
           <RefreshStatus
             updatedAt={summary.updatedAt}
@@ -111,7 +130,7 @@ const AttendanceOverview = () => {
             <Loading />
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-16 mobile:grid-cols-1 tablet:grid-cols-2">
+          <div className="grid grid-cols-4 gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
             <StatCard
               label="누적 입장 처리"
               value={data.totals.entered.toLocaleString()}
@@ -149,7 +168,7 @@ const AttendanceOverview = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-[2fr_1fr] gap-[32px] tablet:grid-cols-1">
+      <div className="grid grid-cols-[2fr_1fr] gap-24 tablet:grid-cols-1">
         <Section title="시간대별 입·퇴장 추이">
           <QueryContent
             query={activity.hourly}
@@ -178,7 +197,7 @@ const AttendanceOverview = () => {
         </Section>
       </div>
 
-      <div className="grid grid-cols-[2fr_1fr] gap-[32px] tablet:grid-cols-1">
+      <div className="grid grid-cols-[2fr_1fr] gap-24 tablet:grid-cols-1">
         <Section title="최근 입·퇴장 기록">
           <QueryContent
             query={activity.recent}

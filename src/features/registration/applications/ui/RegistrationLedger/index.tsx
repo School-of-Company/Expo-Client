@@ -23,7 +23,7 @@ const RegistrationLedger = () => {
     router.replace(next === 'pre' ? '?tab=pre' : '?');
 
   return (
-    <div className="flex w-full max-w-[1200px] flex-1 flex-col gap-24">
+    <div className="flex w-full max-w-[1200px] flex-1 flex-col gap-16">
       <SegmentTabs
         ariaLabel="접수 관리대장 구분"
         value={tab}

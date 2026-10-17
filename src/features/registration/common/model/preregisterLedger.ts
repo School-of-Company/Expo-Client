@@ -100,23 +100,6 @@ export const toPreregisterQuery = (
   };
 };
 
-/** 적용 중인 검색 조건을 사람이 읽는 문구로. 없으면 빈 배열 */
-export const describePreregisterFilter = (
-  filter: PreregisterFilter,
-  sessionLabel: (sessionId: number) => string,
-) => {
-  const parts: string[] = [];
-  if (filter.q.trim()) parts.push(`검색 "${filter.q.trim()}"`);
-  if (filter.session) parts.push(sessionLabel(Number(filter.session)));
-  if (filter.status) {
-    parts.push(
-      PREREGISTER_STATUS_FILTERS.find(({ value }) => value === filter.status)
-        ?.label ?? filter.status,
-    );
-  }
-  return parts;
-};
-
 export const usePreregisterLedger = (
   expoId: string,
   filter: PreregisterFilter,

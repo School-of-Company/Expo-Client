@@ -9,7 +9,7 @@ interface SummaryCardsProps {
   uniqueParticipants: number | null;
 }
 
-/** 대시보드 맨 위 운영 규모·프로그램 신청 확정·대기·고유 참가자 숫자 */
+/** 대시보드 맨 위 운영 규모·프로그램 신청 확정·대기·고유 참가자 숫자. 운영 지표 카드와 한 grid 에 이어 놓도록 카드만 돌려준다 */
 const SummaryCards = ({
   programCount,
   sessionCount,
@@ -17,7 +17,7 @@ const SummaryCards = ({
   waiting,
   uniqueParticipants,
 }: SummaryCardsProps) => (
-  <div className="grid grid-cols-4 gap-16 mobile:grid-cols-1 tablet:grid-cols-2">
+  <>
     <StatCard
       label="운영 프로그램 / 회차"
       value={programCount?.toLocaleString() ?? '-'}
@@ -44,7 +44,7 @@ const SummaryCards = ({
       unit="명"
       sub="휴대전화 인증 건수: 집계 미연결"
     />
-  </div>
+  </>
 );
 
 export default SummaryCards;
