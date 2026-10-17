@@ -234,7 +234,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
           {/* 프로그램 폼은 회차에 연결해야 신청을 받는다. 수정은 프로그램 폼 관리에서 한다 */}
           {actionType === 'formcreate' && (
             <p className="text-caption1r text-gray-500">
-              프로그램 폼은 만든 뒤 일정·모집의 회차에 연결해야 신청을 받을 수
+              프로그램 폼은 만든 뒤 신청관리의 회차에 연결해야 신청을 받을 수
               있습니다.
             </p>
           )}
