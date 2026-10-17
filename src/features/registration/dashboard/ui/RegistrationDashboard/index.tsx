@@ -154,17 +154,6 @@ const RegistrationDashboard = () => {
             onRetry={() => summary.refetch()}
           />
         )}
-        <details className="rounded-sm bg-gray-100 px-16 py-8">
-          <summary className="cursor-pointer text-caption1b text-gray-600">
-            집계 기준
-          </summary>
-          <p className="pt-6 text-caption1r text-gray-500">
-            확정·대기는 프로그램 회차 신청 건수 합계로, 한 사람이 여러 회차에
-            신청하면 신청마다 셉니다. 고유 참가자는 프로그램을 신청한 사람
-            수입니다. 둘 다 행사 사전등록 인원은 포함하지 않으며, 사전등록
-            인원은 아래 사전등록 요약과 사전등록 회차 탭에서 따로 봅니다.
-          </p>
-        </details>
       </div>
 
       <Section
