@@ -154,12 +154,6 @@ export interface AdminApplicationQuery {
   size?: number;
 }
 
-interface CurrentSessionPage {
-  items: ProgramSessionDefinition[];
-  totalElements: number;
-  definitionVersion: string;
-}
-
 const basePath = (expoId: string) =>
   `/application/admin/expos/${encodeURIComponent(expoId)}/program-session-applications`;
 
@@ -203,38 +197,6 @@ export const getAdminApplicationSummary = async (
     return response.data;
   } catch (error) {
     throw toApiError(error, '신청 현황을 불러오지 못했습니다.');
-  }
-};
-
-const SESSION_PAGE_SIZE = 100;
-
-/** 접수가 없는 회차도 포함한 현재 모집 회차 전체. 다음 페이지는 같은 definitionVersion 으로 읽는다 */
-export const getAdminCurrentSessions = async (
-  expoId: string,
-): Promise<ProgramSessionDefinition[]> => {
-  const sessions: ProgramSessionDefinition[] = [];
-  let definitionVersion: string | undefined;
-  try {
-    for (let page = 0; ; page += 1) {
-      const response = await clientTokenInstance.get<CurrentSessionPage>(
-        `${basePath(expoId)}/current-sessions`,
-        {
-          params: compactParams({
-            page,
-            size: SESSION_PAGE_SIZE,
-            definitionVersion,
-          }),
-        },
-      );
-      const data = response.data;
-      sessions.push(...data.items);
-      definitionVersion = data.definitionVersion;
-      if (data.items.length === 0 || sessions.length >= data.totalElements) {
-        return sessions;
-      }
-    }
-  } catch (error) {
-    throw toApiError(error, '회차 목록을 불러오지 못했습니다.');
   }
 };
 

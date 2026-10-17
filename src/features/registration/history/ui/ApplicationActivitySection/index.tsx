@@ -74,7 +74,7 @@ const COLUMNS: TableColumn<ActivityRow>[] = [
   },
   {
     key: 'participant',
-    label: '참가자',
+    label: '대상 참가자',
     // 서버 participant 는 현재 User 정보라 처리 당시 값과 다를 수 있다
     render: ({ participantId, participant }) => (
       <div>
@@ -121,7 +121,7 @@ const COLUMNS: TableColumn<ActivityRow>[] = [
   },
   {
     key: 'actor',
-    label: '처리주체',
+    label: '처리자',
     render: (row) => (
       <p
         className={
@@ -205,13 +205,6 @@ const ApplicationActivitySection = ({
 
   return (
     <section className="space-y-16">
-      <div className="space-y-6">
-        <p className="text-body1b text-black">신청·취소·승급 이력</p>
-        <p className="text-caption1r text-gray-400">
-          신청·취소·대기 승급 등 상태 변화를 시간순으로 조회합니다.
-        </p>
-      </div>
-
       <div className="space-y-8">
         <div className="grid grid-cols-4 gap-12 mobile:grid-cols-2">
           <StatCard
@@ -236,10 +229,6 @@ const ApplicationActivitySection = ({
             unit="건"
           />
         </div>
-        <p className="text-caption1r text-gray-400">
-          검색·프로그램·처리 후 상태·처리일 조건을 반영한 건수입니다. 처리유형
-          조건만 제외하고 유형별로 나눠 보여 줍니다.
-        </p>
       </div>
 
       <ApplicationActivityFilters

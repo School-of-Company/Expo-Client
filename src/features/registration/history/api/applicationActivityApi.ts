@@ -27,6 +27,9 @@ export interface AdminApplicationActivity {
   actorId: number | null;
   /** 처리주체. 과거 이력은 UNKNOWN 이며 사용자·자동으로 추정하지 않는다 */
   actorType?: AdminApplicationActorType;
+  /** 사용자 처리의 실제 처리자(대표자) id·이름. 서버 #143 계약 확정 전 가정한 이름이며 없으면 미기록이다. participantId(대상)와 다르다 */
+  actorUserId?: number | null;
+  actorName?: string | null;
   /** 처리 전 상태. 최초 신청이면 null (previousStatusRecorded=true) */
   previousStatus?: string | null;
   /** false 는 과거 미기록, true 이면서 previousStatus=null 은 최초 신청 */

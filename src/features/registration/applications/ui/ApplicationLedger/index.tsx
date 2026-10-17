@@ -128,8 +128,8 @@ const ApplicationLedger = () => {
   return withLoading({
     isLoading: isLoading && !data,
     children: (
-      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[54px] overflow-y-auto">
-        <div className="space-y-16">
+      <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-20 overflow-y-auto">
+        <div className="space-y-8">
           <div className="flex flex-wrap items-center justify-between gap-12">
             <RefreshStatus
               updatedAt={dataUpdatedAt}
@@ -166,24 +166,16 @@ const ApplicationLedger = () => {
             </div>
           </div>
 
-          <div className="flex items-start justify-between gap-16 rounded-sm bg-main-100 px-20 py-16 mobile:flex-col mobile:px-16">
-            <p className="text-body2r text-gray-500">
-              <span className="text-body2b text-main-600">
-                그룹 메시지 발송
-              </span>{' '}
-              — 체크한 신청자에게 보내거나, 현재 필터 결과 전체에 한 번에 발송할
-              수 있습니다. 프로그램·상태·회차를 먼저 필터링하면
-              프로그램별/확정자별/대기자별/회차별 그룹 메시지가 됩니다. 동일한
-              연락처는 중복 발송하지 않습니다.
-            </p>
-            <p className="shrink-0 whitespace-nowrap text-body2r text-gray-500">
-              현재 조회 결과{' '}
-              <span className="text-body2b text-main-600">
-                {totalCount.toLocaleString()}
-              </span>
-              건
-            </p>
-          </div>
+          {/* 조회 건수는 아래 검색 결과 줄에 있어 안내만 한 줄로 둔다 */}
+          <p className="text-caption1r text-gray-500">
+            <span className="text-caption1b text-main-600">
+              그룹 메시지 발송
+            </span>{' '}
+            — 체크한 신청자에게 보내거나, 현재 필터 결과 전체에 한 번에 발송할
+            수 있습니다. 프로그램·상태·회차를 먼저 필터링하면
+            프로그램별/확정자별/대기자별/회차별 그룹 메시지가 됩니다. 동일한
+            연락처는 중복 발송하지 않습니다.
+          </p>
         </div>
 
         <LedgerFilters
@@ -203,7 +195,7 @@ const ApplicationLedger = () => {
             onRetry={() => refetch()}
           />
         ) : (
-          <div className="space-y-16">
+          <div className="space-y-12">
             <div className="flex items-center justify-between gap-16 text-body2r text-gray-500">
               <p>
                 검색 결과{' '}

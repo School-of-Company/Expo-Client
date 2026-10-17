@@ -26,6 +26,7 @@ import {
 } from '../../model/useApplicationSessions';
 import { useMyApplications } from '../../model/useMyApplications';
 import PreRegisterWaitlist from '../PreRegisterWaitlist';
+import PromotionOffer from '../PromotionOffer';
 
 const TYPE_LABEL: Record<OwnerApplicationType, string> = {
   PREREGISTER: '사전등록',
@@ -94,14 +95,12 @@ const ApplicationRow = ({
   onCancel,
   onShowQr,
   session,
-  defaultOpen,
 }: {
   application: OwnerApplication;
   participant?: OwnerParticipant;
   session: SessionInfo;
   onCancel: (target: CancelTarget) => void;
   onShowQr: (target: QrTarget) => void;
-  defaultOpen: boolean;
 }) => {
   const {
     type,
@@ -123,11 +122,11 @@ const ApplicationRow = ({
     .join(' · ');
 
   return (
-    <li className="flex flex-col gap-8 py-12">
+    <li className="flex flex-col gap-12 py-16">
       <div className="flex items-center justify-between gap-12 mobile:flex-col mobile:items-stretch">
         <div className="flex flex-wrap items-center gap-8">
           <p className="text-body2b text-black">{TYPE_LABEL[type]}</p>
-          <p className="text-caption1b text-main-600">
+          <p className="rounded-full bg-main-100 px-8 py-2 text-caption1b text-main-600">
             {LEDGER_STATUS_LABEL[status] ?? status}
           </p>
         </div>
@@ -178,43 +177,40 @@ const ApplicationRow = ({
         </div>
       </div>
 
-      <details open={defaultOpen} className="flex flex-col gap-8">
-        <summary className="cursor-pointer break-words break-keep text-body2b text-black">
+      <div className="flex min-w-0 flex-col gap-4">
+        <p className="break-words break-keep text-body2b text-black">
           {session.title}
-          {session.startedAt && (
-            <span className="text-caption1r text-gray-500">
-              {' · '}
-              {formatDefinitionSchedule(session.startedAt, session.endedAt)}
-            </span>
-          )}
+        </p>
+        {session.startedAt && (
+          <p className="text-caption1r text-gray-500">
+            {formatDefinitionSchedule(session.startedAt, session.endedAt)}
+          </p>
+        )}
+        {session.place && (
+          <p className="break-words break-keep text-caption1r text-gray-500">
+            장소: {session.place}
+          </p>
+        )}
+        {SESSION_STATE_NOTE[session.state] && (
+          <p className="text-caption1r text-gray-500">
+            {SESSION_STATE_NOTE[session.state]}
+          </p>
+        )}
+      </div>
+
+      <details className="rounded-sm bg-gray-100 px-12 py-8">
+        <summary className="cursor-pointer text-caption1b text-gray-600">
+          신청 당시 답변
         </summary>
-        <div className="flex min-w-0 flex-col gap-4 pt-8">
-          {session.place && (
-            <p className="break-words break-keep text-caption1r text-gray-500">
-              장소: {session.place}
-            </p>
-          )}
-          {SESSION_STATE_NOTE[session.state] && (
+        <div className="pt-8">
+          {questions == null && answers == null ? (
             <p className="text-caption1r text-gray-500">
-              {SESSION_STATE_NOTE[session.state]}
+              접수 당시 문항과 답변이 저장되어 있지 않습니다.
             </p>
+          ) : (
+            <AnswerList questions={questions} answers={answers} />
           )}
         </div>
-
-        <details className="mt-8 rounded-sm bg-gray-50 px-12 py-8">
-          <summary className="cursor-pointer text-caption1b text-gray-600">
-            신청 당시 답변
-          </summary>
-          <div className="pt-8">
-            {questions == null && answers == null ? (
-              <p className="text-caption1r text-gray-500">
-                접수 당시 문항과 답변이 저장되어 있지 않습니다.
-              </p>
-            ) : (
-              <AnswerList questions={questions} answers={answers} />
-            )}
-          </div>
-        </details>
       </details>
     </li>
   );
@@ -344,6 +340,9 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     cancel,
     cancelWaitlist,
     isCancellingWaitlist,
+    offers,
+    respondOffer,
+    isRespondingOffer,
   } = useMyApplications(expoId);
   const { getSession, hasLookupError, retryLookup } = useApplicationSessions(
     expoId,
@@ -352,6 +351,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   const [qrTarget, setQrTarget] = useState<QrTarget | null>(null);
   const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null);
   const [isWaitlistCancelOpen, setIsWaitlistCancelOpen] = useState(false);
+  const [declineOfferId, setDeclineOfferId] = useState<string | null>(null);
 
   // 참가자별로 묶고 대표자를 먼저 둔다. 서버가 주는 참가자 순서와 신청 순서는 그대로 지킨다
   const groups = Array.from(new Set(applications.map((a) => a.participantId)))
@@ -378,18 +378,20 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   if (
     applications.length === 0 &&
     !waitlist &&
+    offers.length === 0 &&
     !errorMessage &&
     !waitlistErrorMessage &&
     !sessionIssue
   )
-    return null;
+    return (
+      <p className="flex flex-1 items-center justify-center text-body1r text-gray-500 mobile:text-body2r">
+        신청 내역이 없습니다
+      </p>
+    );
 
   return (
     <section className="flex flex-col gap-12">
-      <p className="text-body2r text-gray-600">
-        <span className="text-body2b text-black">나의 신청 현황</span> · 한 번
-        인증한 번호로 본인을 포함하여 최대 5명까지 함께 신청할 수 있습니다.
-      </p>
+      <p className="text-body2b text-black">나의 신청 현황</p>
 
       {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
       {(errorMessage || waitlistErrorMessage) && (
@@ -428,6 +430,19 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         </div>
       )}
 
+      {!sessionIssue &&
+        offers.map((offer) => (
+          <PromotionOffer
+            key={offer.offerId}
+            offer={offer}
+            isResponding={isRespondingOffer}
+            onAccept={() =>
+              respondOffer({ offerId: offer.offerId, action: 'acceptance' })
+            }
+            onDecline={() => setDeclineOfferId(offer.offerId)}
+          />
+        ))}
+
       {!sessionIssue && waitlist && (
         <PreRegisterWaitlist
           expoId={expoId}
@@ -440,10 +455,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
       {!sessionIssue &&
         groups.map(
           ({ participantId, participant, active, cancelled }, index) => {
-            const renderRow = (
-              application: OwnerApplication,
-              open: boolean,
-            ) => (
+            const renderRow = (application: OwnerApplication) => (
               <ApplicationRow
                 key={`${application.type}-${application.applicationId}`}
                 application={application}
@@ -451,7 +463,6 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
                 session={getSession(application)}
                 onCancel={setCancelTarget}
                 onShowQr={setQrTarget}
-                defaultOpen={open}
               />
             );
             return (
@@ -459,9 +470,9 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
               <details
                 key={participantId}
                 open={index === 0}
-                className="rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6"
+                className="rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6 [&[open]>summary]:border-b-1 [&[open]>summary]:border-solid [&[open]>summary]:border-gray-100"
               >
-                <summary className="flex cursor-pointer flex-wrap items-center gap-8 py-12">
+                <summary className="flex cursor-pointer list-none flex-wrap items-center gap-8 py-12 [&::-webkit-details-marker]:hidden">
                   <span className="text-body2b text-black">
                     {participant?.name ?? '참가자'}
                   </span>
@@ -477,10 +488,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
                   </span>
                 </summary>
                 <ul className="flex flex-col divide-y divide-solid divide-gray-100">
-                  {/* 3건 이상이면 첫 신청만 펼쳐 둔다 */}
-                  {active.map((a, i) =>
-                    renderRow(a, active.length < 3 || i === 0),
-                  )}
+                  {active.map(renderRow)}
                 </ul>
                 {cancelled.length > 0 && (
                   <details className="border-t-1 border-solid border-gray-100 py-8">
@@ -488,7 +496,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
                       취소된 신청 {cancelled.length}건
                     </summary>
                     <ul className="flex flex-col divide-y divide-solid divide-gray-100">
-                      {cancelled.map((a) => renderRow(a, false))}
+                      {cancelled.map(renderRow)}
                     </ul>
                   </details>
                 )}
@@ -540,6 +548,38 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
               className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
             >
               신청 취소
+            </button>
+          </div>
+        </Dialog>
+      )}
+
+      {declineOfferId && (
+        <Dialog
+          label="참여 제안 거절 확인"
+          onClose={() => setDeclineOfferId(null)}
+        >
+          <p className="text-h3b text-black">제안을 거절할까요?</p>
+          <p className="break-keep text-center text-body2r text-gray-500">
+            거절하면 대기가 종료되고 다음 대기자에게 자리가 넘어갑니다. 되돌릴
+            수 없습니다.
+          </p>
+          <div className="flex w-full gap-8">
+            <button
+              type="button"
+              onClick={() => setDeclineOfferId(null)}
+              className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-body2b text-gray-700"
+            >
+              닫기
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                respondOffer({ offerId: declineOfferId, action: 'decline' });
+                setDeclineOfferId(null);
+              }}
+              className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
+            >
+              거절
             </button>
           </div>
         </Dialog>

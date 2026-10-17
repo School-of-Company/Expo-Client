@@ -32,9 +32,11 @@ import {
   getSeatsLabel,
   getProgramPolicyNotes,
   getProgramRecruitmentLabel,
+  isProgramApplicationEnded,
 } from '../../model/programApply';
 import { getGroupApplications, groupPrograms } from '../../model/programGroups';
 import { useMyApplications } from '../../model/useMyApplications';
+import { useNow } from '../../model/useNow';
 import CompanionApplyFlow from '../CompanionApplyFlow';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
@@ -50,6 +52,7 @@ const ProgramApplyForm = ({
   formId,
   participantId,
   participantName,
+  onsite,
   onResult,
 }: {
   expoId: string;
@@ -59,6 +62,7 @@ const ProgramApplyForm = ({
   // 고른 참가자. 부모가 key={participantId} 로 감싸 전환하면 답변·멱등 키가 새로 시작된다
   participantId: number;
   participantName: string;
+  onsite: boolean;
   onResult: (outcome: ProgramApplyOutcome) => void;
 }) => {
   const {
@@ -106,6 +110,7 @@ const ProgramApplyForm = ({
         payload,
         await getProgramSessionCsrfHeaders(),
         submissionKeys.current.keyFor(JSON.stringify(payload)),
+        onsite,
       );
       // PROCESSING 은 같은 키로 다시 확인해야 하므로 키를 유지한다
       if (result !== 'PROCESSING') submissionKeys.current.reset();
@@ -224,6 +229,7 @@ const ParticipantLookup = ({
   program,
   formId,
   waiting,
+  onsite,
   onSelect,
   onResult,
 }: {
@@ -232,12 +238,14 @@ const ParticipantLookup = ({
   program: Program;
   formId: string;
   waiting: boolean;
+  onsite: boolean;
   onSelect: () => void;
   onResult: (outcome: ProgramApplyOutcome) => void;
 }) => {
   const { data, error, isLoading } = useQuery({
-    queryKey: ['programParticipants', expoId, programType, program.id],
-    queryFn: () => getProgramParticipants(expoId, programType, program.id),
+    queryKey: ['programParticipants', expoId, programType, program.id, onsite],
+    queryFn: () =>
+      getProgramParticipants(expoId, programType, program.id, onsite),
     retry: false,
     meta: { silent: true },
   });
@@ -315,6 +323,7 @@ const ParticipantLookup = ({
           program={program}
           formId={formId}
           participants={members}
+          onsite={onsite}
           onResult={onResult}
         />
       </>
@@ -343,6 +352,7 @@ const ParticipantLookup = ({
             formId={formId}
             participantId={participantId}
             participantName={name}
+            onsite={onsite}
             onResult={onResult}
           />
         )}
@@ -364,7 +374,7 @@ const ProgramApplyContainer = ({
 }) => {
   const label = PROGRAM_LABEL[programType];
   const {
-    data: programs,
+    data: allPrograms,
     isLoading,
     error,
   } = useQuery<Program[]>({
@@ -376,6 +386,19 @@ const ProgramApplyContainer = ({
     retry: false,
   });
   const queryClient = useQueryClient();
+  // 신청 기간이 끝난 회차는 모집 목록에서만 숨긴다. 같은 쿼리를 내 신청 조회가 쓰므로 데이터는 거르지 않는다
+  const now = useNow(
+    (allPrograms ?? []).map(({ policy }) =>
+      new Date(policy?.applicationEndedAt ?? NaN).getTime(),
+    ),
+  );
+  const programs = useMemo(
+    () =>
+      allPrograms?.filter(
+        ({ policy }) => !isProgramApplicationEnded(policy, now),
+      ),
+    [allPrograms, now],
+  );
   // 사전등록 대기 중인 일행이 있으면 "미등록" 대신 대기 안내를 보여 준다
   const {
     waitlist,
@@ -391,6 +414,8 @@ const ProgramApplyContainer = ({
     Record<string, number>
   >({});
   const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);
+  // 현장 신청 경로를 고른 묶음. 기본은 사전 신청이다
+  const [onsiteGroups, setOnsiteGroups] = useState<Record<string, boolean>>({});
   // 둘 이상의 프로그램이 함께 쓰는 묶음
   const sharedGroups = useMemo(() => {
     const counts = new Map<string, number>();
@@ -442,6 +467,9 @@ const ProgramApplyContainer = ({
           const formId = getProgramFormId(program);
           const outcome = outcomes[program.id];
           const isOpen = openGroupKey === group.key;
+          // 라디오는 현장 정원이 있는 회차에서만 보이므로, 정원 없는 회차로 바꾸면 사전 신청으로 돌아간다
+          const onsite =
+            !!program.policy?.onsiteCapacity && !!onsiteGroups[group.key];
           const existing = getGroupApplications(
             group,
             programType,
@@ -497,6 +525,39 @@ const ProgramApplyContainer = ({
                       )}
                     </label>
                   ))}
+                </fieldset>
+              )}
+              {!!program.policy?.onsiteCapacity && (
+                <fieldset className="flex flex-col gap-8">
+                  <legend className="mb-8 text-body2b">신청 경로</legend>
+                  {[false, true].map((isOnsite) => (
+                    <label
+                      key={String(isOnsite)}
+                      className="flex items-center gap-8 text-body2r"
+                    >
+                      <input
+                        type="radio"
+                        name={`route-${group.key}`}
+                        checked={onsite === isOnsite}
+                        onChange={() => {
+                          setOnsiteGroups((prev) => ({
+                            ...prev,
+                            [group.key]: isOnsite,
+                          }));
+                          // 경로마다 참가자 후보와 정원이 달라 신청서를 닫고 다시 조회한다
+                          setOpenGroupKey(null);
+                        }}
+                      />
+                      {isOnsite ? '현장 신청' : '사전 신청'}
+                    </label>
+                  ))}
+                  {onsite && (
+                    <p className="break-keep text-caption1r text-gray-500">
+                      현장 신청은 현장 정원 안에서 바로 확정되며, 정원이
+                      부족하면 대기 없이 거절됩니다. 현장 개방 여부는 서버가
+                      확인합니다.
+                    </p>
+                  )}
                 </fieldset>
               )}
               {existing.length > 0 && (
@@ -563,7 +624,7 @@ const ProgramApplyContainer = ({
                 >
                   {outcome.kind === 'FAILED'
                     ? outcome.message
-                    : OUTCOME_LABEL[outcome.kind]}
+                    : `${outcome.onsite ? '[현장 신청] ' : ''}${OUTCOME_LABEL[outcome.kind]}`}
                   {outcome.kind !== 'FAILED' && outcome.reusedGuardian && (
                     <>
                       <br />
@@ -579,6 +640,7 @@ const ProgramApplyContainer = ({
                   programType={programType}
                   program={program}
                   waiting={!!waitlist}
+                  onsite={onsite}
                   onSelect={() =>
                     // 다른 참가자의 이전 결과 문구가 남지 않게 한다
                     setOutcomes((prev) => {
@@ -588,7 +650,11 @@ const ProgramApplyContainer = ({
                   }
                   formId={formId}
                   onResult={(next) => {
-                    setOutcomes((prev) => ({ ...prev, [program.id]: next }));
+                    setOutcomes((prev) => ({
+                      ...prev,
+                      [program.id]:
+                        next.kind === 'FAILED' ? next : { ...next, onsite },
+                    }));
                     // 접수·거절 모두 내 신청·취소 가능 여부가 바뀔 수 있어 다시 받는다
                     ['myApplications', 'programParticipants'].forEach((key) =>
                       queryClient.invalidateQueries({

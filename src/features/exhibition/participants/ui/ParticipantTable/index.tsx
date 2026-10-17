@@ -1,11 +1,12 @@
 'use client';
 
+import { format, parseISO } from 'date-fns';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
+import { usePreregisterSessions } from '@/features/registration/common';
 import { withLoading } from '@/shared/hocs';
 import { useExcelDownload } from '@/shared/model';
-import { useExpoDetail } from '@/shared/queries';
 import {
   participants,
   ParticipantResponse,
@@ -19,6 +20,9 @@ import { category, selectOptionCategories } from '../../model/category';
 import { useExpoManageQueries } from '../../model/useExpoData';
 import DateContainer from '../DateContainer';
 
+// ponytail: Expo-Attendance-Server#142 배포 전에는 sessionId 조회가 빈 목록이라 꺼 둔다. 배포 후 true로 바꾸면 date 대신 회차 ID로 조회한다
+const FILTER_BY_SESSION_ID = false;
+
 const ParticipantTable = ({ id }: { id: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,21 +33,19 @@ const ParticipantTable = ({ id }: { id: string }) => {
 
   const isTrainee = userType === 'TRAINEE';
 
-  const { data: expoDetailQuery, isLoading: expoDetailLoading } =
-    useExpoDetail(id);
+  const { data: sessions = [], isLoading: sessionsLoading } =
+    usePreregisterSessions(id);
 
-  const [selectedDate, setSelectedDate] = useState<string | undefined>(
-    undefined,
-  );
+  // 탭은 사전등록 회차 이름이다. 서버는 날짜로만 입장자를 거르므로 선택한 회차의 시작일을 보낸다
+  const [selectedSessionId, setSelectedSessionId] = useState<string>();
+  const selectedSession =
+    sessions.find((s) => String(s.id) === selectedSessionId) ?? sessions[0];
+  const selectedDate = selectedSession
+    ? format(parseISO(selectedSession.startedAt), 'yyyy-MM-dd')
+    : undefined;
   const [selectItem, setSelectItem] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const { mutate: downloadExcel, isPending: isExporting } = useExcelDownload();
-
-  useEffect(() => {
-    if (expoDetailQuery?.startedDay && selectedDate === undefined) {
-      setSelectedDate(expoDetailQuery.startedDay);
-    }
-  }, [expoDetailQuery?.startedDay]);
 
   const { expoManageQueries, isLoading: expoManageLoading } =
     useExpoManageQueries(
@@ -52,6 +54,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
       page,
       selectedDate || '',
       Boolean(selectedDate),
+      FILTER_BY_SESSION_ID ? selectedSession?.id : undefined,
     );
 
   const requestPrintCategories = useMemo(() => {
@@ -131,8 +134,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
   };
 
   return withLoading({
-    isLoading:
-      expoManageLoading || (!isTrainee && !selectedDate) || expoDetailLoading,
+    isLoading: expoManageLoading || (!isTrainee && sessionsLoading),
     children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-y-auto">
         <SelectUserType
@@ -144,16 +146,19 @@ const ParticipantTable = ({ id }: { id: string }) => {
         {/* 연수자 목록은 날짜 구분 없이 행사 전체라 날짜 선택을 보여 주지 않는다 */}
         {!isTrainee && (
           <DateContainer
-            startedDay={expoDetailQuery?.startedDay || ''}
-            finishedDay={expoDetailQuery?.finishedDay || ''}
-            onDateSelect={setSelectedDate}
-            selectedDate={selectedDate || ''}
+            items={sessions.map((s) => ({
+              key: String(s.id),
+              label: s.title,
+            }))}
+            onSelect={setSelectedSessionId}
+            selectedKey={selectedSession ? String(selectedSession.id) : ''}
           />
         )}
         {!isTrainee && (
           <p className="text-caption1r text-gray-500">
-            선택한 날짜에 입장한 참가자입니다. 사전등록한 전체 신청자는
-            접수대장에서 확인할 수 있습니다.
+            {sessions.length === 0
+              ? '등록된 사전등록 회차가 없습니다. 신청 관리에서 회차를 먼저 추가해주세요.'
+              : '선택한 회차가 열리는 날 입장한 참가자입니다. 사전등록한 전체 신청자는 접수대장에서 확인할 수 있습니다.'}
           </p>
         )}
 

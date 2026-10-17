@@ -102,8 +102,7 @@ const PublicSurveyContainer = ({ expoId }: { expoId: string }) => {
         {result.won && (
           <div className="flex flex-col items-center gap-8 rounded-sm border-1 border-solid border-main-600 p-24">
             <p className="text-center text-h2b text-main-600 mobile:text-body1b">
-              축하합니다! {result.drawNumber}번째 응답으로 경품에
-              당첨되었습니다.
+              축하합니다! 경품에 당첨되었습니다.
             </p>
             <p className="break-keep text-center text-body2r text-gray-500">
               {lotteryPhoneNumber

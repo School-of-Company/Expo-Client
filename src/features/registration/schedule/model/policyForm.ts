@@ -56,6 +56,9 @@ export interface PolicyForm {
   groupId: string;
   /** 초등 1~3학년 보호자 동반 필수. null 이면 OFF */
   guardianPolicy: GuardianPolicyForm | null;
+  /** 현장 접수 기간. 입력란이 없어 서버 값(UTC 오프셋 ISO 8601)을 그대로 돌려보낸다 */
+  onsiteStartedAt: string | null;
+  onsiteEndedAt: string | null;
 }
 
 export interface ProgramForm {
@@ -85,6 +88,8 @@ export const EMPTY_POLICY_FORM: PolicyForm = {
   formId: '',
   groupId: '',
   guardianPolicy: null,
+  onsiteStartedAt: null,
+  onsiteEndedAt: null,
 };
 
 export const EMPTY_PROGRAM_FORM: ProgramForm = {
@@ -145,6 +150,8 @@ const toPolicyForm = (policy: ProgramPolicy): PolicyForm => ({
   guardianPolicy: policy.guardianPolicy
     ? toGuardianPolicyForm(policy.guardianPolicy)
     : null,
+  onsiteStartedAt: policy.onsiteStartedAt ?? null,
+  onsiteEndedAt: policy.onsiteEndedAt ?? null,
 });
 
 /** 총정원은 사전·현장 정원의 합이다 */
@@ -212,6 +219,15 @@ export const getPolicyProblem = (policy: ProgramPolicy): string | null => {
     return '취소 마감은 모집 시작 이후여야 합니다.';
   if (Date.parse(policy.promotionEndedAt) < startedAt)
     return '대기 승급 마감은 모집 시작 이후여야 합니다.';
+  // 현장 접수 기간은 둘 다 있거나 둘 다 없어야 하고, 시작이 종료보다 빨라야 한다
+  if (Boolean(policy.onsiteStartedAt) !== Boolean(policy.onsiteEndedAt))
+    return '현장 접수 시작·종료를 함께 설정해주세요.';
+  if (
+    policy.onsiteStartedAt &&
+    policy.onsiteEndedAt &&
+    !(Date.parse(policy.onsiteStartedAt) < Date.parse(policy.onsiteEndedAt))
+  )
+    return '현장 접수 종료가 현장 접수 시작보다 늦어야 합니다.';
   // 일괄 적용은 조회한 정책을 그대로 합치므로 값이 빠져 와도 TypeError 대신 사유로 막는다
   if (!policy.allowedOccupations?.length)
     return '신청 가능 직업을 하나 이상 선택해주세요.';
@@ -274,6 +290,13 @@ export const toProgramPolicy = (form: PolicyForm): ProgramPolicy => {
     // 꺼져 있으면 키를 빼서 기존 정책과 같은 본문으로 보낸다
     ...(policy.guardianPolicy
       ? { guardianPolicy: toGuardianPolicy(policy.guardianPolicy) }
+      : {}),
+    // 수정은 정책을 통째로 바꾸므로 기존 현장 접수 기간을 그대로 돌려보낸다
+    ...(policy.onsiteStartedAt && policy.onsiteEndedAt
+      ? {
+          onsiteStartedAt: policy.onsiteStartedAt,
+          onsiteEndedAt: policy.onsiteEndedAt,
+        }
       : {}),
   };
 };

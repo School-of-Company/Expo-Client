@@ -15,8 +15,9 @@ export interface SessionForm {
   startedAt: string | null;
   endedAt: string | null;
   place: string;
-  capacity: number;
-  waitingCapacity: number;
+  /** 입력칸을 비우면 '' 이다. 저장 전 검증에서 막는다 */
+  capacity: number | '';
+  waitingCapacity: number | '';
   closed: boolean;
   cancelEndedAt: string | null;
 }
@@ -52,9 +53,17 @@ export const validateSessionForm = (form: SessionForm): string | null => {
   if (!form.startedAt || !form.endedAt) return '시작·종료 일시를 입력해주세요.';
   if (form.startedAt >= form.endedAt)
     return '종료 일시가 시작 일시보다 늦어야 합니다.';
-  if (!Number.isInteger(form.capacity) || form.capacity < 1)
+  if (
+    typeof form.capacity !== 'number' ||
+    !Number.isInteger(form.capacity) ||
+    form.capacity < 1
+  )
     return '정원은 1명 이상이어야 합니다.';
-  if (!Number.isInteger(form.waitingCapacity) || form.waitingCapacity < 0)
+  if (
+    typeof form.waitingCapacity !== 'number' ||
+    !Number.isInteger(form.waitingCapacity) ||
+    form.waitingCapacity < 0
+  )
     return '대기 정원을 확인해주세요.';
   return null;
 };
@@ -66,10 +75,14 @@ export const toSessionDefinition = (
   startedAt: toOffsetDateTime(form.startedAt) ?? '',
   endedAt: toOffsetDateTime(form.endedAt) ?? '',
   place: form.place.trim(),
-  capacity: form.capacity,
-  waitingCapacity: form.waitingCapacity,
+  capacity: Number(form.capacity),
+  waitingCapacity: Number(form.waitingCapacity),
   closed: form.closed,
   cancelEndedAt: toOffsetDateTime(form.cancelEndedAt),
 });
 
 export const toCount = (value: string) => Math.max(Number(value) || 0, 0);
+
+/** 비운 칸은 0 으로 바꾸지 않고 빈 채로 둔다 */
+export const toOptionalCount = (value: string) =>
+  value === '' ? '' : toCount(value);

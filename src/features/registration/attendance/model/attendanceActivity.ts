@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { normalizeExpoId } from '@/shared/config';
+import { useRealtimeRefetchInterval } from '@/shared/libs/realtime/AdminRealtimeProvider';
 import {
   EntryMethod,
   EntryRecord,
@@ -54,12 +55,17 @@ export const toHourlyPoints = (buckets: HourlyEntryBucket[]) => {
   });
 };
 
-/** 시간대별 추이·최근 기록·스캐너별 건수. 집계와 같이 10초마다 갱신한다 */
+/** 시간대별 추이·최근 기록·스캐너별 건수. 집계와 같이 10초마다(SSE 연결 중에는 신호마다) 갱신한다 */
 export const useAttendanceActivity = (expoId: string, day: string) => {
   const serverExpoId = normalizeExpoId(expoId);
+  // 입퇴장 SSE 가 연결돼 있으면 신호를 받을 때만 다시 읽는다
+  const refetchInterval = useRealtimeRefetchInterval(
+    ATTENDANCE_REFRESH_MS,
+    'ATTENDANCE',
+  );
   const options = {
     enabled: Boolean(serverExpoId),
-    refetchInterval: ATTENDANCE_REFRESH_MS,
+    refetchInterval,
     meta: { silent: true },
   };
 

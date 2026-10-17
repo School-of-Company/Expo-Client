@@ -16,7 +16,6 @@ import {
   LEDGER_REFRESH_MS,
 } from '../../../common/model/ledger';
 import {
-  describePreregisterFilter,
   getPreregisterErrorMessage,
   INITIAL_PREREGISTER_FILTER,
   PreregisterFilter,
@@ -26,9 +25,6 @@ import { usePreregisterSummary } from '../../../common/model/preregisterSummary'
 import PreregisterDetailModal from '../PreregisterDetailModal';
 import PreregisterFilters from '../PreregisterFilters';
 import PreregisterTable from '../PreregisterTable';
-
-const DISABLED_ACTION =
-  'cursor-not-allowed rounded-sm border-1 border-solid border-gray-200 bg-gray-50 px-16 py-6 text-body2r text-gray-300';
 
 /** 접수 관리대장의 사전등록 탭. 이 탭의 조건은 프로그램·연수 탭과 섞이지 않는다 */
 const PreregisterLedger = () => {
@@ -76,10 +72,6 @@ const PreregisterLedger = () => {
   const totalCount = data?.totalElements ?? 0;
   const totalPage = Math.max(Math.ceil(totalCount / LEDGER_PAGE_SIZE), 1);
 
-  const appliedConditions = describePreregisterFilter(filter, sessionLabel);
-  const filterSummary =
-    appliedConditions.length > 0 ? appliedConditions.join(' · ') : '전체';
-
   const handleFilterChange = useCallback(
     (next: PreregisterFilter) => {
       setFilter(next);
@@ -92,9 +84,10 @@ const PreregisterLedger = () => {
   return withLoading({
     isLoading: isLoading && !data,
     children: (
-      <div className="flex w-full flex-1 flex-col space-y-[54px] overflow-y-auto">
-        <div className="space-y-16">
-          <div className="flex flex-wrap items-center justify-between gap-12">
+      <div className="flex w-full flex-1 flex-col space-y-20 overflow-y-auto">
+        <div className="space-y-8">
+          {/* 엑셀·그룹 메시지는 Report·Notification 이 사전등록 대상을 받으면 다시 붙인다 */}
+          <div className="flex justify-end">
             <RefreshStatus
               updatedAt={dataUpdatedAt}
               isFetching={isFetching}
@@ -102,37 +95,6 @@ const PreregisterLedger = () => {
               intervalMs={LEDGER_REFRESH_MS}
               hasError={isError && !!data}
             />
-            <div className="flex flex-wrap items-center gap-8">
-              {/* Report·Notification 이 사전등록 대상을 받기 전이라 성공한 것처럼 보이지 않게 막아 둔다 */}
-              <button
-                type="button"
-                disabled
-                title="사전등록 엑셀은 Report 서버 계약 확장 후 제공됩니다"
-                className={DISABLED_ACTION}
-              >
-                엑셀 (준비 중)
-              </button>
-              <button
-                type="button"
-                disabled
-                title="사전등록 그룹 메시지는 Notification 서버 계약 확장 후 제공됩니다"
-                className={DISABLED_ACTION}
-              >
-                그룹 메시지 (준비 중)
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-4 rounded-sm bg-main-100 px-20 py-16 mobile:px-16">
-            <p className="text-body2r text-gray-500">
-              <span className="text-body2b text-main-600">사전등록 탭</span> —
-              확정·취소는 참가자 1명, 대기·처리중은 예약 일행 1건이 한 행입니다.
-              행 수는 인원 수가 아닙니다. 엑셀·그룹 메시지·관리자 취소는 서버가
-              지원하는 대로 열립니다.
-            </p>
-            <p className="text-body2r text-gray-500">
-              적용 중인 조건: {filterSummary}
-            </p>
           </div>
 
           {summary.data && (
