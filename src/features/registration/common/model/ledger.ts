@@ -253,21 +253,6 @@ export const getSummaryErrorMessage = (error: unknown, fallback: string) => {
   }
 };
 
-const RECENT_APPLICATION_COUNT = 10;
-
-export const useRecentApplications = (expoId: string) =>
-  useQuery({
-    queryKey: ['adminApplications', expoId, 'recent'],
-    queryFn: () =>
-      getAdminApplications(expoId, {
-        sort: 'CREATED_DESC',
-        page: 0,
-        size: RECENT_APPLICATION_COUNT,
-      }),
-    refetchInterval: LEDGER_REFRESH_MS,
-    select: (data) => data.items.map(toLedgerRow),
-  });
-
 /** 신청 한 건의 최신 상태와 상태 변경 이력 */
 export const useApplicationDetail = (expoId: string, applicationId: string) =>
   useQuery({
