@@ -118,9 +118,10 @@ const GroupMessageModal = ({
       scope === 'SELECTED'
         ? { kind: 'SELECTED', applicationIds: selectedRows.map(({ id }) => id) }
         : { kind: 'FILTERED', filter: toGroupMessageFilter(filter) };
+    // 카카오는 카톡을 받을 수 없는 번호에 같은 내용을 문자로 대신 보낸다
     return channel === 'SMS'
       ? { scope: target, channel: 'SMS', body, fallbackToSms: false }
-      : { scope: target, channel: 'KAKAO', templateId, fallbackToSms: false };
+      : { scope: target, channel: 'KAKAO', templateId, fallbackToSms: true };
   }, [scope, selectedRows, filter, channel, body, templateId]);
   const hasContent = channel === 'SMS' ? body.trim() !== '' : !!template;
   // 미리보기 뒤에 범위나 문구가 바뀌면 그 미리보기로는 보낼 수 없다
@@ -381,8 +382,8 @@ const GroupMessageModal = ({
                 })}
               </div>
               <p className="text-caption1r text-gray-500">
-                SMS 자동 대체는 사용하지 않습니다. 알림톡이 실패해도 문자로 대신
-                보내지 않습니다.
+                알림톡을 받을 수 없는 번호(카카오톡 미가입·채널 차단)는 같은
+                내용을 문자로 대신 보냅니다.
               </p>
             </section>
 
