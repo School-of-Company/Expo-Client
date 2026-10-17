@@ -95,14 +95,6 @@ const GroupMessageHistorySection = ({
 
   return (
     <section className="space-y-16">
-      <div className="space-y-6">
-        <p className="text-body1b text-black">그룹 문자 발송 이력</p>
-        <p className="text-caption1r text-gray-400">
-          그룹 문자 작업의 요청·종료·재발송 이력입니다. 결과와 상태는 이력이
-          남은 시점의 값이며, 본문과 전화번호는 보관하지 않습니다.
-        </p>
-      </div>
-
       {isError && !rows ? (
         <SectionError
           message={getMessageHistoryErrorMessage(error)}
