@@ -74,7 +74,7 @@ const COLUMNS: TableColumn<ActivityRow>[] = [
   },
   {
     key: 'participant',
-    label: '참가자',
+    label: '대상 참가자',
     // 서버 participant 는 현재 User 정보라 처리 당시 값과 다를 수 있다
     render: ({ participantId, participant }) => (
       <div>
@@ -121,7 +121,7 @@ const COLUMNS: TableColumn<ActivityRow>[] = [
   },
   {
     key: 'actor',
-    label: '처리주체',
+    label: '처리자',
     render: (row) => (
       <p
         className={

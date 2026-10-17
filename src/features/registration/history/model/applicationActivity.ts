@@ -49,15 +49,23 @@ const ACTIVITY_ACTOR_LABEL: Record<AdminApplicationActorType, string> = {
   UNKNOWN: '미기록',
 };
 
-/** 주체가 기록되지 않은 과거 이력(UNKNOWN)은 사용자·자동으로 단정하지 않는다 */
+/** 주체가 기록되지 않은 과거 이력(UNKNOWN)은 사용자·자동으로 단정하지 않는다. 사용자 처리자는 대상 참가자·현재 대표자로 추정하지 않는다 */
 export const getActivityActorLabel = ({
   actorType,
   actorId,
-}: Pick<AdminApplicationActivity, 'actorType' | 'actorId'>) => {
+  actorUserId,
+  actorName,
+}: Pick<
+  AdminApplicationActivity,
+  'actorType' | 'actorId' | 'actorUserId' | 'actorName'
+>) => {
   const label = ACTIVITY_ACTOR_LABEL[actorType ?? 'UNKNOWN'] ?? '미기록';
-  return actorType === 'ADMIN' && actorId !== null
-    ? `${label} #${actorId}`
-    : label;
+  if (actorType === 'ADMIN' && actorId !== null) return `${label} #${actorId}`;
+  if (actorType !== 'USER') return label;
+  if (actorUserId == null && !actorName) return `${label} · 처리자 미기록`;
+  return `${label} · ${[actorName, actorUserId != null && `#${actorUserId}`]
+    .filter(Boolean)
+    .join(' ')}`;
 };
 
 export const MAX_PARTICIPANT_LENGTH = 50;
