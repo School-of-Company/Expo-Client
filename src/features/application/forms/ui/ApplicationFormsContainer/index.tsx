@@ -5,6 +5,7 @@ import { ApplicationFormCard } from '@/entities/application';
 import { withLoading } from '@/shared/hocs';
 import { DetailHeader } from '@/shared/ui';
 import { FORM_GROUPS, FormGroup } from '../../constant/formEntries';
+import { useFieldRelease } from '../../model/fieldRelease';
 import {
   FORM_PERIOD_STATUS_LABEL,
   formatFormPeriod,
@@ -14,7 +15,14 @@ import { useApplicationForms } from '../../model/useApplicationForms';
 import MyApplicationList from '../MyApplicationList';
 
 const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
-  const { forms, isLoading } = useApplicationForms(expoId);
+  const { forms: allForms, isLoading: isFormsLoading } =
+    useApplicationForms(expoId);
+  const field = useFieldRelease(expoId);
+  const isLoading = isFormsLoading || field.isLoading;
+  // 현장 등록 폼은 행사 시작일 00:00(KST)부터 사용자 목록에 노출한다
+  const forms = allForms.filter(
+    (entry) => entry.group !== 'FIELD' || field.released,
+  );
   const [selected, setSelected] = useState<FormGroup | null>(null);
 
   // 폼이 하나라도 있는 그룹만 탭으로 노출

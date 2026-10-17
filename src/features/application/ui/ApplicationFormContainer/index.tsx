@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useMemo, useRef } from 'react';
 import { toast } from 'react-toastify';
@@ -13,6 +14,7 @@ import { DynamicFormValues } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { DetailHeader, Button } from '@/shared/ui';
 import { postApplication } from '../../api/postApplication';
+import { useFieldRelease } from '../../forms/model/fieldRelease';
 import { createSubmissionKeys } from '../../lib/createSubmissionKeys';
 import { getFormatter } from '../../lib/formatterService';
 import { findRegistrationAnswerError } from '../../lib/process/findRegistrationAnswerError';
@@ -29,6 +31,11 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     isLoading,
     error,
   } = useFormQuery(params, userType, applicationType);
+
+  // 현장 등록은 행사 시작일 00:00(KST) 전에는 작성·제출 진입을 막는다. 서버의 접수 제한은 따로 유지된다
+  const field = useFieldRelease(params);
+  const isFieldPending =
+    applicationType === 'FIELD' && !field.isLoading && !field.released;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   // 같은 내용의 재제출(연타·네트워크 재시도)은 같은 Idempotency-Key 로 보낸다
@@ -101,6 +108,20 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     }
   };
 
+  if (isFieldPending) {
+    return (
+      <div className="flex w-full max-w-[816px] flex-1 flex-col items-center justify-center gap-16 text-body1r text-gray-500 mobile:text-body2r">
+        <p>현장 등록은 행사 시작일부터 신청할 수 있습니다. (공개 예정)</p>
+        <Link
+          href={`/application/forms/${params}`}
+          className="text-main-600 underline"
+        >
+          신청 폼 목록으로 돌아가기
+        </Link>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="flex w-full max-w-[816px] flex-1 items-center justify-center text-body1r text-gray-500 mobile:text-body2r">
@@ -110,7 +131,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
   }
 
   return withLoading({
-    isLoading,
+    isLoading: isLoading || (applicationType === 'FIELD' && field.isLoading),
     children: (
       <div className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
         <div className="mt-30">
