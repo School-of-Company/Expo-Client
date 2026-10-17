@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { UseFormRegisterReturn, useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import {
   PHONE_NUMBER_PATTERN,
   SMS_CODE_PATTERN,
@@ -11,6 +12,7 @@ import { useTimer } from '@/shared/model';
 import { Button, Input } from '@/shared/ui';
 import { getExpoId } from '../../lib/getExpoId';
 import { getRedirectPath } from '../../lib/getRedirectPath';
+import { loadVerifiedPhone, saveVerifiedPhone } from '../../lib/verifiedPhone';
 import { useLogoutParticipantSession } from '../../model/useLogoutParticipantSession';
 import { useParticipantSession } from '../../model/useParticipantSession';
 import { useSendVerificationSms } from '../../model/useSendVerificationSms';
@@ -69,6 +71,7 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
     expoId,
     (phoneNumber) => {
       setIsSmsVerified(true);
+      saveVerifiedPhone(expoId, phoneNumber);
       router.replace(getRedirectPath(redirect, phoneNumber));
     },
   );
@@ -79,6 +82,17 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
   const handleSendSms = async () => {
     const isValid = await trigger('phoneNumber');
     if (isValid) sendSms(getValues('phoneNumber'));
+  };
+
+  // 설문은 번호로 응답자를 찾는데 세션 응답에는 번호가 없다. 번호를 모르면 되돌아오는 반복이 되므로 다시 인증받는다
+  const handleContinue = () => {
+    const phoneNumber = loadVerifiedPhone(expoId);
+    if (!phoneNumber && redirect.includes('userType=')) {
+      toast.info('번호 확인을 위해 다시 인증해 주세요.');
+      logoutSession();
+      return;
+    }
+    router.replace(getRedirectPath(redirect, phoneNumber));
   };
 
   const onSubmit = (data: PhoneVerificationFormValues) => {
@@ -138,10 +152,7 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
             >
               다른 번호로 인증
             </Button>
-            <Button
-              width="120px"
-              onClick={() => router.replace(getRedirectPath(redirect))}
-            >
+            <Button width="120px" onClick={handleContinue}>
               계속하기
             </Button>
           </div>
