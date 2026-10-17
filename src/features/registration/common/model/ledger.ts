@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
+import { useRealtimeRefetchInterval } from '@/shared/libs/realtime/AdminRealtimeProvider';
 import {
   AdminApplicationQuery,
   AdminApplicationRow,
@@ -213,7 +214,12 @@ export const useLedgerSummary = (expoId: string, filter?: LedgerFilter) =>
         size: filter ? 1 : SUMMARY_SESSION_PAGE_SIZE,
       }),
     placeholderData: keepPreviousData,
-    refetchInterval: LEDGER_REFRESH_MS,
+    // 회차별 출석 집계도 들어 있어 신청·출석 SSE 가 모두 연결됐을 때만 polling 을 멈춘다
+    refetchInterval: useRealtimeRefetchInterval(
+      LEDGER_REFRESH_MS,
+      'APPLICATIONS',
+      'ATTENDANCE',
+    ),
     // 실패는 화면의 상태별 문구로 알린다. 서버 원문 전역 토스트는 30초마다 반복되므로 끈다
     meta: { silent: true },
   });

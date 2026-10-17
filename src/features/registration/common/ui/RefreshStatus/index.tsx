@@ -1,3 +1,5 @@
+import RealtimeIntervalLabel from './RealtimeIntervalLabel';
+
 interface RefreshStatusProps {
   /** 마지막으로 성공한 조회 시각(ms). 아직 성공한 적이 없으면 0 */
   updatedAt: number;
@@ -26,7 +28,8 @@ const RefreshStatus = ({
   <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-12 gap-y-4 whitespace-nowrap text-caption1r text-gray-400">
     <p aria-live="polite">
       {updatedAt > 0 ? `마지막 갱신 ${formatTime(updatedAt)}` : '갱신 전'}
-      {` · ${intervalMs / 1000}초마다 자동 갱신`}
+      {' · '}
+      <RealtimeIntervalLabel intervalMs={intervalMs} />
     </p>
     {hasError && (
       <p role="status" className="text-error">

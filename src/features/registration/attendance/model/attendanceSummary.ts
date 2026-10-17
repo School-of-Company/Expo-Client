@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { eachDayOfInterval, isValid, parseISO } from 'date-fns';
 import { normalizeExpoId } from '@/shared/config';
+import { useRealtimeRefetchInterval } from '@/shared/libs/realtime/AdminRealtimeProvider';
 import { EntrySummary } from '@/shared/types/exhibition/check-in/entry';
 import { dateToString } from '../../common';
 import { getAttendanceSummary } from '../api/getAttendanceSummary';
@@ -41,7 +42,10 @@ export const useAttendanceSummary = (expoId: string, day: string) => {
     queryKey,
     queryFn: () => getAttendanceSummary(serverExpoId!, toPeriodDate(day)),
     enabled: Boolean(serverExpoId),
-    refetchInterval: ATTENDANCE_REFRESH_MS,
+    refetchInterval: useRealtimeRefetchInterval(
+      ATTENDANCE_REFRESH_MS,
+      'ATTENDANCE',
+    ),
     // 실패는 화면 영역 안에만 표시한다
     meta: { silent: true },
   });
