@@ -47,8 +47,8 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
     },
     {
       title: '모니터링',
-      description: '실시간 입·퇴장 현황',
-      href: registrationRoutes.attendance,
+      description: '실시간 대시보드·접수대장·행정 이력·입·퇴장',
+      href: registrationRoutes.dashboard,
     },
   ];
 

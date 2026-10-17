@@ -12,6 +12,7 @@ import {
   getRegistrationRoutes,
 } from '@/shared/config';
 import { ApplicationType } from '@/shared/types/exhibition/type';
+import { DetailHeader } from '@/shared/ui';
 import { Header } from '@/widgets/layout';
 
 const TAB_OPTIONS: { value: ExpoQrTab; label: string }[] = [
@@ -63,7 +64,14 @@ const ExhibitionQrPage = ({
       <div className="flex flex-1 justify-center p-16">
         <div className="flex w-full max-w-[1200px] flex-col gap-30">
           <div className="flex flex-col gap-16">
-            <p className="text-h2b text-black">QR</p>
+            {/* 주소로 바로 열어도 박람회 상세로 돌아가게 한다 */}
+            <DetailHeader
+              className="gap-12"
+              headerTitle="QR"
+              onBack={() =>
+                router.push(`/exhibition/detail/${encodeURIComponent(id)}`)
+              }
+            />
             <SegmentTabs
               ariaLabel="QR 메뉴"
               value={tab}
