@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
+import { getExpoRoutes } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
 import { NavigationBar } from '@/shared/ui';
 import SmallButton from '@/shared/ui/SmallButton';
@@ -151,6 +152,13 @@ const ApplicationLedger = () => {
               </button>
               <Link href={routes.schedule} className={OUTLINE_ACTION}>
                 모집 제어
+              </Link>
+              {/* 박람회 운영 페이지를 없애며 프로그램 조회·출석은 여기서 들어간다 */}
+              <Link
+                href={getExpoRoutes(expoId).program}
+                className={OUTLINE_ACTION}
+              >
+                프로그램 조회·출석
               </Link>
               <Link href={routes.dashboard} className={OUTLINE_ACTION}>
                 대시보드

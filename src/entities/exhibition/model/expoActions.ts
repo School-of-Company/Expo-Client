@@ -8,7 +8,7 @@ export type ExpoAction = {
   description: string;
 } & ({ href: string } | { modal: { type: ExpoActionModalType; text: string } });
 
-/** 박람회 상세 패널과 박람회 운영 페이지가 함께 쓰는 운영 기능 목록 */
+/** 박람회 상세 패널이 쓰는 운영 기능 목록 */
 export const getExpoActions = (expoId: string) => {
   const routes = getExpoRoutes(expoId);
   return {
