@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { retryProgramChanges } from '@/shared/api';
 import { Trash } from '@/shared/assets/icons';
 import { AddItemButton, Button } from '@/shared/ui';
@@ -21,7 +21,6 @@ import { ProgramForm as ProgramFormValue } from '../../model/policyForm';
 import {
   getProgramGroupId,
   getProgramGroups,
-  toGroupSessionForm,
   toProgramKey,
 } from '../../model/programFormLink';
 import ProgramForm from '../ProgramForm';
@@ -29,7 +28,7 @@ import ScheduleSection from '../ScheduleSection';
 
 export type ProgramEditing = ScheduleProgram | 'new' | null;
 
-/** 왼쪽 메뉴에서 등록 양식을 열 때 스크롤할 대상 */
+/** 임시 저장 복원 시 열린 모달 대상 */
 export const PROGRAM_FORM_ID = 'schedule-program-form';
 
 interface ProgramSectionProps {
@@ -66,11 +65,6 @@ const ProgramSection = ({
   const editing =
     controlledEditing === undefined ? ownEditing : controlledEditing;
   const setEditing = onEditingChange ?? setOwnEditing;
-  // 같은 묶음에 회차를 추가할 때 새 회차 양식에 채울 값
-  const [groupTemplate, setGroupTemplate] = useState<ProgramFormValue>();
-  useEffect(() => {
-    if (editing !== 'new') setGroupTemplate(undefined);
-  }, [editing]);
   const groupIds = getProgramGroups(programs).map(({ groupId }) => groupId);
   const getGroupLabel = (program: ScheduleProgram) => {
     const index = groupIds.indexOf(getProgramGroupId(program) ?? '');
@@ -190,20 +184,6 @@ const ProgramSection = ({
       flex: 1.1,
       render: ({ program }) => (
         <div className="flex items-center justify-center gap-12">
-          {getGroupLabel(program) && (
-            <button
-              type="button"
-              className="whitespace-nowrap text-body2r text-main-600"
-              title="이 회차의 폼·정원·모집 조건을 복사해 같은 묶음에 새 회차를 만듭니다"
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditing('new');
-                setGroupTemplate(toGroupSessionForm(program));
-              }}
-            >
-              회차 추가
-            </button>
-          )}
           <button
             type="button"
             className="text-body2r text-main-600 disabled:opacity-40"
@@ -238,10 +218,7 @@ const ProgramSection = ({
   }));
 
   return (
-    <ScheduleSection
-      title="① 프로그램 신청 회차"
-      description="표의 한 줄이 참가자가 신청하는 프로그램 회차 하나입니다. 같은 프로그램을 여러 시간에 열면 회차마다 줄을 만들고 '묶음'으로 묶어, 참가자가 묶음 안에서 하나만 신청하게 합니다. 묶인 회차의 '회차 추가'로 폼·정원을 복사해 회차를 늘릴 수 있습니다. 신청 폼은 '온라인 신청 받기'를 켠 회차에서 연결합니다. 신청 이력이 있으면 정원은 확정 인원보다 줄일 수 없습니다."
-    >
+    <ScheduleSection title="① 프로그램 신청 회차">
       {pendingCount > 0 && (
         <div className="flex items-center justify-between gap-16 rounded-sm border-1 border-solid border-red-200 px-20 py-12 mobile:flex-col mobile:items-stretch">
           <p className="text-body2r text-red-500">
@@ -266,25 +243,25 @@ const ProgramSection = ({
         minWidth="1200px"
         maxHeight="none"
       >
-        {editing ? (
-          <div id={PROGRAM_FORM_ID} className="scroll-mt-[96px]">
+        <AddItemButton onClick={() => setEditing('new')} />
+      </RegistrationTable>
+      {editing && (
+        <div
+          id={PROGRAM_FORM_ID}
+          className="bg-black/50 fixed inset-0 z-10 flex items-start justify-center overflow-y-auto p-16"
+        >
+          <div className="w-full max-w-[1000px] bg-white">
             <ProgramForm
-              key={
-                editing === 'new'
-                  ? `new-${groupTemplate?.policy.groupId ?? ''}`
-                  : toProgramKey(editing)
-              }
+              key={editing === 'new' ? 'new' : toProgramKey(editing)}
               expoId={expoId}
               program={editing === 'new' ? undefined : editing}
               programs={programs}
-              initialForm={draftForm ?? groupTemplate}
+              initialForm={draftForm}
               onClose={() => setEditing(null)}
             />
           </div>
-        ) : (
-          <AddItemButton onClick={() => setEditing('new')} />
-        )}
-      </RegistrationTable>
+        </div>
+      )}
     </ScheduleSection>
   );
 };
