@@ -26,6 +26,7 @@ import {
 } from '../../model/useApplicationSessions';
 import { useMyApplications } from '../../model/useMyApplications';
 import PreRegisterWaitlist from '../PreRegisterWaitlist';
+import PromotionOffer from '../PromotionOffer';
 
 const TYPE_LABEL: Record<OwnerApplicationType, string> = {
   PREREGISTER: '사전등록',
@@ -344,6 +345,9 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     cancel,
     cancelWaitlist,
     isCancellingWaitlist,
+    offers,
+    respondOffer,
+    isRespondingOffer,
   } = useMyApplications(expoId);
   const { getSession, hasLookupError, retryLookup } = useApplicationSessions(
     expoId,
@@ -352,6 +356,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   const [qrTarget, setQrTarget] = useState<QrTarget | null>(null);
   const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null);
   const [isWaitlistCancelOpen, setIsWaitlistCancelOpen] = useState(false);
+  const [declineOfferId, setDeclineOfferId] = useState<string | null>(null);
 
   // 참가자별로 묶고 대표자를 먼저 둔다. 서버가 주는 참가자 순서와 신청 순서는 그대로 지킨다
   const groups = Array.from(new Set(applications.map((a) => a.participantId)))
@@ -378,6 +383,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   if (
     applications.length === 0 &&
     !waitlist &&
+    offers.length === 0 &&
     !errorMessage &&
     !waitlistErrorMessage &&
     !sessionIssue
@@ -427,6 +433,19 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
           </button>
         </div>
       )}
+
+      {!sessionIssue &&
+        offers.map((offer) => (
+          <PromotionOffer
+            key={offer.offerId}
+            offer={offer}
+            isResponding={isRespondingOffer}
+            onAccept={() =>
+              respondOffer({ offerId: offer.offerId, action: 'acceptance' })
+            }
+            onDecline={() => setDeclineOfferId(offer.offerId)}
+          />
+        ))}
 
       {!sessionIssue && waitlist && (
         <PreRegisterWaitlist
@@ -540,6 +559,38 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
               className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
             >
               신청 취소
+            </button>
+          </div>
+        </Dialog>
+      )}
+
+      {declineOfferId && (
+        <Dialog
+          label="참여 제안 거절 확인"
+          onClose={() => setDeclineOfferId(null)}
+        >
+          <p className="text-h3b text-black">제안을 거절할까요?</p>
+          <p className="break-keep text-center text-body2r text-gray-500">
+            거절하면 대기가 종료되고 다음 대기자에게 자리가 넘어갑니다. 되돌릴
+            수 없습니다.
+          </p>
+          <div className="flex w-full gap-8">
+            <button
+              type="button"
+              onClick={() => setDeclineOfferId(null)}
+              className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-body2b text-gray-700"
+            >
+              닫기
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                respondOffer({ offerId: declineOfferId, action: 'decline' });
+                setDeclineOfferId(null);
+              }}
+              className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
+            >
+              거절
             </button>
           </div>
         </Dialog>
