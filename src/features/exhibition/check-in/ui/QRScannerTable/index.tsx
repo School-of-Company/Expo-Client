@@ -3,7 +3,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-import { maskParticipantPhone } from '@/features/registration/participants/model/participantSearch';
+import { maskParticipantPhone } from '@/features/registration/participants';
 import { toRoleAuthority, USER_AUTHORITY } from '@/shared/config';
 import { useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
@@ -164,7 +164,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
     handleScan();
   }, [scannedQR]);
 
-  // 표에는 참가자 검색과 같은 규칙으로 가린 번호만 보여 준다(번호 없으면 '-')
+  // 표에는 참가자 목록과 같은 규칙으로 가린 번호만 보여 준다(번호 없으면 '-')
   const maskedUserData = userData.map((user) => ({
     ...user,
     phoneNumber: maskParticipantPhone(user.phoneNumber),

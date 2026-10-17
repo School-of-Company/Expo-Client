@@ -107,7 +107,8 @@ const PolicyFields = ({
           <Input
             type="number"
             min={0}
-            value={value.preRegistrationCapacity}
+            value={value.preRegistrationCapacity || ''}
+            placeholder="0"
             onChange={(e) =>
               onChange({ preRegistrationCapacity: toCount(e.target.value) })
             }
@@ -117,7 +118,8 @@ const PolicyFields = ({
           <Input
             type="number"
             min={0}
-            value={value.onsiteCapacity}
+            value={value.onsiteCapacity || ''}
+            placeholder="0"
             onChange={(e) =>
               onChange({ onsiteCapacity: toCount(e.target.value) })
             }
@@ -130,7 +132,8 @@ const PolicyFields = ({
           <Input
             type="number"
             min={0}
-            value={value.waitingCapacity}
+            value={value.waitingCapacity || ''}
+            placeholder="0"
             onChange={(e) =>
               onChange({ waitingCapacity: toCount(e.target.value) })
             }
