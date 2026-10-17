@@ -1,10 +1,11 @@
 import { PromotionOffer as Offer } from '../../api/myApplications';
 
-const TYPE_LABEL: Record<Offer['type'], string> = {
-  PREREGISTER: '사전등록',
-  STANDARD: '프로그램',
-  TRAINING: '연수',
-};
+const getTypeLabel = ({ target, programType }: Offer) =>
+  target === 'PREREGISTER'
+    ? '사전등록'
+    : programType === 'TRAINING'
+      ? '연수'
+      : '프로그램';
 
 /**
  * 대기에서 올라온 참여 제안. 수락 버튼은 서버 respondable 만 따르며 기한 카운트다운으로 막거나 열지 않는다.
@@ -21,13 +22,14 @@ const PromotionOffer = ({
   onDecline: () => void;
   isResponding: boolean;
 }) => {
-  const { type, seats, status, respondable, expiresAt } = offer;
+  const { title, seats, status, respondable, expiresAt } = offer;
 
   return (
     <div className="flex items-center justify-between gap-12 rounded-sm border-1 border-solid border-main-600 bg-white px-18 py-18 mobile:flex-col mobile:items-stretch">
       <div className="flex flex-col gap-6">
         <p className="break-keep text-body2b text-black">
-          {TYPE_LABEL[type]} 참여 제안 · {seats.toLocaleString()}석
+          {getTypeLabel(offer)} 참여 제안{title && ` · ${title}`} ·{' '}
+          {seats.toLocaleString()}석
         </p>
         <p className="break-keep text-caption1r text-gray-500">
           {status === 'PENDING'

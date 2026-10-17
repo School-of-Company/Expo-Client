@@ -185,8 +185,12 @@ export const getParticipantQr = async (
 /** 대기에서 올라온 참여 제안. 수락 가능 여부는 서버 respondable 만 따르고, expiresAt 은 표시용이다 */
 export interface PromotionOffer {
   offerId: string;
-  type: OwnerApplicationType;
-  sessionOrProgramId: number;
+  target: 'PROGRAM' | 'PREREGISTER';
+  // target 이 PREREGISTER 이면 programType·programId 는 없고 sessionId 만 온다
+  programType: 'STANDARD' | 'TRAINING' | null;
+  programId: number | null;
+  sessionId: number | null;
+  title: string | null;
   seats: number;
   status: 'PENDING' | 'OPEN' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED' | 'ENDED';
   respondable: boolean;
