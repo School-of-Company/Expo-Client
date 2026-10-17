@@ -1,25 +1,26 @@
 'use client';
 
-import { eachDayOfInterval, parseISO, format } from 'date-fns';
 import React, { useState, useRef, useEffect } from 'react';
 import { DateButton } from '@/entities/exhibition';
 import { ArrowLeft, ArrowRight } from '@/shared/assets/icons';
 
+export interface TabItem {
+  key: string;
+  label: string;
+}
+
+// 탭 개수는 items 길이를 따른다(사전등록 회차 수만큼)
 const DateContainer = ({
-  startedDay,
-  finishedDay,
-  onDateSelect,
-  selectedDate,
+  items,
+  onSelect,
+  selectedKey,
 }: {
-  startedDay: string;
-  finishedDay: string;
-  onDateSelect: (date: string) => void;
-  selectedDate: string;
+  items: TabItem[];
+  onSelect: (key: string) => void;
+  selectedKey: string;
 }) => {
-  const dates = eachDayOfInterval({
-    start: parseISO(startedDay),
-    end: parseISO(finishedDay),
-  });
+  const selectedDate = selectedKey;
+  const dates = items;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -99,18 +100,15 @@ const DateContainer = ({
         onScroll={handleScroll}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {dates.map((date) => {
-          const formattedDate = format(date, 'yyyy-MM-dd');
-          return (
-            <DateButton
-              key={formattedDate}
-              date={formattedDate}
-              selected={formattedDate === selectedDate}
-              onClick={() => onDateSelect(formattedDate)}
-              ref={(el) => setButtonRef(formattedDate, el)}
-            />
-          );
-        })}
+        {dates.map(({ key, label }) => (
+          <DateButton
+            key={key}
+            date={label}
+            selected={key === selectedDate}
+            onClick={() => onSelect(key)}
+            ref={(el) => setButtonRef(key, el)}
+          />
+        ))}
       </div>
 
       {showRightArrow && (
