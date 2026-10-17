@@ -20,6 +20,9 @@ import { category, selectOptionCategories } from '../../model/category';
 import { useExpoManageQueries } from '../../model/useExpoData';
 import DateContainer from '../DateContainer';
 
+// ponytail: Expo-Attendance-Server#142 배포 전에는 sessionId 조회가 빈 목록이라 꺼 둔다. 배포 후 true로 바꾸면 date 대신 회차 ID로 조회한다
+const FILTER_BY_SESSION_ID = false;
+
 const ParticipantTable = ({ id }: { id: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -51,6 +54,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
       page,
       selectedDate || '',
       Boolean(selectedDate),
+      FILTER_BY_SESSION_ID ? selectedSession?.id : undefined,
     );
 
   const requestPrintCategories = useMemo(() => {
