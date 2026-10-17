@@ -54,6 +54,7 @@ const EditExhibition = ({ id }: { id: string }) => {
       startedAt: formatDateTime(training.startedAt),
       endedAt: formatDateTime(training.endedAt),
       category: training.category,
+      place: training.place ?? undefined,
     })),
     standard: (expoStandard ?? []).map((std) => ({
       id: std.id,
@@ -61,6 +62,7 @@ const EditExhibition = ({ id }: { id: string }) => {
       title: std.title,
       startedAt: formatDateTime(std.startedAt),
       endedAt: formatDateTime(std.endedAt),
+      place: std.place ?? undefined,
     })),
   };
 

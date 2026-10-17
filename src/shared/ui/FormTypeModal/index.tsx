@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { XMark } from '@/shared/assets/icons';
-import { getRegistrationRoutes } from '@/shared/config';
+import { getExpoRoutes, getRegistrationRoutes } from '@/shared/config';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import Button from '../Button';
 import SelectDateInput from '../SelectDateInput';
@@ -14,6 +14,7 @@ const CATEGORIES = {
   EXHIBITION: '박람회',
   FORM: '등록용 폼',
   SURVEY: '만족도 조사',
+  PROGRAM_FORM: '프로그램 폼',
 };
 
 const FORM_TYPES = {
@@ -40,16 +41,30 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  // 'form' 은 폼 만들기·수정을 한 버튼에서 고르는 모달이다. 고른 뒤에는 formcreate·edit 와 같이 동작한다
+  const [formAction, setFormAction] = useState<'formcreate' | 'edit' | null>(
+    null,
+  );
+  const actionType = modalType === 'form' ? formAction : modalType;
+  // 날짜는 등록용 폼의 신청 기간으로만 쓰이므로, 폼을 만들거나 고칠 때 등록용 폼을 고른 뒤에만 묻는다
+  const needsDate =
+    (actionType === 'formcreate' || actionType === 'edit') &&
+    selectedCategory === CATEGORIES.FORM;
+  const isDateReady = !needsDate || (startDate && endDate);
 
   const handleCategorySelect = (category: string) => {
     if (category === CATEGORIES.EXHIBITION) {
-      if (!startDate || !endDate) {
-        toast.error('시작 날짜와 마감 날짜를 먼저 선택해주세요.');
-        return;
-      }
+      router.push(getExpoRoutes(params).edit);
+      return;
+    }
+
+    // 프로그램 폼은 참가자 유형·날짜 없이 만들고, 신청 기간은 만들기 화면에서 정한다
+    if (category === CATEGORIES.PROGRAM_FORM) {
+      // 뒤로 가기가 박람회 상세로 돌아오도록 출발지를 넘긴다
       router.push(
-        `/exhibition/edit/${params}?startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
+        `${getRegistrationRoutes(params).programFormNew}?returnTo=detail`,
       );
+      onClose();
       return;
     }
 
@@ -79,15 +94,15 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   const handleFinalSelection = (userType: string, appType: ApplicationType) => {
     const baseURL = window.location.origin;
 
-    if (modalType === 'edit' && selectedFormType) {
+    if (actionType === 'edit' && selectedFormType) {
       router.push(
         `/form/edit/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
       );
-    } else if (modalType === 'formcreate' && selectedFormType) {
+    } else if (actionType === 'formcreate' && selectedFormType) {
       router.push(
         `/form/create/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
       );
-    } else if (modalType === 'share' && selectedFormType) {
+    } else if (actionType === 'share' && selectedFormType) {
       const url = `${baseURL}/application/${params}?formType=${selectedFormType}&userType=${userType}&applicationType=${appType}`;
       navigator.clipboard
         .writeText(url)
@@ -97,17 +112,22 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
         .catch(() => {
           toast.error('URL 복사에 실패했습니다. 다시 시도해주세요.');
         });
-    } else if (modalType === 'FIELD') {
-      router.push(
-        `/exhibition/access-qr/${params}?userType=${userType}&applicationType=${appType}`,
-      );
+    } else if (actionType === 'FIELD') {
+      router.push(getExpoRoutes(params).accessQr(userType, appType));
     }
 
     onClose();
   };
 
   const renderButtons = () => {
-    if (modalType === 'FIELD' && !selectedUserType) {
+    if (modalType === 'form' && !formAction) {
+      return [
+        { label: '폼 만들기', onClick: () => setFormAction('formcreate') },
+        { label: '폼 수정', onClick: () => setFormAction('edit') },
+      ];
+    }
+
+    if (actionType === 'FIELD' && !selectedUserType) {
       return [
         {
           label: '참가자',
@@ -120,7 +140,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       ];
     }
 
-    if (modalType === 'FIELD' && selectedUserType === USER_TYPES.STANDARD) {
+    if (actionType === 'FIELD' && selectedUserType === USER_TYPES.STANDARD) {
       return [
         {
           label: '사전 등록',
@@ -134,15 +154,20 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
     }
 
     if (
-      (modalType === 'edit' ||
-        modalType === 'formcreate' ||
-        modalType === 'share') &&
+      (actionType === 'edit' ||
+        actionType === 'formcreate' ||
+        actionType === 'share') &&
       !selectedCategory
     ) {
       const categories =
-        modalType === 'edit'
+        // 폼 버튼에서 고른 수정은 폼만 다룬다. 박람회 수정은 패널에서 바로 간다
+        actionType === 'edit' && modalType !== 'form'
           ? [CATEGORIES.EXHIBITION, CATEGORIES.FORM, CATEGORIES.SURVEY]
-          : [CATEGORIES.FORM, CATEGORIES.SURVEY];
+          : actionType === 'edit'
+            ? [CATEGORIES.FORM, CATEGORIES.SURVEY]
+            : actionType === 'formcreate'
+              ? [CATEGORIES.FORM, CATEGORIES.SURVEY, CATEGORIES.PROGRAM_FORM]
+              : [CATEGORIES.FORM, CATEGORIES.SURVEY];
 
       return categories.map((category) => ({
         label: category,
@@ -151,9 +176,9 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
     }
 
     if (
-      (modalType === 'edit' ||
-        modalType === 'formcreate' ||
-        modalType === 'share') &&
+      (actionType === 'edit' ||
+        actionType === 'formcreate' ||
+        actionType === 'share') &&
       selectedCategory &&
       !selectedUserType
     ) {
@@ -170,9 +195,9 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
     }
 
     if (
-      (modalType === 'edit' ||
-        modalType === 'formcreate' ||
-        modalType === 'share') &&
+      (actionType === 'edit' ||
+        actionType === 'formcreate' ||
+        actionType === 'share') &&
       selectedCategory === CATEGORIES.FORM &&
       selectedUserType === USER_TYPES.STANDARD
     ) {
@@ -206,11 +231,16 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
               <XMark />
             </button>
           </div>
-          {/* 여기서 만드는 폼은 사전·현장 등록용이다. 프로그램·연수 신청 폼은 회차에 연결하는 별도 폼이다 */}
-          {(modalType === 'formcreate' || modalType === 'edit') && (
+          {/* 프로그램 폼은 회차에 연결해야 신청을 받는다. 수정은 프로그램 폼 관리에서 한다 */}
+          {actionType === 'formcreate' && (
             <p className="text-caption1r text-gray-500">
-              여기서는 사전·현장 등록용 폼과 만족도 조사를 다룹니다.
-              프로그램·연수 신청 폼은{' '}
+              프로그램 폼은 만든 뒤 일정·모집의 회차에 연결해야 신청을 받을 수
+              있습니다.
+            </p>
+          )}
+          {actionType === 'edit' && (
+            <p className="text-caption1r text-gray-500">
+              프로그램 폼은{' '}
               <Link
                 href={getRegistrationRoutes(params).programForms}
                 className="text-main-600 underline"
@@ -218,12 +248,12 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
               >
                 프로그램 폼 관리
               </Link>
-              에서 만들고 신청관리의 회차에 연결합니다.
+              에서 수정합니다.
             </p>
           )}
         </div>
         <div className="flex items-center gap-12">
-          {!(startDate && endDate) && (
+          {!isDateReady && (
             <>
               <SelectDateInput
                 placeholder="시작 날짜"
@@ -238,8 +268,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
             </>
           )}
 
-          {startDate &&
-            endDate &&
+          {isDateReady &&
             renderButtons().map((button, index) => (
               <Button key={index} variant="white" onClick={button.onClick}>
                 {button.label}

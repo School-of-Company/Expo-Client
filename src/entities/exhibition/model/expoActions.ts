@@ -1,7 +1,7 @@
 import { getExpoRoutes, getRegistrationRoutes } from '@/shared/config';
 
 /** FormTypeModal 의 modalType */
-export type ExpoActionModalType = 'formcreate' | 'FIELD' | 'edit';
+export type ExpoActionModalType = 'formcreate' | 'FIELD' | 'edit' | 'form';
 
 export type ExpoAction = {
   title: string;
@@ -13,7 +13,7 @@ export const getExpoActions = (expoId: string) => {
   const routes = getExpoRoutes(expoId);
   return {
     participants: {
-      title: '조회',
+      title: '참가자',
       description: '선택일 입장자·행사 연수자 명단 조회',
       href: routes.participants,
     },

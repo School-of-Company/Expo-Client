@@ -3,8 +3,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-import { ExhibitionCheckInHeader } from '@/entities/exhibition';
-import { maskParticipantPhone } from '@/features/registration/participants/model/participantSearch';
+import { maskParticipantPhone } from '@/features/registration/participants';
 import { toRoleAuthority, USER_AUTHORITY } from '@/shared/config';
 import { useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
@@ -165,7 +164,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
     handleScan();
   }, [scannedQR]);
 
-  // 표에는 참가자 검색과 같은 규칙으로 가린 번호만 보여 준다(번호 없으면 '-')
+  // 표에는 참가자 목록과 같은 규칙으로 가린 번호만 보여 준다(번호 없으면 '-')
   const maskedUserData = userData.map((user) => ({
     ...user,
     phoneNumber: maskParticipantPhone(user.phoneNumber),
@@ -175,48 +174,59 @@ const QRScannerTable = ({ id }: { id: string }) => {
     PrintBadge: (selectItem: string) => userQrPrint(userData, selectItem),
   };
 
+  const isExitMode = mode === 'exit';
+
   return (
-    <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-y-auto">
-      <div className="flex items-center justify-between gap-16 mobile:flex-col mobile:items-start">
-        <ExhibitionCheckInHeader />
+    <div className="flex w-full flex-1 flex-col gap-24 overflow-y-auto">
+      {/* 지금 모드를 늘 보여 주고, 퇴장은 잘못 찍지 않도록 눈에 띄게 둔다 */}
+      <div
+        className={`flex flex-wrap items-center justify-between gap-16 rounded-sm border-1 border-solid px-24 py-20 mobile:px-16 ${
+          isExitMode ? 'border-error' : 'border-main-600 bg-main-100'
+        }`}
+      >
+        <div role="status" className="space-y-4">
+          <p
+            className={`text-h3b ${isExitMode ? 'text-error' : 'text-main-600'}`}
+          >
+            {isExitMode ? '퇴장 모드' : '입장 모드'}
+          </p>
+          <p className="break-keep text-body2r text-gray-600">
+            {isExitMode
+              ? '스캔한 QR은 퇴장으로 기록되고 아래 표에는 추가되지 않습니다.'
+              : '스캔한 QR은 입장으로 기록됩니다.'}
+          </p>
+        </div>
         <ScanModeToggle mode={mode} onChange={setMode} />
       </div>
-      {/* 지금 모드를 늘 보여 주고, 퇴장은 잘못 찍지 않도록 눈에 띄게 둔다 */}
-      {mode === 'exit' ? (
-        <p
-          role="status"
-          className="break-keep rounded-sm border-1 border-solid border-error px-16 py-12 text-body2b text-error"
-        >
-          퇴장 모드입니다. 스캔한 QR은 퇴장으로 기록되고 아래 표에는 추가되지
-          않습니다.
-        </p>
-      ) : (
-        <p
-          role="status"
-          className="break-keep rounded-sm border-1 border-solid border-main-600 px-16 py-12 text-body2b text-main-600"
-        >
-          입장 모드입니다. 스캔한 QR은 입장으로 기록됩니다.
-        </p>
-      )}
       <section className="grid grid-cols-2 gap-24 mobile:grid-cols-1">
-        <div className="space-y-12">
-          <p className="text-body1b text-black">스캐너 이름</p>
-          <ScannerNameInput scannerName={scannerName} onSave={setScannerName} />
-          <p className="text-body1b text-black">QR 스캔</p>
-          <p className="break-keep text-body2r text-gray-500">
-            USB 스캐너는 버튼 없이 바로 처리됩니다. 스캐너가 읽지 못하면 값을
-            직접 입력하세요.
-          </p>
-          <ManualScanInput onSubmit={submitScan} />
-          <button
-            type="button"
-            onClick={() => setIsCameraOn((prev) => !prev)}
-            aria-pressed={isCameraOn}
-            className="text-body2r text-main-600 underline"
-          >
-            {isCameraOn ? '카메라 끄기' : '카메라로 스캔'}
-          </button>
+        <div className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
+          <div className="flex items-center justify-between gap-12">
+            <p className="text-body1b text-black">QR 스캔</p>
+            <button
+              type="button"
+              onClick={() => setIsCameraOn((prev) => !prev)}
+              aria-pressed={isCameraOn}
+              className={`rounded-sm border-1 border-solid px-16 py-8 text-caption1b ${
+                isCameraOn
+                  ? 'border-main-600 bg-main-600 text-white'
+                  : 'border-main-600 text-main-600'
+              }`}
+            >
+              {isCameraOn ? '카메라 끄기' : '카메라로 스캔'}
+            </button>
+          </div>
           {isCameraOn && <CameraScanner onScan={submitScan} />}
+          <div className="space-y-8">
+            <p className="text-caption1r text-gray-600">스캐너 이름</p>
+            <ScannerNameInput
+              scannerName={scannerName}
+              onSave={setScannerName}
+            />
+          </div>
+          <div className="space-y-8">
+            <p className="text-caption1r text-gray-600">QR 값 직접 입력</p>
+            <ManualScanInput onSubmit={submitScan} />
+          </div>
         </div>
         <ScanResultCard
           mode={mode}
@@ -227,12 +237,12 @@ const QRScannerTable = ({ id }: { id: string }) => {
       <WalkInPanel
         expoId={id}
         scannerName={scannerName}
-        isExitMode={mode === 'exit'}
+        isExitMode={isExitMode}
       />
       <EntrySummaryPanel expoId={id} />
       {paperQrCount > 0 && (
         <p className="text-body2r text-gray-500">
-          종이 QR 입장 {paperQrCount}명 (이 화면에서 스캔한 수)
+          이 화면에서 종이 QR로 입장 처리한 인원 {paperQrCount}명
         </p>
       )}
       <TableForm
