@@ -13,13 +13,10 @@ import {
   useRegistrationExpo,
 } from '../../../common';
 import {
-  getLedgerErrorMessage,
   getSummaryErrorMessage,
-  isParticipantSourceError,
   LEDGER_REFRESH_MS,
   useCurrentSessions,
   useLedgerSummary,
-  useRecentApplications,
 } from '../../../common/model/ledger';
 import {
   preregisterSummaryQueryKey,
@@ -35,7 +32,6 @@ import MonitoringCards from '../MonitoringCards';
 import PreregisterBanner from '../PreregisterBanner';
 import PreregisterSessionTable from '../PreregisterSessionTable';
 import ProgramStatusTable from '../ProgramStatusTable';
-import RecentLedgerTable from '../RecentLedgerTable';
 import SessionStatusTable from '../SessionStatusTable';
 import SummaryCards from '../SummaryCards';
 
@@ -86,26 +82,18 @@ const SectionLoading = () => (
   </div>
 );
 
-interface RegistrationDashboardProps {
-  /** 다른 기능의 요약 영역. 화면(view)에서 넣어 준다 */
-  recentActivity?: ReactNode;
-}
-
-/** 보는 정보는 이 화면에 모으고, 입력·발송·인쇄 같은 작업은 각 화면으로 보낸다 */
-const RegistrationDashboard = ({
-  recentActivity,
-}: RegistrationDashboardProps) => {
+/** 보는 정보는 이 화면에 모으고, 입력·발송·인쇄 같은 작업은 각 화면으로 보낸다. 최근 신청·처리 이력은 접수대장·행정 이력 탭에서 본다 */
+const RegistrationDashboard = () => {
   const queryClient = useQueryClient();
   const { expoId, expo, routes } = useRegistrationExpo();
   const [programView, setProgramView] = useState<ProgramView>('program');
   // 각 영역은 따로 조회해서 하나가 실패해도 나머지는 보여 준다
   const summary = useLedgerSummary(expoId);
   const sessions = useCurrentSessions(expoId);
-  const recent = useRecentApplications(expoId);
   const preregister = usePreregisterSummary(expoId);
   // 사전등록 회차 이름·일시와 Expo 대기 정원. 실패해도 회차 번호로 집계를 보여 준다
   const preregisterSessions = usePreregisterSessions(expoId);
-  const queries = [summary, sessions, recent, preregister];
+  const queries = [summary, sessions, preregister];
 
   const updatedAt = Math.max(
     ...queries.map(({ dataUpdatedAt }) => dataUpdatedAt),
@@ -116,10 +104,8 @@ const RegistrationDashboard = ({
       [
         ['adminApplicationSummary', expoId],
         ['adminCurrentSessions', expoId],
-        ['adminApplications', expoId],
         preregisterSummaryQueryKey(expoId),
         scheduleQueryKeys.sessions(expoId),
-        ['adminApplicationActivities', expoId],
         applicationPageViewsQueryKey(expoId),
         activeQrQueryKey(expoId),
       ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
@@ -252,33 +238,6 @@ const RegistrationDashboard = ({
           <MonitoringCards expoId={expoId} sessionCounts={sessionCounts} />
         </Section>
       </div>
-
-      <Section title="최근 실시간 접수 동향" href={routes.applications}>
-        {recent.isError &&
-        (!recent.data || isParticipantSourceError(recent.error)) ? (
-          <SectionError
-            message={getLedgerErrorMessage(
-              recent.error,
-              '최근 신청을 불러오지 못했습니다.',
-            )}
-            onRetry={() => recent.refetch()}
-          />
-        ) : recent.data ? (
-          <RecentLedgerTable rows={recent.data} />
-        ) : (
-          <SectionLoading />
-        )}
-      </Section>
-
-      {recentActivity && (
-        <Section
-          title="최근 처리 이력"
-          description="신청·취소·대기 승급 처리입니다."
-          href={routes.history}
-        >
-          {recentActivity}
-        </Section>
-      )}
     </div>
   );
 };
