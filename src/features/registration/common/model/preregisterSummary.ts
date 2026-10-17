@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
+import { useRealtimeRefetchInterval } from '@/shared/libs/realtime/AdminRealtimeProvider';
 import {
   AdminPreregisterSessionSummary,
   getAdminPreregisterSummary,
@@ -17,7 +18,10 @@ export const usePreregisterSummary = (expoId: string) =>
   useQuery({
     queryKey: preregisterSummaryQueryKey(expoId),
     queryFn: () => getAdminPreregisterSummary(expoId),
-    refetchInterval: LEDGER_REFRESH_MS,
+    refetchInterval: useRealtimeRefetchInterval(
+      LEDGER_REFRESH_MS,
+      'APPLICATIONS',
+    ),
     // 실패는 섹션의 상태별 문구로 알리므로 서버 원문 전역 토스트는 끈다
     meta: { silent: true },
   });
