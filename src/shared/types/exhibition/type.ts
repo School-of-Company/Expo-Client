@@ -16,6 +16,7 @@ export type ExhibitionFormData = {
     title: string;
     startedAt: string;
     endedAt: string;
+    place?: string;
     category?: 'ESSENTIAL' | 'CHOICE';
   }[];
   standard: {
@@ -24,6 +25,7 @@ export type ExhibitionFormData = {
     title: string;
     startedAt: string;
     endedAt: string;
+    place?: string;
   }[];
   image: File | null | string;
   startedDay: string;
@@ -58,12 +60,14 @@ export interface FieldArrayProps {
   fieldName: 'trainings' | 'standard';
 }
 
+export type ProgramItem = ExhibitionFormData['trainings'][number];
+
 export interface ModalProps {
-  setModal: (value: boolean) => void;
-  setValue: UseFormSetValue<ExhibitionFormData>;
-  watch: UseFormWatch<ExhibitionFormData>;
-  index: number;
   fieldName: 'trainings' | 'standard';
+  /** 있으면 수정, 없으면 추가 */
+  initial?: ProgramItem;
+  onSubmit: (item: ProgramItem) => void;
+  onClose: () => void;
 }
 
 export const Application = {
