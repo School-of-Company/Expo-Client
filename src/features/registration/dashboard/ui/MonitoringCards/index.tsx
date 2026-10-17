@@ -8,7 +8,7 @@ interface MonitoringCardsProps {
   sessionCounts: { open: number; closed: number; unset: number } | null;
 }
 
-/** 신청화면 접속량과 지금 열린 회차·QR. 대시보드 오른쪽 좁은 열에 세로로 쌓는다 */
+/** 신청화면 접속량과 지금 열린 회차·QR. 위쪽 요약 카드와 같은 너비로 한 줄에 둔다 */
 const MonitoringCards = ({ expoId, sessionCounts }: MonitoringCardsProps) => {
   const { data: pageViews, isError: isPageViewsError } =
     useApplicationPageViews(expoId);
@@ -19,7 +19,7 @@ const MonitoringCards = ({ expoId, sessionCounts }: MonitoringCardsProps) => {
   const pageViewsError = isPageViewsError && !pageViews;
 
   return (
-    <div className="grid grid-cols-1 gap-12 mobile:!grid-cols-1 tablet:grid-cols-2">
+    <div className="grid grid-cols-4 gap-16 mobile:grid-cols-1 tablet:grid-cols-2">
       <StatCard
         label="모집 중 회차"
         value={formatCount(sessionCounts?.open)}
