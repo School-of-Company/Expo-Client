@@ -30,6 +30,7 @@ import PreRegisterWaitlist from '../PreRegisterWaitlist';
 const TYPE_LABEL: Record<OwnerApplicationType, string> = {
   PREREGISTER: '사전등록',
   ...PROGRAM_TYPE_LABEL,
+  STANDARD: '프로그램',
 };
 
 const BLOCKED_REASON_LABEL: Record<string, string> = {
