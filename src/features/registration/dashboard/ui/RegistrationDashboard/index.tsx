@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { ReactNode, useMemo, useState } from 'react';
+import { ApiError } from '@/shared/libs/http/apiError';
 import { Loading } from '@/shared/ui';
 import {
   RefreshStatus,
@@ -210,7 +211,11 @@ const RegistrationDashboard = () => {
           )
         ) : sessions.isError && !sessions.data ? (
           <SectionError
-            message="회차 목록을 불러오지 못했습니다."
+            message={
+              sessions.error instanceof ApiError
+                ? sessions.error.message
+                : '회차 목록을 불러오지 못했습니다.'
+            }
             onRetry={() => sessions.refetch()}
           />
         ) : sessions.data ? (
