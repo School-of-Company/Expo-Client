@@ -1,7 +1,7 @@
 import { getExpoRoutes, getRegistrationRoutes } from '@/shared/config';
 
 /** FormTypeModal 의 modalType */
-export type ExpoActionModalType = 'formcreate' | 'FIELD' | 'edit';
+export type ExpoActionModalType = 'formcreate' | 'FIELD' | 'edit' | 'form';
 
 export type ExpoAction = {
   title: string;
