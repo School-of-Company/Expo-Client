@@ -7,6 +7,7 @@ import { NavigationBar } from '@/shared/ui';
 import {
   RegistrationTable,
   SectionError,
+  SegmentTabs,
   TableColumn,
   useRegistrationExpo,
 } from '../../../common';
@@ -71,6 +72,14 @@ const COLUMNS: TableColumn<AdminChangeHistoryItem>[] = [
   },
 ];
 
+type HistoryTab = 'activity' | 'change' | 'message';
+
+const HISTORY_TABS: { value: HistoryTab; label: string }[] = [
+  { value: 'activity', label: '신청·취소·승급 이력' },
+  { value: 'change', label: '모집 변경 이력' },
+  { value: 'message', label: '그룹 문자 발송 이력' },
+];
+
 const HistoryLedger = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -78,6 +87,7 @@ const HistoryLedger = () => {
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
   const { expoId } = useRegistrationExpo();
   const [filter, setFilter] = useState<HistoryFilter>(INITIAL_HISTORY_FILTER);
+  const [tab, setTab] = useState<HistoryTab>('activity');
 
   const { data, error, isLoading, isError, refetch } = useAdminChangeHistory(
     expoId,
@@ -100,18 +110,20 @@ const HistoryLedger = () => {
   return withLoading({
     isLoading: isLoading && !data,
     children: (
-      <div className="flex w-full min-w-0 max-w-[1200px] flex-1 flex-col space-y-[54px]">
-        <ApplicationActivitySection expoId={expoId} />
+      <div className="flex w-full min-w-0 max-w-[1200px] flex-1 flex-col space-y-20">
+        {/* 세 이력을 쌓지 않고 탭으로 하나씩 보여 준다. 숨긴 탭도 그려 둬서 조건·불러온 목록이 유지된다 */}
+        <SegmentTabs
+          ariaLabel="행정 이력 구분"
+          value={tab}
+          options={HISTORY_TABS}
+          onChange={setTab}
+        />
 
-        <section className="space-y-16">
-          <div className="space-y-6">
-            <p className="text-body1b text-black">모집 변경 이력</p>
-            <p className="text-caption1r text-gray-400">
-              프로그램·회차 생성·수정·삭제 처리 이력입니다. 기록 이전의 변경은
-              포함하지 않습니다.
-            </p>
-          </div>
+        <div hidden={tab !== 'activity'}>
+          <ApplicationActivitySection expoId={expoId} />
+        </div>
 
+        <section hidden={tab !== 'change'} className="space-y-16">
           <HistoryFilters
             filter={filter}
             onChange={handleFilterChange}
@@ -145,7 +157,9 @@ const HistoryLedger = () => {
           )}
         </section>
 
-        <GroupMessageHistorySection expoId={expoId} />
+        <div hidden={tab !== 'message'}>
+          <GroupMessageHistorySection expoId={expoId} />
+        </div>
       </div>
     ),
   });
