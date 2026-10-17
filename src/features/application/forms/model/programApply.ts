@@ -72,11 +72,17 @@ export const getProgramRecruitmentLabel = (
   return '접수 중';
 };
 
-/** 신청 기간이 끝났는지(사용자 모집 목록 숨김 기준). 회차 운영 endedAt 이 아니라 policy.applicationEndedAt 이다 */
+/**
+ * 사용자 모집 목록에서 숨길 회차인지. 기준은 회차 운영 endedAt 이 아니라 policy.applicationEndedAt 이다.
+ * applicationEndedAt 은 사전 접수 마감이라 현장 접수를 막지 않으므로, 현장 정원이 있는 회차는 남긴다
+ */
 export const isProgramApplicationEnded = (
   policy: ProgramPolicy | null | undefined,
   now: number,
-) => !!policy && now >= new Date(policy.applicationEndedAt).getTime();
+) =>
+  !!policy &&
+  policy.onsiteCapacity <= 0 &&
+  now >= new Date(policy.applicationEndedAt).getTime();
 
 /**
  * 프로그램 모집 정책 안내 문구. 화면 안내용이며 자격·채널·정원·기간의 최종 판정은 신청할 때 서버가 한다.
