@@ -12,7 +12,7 @@ import {
   TableColumn,
 } from '../../../common';
 import { usePreregisterSummary } from '../../../common/model/preregisterSummary';
-import { SessionForm, toCount } from '../../model/sessionForm';
+import { SessionForm, toOptionalCount } from '../../model/sessionForm';
 import ScheduleSection from '../ScheduleSection';
 import SessionCreateForm from '../SessionCreateForm';
 
@@ -134,9 +134,11 @@ const SessionSection = ({
           size="small"
           type="number"
           min={1}
-          error={form.capacity < 1}
+          error={form.capacity === '' || form.capacity < 1}
           value={form.capacity}
-          onChange={(e) => onChange(id, { capacity: toCount(e.target.value) })}
+          onChange={(e) =>
+            onChange(id, { capacity: toOptionalCount(e.target.value) })
+          }
         />
       ),
     },
@@ -151,7 +153,7 @@ const SessionSection = ({
           min={0}
           value={form.waitingCapacity}
           onChange={(e) =>
-            onChange(id, { waitingCapacity: toCount(e.target.value) })
+            onChange(id, { waitingCapacity: toOptionalCount(e.target.value) })
           }
         />
       ),
@@ -228,7 +230,7 @@ const SessionSection = ({
   ];
 
   return (
-    <ScheduleSection title="② 행사 입장 사전등록 회차">
+    <ScheduleSection title="사전등록 회차">
       <RegistrationTable
         columns={columns}
         rows={rows}
