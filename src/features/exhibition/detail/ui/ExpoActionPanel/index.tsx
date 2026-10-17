@@ -36,9 +36,9 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
     },
     { ...actions.participants, title: '참가자' },
     {
-      title: '신청 관리',
-      description: '전 프로그램 접수 목록',
-      href: registrationRoutes.applications,
+      title: '신청관리',
+      description: '프로그램 신청 회차·모집 관리',
+      href: registrationRoutes.schedule,
     },
     {
       title: '만족도 조사',
