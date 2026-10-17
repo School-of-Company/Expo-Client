@@ -19,13 +19,8 @@ const ExpoInput = ({
   watch,
   fieldName,
 }: FieldArrayProps) => {
-  const [modal, setModal] = useState<boolean>(false);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-
-  const handleTrainingModal = (index: number) => {
-    setSelectedIndex(index);
-    setModal(true);
-  };
+  // 'new' 면 추가, 숫자면 그 항목 수정
+  const [editing, setEditing] = useState<number | 'new' | null>(null);
 
   const items = watch(fieldName);
 
@@ -39,19 +34,24 @@ const ExpoInput = ({
     )
       return;
     remove(index);
-    setSelectedIndex(null);
-    setModal(false);
   };
 
   return (
     <div className="relative flex flex-col gap-[20px]">
-      {modal && selectedIndex !== null && (
+      {editing !== null && (
         <Modal
-          setModal={setModal}
-          setValue={setValue}
-          index={selectedIndex}
-          watch={watch}
           fieldName={fieldName}
+          initial={editing === 'new' ? undefined : items[editing]}
+          onClose={() => setEditing(null)}
+          onSubmit={(item) => {
+            if (editing === 'new') append(item);
+            else
+              setValue(`${fieldName}.${editing}`, {
+                ...items[editing],
+                ...item,
+              });
+            setEditing(null);
+          }}
         />
       )}
       {fields.length > 0 && (
@@ -65,22 +65,19 @@ const ExpoInput = ({
                 <p className="text-body4 flex-shrink-0 text-gray-500">
                   {index + 1}
                 </p>
-                <div className="min-w-0 flex-1">
-                  <input
-                    {...register(`${fieldName}.${index}.title`, {
-                      required: '연수를 입력해주세요',
-                      validate: (title) =>
-                        !isProgramTitleTooLong(title) ||
-                        `프로그램명은 ${PROGRAM_TITLE_MAX_LENGTH}자 이하로 입력해주세요.`,
-                    })}
-                    placeholder="연수를 입력해주세요"
-                    className="text-body4 w-full overflow-hidden overflow-ellipsis whitespace-nowrap bg-transparent text-gray-500"
-                    value={items[index]?.title || ''}
-                    onChange={(e) =>
-                      setValue(`${fieldName}.${index}.title`, e.target.value)
-                    }
-                  />
-                </div>
+                {/* 제목은 입력칸이 아니라 글자로 보여 준다. append 직후 첫 렌더에서도 field 값으로 채워진다 */}
+                <input
+                  type="hidden"
+                  {...register(`${fieldName}.${index}.title`, {
+                    required: '연수를 입력해주세요',
+                    validate: (title) =>
+                      !isProgramTitleTooLong(title) ||
+                      `프로그램명은 ${PROGRAM_TITLE_MAX_LENGTH}자 이하로 입력해주세요.`,
+                  })}
+                />
+                <p className="text-body4 min-w-0 flex-1 truncate text-gray-500">
+                  {items[index]?.title || field.title}
+                </p>
                 <input
                   type="hidden"
                   {...register(`${fieldName}.${index}.startedAt`, {
@@ -103,7 +100,7 @@ const ExpoInput = ({
               </div>
               <div className="flex flex-shrink-0 gap-7 mobile:gap-3">
                 <button
-                  onClick={() => handleTrainingModal(index)}
+                  onClick={() => setEditing(index)}
                   type="button"
                   className="rounded-sm border-1 border-solid border-gray-200 px-3 py-1 text-body2r text-gray-300"
                 >
@@ -121,16 +118,7 @@ const ExpoInput = ({
           ))}
         </div>
       )}
-      <AddItemButton
-        onClick={() =>
-          append({
-            title: '',
-            startedAt: '',
-            endedAt: '',
-            ...(fieldName === 'trainings' ? { category: 'CHOICE' } : {}),
-          })
-        }
-      />
+      <AddItemButton onClick={() => setEditing('new')} />
     </div>
   );
 };
