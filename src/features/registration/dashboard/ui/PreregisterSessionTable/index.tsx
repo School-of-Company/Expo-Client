@@ -192,7 +192,7 @@ const PreregisterSessionTable = ({
       emptyText="사전등록 회차가 없습니다."
       footerText="회차"
       footerCount={rows.length}
-      maxHeight="none"
+      maxHeight="420px"
       minWidth="1000px"
     />
   );
