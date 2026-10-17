@@ -83,7 +83,17 @@ const AttendanceOverview = () => {
   return (
     <div className="flex w-full flex-col space-y-[40px]">
       <div className="space-y-24">
-        <div className="flex items-center justify-between gap-16 tablet:flex-col tablet:items-start">
+        {/* 행사 기간이 길면 날짜 버튼이 여러 줄이 되므로 갱신 상태는 위에 따로 둔다 */}
+        <div className="flex flex-col gap-12">
+          <div className="flex justify-end">
+            <RefreshStatus
+              updatedAt={summary.updatedAt}
+              isFetching={summary.isFetching}
+              onRefresh={summary.refetch}
+              intervalMs={ATTENDANCE_REFRESH_MS}
+              hasError={summary.isError && Boolean(data)}
+            />
+          </div>
           {days.length > 0 && (
             <SegmentTabs
               ariaLabel="조회 날짜"
@@ -92,13 +102,6 @@ const AttendanceOverview = () => {
               onChange={setSelectedDay}
             />
           )}
-          <RefreshStatus
-            updatedAt={summary.updatedAt}
-            isFetching={summary.isFetching}
-            onRefresh={summary.refetch}
-            intervalMs={ATTENDANCE_REFRESH_MS}
-            hasError={summary.isError && Boolean(data)}
-          />
         </div>
 
         {summary.isError && !data ? (
