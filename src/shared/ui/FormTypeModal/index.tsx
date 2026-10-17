@@ -40,6 +40,9 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  // 공유 링크에는 날짜가 들어가지 않으므로 날짜를 고르지 않고 바로 항목을 보여준다
+  const needsDate = modalType !== 'share';
+  const isDateReady = !needsDate || (startDate && endDate);
 
   const handleCategorySelect = (category: string) => {
     if (category === CATEGORIES.EXHIBITION) {
@@ -223,7 +226,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
           )}
         </div>
         <div className="flex items-center gap-12">
-          {!(startDate && endDate) && (
+          {!isDateReady && (
             <>
               <SelectDateInput
                 placeholder="시작 날짜"
@@ -238,8 +241,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
             </>
           )}
 
-          {startDate &&
-            endDate &&
+          {isDateReady &&
             renderButtons().map((button, index) => (
               <Button key={index} variant="white" onClick={button.onClick}>
                 {button.label}
