@@ -56,10 +56,11 @@ export const getProgramParticipants = async (
   expoId: string,
   programType: ProgramType,
   programId: number,
+  onsite = false,
 ): Promise<ProgramParticipants> => {
   try {
     const { data } = await clientInstance.get<ProgramParticipants>(
-      `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${programId}/participants`,
+      `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${programId}/participants${onsite ? '?onsite=true' : ''}`,
     );
     return data;
   } catch (error) {
