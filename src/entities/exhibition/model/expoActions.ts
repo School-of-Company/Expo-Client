@@ -61,7 +61,7 @@ export const getExpoActions = (expoId: string) => {
     lottery: {
       title: '경품 추첨',
       description: '만족도 조사 경품 추첨 설정과 당첨 번호 관리',
-      href: routes.lottery,
+      href: getRegistrationRoutes(expoId).lottery,
     },
     edit: {
       title: '수정',
