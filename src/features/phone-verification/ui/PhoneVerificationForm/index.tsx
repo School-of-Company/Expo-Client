@@ -36,7 +36,9 @@ const formatExpiresAt = (expiresAt: string) =>
 const VerificationFields = ({ expoId }: { expoId: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect');
+  // 돌아갈 곳이 없으면 `/`(관리자 목록)이 아니라 이 박람회의 신청 화면으로 보낸다
+  const redirect =
+    searchParams.get('redirect') ?? `/application/forms/${expoId}`;
   const { data: sessionState } = useParticipantSession(expoId);
   const session = sessionState?.session;
   const {
