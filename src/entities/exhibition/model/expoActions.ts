@@ -13,7 +13,7 @@ export const getExpoActions = (expoId: string) => {
   const routes = getExpoRoutes(expoId);
   return {
     participants: {
-      title: '조회',
+      title: '참가자',
       description: '선택일 입장자·행사 연수자 명단 조회',
       href: routes.participants,
     },
