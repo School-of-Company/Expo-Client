@@ -14,6 +14,7 @@ const CATEGORIES = {
   EXHIBITION: '박람회',
   FORM: '등록용 폼',
   SURVEY: '만족도 조사',
+  PROGRAM_FORM: '프로그램 폼',
 };
 
 const FORM_TYPES = {
@@ -40,19 +41,25 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  // 공유 링크에는 날짜가 들어가지 않으므로 날짜를 고르지 않고 바로 항목을 보여준다
-  const needsDate = modalType !== 'share';
+  // 날짜는 등록용 폼의 신청 기간으로만 쓰이므로, 폼을 만들거나 고칠 때 등록용 폼을 고른 뒤에만 묻는다
+  const needsDate =
+    (modalType === 'formcreate' || modalType === 'edit') &&
+    selectedCategory === CATEGORIES.FORM;
   const isDateReady = !needsDate || (startDate && endDate);
 
   const handleCategorySelect = (category: string) => {
     if (category === CATEGORIES.EXHIBITION) {
-      if (!startDate || !endDate) {
-        toast.error('시작 날짜와 마감 날짜를 먼저 선택해주세요.');
-        return;
-      }
+      router.push(`/exhibition/edit/${params}`);
+      return;
+    }
+
+    // 프로그램 폼은 참가자 유형·날짜 없이 만들고, 신청 기간은 만들기 화면에서 정한다
+    if (category === CATEGORIES.PROGRAM_FORM) {
+      // 뒤로 가기가 박람회 상세로 돌아오도록 출발지를 넘긴다
       router.push(
-        `/exhibition/edit/${params}?startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
+        `${getRegistrationRoutes(params).programFormNew}?returnTo=detail`,
       );
+      onClose();
       return;
     }
 
@@ -145,7 +152,9 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
       const categories =
         modalType === 'edit'
           ? [CATEGORIES.EXHIBITION, CATEGORIES.FORM, CATEGORIES.SURVEY]
-          : [CATEGORIES.FORM, CATEGORIES.SURVEY];
+          : modalType === 'formcreate'
+            ? [CATEGORIES.FORM, CATEGORIES.SURVEY, CATEGORIES.PROGRAM_FORM]
+            : [CATEGORIES.FORM, CATEGORIES.SURVEY];
 
       return categories.map((category) => ({
         label: category,
@@ -209,11 +218,16 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
               <XMark />
             </button>
           </div>
-          {/* 여기서 만드는 폼은 사전·현장 등록용이다. 프로그램·연수 신청 폼은 회차에 연결하는 별도 폼이다 */}
-          {(modalType === 'formcreate' || modalType === 'edit') && (
+          {/* 프로그램 폼은 회차에 연결해야 신청을 받는다. 수정은 프로그램 폼 관리에서 한다 */}
+          {modalType === 'formcreate' && (
             <p className="text-caption1r text-gray-500">
-              여기서는 사전·현장 등록용 폼과 만족도 조사를 다룹니다.
-              프로그램·연수 신청 폼은{' '}
+              프로그램 폼은 만든 뒤 일정·모집의 회차에 연결해야 신청을 받을 수
+              있습니다.
+            </p>
+          )}
+          {modalType === 'edit' && (
+            <p className="text-caption1r text-gray-500">
+              프로그램 폼은{' '}
               <Link
                 href={getRegistrationRoutes(params).programForms}
                 className="text-main-600 underline"
@@ -221,7 +235,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
               >
                 프로그램 폼 관리
               </Link>
-              에서 만들고 일정·모집의 회차에 연결합니다.
+              에서 수정합니다.
             </p>
           )}
         </div>
