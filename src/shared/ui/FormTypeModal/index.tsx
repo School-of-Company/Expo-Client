@@ -218,7 +218,7 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
               >
                 프로그램 폼 관리
               </Link>
-              에서 만들고 일정·모집의 회차에 연결합니다.
+              에서 만들고 신청관리의 회차에 연결합니다.
             </p>
           )}
         </div>

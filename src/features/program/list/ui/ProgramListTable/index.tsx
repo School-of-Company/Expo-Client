@@ -46,7 +46,7 @@ const ProgramListTable = ({ expoId }: { expoId: string }) => {
     children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-46 overflow-y-auto">
         <ProgramNavigation />
-        {/* 이 화면은 조회·출석용이다. 회차 추가·폼 연결·정원은 일정·모집 화면에서 정한다 */}
+        {/* 이 화면은 조회·출석용이다. 회차 추가·폼 연결·정원은 신청관리 화면에서 정한다 */}
         <div className="flex items-center justify-between gap-16 rounded-sm border-1 border-solid border-gray-200 px-20 py-12 mobile:flex-col mobile:items-stretch">
           <p className="text-body2r text-gray-500">
             프로그램 회차 추가, 묶음, 신청 폼 연결, 정원·모집 기간은 프로그램
