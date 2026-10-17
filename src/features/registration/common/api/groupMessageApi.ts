@@ -50,10 +50,12 @@ export type GroupMessageSource =
 
 /** 카카오 템플릿 자리표시자 → 서버가 채우는 신청 값 */
 export interface KakaoVariableMapping {
+  expoName?: string;
   name?: string;
   programName?: string;
   sessionName?: string;
   location?: string;
+  status?: string;
 }
 
 export interface KakaoTemplate {
