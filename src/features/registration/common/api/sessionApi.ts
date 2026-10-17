@@ -1,3 +1,5 @@
+import axios from 'axios';
+import { toServerCode } from '@/shared/libs/handler/serverMessage';
 import {
   ApiError,
   getErrorStatus,
@@ -22,14 +24,27 @@ const compactParams = (params: object) =>
 export const DEFINITION_CHANGED_MESSAGE =
   '회차 정의가 바뀌었습니다. 다시 조회해주세요.';
 
-// 첫 페이지 409 는 버전 변경이 아니다. 서버가 Expo 회차 정의와 저장된 정의가 다르면 회차 하나만 어긋나도 목록 전체를 409 로 막는다
+// 서버가 회차 하나만 어긋나도 목록 전체를 409 로 막는다(Application #163)
 const DEFINITION_MISMATCH_MESSAGE =
   '프로그램 정책 변경 중이거나 확인되지 않은 회차가 있어 회차 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.';
 
+/** current-sessions 409 본문의 원인 코드 */
+const CONFLICT_MESSAGE: Record<string, string> = {
+  PROGRAM_DEFINITION_MISMATCH: DEFINITION_MISMATCH_MESSAGE,
+  DEFINITION_VERSION_CHANGED: DEFINITION_CHANGED_MESSAGE,
+};
+
+const getErrorCode = (error: unknown): string | undefined =>
+  error instanceof ApiError
+    ? error.code
+    : toServerCode(
+        axios.isAxiosError(error) ? error.response?.data : undefined,
+      );
+
 /**
  * 400·401·403 은 서버 문구 대신 화면 안내로 통일한다.
- * 409 는 definitionVersion 을 보낸 후속 페이지면 버전 변경, 첫 페이지면 정의 불일치다. 502 는 서버가 회차 정의를 읽지 못한 경우다.
- * 그 밖의 상태·네트워크 오류는 toApiError 로 서버 문구와 기존 처리를 그대로 쓴다
+ * 409 는 본문의 원인 코드로 정의 불일치와 버전 변경을 나눈다. 코드가 없는 이전 응답은 definitionVersion 을 보낸 후속 페이지면 버전 변경, 첫 페이지면 정의 불일치로 본다.
+ * 502 는 서버가 회차 정의를 읽지 못한 경우다. 그 밖의 상태·네트워크 오류는 toApiError 로 서버 문구와 기존 처리를 그대로 쓴다
  */
 const toSessionApiError = (
   error: unknown,
@@ -37,6 +52,7 @@ const toSessionApiError = (
   hasDefinitionVersion: boolean,
 ): unknown => {
   const status = getErrorStatus(error);
+  const code = getErrorCode(error);
   const message =
     status === 400
       ? '조회 조건이 올바르지 않습니다.'
@@ -45,13 +61,14 @@ const toSessionApiError = (
         : status === 403
           ? '접수 조회 권한(APPLICATION_READ)이 없습니다.'
           : status === 409
-            ? hasDefinitionVersion
-              ? DEFINITION_CHANGED_MESSAGE
-              : DEFINITION_MISMATCH_MESSAGE
+            ? ((code && CONFLICT_MESSAGE[code]) ??
+              (hasDefinitionVersion
+                ? DEFINITION_CHANGED_MESSAGE
+                : DEFINITION_MISMATCH_MESSAGE))
             : status === 502
               ? '서버가 회차 정원 정의를 확인하지 못했습니다. 잠시 후 다시 시도해주세요.'
               : null;
-  if (status && message) return new ApiError(message, status);
+  if (status && message) return new ApiError(message, status, code);
   return error instanceof ApiError ? error : toApiError(error, fallback);
 };
 
