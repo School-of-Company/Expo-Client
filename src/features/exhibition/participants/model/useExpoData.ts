@@ -14,6 +14,7 @@ export const useExpoManageQueries = (
   page: number,
   date: string,
   enabled: boolean,
+  sessionId?: number,
 ) => {
   const isTrainee = userType === 'TRAINEE';
 
@@ -25,8 +26,8 @@ export const useExpoManageQueries = (
   });
 
   const participantQueries = useQuery<ParticipantResponse, Error>({
-    queryKey: ['participantData', id, page, date],
-    queryFn: () => getParticipantExpoManageData(id, page, date),
+    queryKey: ['participantData', id, page, date, sessionId],
+    queryFn: () => getParticipantExpoManageData(id, page, date, sessionId),
     enabled: !isTrainee && enabled,
   });
 
