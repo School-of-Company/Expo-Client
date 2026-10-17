@@ -181,3 +181,58 @@ export const getParticipantQr = async (
     throw toError(error, COMMON_ERRORS, 'QR 을 불러오지 못했습니다.');
   }
 };
+
+/** 대기에서 올라온 참여 제안. 수락 가능 여부는 서버 respondable 만 따르고, expiresAt 은 표시용이다 */
+export interface PromotionOffer {
+  offerId: string;
+  type: OwnerApplicationType;
+  sessionOrProgramId: number;
+  seats: number;
+  status: 'PENDING' | 'OPEN' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED' | 'ENDED';
+  respondable: boolean;
+  expiresAt: string | null;
+}
+
+export interface MyPromotionOffers {
+  offers: PromotionOffer[];
+  csrfToken?: string;
+}
+
+export const getMyPromotionOffers = async (
+  expoId: string,
+): Promise<MyPromotionOffers> => {
+  try {
+    const { data, headers } = await clientInstance.get<PromotionOffer[]>(
+      `/application/expos/${expoId}/my-applications/promotion-offers`,
+    );
+    return { offers: data, csrfToken: headers['x-csrf-token'] };
+  } catch (error) {
+    throw toError(error, COMMON_ERRORS, '참여 제안을 불러오지 못했습니다.');
+  }
+};
+
+// 서버가 멱등이라 같은 요청을 반복해도 같은 결과다. 409 는 대기를 유지하므로 사유(code)를 보존해 안내한다
+export const respondPromotionOffer = async (
+  expoId: string,
+  offerId: string,
+  action: 'acceptance' | 'decline',
+  csrfToken?: string,
+) => {
+  try {
+    await clientInstance.post(
+      `/application/expos/${expoId}/my-applications/promotion-offers/${offerId}/${action}`,
+      undefined,
+      { headers: { 'X-CSRF-TOKEN': csrfToken } },
+    );
+  } catch (error) {
+    throw toError(
+      error,
+      {
+        ...COMMON_ERRORS,
+        403: '요청을 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.',
+        404: '해당 제안을 찾을 수 없습니다.',
+      },
+      '제안 응답에 실패했습니다.',
+    );
+  }
+};
