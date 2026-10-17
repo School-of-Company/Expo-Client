@@ -79,7 +79,11 @@ const collect = (chunks: string[]) => {
 {
   assert.equal(
     toUpstreamStreamPath('applications', '12'),
-    '/application/admin/expos/12/stream',
+    '/application/admin/expos/12/events',
+  );
+  assert.equal(
+    toUpstreamStreamPath('attendance', '12'),
+    '/attendance/summary/12/events',
   );
   assert.equal(toUpstreamStreamPath('applications', '../internal'), null);
   assert.equal(toUpstreamStreamPath('internal', '12'), null);

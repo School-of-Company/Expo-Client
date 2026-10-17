@@ -2,8 +2,8 @@ import { normalizeExpoId } from '@/shared/config/expoRoutes';
 import type { SseMessage } from './sseParser';
 
 /**
- * 관리자 화면 갱신 신호(SSE) 계약. Application #162 · Attendance #141 이 확정되기 전 초안(#601)을 따른다.
- * 서버 경로나 이벤트 이름이 확정되면 이 파일만 고친다.
+ * 관리자 화면 갱신 신호(SSE) 계약. Application #162 · Attendance #141 에서 확정된 경로와 이벤트를 따른다.
+ * 서버 경로나 이벤트 이름이 바뀌면 이 파일만 고친다.
  */
 
 /** 데이터가 바뀌었다는 신호. heartbeat 는 다른 이름(또는 주석 줄)으로 오므로 화면을 갱신하지 않는다 */
@@ -20,7 +20,7 @@ const RESOURCE_SEGMENT: Record<AdminRealtimeResource, string> = {
 };
 
 /**
- * Gateway 의 스트림 경로(가정). 서버 이슈가 확정되면 여기만 바꾼다.
+ * Gateway 의 스트림 경로. Application #166 · Attendance #144 가 정한 경로다.
  * expoId 는 normalizeExpoId 를 거친 값만 넣는다
  */
 const UPSTREAM_STREAM_PATH: Record<
@@ -28,8 +28,9 @@ const UPSTREAM_STREAM_PATH: Record<
   (expoId: string) => string
 > = {
   APPLICATIONS: (expoId) =>
-    `/application/admin/expos/${encodeURIComponent(expoId)}/stream`,
-  ATTENDANCE: (expoId) => `/attendance/stream/${encodeURIComponent(expoId)}`,
+    `/application/admin/expos/${encodeURIComponent(expoId)}/events`,
+  ATTENDANCE: (expoId) =>
+    `/attendance/summary/${encodeURIComponent(expoId)}/events`,
 };
 
 /** 브라우저가 연결할 BFF 경로. 인증정보는 HttpOnly 쿠키로만 가고 쿼리에는 싣지 않는다 */
