@@ -43,7 +43,6 @@ export const getExpoRoutes = (expoId: string) => {
     checkIn: `${qr}?tab=${EXPO_QR_TABS.checkIn}`,
     program: `/program/${id}?navigation=standard`,
     paperQr: `${qr}?tab=${EXPO_QR_TABS.paper}`,
-    lottery: `/exhibition/lottery/${id}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
   };
@@ -63,5 +62,6 @@ export const getRegistrationRoutes = (expoId: string) => {
     programForm: (formId: string) =>
       `${base}/program-forms/${encodeURIComponent(formId)}`,
     survey: `${base}/survey`,
+    lottery: `${base}/survey?view=lottery`,
   };
 };
