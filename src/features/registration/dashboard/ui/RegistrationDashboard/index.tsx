@@ -85,7 +85,7 @@ const SectionLoading = () => (
 /** 보는 정보는 이 화면에 모으고, 입력·발송·인쇄 같은 작업은 각 화면으로 보낸다. 최근 신청·처리 이력은 접수대장·행정 이력 탭에서 본다 */
 const RegistrationDashboard = () => {
   const queryClient = useQueryClient();
-  const { expoId, expo, routes } = useRegistrationExpo();
+  const { expoId, routes } = useRegistrationExpo();
   const [programView, setProgramView] = useState<ProgramView>('program');
   // 각 영역은 따로 조회해서 하나가 실패해도 나머지는 보여 준다
   const summary = useLedgerSummary(expoId);
@@ -122,10 +122,10 @@ const RegistrationDashboard = () => {
   );
 
   return (
-    <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[48px] overflow-y-auto">
-      <div className="space-y-20">
-        <div className="flex items-end justify-between gap-16 mobile:flex-col mobile:items-start">
-          <p className="text-h1m text-black mobile:text-h2b">{expo?.title}</p>
+    <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-y-auto">
+      <div className="space-y-12">
+        {/* 박람회 이름은 위쪽 모니터링 머리에 있어 갱신 상태만 둔다 */}
+        <div className="flex justify-end">
           <RefreshStatus
             updatedAt={updatedAt}
             isFetching={isFetching}
@@ -134,13 +134,17 @@ const RegistrationDashboard = () => {
             hasError={queries.some(({ isError }) => isError)}
           />
         </div>
-        <SummaryCards
-          programCount={programCount}
-          sessionCount={sessions.data?.length ?? null}
-          confirmed={summary.data ? (counts?.CONFIRMED ?? 0) : null}
-          waiting={summary.data ? (counts?.WAITING ?? 0) : null}
-          uniqueParticipants={summary.data?.uniqueParticipants ?? null}
-        />
+        {/* 신청 요약 4개와 운영 지표 4개를 한 덩어리로 두어 한 화면에 보이게 한다 */}
+        <div className="grid grid-cols-4 gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
+          <SummaryCards
+            programCount={programCount}
+            sessionCount={sessions.data?.length ?? null}
+            confirmed={summary.data ? (counts?.CONFIRMED ?? 0) : null}
+            waiting={summary.data ? (counts?.WAITING ?? 0) : null}
+            uniqueParticipants={summary.data?.uniqueParticipants ?? null}
+          />
+          <MonitoringCards expoId={expoId} sessionCounts={sessionCounts} />
+        </div>
         {summary.isError && !summary.data && (
           <SectionError
             message={getSummaryErrorMessage(
@@ -150,17 +154,18 @@ const RegistrationDashboard = () => {
             onRetry={() => summary.refetch()}
           />
         )}
-        <p className="text-caption1r text-gray-400">
-          확정·대기는 프로그램 회차 신청 건수 합계로, 한 사람이 여러 회차에
-          신청하면 신청마다 셉니다. 고유 참가자는 프로그램을 신청한 사람
-          수입니다. 둘 다 행사 사전등록 인원은 포함하지 않으며, 사전등록 인원은
-          아래 사전등록 요약과 사전등록 회차 탭에서 따로 봅니다.
-        </p>
+        <details className="rounded-sm bg-gray-100 px-16 py-8">
+          <summary className="cursor-pointer text-caption1b text-gray-600">
+            집계 기준
+          </summary>
+          <p className="pt-6 text-caption1r text-gray-500">
+            확정·대기는 프로그램 회차 신청 건수 합계로, 한 사람이 여러 회차에
+            신청하면 신청마다 셉니다. 고유 참가자는 프로그램을 신청한 사람
+            수입니다. 둘 다 행사 사전등록 인원은 포함하지 않으며, 사전등록
+            인원은 아래 사전등록 요약과 사전등록 회차 탭에서 따로 봅니다.
+          </p>
+        </details>
       </div>
-
-      <Section title="운영 지표">
-        <MonitoringCards expoId={expoId} sessionCounts={sessionCounts} />
-      </Section>
 
       <Section
         title="프로그램별 신청 현황"
@@ -198,13 +203,18 @@ const RegistrationDashboard = () => {
                 summaries={preregister.data.sessions}
                 sessions={preregisterSessions.data}
               />
-              <p className="text-caption1r text-gray-400">
-                행사 사전등록 기준 고유 인원입니다. 대표자와 동행자를 각각 한
-                명으로 세며, 대기는 확정 전 일행 기준입니다. 선두 일행이 빈
-                확정석보다 많으면 순서대로 승급하기 위해 대기 승급이 멈춥니다.
-                대기 정원이 미적용인 회차는 대기를 받지 않으므로 현재 회차 대기
-                정원을 적용해야 합니다.
-              </p>
+              <details className="rounded-sm bg-gray-100 px-16 py-8">
+                <summary className="cursor-pointer text-caption1b text-gray-600">
+                  집계 기준
+                </summary>
+                <p className="pt-6 text-caption1r text-gray-500">
+                  행사 사전등록 기준 고유 인원입니다. 대표자와 동행자를 각각 한
+                  명으로 세며, 대기는 확정 전 일행 기준입니다. 선두 일행이 빈
+                  확정석보다 많으면 순서대로 승급하기 위해 대기 승급이 멈춥니다.
+                  대기 정원이 미적용인 회차는 대기를 받지 않으므로 현재 회차
+                  대기 정원을 적용해야 합니다.
+                </p>
+              </details>
             </div>
           ) : (
             !preregister.isError && <SectionLoading />
