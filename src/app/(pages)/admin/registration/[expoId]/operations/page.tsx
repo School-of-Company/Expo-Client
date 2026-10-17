@@ -1,14 +1,8 @@
-import { Metadata } from 'next';
-import { RegistrationOperationsPage } from '@/views/registration/operations';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: '박람회 운영',
-  description:
-    '참가자 조회, 폼 생성, 현장 등록·입장 QR, 프로그램, 문자 전송, 종이 QR, 경품 추첨, 수정을 한곳에서 여는 관리자 전용 페이지입니다.',
+// 박람회 운영 페이지는 박람회 상세의 메뉴 패널로 옮겼다. 예전 주소로 들어오면 상세로 보낸다
+const page = ({ params }: { params: { expoId: string } }) => {
+  redirect(`/exhibition/detail/${encodeURIComponent(params.expoId)}`);
 };
 
-const Page = () => {
-  return <RegistrationOperationsPage />;
-};
-
-export default Page;
+export default page;
