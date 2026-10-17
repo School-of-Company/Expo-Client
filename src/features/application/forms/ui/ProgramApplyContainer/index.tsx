@@ -452,7 +452,9 @@ const ProgramApplyContainer = ({
           const formId = getProgramFormId(program);
           const outcome = outcomes[program.id];
           const isOpen = openGroupKey === group.key;
-          const onsite = !!onsiteGroups[group.key];
+          // 라디오는 현장 정원이 있는 회차에서만 보이므로, 정원 없는 회차로 바꾸면 사전 신청으로 돌아간다
+          const onsite =
+            !!program.policy?.onsiteCapacity && !!onsiteGroups[group.key];
           const existing = getGroupApplications(
             group,
             programType,
