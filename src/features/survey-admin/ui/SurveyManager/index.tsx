@@ -1,11 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { FormEditor } from '@/features/form/common';
 import { transformFormData } from '@/features/form/common/model/formUtils';
 import { transformServerData } from '@/features/form/edit';
 import { useRegistrationExpo } from '@/features/registration/common';
 import { XMark } from '@/shared/assets/icons';
+import { getExpoRoutes } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
 import { FormValues, SurveyFormRequest } from '@/shared/types/form/create/type';
 import { Button } from '@/shared/ui';
@@ -84,21 +86,30 @@ const SurveyManager = () => {
             );
           })}
         </div>
-        {isEdit && (
-          <div className="flex items-center gap-16">
-            <p className="whitespace-nowrap text-body2r text-gray-600">
-              응답 {survey.totalAnswers}건
-            </p>
-            <Button
-              variant="white"
-              width="120px"
-              onClick={handleDelete}
-              disabled={remove.isPending}
-            >
-              {remove.isPending ? '삭제 중...' : '설문 삭제'}
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-16">
+          {isEdit && (
+            <>
+              <p className="whitespace-nowrap text-body2r text-gray-600">
+                응답 {survey.totalAnswers}건
+              </p>
+              <Button
+                variant="white"
+                width="120px"
+                onClick={handleDelete}
+                disabled={remove.isPending}
+              >
+                {remove.isPending ? '삭제 중...' : '설문 삭제'}
+              </Button>
+            </>
+          )}
+          {/* 박람회 운영 페이지를 없애며 경품 추첨은 만족도 조사에서 들어간다 */}
+          <Link
+            href={getExpoRoutes(expoId).lottery}
+            className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 px-16 py-12 text-body2b text-gray-500 duration-200 hover:border-main-600 hover:text-main-600"
+          >
+            경품 추첨
+          </Link>
+        </div>
       </div>
 
       {error ? (
