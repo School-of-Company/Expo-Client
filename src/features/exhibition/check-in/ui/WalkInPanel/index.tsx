@@ -36,27 +36,30 @@ const WalkInPanel = ({
   };
 
   return (
-    <section className="space-y-16 rounded-sm border-1 border-solid border-gray-200 px-24 py-20 mobile:px-16">
+    <section className="space-y-16 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
       <div className="flex items-center justify-between gap-12">
         <p className="text-body1b text-black">QR 없는 방문객 · 간편입장</p>
-        <p className="text-caption1r text-gray-400">
+        <p className="text-body2b text-main-600">
           오늘 합계 {data?.total ?? 0}명
         </p>
       </div>
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         {CATEGORIES.map(({ value, label }) => (
-          <div key={value} className="space-y-8">
+          <div key={value} className="space-y-12 rounded-sm bg-gray-100 p-16">
+            <div className="flex items-baseline justify-between gap-8">
+              <p className="text-body2b text-gray-700">{label}</p>
+              <p className="text-h2b text-black">
+                {countOf(value)}
+                <span className="text-body2r text-gray-500"> 명</span>
+              </p>
+            </div>
             <Button
               onClick={() => handleAdd(value)}
               disabled={isExitMode || isUnavailable || isPending}
             >
               {label} +1
             </Button>
-            <div className="flex items-center justify-between">
-              <p className="text-body2r text-gray-500">
-                오늘 {label}{' '}
-                <span className="text-black">{countOf(value)}</span>명
-              </p>
+            <div className="flex justify-end">
               <button
                 type="button"
                 onClick={() => mutate({ category: value, action: 'UNDO' })}
@@ -74,7 +77,7 @@ const WalkInPanel = ({
           퇴장 모드에서는 간편입장 +1을 쓸 수 없습니다. 입장 모드로 바꿔 주세요.
         </p>
       )}
-      {isUnavailable ? (
+      {isUnavailable && (
         <div role="alert" className="flex items-center justify-between gap-12">
           <p className="break-keep text-body2r text-gray-500">
             {getErrorStatus(error) === 404
@@ -90,11 +93,6 @@ const WalkInPanel = ({
             다시 시도
           </button>
         </div>
-      ) : (
-        <p className="break-keep text-caption1r text-gray-400">
-          개인정보 없이 방문 인원수만 집계합니다. 인쇄한 종이 QR은 위 스캐너로
-          스캔해 주세요.
-        </p>
       )}
     </section>
   );
