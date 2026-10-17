@@ -46,6 +46,14 @@ const isRetryable = (error: unknown) => {
   return status === 502 || status === 503;
 };
 
+type ScheduleView = 'STANDARD' | 'TRAINING' | 'PREREGISTER';
+
+const VIEWS: { value: ScheduleView; label: string }[] = [
+  { value: 'STANDARD', label: '프로그램' },
+  { value: 'TRAINING', label: '연수' },
+  { value: 'PREREGISTER', label: '사전예매' },
+];
+
 const ScheduleManager = () => {
   const { expoId } = useRegistrationExpo();
   const sessionsQuery = usePreregisterSessions(expoId);
@@ -60,6 +68,7 @@ const ScheduleManager = () => {
   const [programEditing, setProgramEditing] = useState<ProgramEditing>(null);
   const [draftForm, setDraftForm] = useState<ProgramForm>();
   const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [view, setView] = useState<ScheduleView>('STANDARD');
 
   useEffect(() => {
     if (!isDirty) return undefined;
@@ -77,6 +86,8 @@ const ScheduleManager = () => {
     useCallback((target: ScheduleProgram | 'new', form: ProgramForm) => {
       setDraftForm(form);
       setProgramEditing(target);
+      // 복원한 양식이 열리는 탭으로 옮긴다
+      if (target !== 'new') setView(target.programType);
       scrollToForm(PROGRAM_FORM_ID);
     }, []),
   );
@@ -211,15 +222,22 @@ const ScheduleManager = () => {
             onRetry={() => void invalidate()}
           />
         ) : (
-          <div>
-            <div className="min-w-0 flex-1 space-y-[60px]">
-              <ProgramSection
-                expoId={expoId}
-                programs={programs}
-                editing={programEditing}
-                onEditingChange={handleProgramEditingChange}
-                draftForm={draftForm}
-              />
+          <div className="min-w-0 flex-1 space-y-36">
+            <div role="tablist" className="flex gap-[18px]">
+              {VIEWS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={view === value}
+                  onClick={() => setView(value)}
+                  className={`text-h2b ${view === value ? 'text-black' : 'text-gray-500'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {view === 'PREREGISTER' ? (
               <SessionSection
                 expoId={expoId}
                 rows={rows}
@@ -230,7 +248,16 @@ const ScheduleManager = () => {
                 isCreating={isCreatingSession}
                 onCreatingChange={setIsCreatingSession}
               />
-            </div>
+            ) : (
+              <ProgramSection
+                expoId={expoId}
+                programs={programs}
+                type={view}
+                editing={programEditing}
+                onEditingChange={handleProgramEditingChange}
+                draftForm={draftForm}
+              />
+            )}
           </div>
         )}
 
