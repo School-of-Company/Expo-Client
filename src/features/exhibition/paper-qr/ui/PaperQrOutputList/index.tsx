@@ -77,11 +77,15 @@ const PaperQrOutputList = ({
     <section className="space-y-16 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16">
       <div className="flex flex-wrap items-start justify-between gap-12">
         <div className="space-y-4">
-          <p className="text-h3b text-black">
-            출력 목록 · {total}장
-            {printable.length < total &&
-              ` (인쇄 ${printable.length}장, 사용 중지 ${total - printable.length}장 제외)`}
+          <p className="text-body1b text-black">
+            출력 목록 <span className="text-main-600">{total}장</span>
           </p>
+          {printable.length < total && (
+            <p className="text-body2r text-gray-600">
+              인쇄 {printable.length}장 · 사용 중지 {total - printable.length}장
+              제외
+            </p>
+          )}
           {output?.range && (
             <p className="text-body2r text-gray-700">
               조회 범위: {output.range}
@@ -92,10 +96,6 @@ const PaperQrOutputList = ({
               {output.notice}
             </p>
           )}
-          <p className="break-keep text-caption1r text-gray-500">
-            A4 기준 3열 배열. 화면에서 QR이 정상 표시되면 인쇄 버튼을
-            눌러주세요.
-          </p>
         </div>
         <div className="flex flex-wrap gap-8">
           <button
@@ -128,7 +128,7 @@ const PaperQrOutputList = ({
       </div>
 
       {printable.length > 0 && (
-        <div className="flex flex-wrap items-end gap-12">
+        <div className="flex flex-wrap items-end gap-12 rounded-sm bg-gray-100 p-16">
           <div className="w-[120px] space-y-4">
             <p className="text-caption1r text-gray-600">라벨 가로(mm)</p>
             <Input
@@ -157,9 +157,8 @@ const PaperQrOutputList = ({
               }
             />
           </div>
-          <p className="flex-1 break-keep text-caption2r text-gray-400">
-            라벨 인쇄는 한 장에 QR 하나씩 찍습니다. 인쇄 창에서 여백은
-            &apos;없음&apos;, 배율은 100%로 설정해 주세요.
+          <p className="flex-1 break-keep text-caption1r text-gray-500">
+            라벨 인쇄 시 여백 없음, 배율 100%로 설정하세요.
           </p>
         </div>
       )}
@@ -176,9 +175,9 @@ const PaperQrOutputList = ({
             {tickets}
           </div>
           {total > PREVIEW_LIMIT && (
-            <p className="text-caption1r text-gray-400">
-              미리보기는 앞 {PREVIEW_LIMIT}장만 보입니다. 인쇄에는 {total}장이
-              모두 들어갑니다.
+            <p className="text-caption1r text-gray-500">
+              미리보기는 앞 {PREVIEW_LIMIT}장만 보이고, 인쇄에는 {total}장 모두
+              들어갑니다.
             </p>
           )}
         </>

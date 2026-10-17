@@ -1,14 +1,23 @@
-import { Metadata } from 'next';
-import { ExhibitionAccessQrPage } from '@/views/exhibition/access-qr';
+import { redirect } from 'next/navigation';
+import { EXPO_QR_TABS, getExpoRoutes } from '@/shared/config';
 
-export const metadata: Metadata = {
-  title: '현장 등록 QR 확인',
-  description:
-    '박람회 현장 등록을 위한 링크를 QR 코드로 제공합니다. 참가자는 QR을 통해 등록 페이지로 이동할 수 있습니다.',
-};
-
-const page = ({ params }: { params: { id: string } }) => {
-  return <ExhibitionAccessQrPage id={params.id} />;
+// 현장 등록 QR 은 QR 화면의 탭으로 옮겼다. 예전 주소로 들어오면 같은 대상을 고른 탭으로 보낸다
+const page = ({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { userType?: string; applicationType?: string };
+}) => {
+  const routes = getExpoRoutes(params.id);
+  redirect(
+    searchParams.userType
+      ? routes.accessQr(
+          searchParams.userType,
+          searchParams.applicationType || 'PRE',
+        )
+      : `${routes.qr}?tab=${EXPO_QR_TABS.access}`,
+  );
 };
 
 export default page;

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { ExpoAction, getExpoActions } from '@/entities/exhibition';
 import { Share } from '@/shared/assets/svg';
-import { getRegistrationRoutes } from '@/shared/config';
+import { getExpoRoutes, getRegistrationRoutes } from '@/shared/config';
 import { Button } from '@/shared/ui';
 
 interface ExpoActionPanelProps {
@@ -20,9 +20,20 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
 
   // 박람회 운영 페이지는 getExpoActions 전체를 카드로 보여 주고, 패널은 자주 쓰는 메뉴만 간추려 보여 준다
   const panelActions: ExpoAction[] = [
-    { ...actions.edit, title: '박람회 수정' },
-    actions.formCreate,
-    { ...actions.fieldQr, title: 'QR' },
+    {
+      title: '박람회 수정',
+      description: '박람회 정보 수정',
+      href: getExpoRoutes(params).edit,
+    },
+    {
+      ...actions.formCreate,
+      modal: { type: 'form', text: '폼 작업을 선택하세요.' },
+    },
+    {
+      title: 'QR',
+      description: '현장 등록 QR·박람회 입장·종이 QR 발급',
+      href: getExpoRoutes(params).qr,
+    },
     { ...actions.participants, title: '참가자' },
     {
       title: '신청 관리',
