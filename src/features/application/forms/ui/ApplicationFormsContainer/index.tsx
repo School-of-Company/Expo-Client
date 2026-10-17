@@ -13,8 +13,14 @@ import {
 import { useApplicationForms } from '../../model/useApplicationForms';
 import MyApplicationList from '../MyApplicationList';
 
+const VIEWS = [
+  { value: 'list', label: '신청 목록' },
+  { value: 'my', label: '내 신청' },
+] as const;
+
 const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
   const { forms, isLoading } = useApplicationForms(expoId);
+  const [view, setView] = useState<(typeof VIEWS)[number]['value']>('list');
   const [selected, setSelected] = useState<FormGroup | null>(null);
 
   // 폼이 하나라도 있는 그룹만 탭으로 노출
@@ -33,9 +39,24 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
           <DetailHeader headerTitle="신청 폼 모음" />
         </div>
 
-        <MyApplicationList expoId={expoId} />
+        <div role="tablist" className="flex justify-center gap-[18px]">
+          {VIEWS.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={view === value}
+              onClick={() => setView(value)}
+              className={`text-h2b mobile:text-h3b ${view === value ? 'text-black' : 'text-gray-500'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
-        {!current ? (
+        {view === 'my' ? (
+          <MyApplicationList expoId={expoId} />
+        ) : !current ? (
           <p className="flex flex-1 items-center justify-center text-body1r text-gray-500 mobile:text-body2r">
             신청할 수 있는 폼이 없습니다
           </p>
