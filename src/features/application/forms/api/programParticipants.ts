@@ -48,6 +48,8 @@ const ERRORS: Record<number, string> = {
   400: '잘못된 요청입니다. 다시 확인해주세요.',
   401: '참가자 인증이 필요하거나 인증이 만료되었습니다. 다시 인증해주세요.',
   404: '프로그램을 찾을 수 없습니다.',
+  // 서버가 이 회차의 정의를 아직 승인하지 않았거나 정책을 바꾸는 중이다
+  409: '프로그램 정책이 변경되는 중입니다. 잠시 후 다시 시도해주세요.',
   502: '서버 응답에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
   503: '연동 서버를 사용할 수 없습니다. 잠시 후 다시 시도해주세요.',
 };
@@ -56,10 +58,11 @@ export const getProgramParticipants = async (
   expoId: string,
   programType: ProgramType,
   programId: number,
+  onsite = false,
 ): Promise<ProgramParticipants> => {
   try {
     const { data } = await clientInstance.get<ProgramParticipants>(
-      `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${programId}/participants`,
+      `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${programId}/participants${onsite ? '?onsite=true' : ''}`,
     );
     return data;
   } catch (error) {

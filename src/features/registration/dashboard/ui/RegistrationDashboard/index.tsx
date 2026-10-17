@@ -13,13 +13,10 @@ import {
   useRegistrationExpo,
 } from '../../../common';
 import {
-  getLedgerErrorMessage,
   getSummaryErrorMessage,
-  isParticipantSourceError,
   LEDGER_REFRESH_MS,
   useCurrentSessions,
   useLedgerSummary,
-  useRecentApplications,
 } from '../../../common/model/ledger';
 import {
   preregisterSummaryQueryKey,
@@ -35,7 +32,6 @@ import MonitoringCards from '../MonitoringCards';
 import PreregisterBanner from '../PreregisterBanner';
 import PreregisterSessionTable from '../PreregisterSessionTable';
 import ProgramStatusTable from '../ProgramStatusTable';
-import RecentLedgerTable from '../RecentLedgerTable';
 import SessionStatusTable from '../SessionStatusTable';
 import SummaryCards from '../SummaryCards';
 
@@ -86,26 +82,18 @@ const SectionLoading = () => (
   </div>
 );
 
-interface RegistrationDashboardProps {
-  /** 다른 기능의 요약 영역. 화면(view)에서 넣어 준다 */
-  recentActivity?: ReactNode;
-}
-
-/** 보는 정보는 이 화면에 모으고, 입력·발송·인쇄 같은 작업은 각 화면으로 보낸다 */
-const RegistrationDashboard = ({
-  recentActivity,
-}: RegistrationDashboardProps) => {
+/** 보는 정보는 이 화면에 모으고, 입력·발송·인쇄 같은 작업은 각 화면으로 보낸다. 최근 신청·처리 이력은 접수대장·행정 이력 탭에서 본다 */
+const RegistrationDashboard = () => {
   const queryClient = useQueryClient();
-  const { expoId, expo, routes } = useRegistrationExpo();
+  const { expoId, routes } = useRegistrationExpo();
   const [programView, setProgramView] = useState<ProgramView>('program');
   // 각 영역은 따로 조회해서 하나가 실패해도 나머지는 보여 준다
   const summary = useLedgerSummary(expoId);
   const sessions = useCurrentSessions(expoId);
-  const recent = useRecentApplications(expoId);
   const preregister = usePreregisterSummary(expoId);
   // 사전등록 회차 이름·일시와 Expo 대기 정원. 실패해도 회차 번호로 집계를 보여 준다
   const preregisterSessions = usePreregisterSessions(expoId);
-  const queries = [summary, sessions, recent, preregister];
+  const queries = [summary, sessions, preregister];
 
   const updatedAt = Math.max(
     ...queries.map(({ dataUpdatedAt }) => dataUpdatedAt),
@@ -116,10 +104,8 @@ const RegistrationDashboard = ({
       [
         ['adminApplicationSummary', expoId],
         ['adminCurrentSessions', expoId],
-        ['adminApplications', expoId],
         preregisterSummaryQueryKey(expoId),
         scheduleQueryKeys.sessions(expoId),
-        ['adminApplicationActivities', expoId],
         applicationPageViewsQueryKey(expoId),
         activeQrQueryKey(expoId),
       ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
@@ -136,10 +122,10 @@ const RegistrationDashboard = ({
   );
 
   return (
-    <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-[56px] overflow-y-auto">
-      <div className="space-y-[26px]">
-        <div className="flex items-end justify-between gap-16 mobile:flex-col mobile:items-start">
-          <p className="text-h1m text-black mobile:text-h2b">{expo?.title}</p>
+    <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-30 overflow-y-auto">
+      <div className="space-y-12">
+        {/* 박람회 이름은 위쪽 모니터링 머리에 있어 갱신 상태만 둔다 */}
+        <div className="flex justify-end">
           <RefreshStatus
             updatedAt={updatedAt}
             isFetching={isFetching}
@@ -148,13 +134,17 @@ const RegistrationDashboard = ({
             hasError={queries.some(({ isError }) => isError)}
           />
         </div>
-        <SummaryCards
-          programCount={programCount}
-          sessionCount={sessions.data?.length ?? null}
-          confirmed={summary.data ? (counts?.CONFIRMED ?? 0) : null}
-          waiting={summary.data ? (counts?.WAITING ?? 0) : null}
-          uniqueParticipants={summary.data?.uniqueParticipants ?? null}
-        />
+        {/* 신청 요약 4개와 운영 지표 4개를 한 덩어리로 두어 한 화면에 보이게 한다 */}
+        <div className="grid grid-cols-4 gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
+          <SummaryCards
+            programCount={programCount}
+            sessionCount={sessions.data?.length ?? null}
+            confirmed={summary.data ? (counts?.CONFIRMED ?? 0) : null}
+            waiting={summary.data ? (counts?.WAITING ?? 0) : null}
+            uniqueParticipants={summary.data?.uniqueParticipants ?? null}
+          />
+          <MonitoringCards expoId={expoId} sessionCounts={sessionCounts} />
+        </div>
         {summary.isError && !summary.data && (
           <SectionError
             message={getSummaryErrorMessage(
@@ -164,121 +154,88 @@ const RegistrationDashboard = ({
             onRetry={() => summary.refetch()}
           />
         )}
-        <p className="text-caption1r text-gray-400">
-          확정·대기는 프로그램 회차 신청 건수 합계로, 한 사람이 여러 회차에
-          신청하면 신청마다 셉니다. 고유 참가자는 프로그램을 신청한 사람
-          수입니다. 둘 다 행사 사전등록 인원은 포함하지 않으며, 사전등록 인원은
-          아래 사전등록 요약과 사전등록 회차 탭에서 따로 봅니다.
-        </p>
       </div>
 
-      <div className="grid grid-cols-[2fr_1fr] gap-[32px] tablet:grid-cols-1">
-        <Section
-          title="프로그램별 신청 현황"
-          description="프로그램 회차 신청 기준입니다. 회차별 상세에서 행을 누르면 그 회차의 접수 관리대장으로 이동합니다."
-          href={routes.applications}
-        >
-          {preregister.isError && !preregister.data ? (
-            <SectionError
-              message={getSummaryErrorMessage(
-                preregister.error,
-                '사전등록 인원을 불러오지 못했습니다.',
-              )}
-              onRetry={() => preregister.refetch()}
-            />
-          ) : (
-            preregister.data && <PreregisterBanner summary={preregister.data} />
-          )}
-          <SegmentTabs
-            ariaLabel="신청 현황 보기"
-            value={programView}
-            options={PROGRAM_VIEW_OPTIONS}
-            onChange={setProgramView}
+      <Section
+        title="프로그램별 신청 현황"
+        description="프로그램 회차 신청 기준입니다. 회차별 상세에서 행을 누르면 그 회차의 접수 관리대장으로 이동합니다."
+        href={routes.applications}
+      >
+        {preregister.isError && !preregister.data ? (
+          <SectionError
+            message={getSummaryErrorMessage(
+              preregister.error,
+              '사전등록 인원을 불러오지 못했습니다.',
+            )}
+            onRetry={() => preregister.refetch()}
           />
-          {programView === 'preregister' ? (
-            preregister.data ? (
-              <div className="space-y-12">
-                {preregisterSessions.isError && (
-                  <p role="status" className="text-caption1r text-gray-400">
-                    사전등록 회차 정보를 불러오지 못해 회차 번호로 표시합니다.
-                    대기 정원 적용은 회차 정보를 불러온 뒤 할 수 있습니다.
-                  </p>
-                )}
-                <PreregisterSessionTable
-                  expoId={expoId}
-                  summaries={preregister.data.sessions}
-                  sessions={preregisterSessions.data}
-                />
-                <p className="text-caption1r text-gray-400">
+        ) : (
+          preregister.data && <PreregisterBanner summary={preregister.data} />
+        )}
+        <SegmentTabs
+          ariaLabel="신청 현황 보기"
+          value={programView}
+          options={PROGRAM_VIEW_OPTIONS}
+          onChange={setProgramView}
+        />
+        {programView === 'preregister' ? (
+          preregister.data ? (
+            <div className="space-y-12">
+              {preregisterSessions.isError && (
+                <p role="status" className="text-caption1r text-gray-400">
+                  사전등록 회차 정보를 불러오지 못해 회차 번호로 표시합니다.
+                  대기 정원 적용은 회차 정보를 불러온 뒤 할 수 있습니다.
+                </p>
+              )}
+              <PreregisterSessionTable
+                expoId={expoId}
+                summaries={preregister.data.sessions}
+                sessions={preregisterSessions.data}
+              />
+              <details className="rounded-sm bg-gray-100 px-16 py-8">
+                <summary className="cursor-pointer text-caption1b text-gray-600">
+                  집계 기준
+                </summary>
+                <p className="pt-6 text-caption1r text-gray-500">
                   행사 사전등록 기준 고유 인원입니다. 대표자와 동행자를 각각 한
                   명으로 세며, 대기는 확정 전 일행 기준입니다. 선두 일행이 빈
                   확정석보다 많으면 순서대로 승급하기 위해 대기 승급이 멈춥니다.
                   대기 정원이 미적용인 회차는 대기를 받지 않으므로 현재 회차
                   대기 정원을 적용해야 합니다.
                 </p>
-              </div>
-            ) : (
-              !preregister.isError && <SectionLoading />
-            )
-          ) : sessions.isError && !sessions.data ? (
-            <SectionError
-              message="회차 목록을 불러오지 못했습니다."
-              onRetry={() => sessions.refetch()}
-            />
-          ) : sessions.data ? (
-            <div>
-              {summary.isError && (
-                <p role="status" className="mb-8 text-caption1r text-gray-400">
-                  신청·출석 집계를 불러오지 못해 정원만 표시합니다.
-                </p>
-              )}
-              {programView === 'program' ? (
-                <ProgramStatusTable
-                  sessions={sessions.data}
-                  summaries={summary.data?.sessions ?? null}
-                />
-              ) : (
-                <SessionStatusTable
-                  sessions={sessions.data}
-                  summaries={summary.data?.sessions ?? null}
-                />
-              )}
+              </details>
             </div>
           ) : (
-            <SectionLoading />
-          )}
-        </Section>
-        <Section title="운영 지표">
-          <MonitoringCards expoId={expoId} sessionCounts={sessionCounts} />
-        </Section>
-      </div>
-
-      <Section title="최근 실시간 접수 동향" href={routes.applications}>
-        {recent.isError &&
-        (!recent.data || isParticipantSourceError(recent.error)) ? (
+            !preregister.isError && <SectionLoading />
+          )
+        ) : sessions.isError && !sessions.data ? (
           <SectionError
-            message={getLedgerErrorMessage(
-              recent.error,
-              '최근 신청을 불러오지 못했습니다.',
-            )}
-            onRetry={() => recent.refetch()}
+            message="회차 목록을 불러오지 못했습니다."
+            onRetry={() => sessions.refetch()}
           />
-        ) : recent.data ? (
-          <RecentLedgerTable rows={recent.data} />
+        ) : sessions.data ? (
+          <div>
+            {summary.isError && (
+              <p role="status" className="mb-8 text-caption1r text-gray-400">
+                신청·출석 집계를 불러오지 못해 정원만 표시합니다.
+              </p>
+            )}
+            {programView === 'program' ? (
+              <ProgramStatusTable
+                sessions={sessions.data}
+                summaries={summary.data?.sessions ?? null}
+              />
+            ) : (
+              <SessionStatusTable
+                sessions={sessions.data}
+                summaries={summary.data?.sessions ?? null}
+              />
+            )}
+          </div>
         ) : (
           <SectionLoading />
         )}
       </Section>
-
-      {recentActivity && (
-        <Section
-          title="최근 처리 이력"
-          description="신청·취소·대기 승급 처리입니다."
-          href={routes.history}
-        >
-          {recentActivity}
-        </Section>
-      )}
     </div>
   );
 };

@@ -48,7 +48,7 @@ const formatCount = ({
   waiting: number;
 }) => `확정 ${confirmed.toLocaleString()} / 대기 ${waiting.toLocaleString()}`;
 
-/** 사전등록 전체 인원 한 줄 요약 */
+/** 사전등록 전체 인원 요약. 회차 수 · 인원 · 직업별 인원을 칸으로 나눠 보여 준다 */
 const PreregisterBanner = ({
   summary,
 }: {
@@ -60,22 +60,31 @@ const PreregisterBanner = ({
   const hasUnclassified = unclassified.confirmed + unclassified.waiting > 0;
 
   return (
-    <div className="flex flex-wrap items-center gap-x-16 gap-y-8 rounded-sm border-1 border-solid border-gray-200 bg-gray-100 px-24 py-16 mobile:px-16">
-      <p className="text-body2b text-black">
-        사전등록 {summary.sessions.length}개 회차
-      </p>
-      <p className="text-body2r text-gray-500">
-        확정{' '}
-        <span className="text-main-600">
-          {summary.confirmedUniqueParticipants.toLocaleString()}
-        </span>
-        명 / 대기 {summary.waitingParticipants.toLocaleString()}명 · 확정 전
-        예약 {summary.pendingReservations.toLocaleString()}건
-      </p>
-      <p className="text-body2r text-gray-500">
-        교원 외 {formatCount(others)} · 교원·예비교사 {formatCount(teacher)}
-        {hasUnclassified && ` · 직업 미분류 ${formatCount(unclassified)}`}
-      </p>
+    <div className="grid grid-cols-[auto_1fr_1fr] divide-x-1 divide-solid divide-gray-200 rounded-sm border-1 border-solid border-gray-200 tablet:grid-cols-1 tablet:divide-x-0 tablet:divide-y-1">
+      <div className="flex items-center px-24 py-16 mobile:px-16">
+        <p className="whitespace-nowrap text-body1b text-black">
+          사전등록 {summary.sessions.length}개 회차
+        </p>
+      </div>
+      <div className="flex items-center px-24 py-16 mobile:px-16">
+        <p className="text-body2r text-gray-500">
+          확정{' '}
+          <span className="text-body1b text-main-600">
+            {summary.confirmedUniqueParticipants.toLocaleString()}
+          </span>
+          명 / 대기{' '}
+          <span className="text-body1b text-black">
+            {summary.waitingParticipants.toLocaleString()}
+          </span>
+          명 · 확정 전 예약 {summary.pendingReservations.toLocaleString()}건
+        </p>
+      </div>
+      <div className="flex items-center px-24 py-16 mobile:px-16">
+        <p className="text-body2r text-gray-500">
+          교원 외 {formatCount(others)} · 교원·예비교사 {formatCount(teacher)}
+          {hasUnclassified && ` · 직업 미분류 ${formatCount(unclassified)}`}
+        </p>
+      </div>
     </div>
   );
 };

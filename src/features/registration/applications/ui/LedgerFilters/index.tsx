@@ -71,7 +71,8 @@ const LedgerFilters = ({
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-4 items-center gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
+      {/* 두 줄로 줄인다: 검색 2개·회차 / 상태·직업·행사일·정렬·초기화 */}
+      <div className="grid grid-cols-6 items-center gap-12 mobile:grid-cols-1 tablet:grid-cols-2">
         <div className="col-span-2 mobile:col-span-1">
           <SearchInput
             label="참가자 이름·연락처 검색"

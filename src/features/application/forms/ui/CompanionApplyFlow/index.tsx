@@ -46,6 +46,7 @@ const CompanionApplyFlow = ({
   program,
   formId,
   participants,
+  onsite,
   onResult,
 }: {
   expoId: string;
@@ -53,6 +54,7 @@ const CompanionApplyFlow = ({
   program: Program;
   formId: string;
   participants: Candidate[];
+  onsite: boolean;
   onResult: (outcome: ProgramApplyOutcome) => void;
 }) => {
   const {
@@ -166,6 +168,7 @@ const CompanionApplyFlow = ({
             payload,
             csrfHeaders,
             key,
+            onsite,
           )
         : await postProgramBatchApplication(
             programType,
@@ -174,6 +177,7 @@ const CompanionApplyFlow = ({
             payload as ReturnType<typeof buildBatchRequest>,
             csrfHeaders,
             key,
+            onsite,
           );
       const status = typeof result === 'string' ? result : result.status;
       // PROCESSING 은 같은 키로 다시 확인해야 하므로 답변과 키를 유지한다

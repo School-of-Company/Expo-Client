@@ -104,7 +104,7 @@ const ProgramStatusTable = ({
         emptyText="등록된 프로그램이 없습니다."
         footerText="프로그램"
         footerCount={rows.length}
-        maxHeight="none"
+        maxHeight="420px"
         // 대시보드 왼쪽 칸(1280px 화면에서 약 690px)에 다 들어가게 한다. 더 좁으면 가로로 넘긴다
         minWidth="600px"
       />

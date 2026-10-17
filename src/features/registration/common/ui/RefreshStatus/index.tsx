@@ -14,7 +14,10 @@ interface RefreshStatusProps {
 const formatTime = (ms: number) =>
   new Date(ms).toLocaleTimeString('ko-KR', { hour12: false });
 
-/** 마지막 성공 시각과 자동 갱신 주기를 보여 주고 수동으로 다시 조회한다 */
+/**
+ * 마지막 성공 시각과 자동 갱신 주기를 보여 주고 수동으로 다시 조회한다.
+ * 옆 요소에 눌려 한 글자씩 줄바꿈되지 않게 줄이지 않고, 좁으면 항목 단위로 줄을 바꾼다
+ */
 const RefreshStatus = ({
   updatedAt,
   isFetching,
@@ -22,7 +25,7 @@ const RefreshStatus = ({
   intervalMs,
   hasError = false,
 }: RefreshStatusProps) => (
-  <div className="flex items-center gap-12 text-caption1r text-gray-400">
+  <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-12 gap-y-4 whitespace-nowrap text-caption1r text-gray-400">
     <p aria-live="polite">
       {updatedAt > 0 ? `마지막 갱신 ${formatTime(updatedAt)}` : '갱신 전'}
       {' · '}

@@ -52,6 +52,10 @@ export interface ProgramPolicy {
   onsiteCapacity: number;
   // 이 회차의 초등 1~3학년 보호자 동반 필수 설정. null·생략이면 OFF 이고 기존 단건 신청이다(Expo-Expo-Server#125)
   guardianPolicy?: ProgramGuardianPolicy | null;
+  // 현장 접수 기간(Expo-Expo-Server#137). 둘 다 있거나 둘 다 없어야 하고 시작이 종료보다 빨라야 한다.
+  // 수정은 정책을 통째로 바꾸므로 빠뜨리면 기존 현장 접수 기간이 지워진다
+  onsiteStartedAt?: string | null;
+  onsiteEndedAt?: string | null;
 }
 
 // 프로그램 생성·수정 요청 공통 필드. 시각은 'yyyy-MM-dd HH:mm' 이다.

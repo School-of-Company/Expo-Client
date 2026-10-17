@@ -168,9 +168,10 @@ export const postProgramBatchApplication = async (
   payload: ProgramBatchRequest,
   csrfHeaders: Record<string, string>,
   idempotencyKey: string,
+  onsite = false,
 ): Promise<ProgramBatchResult> => {
   const response = await submit(
-    `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${encodeURIComponent(programId)}/application-batches`,
+    `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${encodeURIComponent(programId)}/${onsite ? 'onsite-' : ''}application-batches`,
     payload,
     idempotencyKey,
     csrfHeaders,
@@ -203,9 +204,11 @@ export const postProgramApplication = async (
   payload: unknown,
   csrfHeaders: Record<string, string>,
   idempotencyKey: string,
+  // 현장 접수는 접수 구분 필드가 아니라 서버가 따로 연 현장 경로로 보낸다(Expo-Application-Server#125)
+  onsite = false,
 ): Promise<ProgramApplyResult> => {
   const response = await submit(
-    `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${encodeURIComponent(programId)}/applications`,
+    `/application/expos/${encodeURIComponent(expoId)}/program-sessions/${programType}/${encodeURIComponent(programId)}/${onsite ? 'onsite-' : ''}applications`,
     payload,
     idempotencyKey,
     csrfHeaders,
