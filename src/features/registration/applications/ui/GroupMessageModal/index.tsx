@@ -122,7 +122,7 @@ const GroupMessageModal = ({
       scope === 'SELECTED'
         ? { kind: 'SELECTED', applicationIds: selectedRows.map(({ id }) => id) }
         : { kind: 'FILTERED', filter: toGroupMessageFilter(filter) };
-    // 카카오는 카톡을 받을 수 없는 번호에 같은 내용을 문자로 대신 보낸다
+    // 카카오는 서버가 알림톡과 문자를 함께 보낸다. fallbackToSms 는 서버가 무시한다
     return channel === 'SMS'
       ? { scope: target, channel: 'SMS', body, fallbackToSms: false }
       : { scope: target, channel: 'KAKAO', templateId, fallbackToSms: true };
@@ -386,8 +386,9 @@ const GroupMessageModal = ({
                 })}
               </div>
               <p className="text-caption1r text-gray-500">
-                알림톡을 받을 수 없는 번호(카카오톡 미가입·채널 차단)는 같은
-                내용을 문자로 대신 보냅니다.
+                카카오는 알림톡과 같은 내용의 문자를 함께 보내며, 알림톡과 문자
+                요금이 함께 발생합니다. 카카오톡을 받을 수 없는 번호(미가입·채널
+                차단)는 문자만 받습니다.
               </p>
             </section>
 

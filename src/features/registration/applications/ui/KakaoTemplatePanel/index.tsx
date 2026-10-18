@@ -41,7 +41,8 @@ const KakaoTemplatePanel = ({ template }: { template: KakaoTemplate }) => {
         미리보기에서 제외 사유로 표시됩니다.
       </p>
       <p className="text-caption1r text-gray-400">
-        카카오톡을 받을 수 없는 번호는 같은 내용을 문자(LMS)로 보냅니다.
+        카카오 알림톡과 같은 내용의 문자를 함께 보냅니다. 카카오톡을 받을 수
+        없는 번호는 문자만 받습니다.
       </p>
     </div>
   );
