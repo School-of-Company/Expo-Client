@@ -455,8 +455,7 @@ const ProgramApplyContainer = ({
       <div className="mt-30 flex w-full max-w-[816px] flex-col gap-24">
         <DetailHeader headerTitle={`${label} 신청`} />
         <p className="break-keep text-body2r text-gray-500">
-          {label}마다 따로 신청합니다. 정원·기간은 안내용이며, 신청할 때 자격과
-          남은 자리를 다시 확인합니다.
+          {label}마다 따로 신청합니다.
         </p>
         {error && <p className="text-body2r text-error">{error.message}</p>}
         {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
