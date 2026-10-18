@@ -47,6 +47,8 @@ export const getExpoRoutes = (expoId: string) => {
     applicationForms: `/application/forms/${id}`,
     applicationProgram: `/application/forms/${id}/program`,
     applicationTraining: `/application/forms/${id}/training`,
+    // 등록을 마친 참가자가 도착하는 박람회 랜딩(사진·초대의 글)
+    landing: `/application/landing/${id}`,
   };
 };
 
