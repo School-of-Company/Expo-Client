@@ -45,6 +45,8 @@ export const getExpoRoutes = (expoId: string) => {
     paperQr: `${qr}?tab=${EXPO_QR_TABS.paper}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
+    applicationProgram: `/application/forms/${id}/program`,
+    applicationTraining: `/application/forms/${id}/training`,
   };
 };
 
