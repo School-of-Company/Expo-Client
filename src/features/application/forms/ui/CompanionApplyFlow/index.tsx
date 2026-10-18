@@ -9,6 +9,7 @@ import { buildProgramApplyPayload } from '@/features/form/program';
 import { FormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { getProgramSessionCsrfHeaders } from '@/shared/libs/http/programSessionCsrf';
+import { useLeaveConfirm } from '@/shared/model';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
 import {
@@ -93,6 +94,8 @@ const CompanionApplyFlow = ({
   const steps = buildSteps(selected);
   const reusedGuardian = findReusedGuardian(selected);
   const current = step === null ? undefined : steps[step];
+  // 앞사람 답변은 이 컴포넌트 상태에만 있어 폼을 고치지 않아도 작성 단계면 묻는다
+  useLeaveConfirm(step !== null);
 
   const toggle = (id: number) =>
     setSelectedIds((prev) =>

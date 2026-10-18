@@ -3,6 +3,7 @@
 import React from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { FormSchema } from '@/features/form/common/model/formSchema';
+import { useLeaveConfirm } from '@/shared/model';
 import { FormValues } from '../lib/visibilityEngine';
 import FieldRenderer from './FieldRenderer';
 
@@ -32,8 +33,10 @@ export default function FormRenderer({
     control,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = methods;
+
+  useLeaveConfirm(isDirty);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-20">
