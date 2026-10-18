@@ -18,6 +18,10 @@ export const FORM_ERROR_MESSAGES: Record<string, string> = {
     '같은 제목의 프로그램용 폼이 이미 있습니다. 제목을 바꿔주세요.',
   PROGRAM_FORM_PROTECTION_PENDING:
     '회차 사용 여부 보호가 연결될 때까지 폼 삭제와 기간 줄이기는 할 수 없습니다.',
+  PROGRAM_FORM_GUARDIAN_POLICY_IN_USE:
+    '보호자 동반 정책에서 사용 중인 폼은 수정할 수 없습니다. 새 폼을 만들어 연결해 주세요.',
+  PROGRAM_FORM_RESERVATION_UNAVAILABLE:
+    '박람회 서비스에서 이 폼의 사용 여부를 확인하지 못해 수정할 수 없습니다. 계속되면 운영진에게 문의해 주세요.',
   SURVEY_NOT_FOUND: '만족도 조사를 찾을 수 없습니다.',
   SURVEY_ALREADY_EXISTS: '같은 참여자군의 만족도 조사가 이미 있습니다.',
   SURVEY_ANSWER_INVALID: '답변을 다시 확인해주세요.',
