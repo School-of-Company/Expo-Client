@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { validateProgramForm } from '@/features/form/program';
 import { ArrowDown } from '@/shared/assets/icons';
 import { ApiError } from '@/shared/libs/http/apiError';
+import { useLeaveConfirm } from '@/shared/model';
 import { Button, Input } from '@/shared/ui';
 import {
   EMPTY_PROGRAM_FORM_VALUES,
@@ -74,8 +75,10 @@ const ProgramFormEditor = ({
     control,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<ProgramFormValues>({ defaultValues });
+
+  useLeaveConfirm(isDirty);
 
   const submit = handleSubmit(async (values) => {
     if (new Date(values.startDate) >= new Date(values.endDate)) {

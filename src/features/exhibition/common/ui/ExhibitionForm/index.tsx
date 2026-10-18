@@ -8,7 +8,7 @@ import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
 import { useAddressSearch } from '@/features/exhibition/common/hooks/useAddressSearch';
 import { Location } from '@/shared/assets/icons';
 import { COLORS } from '@/shared/config';
-import { handleFormErrors } from '@/shared/model';
+import { handleFormErrors, useLeaveConfirm } from '@/shared/model';
 import { showError } from '@/shared/model';
 import {
   ExhibitionFormData,
@@ -25,21 +25,29 @@ const ExhibitionForm = ({
   defaultValues?: Partial<ExhibitionFormData>;
   mutation: MutationType;
 }) => {
-  const { register, control, handleSubmit, setValue, watch } =
-    useForm<ExhibitionFormData>({
-      defaultValues: {
-        title: '',
-        introduction: '',
-        startedDay: '',
-        finishedDay: '',
-        image: '',
-        address: '',
-        location: '',
-        trainings: [],
-        standard: [],
-        ...defaultValues,
-      },
-    });
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { isDirty },
+  } = useForm<ExhibitionFormData>({
+    defaultValues: {
+      title: '',
+      introduction: '',
+      startedDay: '',
+      finishedDay: '',
+      image: '',
+      address: '',
+      location: '',
+      trainings: [],
+      standard: [],
+      ...defaultValues,
+    },
+  });
+  // 저장에 성공한 뒤에는 묻지 않는다
+  useLeaveConfirm(isDirty && !mutation.isSuccess);
   const pathname = usePathname();
   const isEditMode = pathname.split('/').includes('edit');
 

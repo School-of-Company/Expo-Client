@@ -9,6 +9,7 @@ import { buildProgramApplyPayload } from '@/features/form/program';
 import { FormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { getProgramSessionCsrfHeaders } from '@/shared/libs/http/programSessionCsrf';
+import { useLeaveConfirm } from '@/shared/model';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
 import {
@@ -34,10 +35,6 @@ type Candidate = CompanionCandidate & { eligible: boolean };
 
 // 신청 가능한 참가자이거나, 이 회차에 이미 신청해 재사용할 보호자
 const isSelectable = (p: Candidate) => p.eligible || !!p.guardianApplied;
-
-// 작성 중인 답변은 서버에 보관하지 않고 이 화면에만 둔다. 마지막 전체 제출 때 한 번에 보낸다
-const DRAFT_NOTICE =
-  '작성 중인 내용은 저장되지 않습니다. 전체 제출 전에 다른 화면으로 이동하거나 새로고침하면 처음부터 다시 선택해야 합니다.';
 
 /**
  * 동반 필수 프로그램 신청. 학생·보호자를 고르고 사람별 폼을 한 명씩 작성한 뒤 마지막에 한 번에 제출한다.
@@ -93,6 +90,8 @@ const CompanionApplyFlow = ({
   const steps = buildSteps(selected);
   const reusedGuardian = findReusedGuardian(selected);
   const current = step === null ? undefined : steps[step];
+  // 앞사람 답변은 이 컴포넌트 상태에만 있어 폼을 고치지 않아도 작성 단계면 묻는다
+  useLeaveConfirm(step !== null);
 
   const toggle = (id: number) =>
     setSelectedIds((prev) =>
@@ -231,9 +230,6 @@ const CompanionApplyFlow = ({
             신청할 수 없고, 여러 학생이 같은 보호자를 선택할 수 있습니다.
             보호자의 자리도 한 석 사용합니다.
           </p>
-          <p className="break-keep text-caption1r text-gray-600">
-            {DRAFT_NOTICE}
-          </p>
           {participants.map((p) => (
             <label
               key={p.participantId}
@@ -281,7 +277,6 @@ const CompanionApplyFlow = ({
         {current.name}님의 신청서 ({step + 1}/{steps.length}){' '}
         {isGuardian(current) ? '· 보호자' : '· 학생'}
       </p>
-      <p className="break-keep text-caption1r text-gray-600">{DRAFT_NOTICE}</p>
       {reusedGuardian && (
         <p className="break-keep text-caption1r text-gray-600">
           보호자 {reusedGuardian.name}님은 기존 신청을 재사용합니다.
