@@ -2,7 +2,6 @@
 
 import { ReactNode } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
 import { validateProgramForm } from '@/features/form/program';
 import { ArrowDown } from '@/shared/assets/icons';
 import { ApiError } from '@/shared/libs/http/apiError';
@@ -28,7 +27,7 @@ interface Props {
   defaultValues?: ProgramFormValues;
   /** 수정 중인 폼. 손대지 않은 기간을 초 단위까지 원래 값으로 보내는 데 쓴다. */
   baseForm?: ProgramFormResponseDto;
-  /** 실패하면 던진다. 제목 중복·기간 축소는 해당 필드 옆에 보여 준다. */
+  /** 실패하면 던진다. 제목 중복·기간 축소는 해당 필드 옆에, 나머지는 저장 버튼 위에 보여 준다. */
   onSubmit: (body: CreateProgramFormRequestDto) => Promise<void>;
   isPending: boolean;
   submitLabel: string;
@@ -105,7 +104,8 @@ const ProgramFormEditor = ({
           setError('endDate', { message });
           break;
         default:
-          toast.error(message);
+          // 토스트는 2초 만에 닫혀 긴 사유를 읽기 어렵다. 다시 저장할 때까지 버튼 위에 남긴다
+          setError('root.submit', { message });
       }
     }
   });
@@ -195,6 +195,10 @@ const ProgramFormEditor = ({
           }
         />
         <ErrorText message={errors.root?.builder?.message} />
+      </div>
+
+      <div role="alert">
+        <ErrorText message={errors.root?.submit?.message} />
       </div>
 
       <div className="flex gap-16">
