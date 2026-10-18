@@ -208,7 +208,7 @@ const ApplicationRow = ({
               접수 당시 문항과 답변이 저장되어 있지 않습니다.
             </p>
           ) : (
-            <AnswerList questions={questions} answers={answers} />
+            <AnswerList questions={questions} answers={answers} hideEmpty />
           )}
         </div>
       </details>

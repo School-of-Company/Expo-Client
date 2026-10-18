@@ -28,6 +28,8 @@ export interface AnswerDisplay {
   snapshotMissing: boolean;
 }
 
+export const NO_ANSWER = '답변 없음';
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
@@ -105,10 +107,10 @@ const plainText = (value: unknown): string => {
 };
 
 const toText = (question: SnapshotQuestion | undefined, value: unknown) => {
-  if (value == null || value === '') return '답변 없음';
+  if (value == null || value === '') return NO_ANSWER;
   if (typeof value === 'boolean') return value ? '예' : '아니오';
   if (Array.isArray(value)) {
-    if (value.length === 0) return '답변 없음';
+    if (value.length === 0) return NO_ANSWER;
     return value
       .map((item) =>
         isRecord(item)
