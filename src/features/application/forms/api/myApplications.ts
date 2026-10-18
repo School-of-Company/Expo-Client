@@ -3,8 +3,10 @@ import {
   AdminApplicationStatus,
   AdminOccupation,
 } from '@/features/registration/common/api/ledgerApi';
+import { toKoreanServerText } from '@/shared/libs/handler/serverMessage';
 import { ApiError, getErrorStatus } from '@/shared/libs/http/apiError';
 import clientInstance from '@/shared/libs/http/clientInstance';
+import type { Companion } from '@/shared/types/application/type';
 
 export type OwnerApplicationType = 'PREREGISTER' | 'STANDARD' | 'TRAINING';
 
@@ -36,6 +38,15 @@ export interface OwnerApplication {
   cancellable: boolean;
   // 취소 가능하면 빈 문자열
   cancellationBlockedReason: string;
+  /**
+   * 대표자 본인의 확정 사전등록에 동행자를 더 추가할 수 있는지(Expo-Application-Server#169).
+   * 서버 배포 전 응답에는 없으므로 없으면 추가할 수 없다고 본다
+   */
+  companionAddable?: boolean;
+  /** 지금 더 추가할 수 있는 동행자 수. 동행자 상한(대표자 포함 5명)과 회차 잔여·대기석 중 작은 값 */
+  remainingCompanionSlots?: number;
+  /** 추가할 수 없는 사유 코드. 가능하면 빈 문자열 */
+  companionAddBlockedReason?: string;
 }
 
 export interface OwnerApplicationsResponse {
@@ -109,6 +120,62 @@ export const cancelMyApplication = async (
         409: '취소할 수 없는 신청입니다. 새로고침 후 다시 확인해주세요.',
       },
       '신청 취소에 실패했습니다.',
+    );
+  }
+};
+
+/** 동행자 추가 결과. CONFIRMED 만 새 동행자의 QR 이 대표자 번호로 발송된다 */
+export interface AddCompanionsResult {
+  applicationId: string;
+  /** 새로 확정된 동행자 참가자 ID. 대기·처리 중이면 빈 목록 */
+  participantIds: number[];
+  /** WAITING: 자리가 모자라 회차 대기열에 섬, PROCESSING: 승급 뒤 저장 중 */
+  status: 'CONFIRMED' | 'WAITING' | 'PROCESSING';
+  /** WAITING 일 때 회차 대기 순번(1부터) */
+  position: number | null;
+}
+
+/**
+ * 확정된 내 사전등록 일행에 동행자를 더한다(Expo-Application-Server#169).
+ * 같은 Idempotency-Key 로 다시 보내면 서버가 같은 추가를 이어서 처리한다.
+ * 409 사유(정원·상한 초과, 마감·시작된 회차, 기간 아님, 처리 중인 추가 등)는 서버 문구가 더 정확해 그대로 쓴다
+ */
+export const addMyPreRegisterCompanions = async (
+  expoId: string,
+  applicationId: string,
+  companions: Companion[],
+  idempotencyKey: string,
+  csrfToken?: string,
+): Promise<AddCompanionsResult> => {
+  try {
+    const { data } = await clientInstance.post<AddCompanionsResult>(
+      `/application/expos/${expoId}/my-applications/PREREGISTER/${applicationId}/companions`,
+      { companions },
+      {
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'Idempotency-Key': idempotencyKey,
+        },
+      },
+    );
+    return data;
+  } catch (error) {
+    const serverText = axios.isAxiosError(error)
+      ? toKoreanServerText(error.response?.data)
+      : undefined;
+    throw toError(
+      error,
+      {
+        ...COMMON_ERRORS,
+        400: serverText ?? '동행자 정보를 다시 확인해주세요.',
+        403: '요청을 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.',
+        404: '동행자를 추가할 신청을 찾을 수 없습니다.',
+        409:
+          serverText ??
+          '지금은 동행자를 추가할 수 없습니다. 새로고침 후 다시 확인해주세요.',
+        503: '일시적으로 처리할 수 없습니다. 잠시 후 같은 내용으로 다시 시도해주세요.',
+      },
+      '동행자 추가에 실패했습니다.',
     );
   }
 };
