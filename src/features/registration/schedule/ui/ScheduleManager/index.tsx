@@ -1,11 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { ArrowLeft } from '@/shared/assets/icons';
 import { withLoading } from '@/shared/hocs';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
+import { useLeaveConfirm } from '@/shared/model';
 import { Button } from '@/shared/ui';
 import {
   deletePreregisterSession,
@@ -73,15 +74,7 @@ const ScheduleManager = () => {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [view, setView] = useState<ScheduleView>('STANDARD');
 
-  useEffect(() => {
-    if (!isDirty) return undefined;
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = '';
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
+  useLeaveConfirm(isDirty);
 
   useProgramDraftRestore(
     expoId,
