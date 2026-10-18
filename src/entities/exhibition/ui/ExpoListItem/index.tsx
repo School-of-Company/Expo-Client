@@ -69,14 +69,12 @@ const FormStatus = ({
     .join(' / ');
 
   return (
-    <p
-      className="flex flex-wrap gap-x-6 text-caption2r text-gray-500"
-      title={summary}
-    >
+    // 카드 높이가 고정이라 줄바꿈하지 않고 넘치면 말줄임한다
+    <p className="truncate text-caption2r text-gray-500" title={summary}>
       {items.map((item, index) => (
-        <span key={item} className="flex gap-6">
+        <span key={item}>
           {index > 0 && (
-            <span className="text-gray-300" aria-hidden>
+            <span className="mx-6 text-gray-300" aria-hidden>
               ·
             </span>
           )}

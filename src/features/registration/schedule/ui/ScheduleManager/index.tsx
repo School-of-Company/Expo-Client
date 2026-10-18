@@ -1,7 +1,9 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
+import { ArrowLeft } from '@/shared/assets/icons';
 import { withLoading } from '@/shared/hocs';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { Button } from '@/shared/ui';
@@ -55,6 +57,7 @@ const VIEWS: { value: ScheduleView; label: string }[] = [
 ];
 
 const ScheduleManager = () => {
+  const router = useRouter();
   const { expoId } = useRegistrationExpo();
   const sessionsQuery = usePreregisterSessions(expoId);
   const programsQuery = useSchedulePrograms(expoId);
@@ -212,6 +215,16 @@ const ScheduleManager = () => {
   const programs = programsQuery.data ?? [];
   const isSessionLocked = isDirty || isDeleting || isRetrying || isSaving;
 
+  // 박람회 상세 패널에서 들어오므로 주소로 바로 열어도 상세로 돌아간다. 화면 안 이동은 beforeunload 가 막지 못해 직접 묻는다
+  const handleBack = () => {
+    if (
+      isDirty &&
+      !window.confirm('저장하지 않은 회차 변경 내용이 사라집니다. 나갈까요?')
+    )
+      return;
+    router.push(`/exhibition/detail/${encodeURIComponent(expoId)}`);
+  };
+
   return withLoading({
     isLoading: sessionsQuery.isLoading || programsQuery.isLoading,
     children: (
@@ -223,19 +236,29 @@ const ScheduleManager = () => {
           />
         ) : (
           <div className="min-w-0 flex-1 space-y-36">
-            <div role="tablist" className="flex gap-[18px]">
-              {VIEWS.map(({ value, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  role="tab"
-                  aria-selected={view === value}
-                  onClick={() => setView(value)}
-                  className={`text-h2b ${view === value ? 'text-black' : 'text-gray-500'}`}
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="flex items-center gap-12">
+              <button
+                type="button"
+                aria-label="뒤로 가기"
+                className="-m-6 flex h-[44px] w-[44px] flex-none items-center justify-center"
+                onClick={handleBack}
+              >
+                <ArrowLeft size={32} />
+              </button>
+              <div role="tablist" className="flex gap-[18px]">
+                {VIEWS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="tab"
+                    aria-selected={view === value}
+                    onClick={() => setView(value)}
+                    className={`text-h2b ${view === value ? 'text-black' : 'text-gray-500'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
             {view === 'PREREGISTER' ? (
               <SessionSection

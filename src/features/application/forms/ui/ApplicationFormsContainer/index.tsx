@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { ApplicationFormCard } from '@/entities/application';
 import { withLoading } from '@/shared/hocs';
-import { DetailHeader } from '@/shared/ui';
 import { FORM_GROUPS, FormGroup } from '../../constant/formEntries';
 import { useFieldRelease } from '../../model/fieldRelease';
 import {
@@ -43,11 +42,7 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
     isLoading,
     children: (
       <div className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
-        <div className="mt-30">
-          <DetailHeader headerTitle="신청하기" />
-        </div>
-
-        <div role="tablist" className="flex justify-center gap-[18px]">
+        <div role="tablist" className="mt-30 flex justify-center gap-[18px]">
           {VIEWS.map(({ value, label }) => (
             <button
               key={value}
