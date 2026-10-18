@@ -44,7 +44,7 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
     children: (
       <div className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
         <div className="mt-30">
-          <DetailHeader headerTitle="신청 폼 모음" />
+          <DetailHeader headerTitle="신청하기" />
         </div>
 
         <div role="tablist" className="flex justify-center gap-[18px]">
