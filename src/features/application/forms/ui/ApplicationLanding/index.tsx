@@ -64,13 +64,13 @@ const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
         </h1>
       </header>
 
-      <section className="relative -mt-[96px] flex flex-col gap-18 rounded-md bg-white p-30 text-center shadow-lg mobile:-mt-[80px] mobile:p-18">
+      <section className="relative -mt-[96px] flex flex-col gap-18 rounded-md bg-white p-30 shadow-lg mobile:-mt-[80px] mobile:p-18">
         <h2 className="text-h3b text-black">박람회 참가 안내</h2>
         <ul className="flex flex-col gap-16">
           {rows.map(([label, value]) => (
             <li
               key={label}
-              className="flex flex-col items-center gap-4 border-b-1 border-solid border-gray-100 pb-16 last:border-b-0 last:pb-0"
+              className="flex flex-col gap-4 border-b-1 border-solid border-gray-100 pb-16 last:border-b-0 last:pb-0"
             >
               <span className="text-caption1b text-main-600">{label}</span>
               <span className="whitespace-pre-line break-keep text-body2r text-black">
@@ -85,7 +85,7 @@ const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
         {actions.map(({ title, text, button, onClick, className }) => (
           <div
             key={title}
-            className="flex flex-col items-center gap-12 rounded-md border-1 border-solid border-gray-200 bg-white p-24 text-center shadow-sm"
+            className="flex flex-col gap-12 rounded-md border-1 border-solid border-gray-200 bg-white p-24 shadow-sm"
           >
             <h2 className="text-body1b text-black">{title}</h2>
             <p className="flex-1 break-keep text-caption1r text-gray-500">
