@@ -11,7 +11,7 @@ import {
   selectOptionData,
   SplitButton,
 } from '@/entities/form';
-import { handleFormErrors } from '@/shared/model';
+import { handleFormErrors, useLeaveConfirm } from '@/shared/model';
 import { DynamicFormType, FormValues } from '@/shared/types/form/create/type';
 import { Button, DetailHeaderEditable } from '@/shared/ui';
 import FormContainer from '../FormContainer';
@@ -48,10 +48,19 @@ const FormEditor = ({
   isSuccess: boolean;
   hideBack?: boolean;
 }) => {
-  const { control, handleSubmit, register, setValue, watch } =
-    useForm<FormValues>({
-      defaultValues: defaultValues || { questions: [], informationText: '' },
-    });
+  const {
+    control,
+    handleSubmit,
+    register,
+    setValue,
+    watch,
+    formState: { isDirty },
+  } = useForm<FormValues>({
+    defaultValues: defaultValues || { questions: [], informationText: '' },
+  });
+
+  // 저장에 성공한 뒤에는 묻지 않는다
+  useLeaveConfirm(isDirty && !isSuccess);
 
   const { fields, append, remove } = useFieldArray({
     control,
