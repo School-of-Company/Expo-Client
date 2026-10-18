@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
-import { getErrorStatus } from '@/shared/libs/http/apiError';
+import { ApiError, getErrorStatus } from '@/shared/libs/http/apiError';
 import { useRealtimeRefetchInterval } from '@/shared/libs/realtime/AdminRealtimeProvider';
 import {
   AdminApplicationQuery,
@@ -16,11 +16,13 @@ import {
   getAdminApplications,
   getAdminApplicationSummary,
   postAdminApplicationCancellation,
+  postAdminApplicationPromotion,
+  ProgramSessionPolicy,
   ProgramSessionDefinition,
   ProgramSessionType,
 } from '../api/ledgerApi';
 import { getAllCurrentSessions } from '../api/sessionApi';
-import { formatDateWithWeekday } from '../lib/format';
+import { formatDateTime, formatDateWithWeekday } from '../lib/format';
 
 export const LEDGER_PAGE_SIZE = 20;
 
@@ -342,4 +344,127 @@ export const formatDefinitionSchedule = (
       ? ''
       : `${formatDateWithWeekday(endedAt.slice(0, 10))} `;
   return `${date} ${timeOf(startedAt)} ~ ${endDate}${timeOf(endedAt)}`;
+};
+
+/** 수동 확정 409 본문의 사유 코드(Application #172). 서버가 모든 조건을 다시 검사하므로 사유만 풀어 안내한다 */
+const PROMOTION_CONFLICT_MESSAGE: Record<string, string> = {
+  AUTO_PROMOTION_ACTIVE:
+    '아직 자동 승급 기간입니다. 자동 승급이 끝난 뒤에 확정할 수 있습니다.',
+  PROMOTION_ENDED: '대기 승급 마감이 지나 확정할 수 없습니다.',
+  NOT_WAITING: '대기 상태가 아닙니다. 신청 상태가 바뀌었습니다.',
+  OFFER_ACTIVE:
+    '진행 중인 참여 제안이 있습니다. 제안이 수락·거절·만료된 뒤에 처리해주세요.',
+  CAPACITY_CHANGED: '정원이 바뀌어 남은 자리가 없습니다.',
+  TIME_CONFLICT: '같은 시간에 확정된 다른 신청이 있어 확정할 수 없습니다.',
+  PREREGISTRATION_NOT_CONFIRMED: '사전등록이 확정되지 않아 확정할 수 없습니다.',
+  GROUP_ALREADY_APPLIED:
+    '같은 묶음의 다른 회차를 이미 신청해 확정할 수 없습니다.',
+  TRAINEE_UNAVAILABLE: '연수자 연결을 확인할 수 없어 확정할 수 없습니다.',
+};
+
+/** 수동 확정 실패 안내. 실패해도 대기는 그대로 남는다 */
+export const getPromotionErrorMessage = (error: unknown) => {
+  const code = error instanceof ApiError ? error.code : undefined;
+  switch (getErrorStatus(error)) {
+    case 401:
+      return '로그인이 만료되었습니다. 다시 로그인해주세요.';
+    case 403:
+      return '이 행사의 대기 신청을 확정할 권한(APPLICATION_PROMOTE)이 없습니다.';
+    case 404:
+      return '신청을 찾을 수 없습니다. 원장에서 삭제되었거나 다른 행사의 신청입니다.';
+    case 409:
+      return (
+        (code && PROMOTION_CONFLICT_MESSAGE[code]) ??
+        '지금은 확정할 수 없습니다. 정원·자격·묶음 조건이나 신청 상태가 바뀌었습니다.'
+      );
+    case 502:
+    case 503:
+      return '처리가 겹치거나 연동을 확인하지 못해 확정하지 않았습니다. 대기는 그대로입니다. 잠시 후 다시 시도해주세요.';
+    default:
+      return error instanceof Error
+        ? error.message
+        : '대기 신청을 확정하지 못했습니다.';
+  }
+};
+
+/**
+ * 관리자 대기 수동 확정. 서버 확정 결과만 반영한다.
+ * 성공·실패와 상관없이 원장·상세·현황·잔여석·처리 이력을 다시 읽는다
+ */
+export const usePromoteApplication = (expoId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (applicationId: string) =>
+      postAdminApplicationPromotion(expoId, applicationId),
+    onSuccess: () => {
+      toast.success('대기 신청을 확정했습니다.');
+    },
+    onError: (error) => {
+      toast.error(getPromotionErrorMessage(error));
+    },
+    onSettled: () =>
+      Promise.all(
+        [
+          ['adminApplications', expoId],
+          ['adminApplicationSummary', expoId],
+          ['adminCurrentSessions', expoId],
+          ['adminChangeHistory', expoId],
+        ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+      ),
+  });
+};
+
+const WAITING_PAGE_SIZE = 100;
+
+/** 대기 신청이 속한 회차의 현재 정책과 대기 순서. 순서는 접수 순이며 처리 가능 여부는 서버가 정한다 */
+export const useWaitlistContext = (
+  expoId: string,
+  target: Pick<LedgerRow, 'id' | 'programType' | 'programId'> | null,
+) =>
+  useQuery({
+    queryKey: [
+      'adminApplications',
+      expoId,
+      'waitlist',
+      target?.programType,
+      target?.programId,
+    ],
+    enabled: target !== null,
+    queryFn: async () => {
+      const query = {
+        programType: target?.programType,
+        programId: target?.programId,
+      };
+      const [waiting, sessions] = await Promise.all([
+        getAdminApplications(expoId, {
+          ...query,
+          status: 'WAITING',
+          sort: 'CREATED_ASC',
+          page: 0,
+          size: WAITING_PAGE_SIZE,
+        }),
+        getAllCurrentSessions(expoId, query),
+      ]);
+      const index = waiting.items.findIndex(
+        (item) => item.applicationId === target?.id,
+      );
+      return {
+        position: index >= 0 ? index + 1 : null,
+        total: waiting.totalElements,
+        policy: sessions[0]?.policy ?? null,
+      };
+    },
+    meta: { silent: true },
+  });
+
+/** 자동 승급이 멈춘 뒤 최종 마감 전까지의 수동 확정 구간 안내. 판단은 서버가 하므로 화면 문구에만 쓴다 */
+export const getPromotionWindowLabel = (
+  policy: ProgramSessionPolicy | null,
+): string | null => {
+  if (!policy) return null;
+  if (policy.autoPromotionEnabled === false)
+    return '자동 승급 꺼짐 (수동 확정)';
+  if (policy.autoPromotionEndedAt)
+    return `자동 승급 ${formatDateTime(policy.autoPromotionEndedAt)}까지`;
+  return '자동 승급 (대기 승급 마감까지)';
 };

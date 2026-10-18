@@ -59,6 +59,10 @@ export interface PolicyForm {
   /** 현장 접수 기간. 로컬 'YYYY-MM-DDTHH:mm'. 둘 다 비우면 기간을 보내지 않는다 */
   onsiteStartedAt: string | null;
   onsiteEndedAt: string | null;
+  /** false 면 자동 승급 없이 관리자 수동 확정만 한다. 대기 정원이 0 이면 의미가 없다 */
+  autoPromotionEnabled: boolean;
+  /** 이 시각부터 자동 승급을 멈추고 promotionEndedAt 전까지 수동 확정만 받는다. 비우면 promotionEndedAt 까지 자동 */
+  autoPromotionEndedAt: string | null;
 }
 
 export interface ProgramForm {
@@ -90,6 +94,8 @@ export const EMPTY_POLICY_FORM: PolicyForm = {
   guardianPolicy: null,
   onsiteStartedAt: null,
   onsiteEndedAt: null,
+  autoPromotionEnabled: true,
+  autoPromotionEndedAt: null,
 };
 
 export const EMPTY_PROGRAM_FORM: ProgramForm = {
@@ -152,6 +158,8 @@ const toPolicyForm = (policy: ProgramPolicy): PolicyForm => ({
     : null,
   onsiteStartedAt: fromOffsetDateTime(policy.onsiteStartedAt),
   onsiteEndedAt: fromOffsetDateTime(policy.onsiteEndedAt),
+  autoPromotionEnabled: policy.autoPromotionEnabled ?? true,
+  autoPromotionEndedAt: fromOffsetDateTime(policy.autoPromotionEndedAt),
 });
 
 /** 총정원은 사전·현장 정원의 합이다 */
@@ -228,6 +236,22 @@ export const getPolicyProblem = (policy: ProgramPolicy): string | null => {
     !(Date.parse(policy.onsiteStartedAt) < Date.parse(policy.onsiteEndedAt))
   )
     return '현장 접수 종료가 현장 접수 시작보다 늦어야 합니다.';
+  // 서버 자동 승급 규칙: 끄기와 종료 시각은 함께 못 쓰고, 종료 시각은 모집 시작 이상 최종 마감 이하다
+  if (policy.autoPromotionEndedAt) {
+    const autoEndedAt = Date.parse(policy.autoPromotionEndedAt);
+    if (policy.autoPromotionEnabled === false)
+      return '자동 승급을 끄면 자동 승급 종료 시각은 쓸 수 없습니다.';
+    if (
+      autoEndedAt < startedAt ||
+      autoEndedAt > Date.parse(policy.promotionEndedAt)
+    )
+      return '자동 승급 종료는 모집 시작 이후, 대기 승급 마감 이전이어야 합니다.';
+  }
+  if (
+    policy.waitingCapacity === 0 &&
+    (policy.autoPromotionEnabled === false || policy.autoPromotionEndedAt)
+  )
+    return '대기 정원이 0이면 자동 승급 설정을 쓸 수 없습니다.';
   // 일괄 적용은 조회한 정책을 그대로 합치므로 값이 빠져 와도 TypeError 대신 사유로 막는다
   if (!policy.allowedOccupations?.length)
     return '신청 가능 직업을 하나 이상 선택해주세요.';
@@ -296,6 +320,15 @@ export const toProgramPolicy = (form: PolicyForm): ProgramPolicy => {
           onsiteStartedAt: toPolicyDateTime(policy.onsiteStartedAt),
           onsiteEndedAt: toPolicyDateTime(policy.onsiteEndedAt),
         }
+      : {}),
+    // 기본값이면 키를 빼서 기존 정책과 같은 본문으로 보낸다. 대기를 쓰지 않으면 서버가 설정을 거절하므로 보내지 않는다
+    ...(policy.waitingCapacity > 0 && !policy.autoPromotionEnabled
+      ? { autoPromotionEnabled: false }
+      : {}),
+    ...(policy.waitingCapacity > 0 &&
+    policy.autoPromotionEnabled &&
+    policy.autoPromotionEndedAt
+      ? { autoPromotionEndedAt: toPolicyDateTime(policy.autoPromotionEndedAt) }
       : {}),
   };
 };

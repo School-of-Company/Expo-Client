@@ -176,6 +176,41 @@ const PolicyFields = ({
           />
         </Field>
       </div>
+      {value.waitingCapacity > 0 && (
+        <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
+          <Field label="대기 자동 승급">
+            <div className="flex h-[48px] items-center">
+              <ToggleButton
+                value={value.autoPromotionEnabled}
+                onChange={(autoPromotionEnabled) =>
+                  onChange({
+                    autoPromotionEnabled,
+                    // 서버는 끄기와 종료 시각을 함께 받지 않는다
+                    ...(autoPromotionEnabled
+                      ? {}
+                      : { autoPromotionEndedAt: null }),
+                  })
+                }
+              />
+            </div>
+          </Field>
+          {value.autoPromotionEnabled && (
+            <Field label="자동 승급 종료 (선택)">
+              <DateTimeInput
+                value={value.autoPromotionEndedAt}
+                onChange={(autoPromotionEndedAt) =>
+                  onChange({ autoPromotionEndedAt })
+                }
+              />
+            </Field>
+          )}
+          <p className="col-span-2 break-keep text-caption1r text-gray-500 mobile:col-span-1">
+            자동 승급이 멈춘 뒤부터 대기 승급 마감 전까지는 접수 관리대장에서
+            전화 확인 후 대기자를 수동으로 확정합니다. 종료 시각을 비우면 대기
+            승급 마감까지 자동 승급합니다.
+          </p>
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         <Field label="현장 접수 시작 (선택)">
           <DateTimeInput
