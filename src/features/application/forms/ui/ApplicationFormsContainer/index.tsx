@@ -25,9 +25,11 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
     useApplicationForms(expoId);
   const field = useFieldRelease(expoId);
   const isLoading = isFormsLoading || field.isLoading;
-  // 현장 등록 폼은 행사 시작일 00:00(KST)부터 사용자 목록에 노출한다
-  const forms = allForms.filter(
-    (entry) => entry.group !== 'FIELD' || field.released,
+  // 행사 시작일 00:00(KST)부터 일반 사전등록은 숨기고 현장 등록을 노출한다. 교원연수·프로그램 신청 등 나머지 PRE 항목은 유지한다
+  const forms = allForms.filter((entry) =>
+    entry.group === 'FIELD'
+      ? field.released
+      : entry.key !== 'pre-standard' || !field.released,
   );
   const { data: expo, isLoading: isExpoLoading } = useExpoDetail(expoId);
   const [view, setView] = useState<'home' | (typeof VIEWS)[number]['value']>(
@@ -36,8 +38,11 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
   const [selected, setSelected] = useState<FormGroup | null>(null);
 
   // 폼이 하나라도 있는 그룹만 탭으로 노출
+  // 숨긴 일반 사전등록만 남은 PRE 도 유지한다. 프로그램 신청 카드가 이 탭에 있다
   const groups = FORM_GROUPS.filter((group) =>
-    forms.some((entry) => entry.group === group.key),
+    (group.key === 'PRE' ? allForms : forms).some(
+      (entry) => entry.group === group.key,
+    ),
   );
   const current =
     groups.find((group) => group.key === selected) ?? groups[0] ?? null;
@@ -83,6 +88,22 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
             </button>
           ))}
         </div>
+
+        {field.isError && view !== 'my' && (
+          <div className="flex flex-col gap-12">
+            <p role="alert" className="break-keep text-body2r text-error">
+              행사 정보를 불러오지 못해 현장 등록 공개 여부를 확인할 수
+              없습니다.
+            </p>
+            <button
+              type="button"
+              onClick={() => field.refetch()}
+              className="w-full rounded-sm border-1 border-solid border-main-600 px-24 py-14 text-body2b text-main-600"
+            >
+              다시 시도
+            </button>
+          </div>
+        )}
 
         {view === 'my' ? (
           <MyApplicationList expoId={expoId} />

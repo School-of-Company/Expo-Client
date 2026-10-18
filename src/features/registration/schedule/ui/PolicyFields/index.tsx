@@ -176,6 +176,24 @@ const PolicyFields = ({
           />
         </Field>
       </div>
+      <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
+        <Field label="현장 접수 시작 (선택)">
+          <DateTimeInput
+            value={value.onsiteStartedAt}
+            onChange={(onsiteStartedAt) => onChange({ onsiteStartedAt })}
+          />
+        </Field>
+        <Field label="현장 접수 종료 (선택)">
+          <DateTimeInput
+            value={value.onsiteEndedAt}
+            onChange={(onsiteEndedAt) => onChange({ onsiteEndedAt })}
+          />
+        </Field>
+        <p className="col-span-2 break-keep text-caption1r text-gray-500 mobile:col-span-1">
+          시작·종료를 함께 입력하세요. 모집 종료와 현장 접수 시작 사이가 비어
+          있으면 그 구간에는 접수할 수 없습니다.
+        </p>
+      </div>
       <Field label="신청 가능 직업 (하나 이상)">
         <div className="flex flex-wrap gap-8">
           {OCCUPATIONS.map((occupation) => {
