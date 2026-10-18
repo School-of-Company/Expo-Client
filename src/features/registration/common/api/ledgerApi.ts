@@ -1,3 +1,5 @@
+import axios from 'axios';
+import { toServerCode } from '@/shared/libs/handler/serverMessage';
 import { ApiError, toApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 
@@ -51,6 +53,14 @@ export interface ProgramSessionPolicy {
   preRegistrationCapacity?: number;
   onsiteCapacity?: number;
   closed: boolean;
+  /** 현재 회차 조회에만 있다. 생략은 기본 정책이다 */
+  applicationStartedAt?: string;
+  /** 자동·수동 승급의 최종 마감 */
+  promotionEndedAt?: string;
+  /** 생략·true 면 자동 승급, false 면 관리자 수동 확정만 가능 */
+  autoPromotionEnabled?: boolean | null;
+  /** 이 시각부터 자동 승급을 멈춘다. 생략이면 promotionEndedAt 까지 자동 */
+  autoPromotionEndedAt?: string | null;
 }
 
 export interface AdminAttendanceSummary {
@@ -220,5 +230,36 @@ export const postAdminApplicationCancellation = async (
     return response.data;
   } catch (error) {
     throw toApiError(error, '신청을 취소하지 못했습니다.');
+  }
+};
+
+export interface AdminPromotionResult {
+  applicationId: string;
+  status: 'CONFIRMED';
+}
+
+/**
+ * 관리자 대기 신청 수동 확정(Application #172). 이미 확정된 신청은 다시 보내도 200 이다.
+ * 서버가 권한(APPLICATION_PROMOTE)·자동 승급 종료·최종 마감·정원·시간 충돌 등을 다시 검사하며,
+ * 거절 사유는 409 본문의 code 로 오므로 화면이 문구를 고를 수 있게 ApiError.code 에 담는다
+ */
+export const postAdminApplicationPromotion = async (
+  expoId: string,
+  applicationId: string,
+): Promise<AdminPromotionResult> => {
+  try {
+    const response = await clientTokenInstance.post(
+      `${basePath(expoId)}/${encodeURIComponent(applicationId)}/promotion`,
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new ApiError(
+        '대기 신청을 확정하지 못했습니다.',
+        error.response.status,
+        toServerCode(error.response.data),
+      );
+    }
+    throw error;
   }
 };
