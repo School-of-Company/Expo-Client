@@ -11,6 +11,7 @@ import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/v
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { SessionNotice } from '@/features/phone-verification';
 import { getPublicStandardProgram, getTrainingProgram } from '@/shared/api';
+import { getExpoRoutes } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
 import { getProgramSessionCsrfHeaders } from '@/shared/libs/http/programSessionCsrf';
 import { DynamicFormValues } from '@/shared/types/application/type';
@@ -577,7 +578,7 @@ const ProgramApplyContainer = ({
                     같은 묶음은 참가자마다 하나만 신청할 수 있습니다. 회차를
                     바꾸려면{' '}
                     <Link
-                      href={`/application/forms/${expoId}`}
+                      href={getExpoRoutes(expoId).applicationMy}
                       className="text-main-600 underline"
                     >
                       내 신청
