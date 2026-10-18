@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { ArrowLeft } from '@/shared/assets/icons';
@@ -29,10 +29,12 @@ import {
   validateSessionForm,
 } from '../../model/sessionForm';
 import { useProgramDraftRestore } from '../../model/useProgramDraftRestore';
+import ProgramFormList from '../ProgramFormList';
 import ProgramSection, {
   PROGRAM_FORM_ID,
   ProgramEditing,
 } from '../ProgramSection';
+import RegistrationFormSection from '../RegistrationFormSection';
 import SessionSection, { SessionRow } from '../SessionSection';
 
 // 상태를 바꾼 뒤 그려진 양식으로 스크롤한다
@@ -49,16 +51,18 @@ const isRetryable = (error: unknown) => {
   return status === 502 || status === 503;
 };
 
-type ScheduleView = 'STANDARD' | 'TRAINING' | 'PREREGISTER';
+type ScheduleView = 'STANDARD' | 'TRAINING' | 'PREREGISTER' | 'FORMS';
 
 const VIEWS: { value: ScheduleView; label: string }[] = [
   { value: 'STANDARD', label: '프로그램' },
   { value: 'TRAINING', label: '연수' },
   { value: 'PREREGISTER', label: '사전예매' },
+  { value: 'FORMS', label: '폼' },
 ];
 
 const ScheduleManager = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { expoId } = useRegistrationExpo();
   const sessionsQuery = usePreregisterSessions(expoId);
   const programsQuery = useSchedulePrograms(expoId);
@@ -72,7 +76,10 @@ const ScheduleManager = () => {
   const [programEditing, setProgramEditing] = useState<ProgramEditing>(null);
   const [draftForm, setDraftForm] = useState<ProgramForm>();
   const [isCreatingSession, setIsCreatingSession] = useState(false);
-  const [view, setView] = useState<ScheduleView>('STANDARD');
+  // 폼 만들기·수정에서 돌아오면 ?view=forms 로 폼 탭을 연다
+  const [view, setView] = useState<ScheduleView>(
+    searchParams.get('view') === 'forms' ? 'FORMS' : 'STANDARD',
+  );
 
   useLeaveConfirm(isDirty);
 
@@ -253,7 +260,12 @@ const ScheduleManager = () => {
                 ))}
               </div>
             </div>
-            {view === 'PREREGISTER' ? (
+            {view === 'FORMS' ? (
+              <div className="space-y-[60px]">
+                <RegistrationFormSection expoId={expoId} />
+                <ProgramFormList />
+              </div>
+            ) : view === 'PREREGISTER' ? (
               <SessionSection
                 expoId={expoId}
                 rows={rows}
