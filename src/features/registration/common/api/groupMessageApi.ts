@@ -31,8 +31,8 @@ export type GroupMessageChannel = 'SMS' | 'KAKAO';
 
 /**
  * SMS 는 body, 카카오는 승인 templateId 를 보낸다. 서버는 알 수 없는 필드를 400 으로 거절한다.
- * 카카오는 카톡을 받을 수 없는 번호에 같은 본문을 문자로 보내도록 fallbackToSms 가 true 이고,
- * SMS 에서 true 는 400 이라 false 다
+ * 카카오는 서버가 알림톡과 같은 본문의 문자를 항상 함께 보낸다. fallbackToSms 는 서버가
+ * 하위 호환으로 받기만 하고 발송에는 쓰지 않는다
  */
 export type GroupMessageSource =
   | {
