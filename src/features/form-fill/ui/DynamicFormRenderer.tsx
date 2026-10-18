@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { etcKey, fieldRegistry } from '@/entities/form/registry';
 import { isFieldVisible } from '@/shared/lib/form-conditional';
+import { useLeaveConfirm } from '@/shared/model';
 import {
   FillValues,
   getDefaultValues,
@@ -50,8 +51,9 @@ export default function DynamicFormRenderer({
     setValue,
     trigger,
     reset,
-    formState: { errors, isSubmitted },
+    formState: { errors, isSubmitted, isDirty },
   } = methods;
+  useLeaveConfirm(isDirty);
   const values = watch();
 
   // 문항이 로딩 뒤에 들어와도 고정 선택지 기본값을 다시 잡는다.
