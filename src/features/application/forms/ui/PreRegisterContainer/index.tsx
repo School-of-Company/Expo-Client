@@ -190,6 +190,13 @@ const PreRegisterContainer = ({
             대표자가 함께 오는 사람까지 한 번에 신청합니다. 신청한 사람마다 QR이
             대표자 번호로 발송됩니다.
           </p>
+          {/* 접수한 사전등록에 동행자를 더하는 API 가 아직 없다(Expo-Application-Server#168) */}
+          {companionFieldId && (
+            <p className="break-keep text-body2r text-gray-500">
+              제출한 뒤에는 동행자를 추가할 수 없습니다. 함께 오는 사람을 모두
+              입력한 뒤 제출해주세요.
+            </p>
+          )}
         </div>
 
         <div className="flex items-start justify-between gap-16 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:flex-col mobile:gap-8 mobile:p-16">
