@@ -56,7 +56,7 @@ const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
       >
         <div
           aria-hidden
-          className="absolute bottom-0 left-1/2 top-[-64px] w-[1500px] -translate-x-1/2 rounded-t-[50%] bg-main-100"
+          className="absolute bottom-0 left-1/2 top-[-32px] w-[1100px] -translate-x-1/2 rounded-t-[600px] bg-main-100"
         />
         <Logo className="relative h-[40px] w-auto" />
         <h1 className="relative break-keep text-[2rem] font-bold leading-tight text-main-600 mobile:text-h2b">
