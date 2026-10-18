@@ -30,20 +30,32 @@ export type GroupMessageScope =
 export type GroupMessageChannel = 'SMS' | 'KAKAO';
 
 /**
- * SMS 는 body, 카카오는 승인 templateId 를 보낸다. 서버는 알 수 없는 필드와
- * fallbackToSms=true 를 400 으로 거절하므로 fallbackToSms 는 항상 false 다
+ * SMS 는 body, 카카오는 승인 templateId 를 보낸다. 서버는 알 수 없는 필드를 400 으로 거절한다.
+ * 카카오는 카톡을 받을 수 없는 번호에 같은 본문을 문자로 보내도록 fallbackToSms 가 true 이고,
+ * SMS 에서 true 는 400 이라 false 다
  */
-export type GroupMessageSource = (
-  | { scope: GroupMessageScope; channel: 'SMS'; body: string }
-  | { scope: GroupMessageScope; channel: 'KAKAO'; templateId: string }
-) & { fallbackToSms: false };
+export type GroupMessageSource =
+  | {
+      scope: GroupMessageScope;
+      channel: 'SMS';
+      body: string;
+      fallbackToSms: false;
+    }
+  | {
+      scope: GroupMessageScope;
+      channel: 'KAKAO';
+      templateId: string;
+      fallbackToSms: true;
+    };
 
 /** 카카오 템플릿 자리표시자 → 서버가 채우는 신청 값 */
 export interface KakaoVariableMapping {
+  expoName?: string;
   name?: string;
   programName?: string;
   sessionName?: string;
   location?: string;
+  status?: string;
 }
 
 export interface KakaoTemplate {

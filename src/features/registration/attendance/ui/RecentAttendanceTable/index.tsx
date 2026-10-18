@@ -58,7 +58,7 @@ const RecentAttendanceTable = ({ rows }: { rows: EntryRecord[] }) => (
     emptyText="입·퇴장 기록이 없습니다."
     footerText="최근 기록"
     footerCount={rows.length}
-    maxHeight="420px"
+    maxHeight="320px"
     minWidth="640px"
   />
 );

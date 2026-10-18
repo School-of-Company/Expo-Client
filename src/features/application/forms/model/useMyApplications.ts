@@ -9,7 +9,10 @@ import {
   cancelMyPreRegisterWaitlist,
   getMyApplications,
   getMyPreRegisterWaitlist,
+  getMyPromotionOffers,
+  respondPromotionOffer,
 } from '../api/myApplications';
+import { getOfferErrorMessage } from './promotionOffer';
 
 // 401 은 세션 문제(sessionIssue)로 따로 안내하므로 오류 문구에서 뺀다. 5xx·네트워크 오류는 오류로 보여 준다
 const visibleError = (error: Error | null) =>
@@ -19,6 +22,7 @@ export const useMyApplications = (expoId: string) => {
   const queryClient = useQueryClient();
   const queryKey = ['myApplications', expoId];
   const waitlistKey = ['myPreRegisterWaitlist', expoId];
+  const offersKey = ['myPromotionOffers', expoId];
 
   const { data, error, refetch } = useQuery({
     queryKey,
@@ -40,12 +44,21 @@ export const useMyApplications = (expoId: string) => {
     meta: { silent: true },
   });
 
+  // 서버 기능 스위치가 꺼져 있으면 실패할 수 있으므로 오류는 숨기고 제안 없음으로 둔다
+  const { data: offerData } = useQuery({
+    queryKey: offersKey,
+    queryFn: () => getMyPromotionOffers(expoId),
+    retry: false,
+    meta: { silent: true },
+  });
+
   // 취소·승급으로 신청·대기·잔여석·QR 이 함께 바뀌므로 성공·실패 모두 다시 받는다(새 CSRF 토큰 포함)
   const refresh = () =>
     Promise.all(
       [
         queryKey,
         waitlistKey,
+        offersKey,
         ['preRegisterCapacity', expoId],
         ['participantQr', expoId],
       ].map((key) => queryClient.invalidateQueries({ queryKey: key })),
@@ -76,6 +89,28 @@ export const useMyApplications = (expoId: string) => {
       onSettled: refresh,
     });
 
+  // 수락·거절 모두 성공·실패 뒤 다시 받는다. 실패(409)해도 서버 상태를 따른다
+  const { mutate: respondOffer, isPending: isRespondingOffer } = useMutation({
+    mutationFn: (target: {
+      offerId: string;
+      action: 'acceptance' | 'decline';
+    }) =>
+      respondPromotionOffer(
+        expoId,
+        target.offerId,
+        target.action,
+        offerData?.csrfToken,
+      ),
+    onSuccess: (_, { action }) =>
+      toast.success(
+        action === 'acceptance'
+          ? '참여가 수락되었습니다. 신청 현황에서 확정 내역과 QR 을 확인해주세요.'
+          : '참여 제안을 거절했습니다.',
+      ),
+    onError: (error: Error) => toast.error(getOfferErrorMessage(error)),
+    onSettled: refresh,
+  });
+
   return {
     participants: data?.participants ?? [],
     applications: data?.applications ?? [],
@@ -85,6 +120,12 @@ export const useMyApplications = (expoId: string) => {
     retry: () => Promise.all([refetch(), refetchWaitlist()]),
     waitlist: waitlist ?? null,
     waitlistErrorMessage: visibleError(waitlistError),
+    // 응답 대기 중(PENDING)·응답 가능(OPEN) 제안만 카드로 보인다
+    offers: (offerData?.offers ?? []).filter(
+      ({ status }) => status === 'PENDING' || status === 'OPEN',
+    ),
+    respondOffer,
+    isRespondingOffer,
     cancel,
     cancelWaitlist,
     isCancellingWaitlist,

@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
+import { useRealtimeRefetchInterval } from '@/shared/libs/realtime/AdminRealtimeProvider';
 import {
   AdminApplicationQuery,
   AdminApplicationRow,
@@ -213,7 +214,12 @@ export const useLedgerSummary = (expoId: string, filter?: LedgerFilter) =>
         size: filter ? 1 : SUMMARY_SESSION_PAGE_SIZE,
       }),
     placeholderData: keepPreviousData,
-    refetchInterval: LEDGER_REFRESH_MS,
+    // 회차별 출석 집계도 들어 있어 신청·출석 SSE 가 모두 연결됐을 때만 polling 을 멈춘다
+    refetchInterval: useRealtimeRefetchInterval(
+      LEDGER_REFRESH_MS,
+      'APPLICATIONS',
+      'ATTENDANCE',
+    ),
     // 실패는 화면의 상태별 문구로 알린다. 서버 원문 전역 토스트는 30초마다 반복되므로 끈다
     meta: { silent: true },
   });
@@ -252,21 +258,6 @@ export const getSummaryErrorMessage = (error: unknown, fallback: string) => {
       return fallback;
   }
 };
-
-const RECENT_APPLICATION_COUNT = 10;
-
-export const useRecentApplications = (expoId: string) =>
-  useQuery({
-    queryKey: ['adminApplications', expoId, 'recent'],
-    queryFn: () =>
-      getAdminApplications(expoId, {
-        sort: 'CREATED_DESC',
-        page: 0,
-        size: RECENT_APPLICATION_COUNT,
-      }),
-    refetchInterval: LEDGER_REFRESH_MS,
-    select: (data) => data.items.map(toLedgerRow),
-  });
 
 /** 신청 한 건의 최신 상태와 상태 변경 이력 */
 export const useApplicationDetail = (expoId: string, applicationId: string) =>

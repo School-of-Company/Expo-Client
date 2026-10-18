@@ -1,7 +1,9 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
+import { ArrowLeft } from '@/shared/assets/icons';
 import { withLoading } from '@/shared/hocs';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { Button } from '@/shared/ui';
@@ -46,7 +48,16 @@ const isRetryable = (error: unknown) => {
   return status === 502 || status === 503;
 };
 
+type ScheduleView = 'STANDARD' | 'TRAINING' | 'PREREGISTER';
+
+const VIEWS: { value: ScheduleView; label: string }[] = [
+  { value: 'STANDARD', label: '프로그램' },
+  { value: 'TRAINING', label: '연수' },
+  { value: 'PREREGISTER', label: '사전예매' },
+];
+
 const ScheduleManager = () => {
+  const router = useRouter();
   const { expoId } = useRegistrationExpo();
   const sessionsQuery = usePreregisterSessions(expoId);
   const programsQuery = useSchedulePrograms(expoId);
@@ -60,6 +71,7 @@ const ScheduleManager = () => {
   const [programEditing, setProgramEditing] = useState<ProgramEditing>(null);
   const [draftForm, setDraftForm] = useState<ProgramForm>();
   const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [view, setView] = useState<ScheduleView>('STANDARD');
 
   useEffect(() => {
     if (!isDirty) return undefined;
@@ -77,6 +89,8 @@ const ScheduleManager = () => {
     useCallback((target: ScheduleProgram | 'new', form: ProgramForm) => {
       setDraftForm(form);
       setProgramEditing(target);
+      // 복원한 양식이 열리는 탭으로 옮긴다
+      if (target !== 'new') setView(target.programType);
       scrollToForm(PROGRAM_FORM_ID);
     }, []),
   );
@@ -201,6 +215,16 @@ const ScheduleManager = () => {
   const programs = programsQuery.data ?? [];
   const isSessionLocked = isDirty || isDeleting || isRetrying || isSaving;
 
+  // 박람회 상세 패널에서 들어오므로 주소로 바로 열어도 상세로 돌아간다. 화면 안 이동은 beforeunload 가 막지 못해 직접 묻는다
+  const handleBack = () => {
+    if (
+      isDirty &&
+      !window.confirm('저장하지 않은 회차 변경 내용이 사라집니다. 나갈까요?')
+    )
+      return;
+    router.push(`/exhibition/detail/${encodeURIComponent(expoId)}`);
+  };
+
   return withLoading({
     isLoading: sessionsQuery.isLoading || programsQuery.isLoading,
     children: (
@@ -211,15 +235,32 @@ const ScheduleManager = () => {
             onRetry={() => void invalidate()}
           />
         ) : (
-          <div>
-            <div className="min-w-0 flex-1 space-y-[60px]">
-              <ProgramSection
-                expoId={expoId}
-                programs={programs}
-                editing={programEditing}
-                onEditingChange={handleProgramEditingChange}
-                draftForm={draftForm}
-              />
+          <div className="min-w-0 flex-1 space-y-36">
+            <div className="flex items-center gap-12">
+              <button
+                type="button"
+                aria-label="뒤로 가기"
+                className="-m-6 flex h-[44px] w-[44px] flex-none items-center justify-center"
+                onClick={handleBack}
+              >
+                <ArrowLeft size={32} />
+              </button>
+              <div role="tablist" className="flex gap-[18px]">
+                {VIEWS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="tab"
+                    aria-selected={view === value}
+                    onClick={() => setView(value)}
+                    className={`text-h2b ${view === value ? 'text-black' : 'text-gray-500'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {view === 'PREREGISTER' ? (
               <SessionSection
                 expoId={expoId}
                 rows={rows}
@@ -230,7 +271,16 @@ const ScheduleManager = () => {
                 isCreating={isCreatingSession}
                 onCreatingChange={setIsCreatingSession}
               />
-            </div>
+            ) : (
+              <ProgramSection
+                expoId={expoId}
+                programs={programs}
+                type={view}
+                editing={programEditing}
+                onEditingChange={handleProgramEditingChange}
+                draftForm={draftForm}
+              />
+            )}
           </div>
         )}
 

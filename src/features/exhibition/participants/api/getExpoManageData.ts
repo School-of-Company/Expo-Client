@@ -24,10 +24,12 @@ export const getParticipantExpoManageData = async (
   id: string,
   page: number,
   date: string,
+  sessionId?: number,
 ): Promise<ParticipantResponse> => {
   try {
     const response = await clientTokenInstance.get(`/participant/${id}`, {
-      params: { page: page - 1, size: 7, date },
+      // sessionId가 있으면 서버가 date를 무시한다
+      params: { page: page - 1, size: 7, date, sessionId },
     });
     return response.data;
   } catch (error) {

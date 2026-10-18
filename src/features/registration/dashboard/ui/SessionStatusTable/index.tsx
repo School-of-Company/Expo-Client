@@ -200,7 +200,7 @@ const SessionStatusTable = ({
         emptyText="등록된 회차가 없습니다."
         footerText="회차"
         footerCount={rows.length}
-        maxHeight="none"
+        maxHeight="420px"
         minWidth="900px"
         onRowClick={({ id }) =>
           router.push(

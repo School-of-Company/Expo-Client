@@ -46,7 +46,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
       href: registrationRoutes.survey,
     },
     {
-      title: '모니터링',
+      title: '모니터링/관리',
       description: '실시간 대시보드·접수대장·행정 이력·입·퇴장',
       href: registrationRoutes.dashboard,
     },
