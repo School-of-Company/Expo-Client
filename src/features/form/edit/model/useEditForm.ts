@@ -7,6 +7,7 @@ import {
   surveyKeys,
   updateSurvey,
 } from '@/entities/survey';
+import { getFormReturnPath } from '@/shared/config';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 
 export const useEditApplicationForm = (
@@ -25,7 +26,7 @@ export const useEditApplicationForm = (
       queryClient.invalidateQueries({
         queryKey: [...formKeys.expo(id), type],
       });
-      router.push(`/exhibition/detail/${id}`);
+      router.push(getFormReturnPath(id));
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -48,7 +49,7 @@ export const useEditSurveyForm = (
       queryClient.invalidateQueries({
         queryKey: surveyKeys.detail(id, type),
       });
-      router.push(`/exhibition/detail/${id}`);
+      router.push(getFormReturnPath(id));
     },
     onError: (error: Error) => {
       toast.error(error.message);
