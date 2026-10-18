@@ -1,11 +1,18 @@
 import { ExhibitionFormData } from '@/shared/types/exhibition/type';
 import { convertAddressToCoordinates } from '../../common/api/convertAddressToCoordinates';
 import { uploadImage } from '../../common/api/uploadImage';
+import {
+  toPreregisterCapacityBody,
+  validatePreregisterCapacity,
+} from '../../common/lib/preregisterCapacity';
 import { createExhibition } from '../api/createExhibition';
 
 export const handleCreateExhibitionFormSubmit = async (
   data: ExhibitionFormData,
 ) => {
+  const capacityError = validatePreregisterCapacity(data);
+  if (capacityError) throw new Error(capacityError);
+
   // 호출하는 API 함수가 이미 오류를 ApiError·Error 로 바꿔 던지므로 그대로 올린다
   const coordinates = await convertAddressToCoordinates(data.address);
 
@@ -22,6 +29,7 @@ export const handleCreateExhibitionFormSubmit = async (
     coverImage: img,
     x: String(lng),
     y: String(lat),
+    ...toPreregisterCapacityBody(data),
     addStandardProRequestDto: data.standard.map((standard) => ({
       title: standard.title,
       startedAt: `${standard.startedAt}`,

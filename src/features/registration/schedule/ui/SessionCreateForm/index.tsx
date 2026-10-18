@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import { useExpoDetail } from '@/shared/queries/useExpoDetail';
 import { Button, Input, ToggleButton } from '@/shared/ui';
 import {
   DateTimeInput,
@@ -10,8 +11,11 @@ import {
 } from '../../../common';
 import {
   EMPTY_SESSION_FORM,
+  isSplitCapacity,
   SessionForm,
   toCount,
+  toOptionalCount,
+  totalCapacity,
   toSessionDefinition,
   validateSessionForm,
 } from '../../model/sessionForm';
@@ -24,6 +28,22 @@ interface SessionCreateFormProps {
 
 const SessionCreateForm = ({ expoId, onClose }: SessionCreateFormProps) => {
   const [form, setForm] = useState<SessionForm>(EMPTY_SESSION_FORM);
+  // 박람회에 정원 기본값이 있으면 새 회차를 그 값으로 채운다. 값은 직접 고칠 수 있다
+  const { data: expo } = useExpoDetail(expoId);
+  const defaultTeacher = expo?.preregisterTeacherCapacity;
+  const defaultNonTeacher = expo?.preregisterNonTeacherCapacity;
+  useEffect(() => {
+    if (defaultTeacher == null || defaultNonTeacher == null) return;
+    setForm((prev) =>
+      prev.teacherCapacity === '' && prev.nonTeacherCapacity === ''
+        ? {
+            ...prev,
+            teacherCapacity: defaultTeacher,
+            nonTeacherCapacity: defaultNonTeacher,
+          }
+        : prev,
+    );
+  }, [defaultTeacher, defaultNonTeacher]);
   const { mutate: createSession, isPending } = useScheduleMutation(
     expoId,
     (value: SessionForm) =>
@@ -61,12 +81,38 @@ const SessionCreateForm = ({ expoId, onClose }: SessionCreateFormProps) => {
             onChange={(e) => update({ place: e.target.value })}
           />
         </Field>
-        <Field label="정원">
+        <Field label={isSplitCapacity(form) ? '정원 (합계)' : '정원'}>
+          {isSplitCapacity(form) ? (
+            <p className="flex h-[48px] items-center">
+              {totalCapacity(form)}명
+            </p>
+          ) : (
+            <Input
+              type="number"
+              min={1}
+              value={form.capacity}
+              onChange={(e) => update({ capacity: toCount(e.target.value) })}
+            />
+          )}
+        </Field>
+        <Field label="교사·예비교사 정원">
           <Input
             type="number"
-            min={1}
-            value={form.capacity}
-            onChange={(e) => update({ capacity: toCount(e.target.value) })}
+            min={0}
+            value={form.teacherCapacity}
+            onChange={(e) =>
+              update({ teacherCapacity: toOptionalCount(e.target.value) })
+            }
+          />
+        </Field>
+        <Field label="그 외 대상 정원">
+          <Input
+            type="number"
+            min={0}
+            value={form.nonTeacherCapacity}
+            onChange={(e) =>
+              update({ nonTeacherCapacity: toOptionalCount(e.target.value) })
+            }
           />
         </Field>
         <Field label="대기 정원">

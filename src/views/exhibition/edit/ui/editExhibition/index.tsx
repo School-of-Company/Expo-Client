@@ -44,6 +44,10 @@ const EditExhibition = ({ id }: { id: string }) => {
     image: expoDetail?.coverImage ?? '',
     address: geoQueryData?.documents?.[0]?.road_address?.address_name ?? '',
     location: expoDetail?.location ?? '',
+    preregisterTeacherCapacity:
+      expoDetail?.preregisterTeacherCapacity ?? ('' as const),
+    preregisterNonTeacherCapacity:
+      expoDetail?.preregisterNonTeacherCapacity ?? ('' as const),
     trainings: [
       ...(expoTraining?.essential ?? []),
       ...(expoTraining?.choice ?? []),
