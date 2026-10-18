@@ -7,11 +7,17 @@ const getFieldOpenAt = (startedDay: string) =>
 
 /**
  * 현장 등록 폼이 사용자에게 공개됐는지. 공개 뒤 실제 접수 가능 여부는 폼 기간과 서버가 판정한다.
- * 행사 정보를 못 받으면 숨기지 않고 서버 판정에 맡긴다
+ * 행사 정보를 못 받으면(isError) 공개로 단정하지 않고 released=false 로 두며, 호출부가 오류·재시도를 보여 준다
  */
 export const useFieldRelease = (expoId: string) => {
-  const { data, isLoading } = useExpoDetail(expoId);
+  const { data, isLoading, isError, refetch } = useExpoDetail(expoId);
   const openAt = data ? getFieldOpenAt(data.startedDay) : NaN;
   const now = useNow([openAt]);
-  return { isLoading, released: !(now < openAt), openAt };
+  return {
+    isLoading,
+    isError,
+    refetch,
+    released: !!data && !(now < openAt),
+    openAt,
+  };
 };

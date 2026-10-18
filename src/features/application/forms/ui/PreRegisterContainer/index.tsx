@@ -27,6 +27,7 @@ import {
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
 import { findRegistrationAnswerError } from '../../../lib/process/findRegistrationAnswerError';
+import { useFieldRelease } from '../../model/fieldRelease';
 import {
   getApplicantLimit,
   getCompanionLimit,
@@ -66,6 +67,8 @@ const PreRegisterContainer = ({
   const selectedSession = sessions?.find(
     (session) => String(session.id) === sessionId,
   );
+  // 행사 시작일 00:00(KST) 이후(켜둔 화면 포함)에는 일반 사전등록 작성을 닫고 현장등록으로 안내한다. 서버 접수 제한은 따로 유지된다
+  const field = useFieldRelease(expoId);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionIssue, setSessionIssue] = useState<SessionIssue>();
   // 같은 내용을 다시 보내면(연타·네트워크 재시도·오류 뒤 재제출) 같은 키로 보낸다
@@ -166,6 +169,25 @@ const PreRegisterContainer = ({
       setIsSubmitting(false);
     }
   };
+
+  if (field.released)
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-16 text-body1r text-gray-500 mobile:text-body2r">
+        <p>일반 사전등록은 종료되었습니다. 현장 등록을 이용해주세요.</p>
+        <Link
+          href={`/application/${expoId}?formType=application&userType=STANDARD&applicationType=FIELD`}
+          className="text-main-600 underline"
+        >
+          현장 등록하기
+        </Link>
+        <Link
+          href={`/application/forms/${expoId}`}
+          className="text-main-600 underline"
+        >
+          신청 폼 목록으로 돌아가기
+        </Link>
+      </div>
+    );
 
   if (error)
     return (

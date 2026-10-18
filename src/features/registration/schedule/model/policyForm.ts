@@ -56,7 +56,7 @@ export interface PolicyForm {
   groupId: string;
   /** 초등 1~3학년 보호자 동반 필수. null 이면 OFF */
   guardianPolicy: GuardianPolicyForm | null;
-  /** 현장 접수 기간. 입력란이 없어 서버 값(UTC 오프셋 ISO 8601)을 그대로 돌려보낸다 */
+  /** 현장 접수 기간. 로컬 'YYYY-MM-DDTHH:mm'. 둘 다 비우면 기간을 보내지 않는다 */
   onsiteStartedAt: string | null;
   onsiteEndedAt: string | null;
 }
@@ -150,8 +150,8 @@ const toPolicyForm = (policy: ProgramPolicy): PolicyForm => ({
   guardianPolicy: policy.guardianPolicy
     ? toGuardianPolicyForm(policy.guardianPolicy)
     : null,
-  onsiteStartedAt: policy.onsiteStartedAt ?? null,
-  onsiteEndedAt: policy.onsiteEndedAt ?? null,
+  onsiteStartedAt: fromOffsetDateTime(policy.onsiteStartedAt),
+  onsiteEndedAt: fromOffsetDateTime(policy.onsiteEndedAt),
 });
 
 /** 총정원은 사전·현장 정원의 합이다 */
@@ -291,11 +291,10 @@ export const toProgramPolicy = (form: PolicyForm): ProgramPolicy => {
     ...(policy.guardianPolicy
       ? { guardianPolicy: toGuardianPolicy(policy.guardianPolicy) }
       : {}),
-    // 수정은 정책을 통째로 바꾸므로 기존 현장 접수 기간을 그대로 돌려보낸다
     ...(policy.onsiteStartedAt && policy.onsiteEndedAt
       ? {
-          onsiteStartedAt: policy.onsiteStartedAt,
-          onsiteEndedAt: policy.onsiteEndedAt,
+          onsiteStartedAt: toPolicyDateTime(policy.onsiteStartedAt),
+          onsiteEndedAt: toPolicyDateTime(policy.onsiteEndedAt),
         }
       : {}),
   };
