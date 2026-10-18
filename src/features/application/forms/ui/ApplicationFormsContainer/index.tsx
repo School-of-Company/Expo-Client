@@ -21,7 +21,19 @@ const VIEWS = [
   { value: 'my', label: '내 신청' },
 ] as const;
 
-const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
+type View = 'home' | (typeof VIEWS)[number]['value'];
+
+const isView = (value?: string): value is View =>
+  value === 'home' || VIEWS.some((view) => view.value === value);
+
+const ApplicationFormsContainer = ({
+  expoId,
+  initialView,
+}: {
+  expoId: string;
+  /** `?view=my|list` 로 들어오면 그 탭을 바로 연다. 신청 완료 화면의 "내 신청·QR 보기"가 쓴다 */
+  initialView?: string;
+}) => {
   const { forms: allForms, isLoading: isFormsLoading } =
     useApplicationForms(expoId);
   const field = useFieldRelease(expoId);
@@ -33,8 +45,8 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
       : entry.key !== 'pre-standard' || !field.released,
   );
   const { data: expo, isLoading: isExpoLoading } = useExpoDetail(expoId);
-  const [view, setView] = useState<'home' | (typeof VIEWS)[number]['value']>(
-    'home',
+  const [view, setView] = useState<View>(
+    isView(initialView) ? initialView : 'home',
   );
   const [selected, setSelected] = useState<FormGroup | null>(null);
 

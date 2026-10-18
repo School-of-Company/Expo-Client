@@ -36,7 +36,7 @@ const SuccessCheck = () => {
       )}
       <div className="flex w-full flex-col gap-12">
         <Link
-          href={routes.applicationForms}
+          href={routes.applicationMy}
           className="flex h-[50px] w-full items-center justify-center rounded-sm bg-main-600 text-body1b text-white"
         >
           {isWaiting ? '대기 현황 보기' : '내 신청·QR 보기'}
