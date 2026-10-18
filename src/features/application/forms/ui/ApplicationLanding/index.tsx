@@ -48,10 +48,10 @@ const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
   ];
 
   return (
-    <div className="flex w-full flex-col gap-24 pb-48">
+    <div className="flex w-full flex-1 flex-col gap-24 pb-30">
       {/* 부모 폭과 무관하게 화면 양끝까지 배경을 채운다 */}
       <header
-        className="relative -mt-16 flex flex-col items-center gap-16 overflow-visible bg-main-200 px-16 pb-[112px] pt-40 text-center shadow-[0_0_0_100vmax_#c1daff] mobile:pb-[96px]"
+        className="relative -mt-16 flex flex-1 flex-col items-center justify-center gap-16 overflow-visible bg-main-200 px-16 pb-[112px] pt-40 text-center shadow-[0_0_0_100vmax_#c1daff] mobile:pb-[96px]"
         style={{ clipPath: 'inset(0 -100vmax)' }}
       >
         <div
