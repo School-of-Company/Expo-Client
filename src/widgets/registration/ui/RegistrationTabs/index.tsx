@@ -43,7 +43,7 @@ const RegistrationTabs = () => {
               {/* 모니터링은 박람회 상세 패널에서 들어오므로 뒤로 가면 상세로 돌아간다 */}
               <DetailHeader
                 className="gap-12"
-                headerTitle="모니터링"
+                headerTitle="모니터링/관리"
                 onBack={() =>
                   router.push(
                     `/exhibition/detail/${encodeURIComponent(expoId)}`,
@@ -63,7 +63,7 @@ const RegistrationTabs = () => {
         )}
         {isMonitoring && (
           <nav
-            aria-label="모니터링 메뉴"
+            aria-label="모니터링/관리 메뉴"
             className="grid grid-cols-4 gap-8 mobile:grid-cols-2"
           >
             {tabs.map(({ href, label, exact }) => {
