@@ -3,6 +3,7 @@
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { LotterySettingsForm, SurveyManager } from '@/features/survey-admin';
+import { ArrowLeft } from '@/shared/assets/icons';
 import { Header } from '@/widgets/layout';
 import { RegistrationTabs } from '@/widgets/registration';
 
@@ -20,21 +21,34 @@ const SurveyViews = () => {
 
   return (
     <div className="flex w-full flex-col items-center gap-36">
-      <div role="tablist" className="flex justify-center gap-[18px]">
-        {VIEWS.map(({ value, label }) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={view === value}
-            onClick={() =>
-              router.replace(value === 'lottery' ? '?view=lottery' : '?')
-            }
-            className={`text-h2b ${view === value ? 'text-black' : 'text-gray-500'}`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="relative flex w-full max-w-[816px] justify-center">
+        {/* 박람회 상세 패널에서 들어오므로 주소로 바로 열어도 상세로 돌아가게 한다 */}
+        <button
+          type="button"
+          aria-label="뒤로 가기"
+          className="absolute left-0 top-1/2 flex h-[44px] w-[44px] -translate-y-1/2 items-center justify-center"
+          onClick={() =>
+            router.push(`/exhibition/detail/${encodeURIComponent(expoId)}`)
+          }
+        >
+          <ArrowLeft size={32} />
+        </button>
+        <div role="tablist" className="flex justify-center gap-[18px]">
+          {VIEWS.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={view === value}
+              onClick={() =>
+                router.replace(value === 'lottery' ? '?view=lottery' : '?')
+              }
+              className={`text-h2b ${view === value ? 'text-black' : 'text-gray-500'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       {view === 'lottery' ? (
         <div className="w-full max-w-[816px]">
