@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ApplicationFormCard } from '@/entities/application';
 import { withLoading } from '@/shared/hocs';
+import { useExpoDetail } from '@/shared/queries';
 import { FORM_GROUPS, FormGroup } from '../../constant/formEntries';
 import { useFieldRelease } from '../../model/fieldRelease';
 import {
@@ -11,6 +12,7 @@ import {
   getFormPeriodStatus,
 } from '../../model/formPeriodStatus';
 import { useApplicationForms } from '../../model/useApplicationForms';
+import ApplicationLanding from '../ApplicationLanding';
 import MyApplicationList from '../MyApplicationList';
 
 const VIEWS = [
@@ -27,7 +29,10 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
   const forms = allForms.filter(
     (entry) => entry.group !== 'FIELD' || field.released,
   );
-  const [view, setView] = useState<(typeof VIEWS)[number]['value']>('list');
+  const { data: expo, isLoading: isExpoLoading } = useExpoDetail(expoId);
+  const [view, setView] = useState<'home' | (typeof VIEWS)[number]['value']>(
+    'home',
+  );
   const [selected, setSelected] = useState<FormGroup | null>(null);
 
   // 폼이 하나라도 있는 그룹만 탭으로 노출
@@ -38,11 +43,33 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
     groups.find((group) => group.key === selected) ?? groups[0] ?? null;
   const currentForms = forms.filter((entry) => entry.group === current?.key);
 
+  if (view === 'home') {
+    return withLoading({
+      isLoading: isExpoLoading,
+      children: (
+        <div className="mx-auto flex w-full max-w-[816px] flex-1 flex-col">
+          <ApplicationLanding
+            expo={expo}
+            onApply={() => setView('list')}
+            onMy={() => setView('my')}
+          />
+        </div>
+      ),
+    });
+  }
+
   return withLoading({
     isLoading,
     children: (
-      <div className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
-        <div role="tablist" className="mt-30 flex justify-center gap-[18px]">
+      <div className="mx-auto flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
+        <button
+          type="button"
+          onClick={() => setView('home')}
+          className="mt-30 self-start text-body2r text-gray-500"
+        >
+          ← 박람회 안내
+        </button>
+        <div role="tablist" className="flex justify-center gap-[18px]">
           {VIEWS.map(({ value, label }) => (
             <button
               key={value}
