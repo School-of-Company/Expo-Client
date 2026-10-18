@@ -45,6 +45,8 @@ export const getExpoRoutes = (expoId: string) => {
     paperQr: `${qr}?tab=${EXPO_QR_TABS.paper}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
+    // 신청 화면은 박람회 안내부터 보여 주므로 내 신청 탭을 주소로 지정한다
+    applicationMy: `/application/forms/${id}?view=my`,
     applicationProgram: `/application/forms/${id}/program`,
     applicationTraining: `/application/forms/${id}/training`,
   };
