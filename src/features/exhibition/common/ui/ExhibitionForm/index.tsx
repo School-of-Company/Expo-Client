@@ -43,6 +43,8 @@ const ExhibitionForm = ({
       location: '',
       trainings: [],
       standard: [],
+      preregisterTeacherCapacity: '',
+      preregisterNonTeacherCapacity: '',
       ...defaultValues,
     },
   });
@@ -162,6 +164,31 @@ const ExhibitionForm = ({
             watch={watch}
             fieldName="standard"
           />
+        </div>
+        <div className="space-y-8">
+          <p className="text-h3b text-black">사전등록 회차별 정원 기본값</p>
+          <p className="text-caption1r text-gray-500">
+            새 사전등록 회차의 정원 초기값입니다. 이미 만든 회차의 정원은 바뀌지
+            않습니다. 비워 두면 회차마다 직접 입력합니다.
+          </p>
+          <div className="flex items-center gap-7">
+            <Input
+              {...register('preregisterTeacherCapacity', {
+                setValueAs: (v) => (v === '' ? '' : Number(v)),
+              })}
+              type="number"
+              min={0}
+              placeholder="교사·예비교사 정원"
+            />
+            <Input
+              {...register('preregisterNonTeacherCapacity', {
+                setValueAs: (v) => (v === '' ? '' : Number(v)),
+              })}
+              type="number"
+              min={0}
+              placeholder="그 외 대상 정원"
+            />
+          </div>
         </div>
         <div className="space-y-8">
           <p className="text-h3b text-black">장소</p>
