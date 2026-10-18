@@ -38,8 +38,11 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
   const [selected, setSelected] = useState<FormGroup | null>(null);
 
   // 폼이 하나라도 있는 그룹만 탭으로 노출
+  // 숨긴 일반 사전등록만 남은 PRE 도 유지한다. 프로그램 신청 카드가 이 탭에 있다
   const groups = FORM_GROUPS.filter((group) =>
-    forms.some((entry) => entry.group === group.key),
+    (group.key === 'PRE' ? allForms : forms).some(
+      (entry) => entry.group === group.key,
+    ),
   );
   const current =
     groups.find((group) => group.key === selected) ?? groups[0] ?? null;
