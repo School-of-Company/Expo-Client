@@ -19,7 +19,7 @@ import { useSendVerificationSms } from '../../model/useSendVerificationSms';
 import { useVerifySmsCode } from '../../model/useVerifySmsCode';
 
 // 서버 인증번호 유효시간(Notification authCodeTtlSeconds). 다시 보내도 늘어나지 않는다
-const SMS_CODE_EXPIRY_SECONDS = 180;
+const SMS_CODE_EXPIRY_SECONDS = 300;
 
 interface PhoneVerificationFormValues {
   phoneNumber: string;
