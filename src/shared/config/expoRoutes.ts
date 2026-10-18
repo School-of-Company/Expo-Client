@@ -61,11 +61,27 @@ export const getRegistrationRoutes = (expoId: string) => {
     history: `${base}/history`,
     attendance: `${base}/attendance`,
     participants: `${base}/participants`,
-    programForms: `${base}/program-forms`,
+    // 등록용 폼·만족도 조사·프로그램용 폼은 신청관리의 폼 탭에서 관리한다
+    forms: `${base}/schedule?view=forms`,
+    programForms: `${base}/schedule?view=forms`,
     programFormNew: `${base}/program-forms/new`,
     programForm: (formId: string) =>
       `${base}/program-forms/${encodeURIComponent(formId)}`,
     survey: `${base}/survey`,
     lottery: `${base}/survey?view=lottery`,
   };
+};
+
+/**
+ * 등록용 폼·만족도 조사를 만들거나 고치거나 지운 뒤 돌아갈 곳.
+ * 신청관리 폼 탭에서 왔으면(`?returnTo=schedule`) 그 탭으로, 아니면 박람회 상세로 돌아간다
+ */
+export const getFormReturnPath = (expoId: string) => {
+  const returnTo =
+    typeof window === 'undefined'
+      ? null
+      : new URLSearchParams(window.location.search).get('returnTo');
+  return returnTo === 'schedule'
+    ? getRegistrationRoutes(expoId).forms
+    : `/exhibition/detail/${segment(expoId)}`;
 };
