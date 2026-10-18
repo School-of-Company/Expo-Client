@@ -42,6 +42,9 @@ export const getExpoRoutes = (expoId: string) => {
       `${qr}?tab=${EXPO_QR_TABS.access}&userType=${encodeURIComponent(userType)}&applicationType=${encodeURIComponent(applicationType)}`,
     checkIn: `${qr}?tab=${EXPO_QR_TABS.checkIn}`,
     program: `/program/${id}?navigation=standard`,
+    // 회차 참가자·QR 출석 화면. 연수와 일반 프로그램 ID 는 겹칠 수 있어 종류를 함께 넘긴다
+    programDetail: (programId: number, type: 'STANDARD' | 'TRAINING') =>
+      `/program/${id}/detail/${programId}?navigation=${type === 'TRAINING' ? 'training' : 'standard'}`,
     paperQr: `${qr}?tab=${EXPO_QR_TABS.paper}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
