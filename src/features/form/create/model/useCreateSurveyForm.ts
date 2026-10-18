@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { createSurvey, CreateSurveyRequestDto } from '@/entities/survey';
+import { getFormReturnPath } from '@/shared/config';
 import { CreateFormRequest } from '@/shared/types/form/create/type';
 
 export const useCreateSurveyForm = (
@@ -17,7 +18,7 @@ export const useCreateSurveyForm = (
       createSurvey(id, formattedData as CreateSurveyRequestDto),
     onSuccess: () => {
       toast.success('만족도 조사 폼이 생성되었습니다.');
-      router.push(`/exhibition/detail/${id}`);
+      router.push(getFormReturnPath(id));
       queryClient.resetQueries({
         queryKey: ['createSurveyForm', id, type],
       });
