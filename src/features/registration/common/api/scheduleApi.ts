@@ -18,6 +18,9 @@ export interface PreregisterSessionDefinition {
   place: string;
   /** 1 이상 */
   capacity: number;
+  /** 교사·예비교사 / 그 외 정원. null 이면 구분 없이 capacity 하나로 운영하는 기존 회차이고 합은 capacity 이다 */
+  teacherCapacity?: number | null;
+  nonTeacherCapacity?: number | null;
   waitingCapacity: number;
   closed: boolean;
   /** null 이면 참가자 취소를 막는다 */

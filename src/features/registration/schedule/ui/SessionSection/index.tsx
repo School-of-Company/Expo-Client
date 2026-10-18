@@ -12,7 +12,12 @@ import {
   TableColumn,
 } from '../../../common';
 import { usePreregisterSummary } from '../../../common/model/preregisterSummary';
-import { SessionForm, toOptionalCount } from '../../model/sessionForm';
+import {
+  isSplitCapacity,
+  SessionForm,
+  toOptionalCount,
+  totalCapacity,
+} from '../../model/sessionForm';
 import ScheduleSection from '../ScheduleSection';
 import SessionCreateForm from '../SessionCreateForm';
 
@@ -129,15 +134,52 @@ const SessionSection = ({
       key: 'capacity',
       label: '정원',
       flex: 0.5,
+      render: ({ id, form }) =>
+        isSplitCapacity(form) ? (
+          <p>{totalCapacity(form)}</p>
+        ) : (
+          <Input
+            size="small"
+            type="number"
+            min={1}
+            error={form.capacity === '' || form.capacity < 1}
+            value={form.capacity}
+            onChange={(e) =>
+              onChange(id, { capacity: toOptionalCount(e.target.value) })
+            }
+          />
+        ),
+    },
+    {
+      key: 'teacherCapacity',
+      label: '교사·예비교사',
+      flex: 0.6,
       render: ({ id, form }) => (
         <Input
           size="small"
           type="number"
-          min={1}
-          error={form.capacity === '' || form.capacity < 1}
-          value={form.capacity}
+          min={0}
+          value={form.teacherCapacity}
           onChange={(e) =>
-            onChange(id, { capacity: toOptionalCount(e.target.value) })
+            onChange(id, { teacherCapacity: toOptionalCount(e.target.value) })
+          }
+        />
+      ),
+    },
+    {
+      key: 'nonTeacherCapacity',
+      label: '그 외',
+      flex: 0.5,
+      render: ({ id, form }) => (
+        <Input
+          size="small"
+          type="number"
+          min={0}
+          value={form.nonTeacherCapacity}
+          onChange={(e) =>
+            onChange(id, {
+              nonTeacherCapacity: toOptionalCount(e.target.value),
+            })
           }
         />
       ),
