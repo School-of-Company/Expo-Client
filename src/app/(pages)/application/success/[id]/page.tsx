@@ -1,14 +1,21 @@
-import { Metadata } from 'next';
-import { ApplicationSuccessPage } from '@/views/application/success';
+import { redirect } from 'next/navigation';
+import { getExpoRoutes } from '@/shared/config';
 
-export const metadata: Metadata = {
-  title: '등록 완료',
-  description:
-    '박람회 등록 또는 만족도 조사가 성공적으로 제출되었습니다. 참여해 주셔서 감사합니다.',
-};
-
-const page = () => {
-  return <ApplicationSuccessPage />;
+// 등록 완료 화면은 박람회 랜딩으로 옮겼다. 예전 주소로 들어오면 결과 안내(쿼리)를 그대로 넘긴다
+const page = ({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: Record<string, string | string[] | undefined>;
+}) => {
+  const query = new URLSearchParams(
+    Object.entries(searchParams).flatMap(([key, value]) =>
+      typeof value === 'string' ? [[key, value]] : [],
+    ),
+  ).toString();
+  const landing = getExpoRoutes(params.id).landing;
+  redirect(query ? `${landing}?${query}` : landing);
 };
 
 export default page;
