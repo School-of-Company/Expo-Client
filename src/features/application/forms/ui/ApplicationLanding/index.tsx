@@ -48,15 +48,15 @@ const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
   ];
 
   return (
-    <div className="flex w-full flex-1 flex-col gap-24 pb-30">
+    <div className="flex w-full flex-1 flex-col justify-center gap-24 pb-30">
       {/* 부모 폭과 무관하게 화면 양끝까지 배경을 채운다 */}
       <header
-        className="relative -mt-16 flex flex-1 flex-col items-center justify-center gap-16 overflow-visible bg-main-200 px-16 pb-[112px] pt-40 text-center shadow-[0_0_0_100vmax_#c1daff] mobile:pb-[96px]"
-        style={{ clipPath: 'inset(0 -100vmax)' }}
+        className="relative flex flex-col items-center gap-16 overflow-visible bg-main-200 px-16 pb-[112px] pt-40 text-center shadow-[0_0_0_100vmax_#c1daff] mobile:pb-[96px]"
+        style={{ clipPath: 'inset(-100vmax -100vmax 0)' }}
       >
         <div
           aria-hidden
-          className="absolute left-1/2 top-[56px] h-[900px] w-[1500px] -translate-x-1/2 rounded-full bg-main-100"
+          className="absolute bottom-0 left-1/2 top-[56px] w-[1500px] -translate-x-1/2 rounded-t-[50%] bg-main-100"
         />
         <Logo className="relative h-[40px] w-auto" />
         <h1 className="relative break-keep text-[2rem] font-bold leading-tight text-main-600 mobile:text-h2b">
