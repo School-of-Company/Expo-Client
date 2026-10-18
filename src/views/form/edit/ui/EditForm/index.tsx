@@ -12,6 +12,7 @@ import {
   useGetEditForm,
 } from '@/features/form/edit';
 import { XMark } from '@/shared/assets/icons';
+import { getFormReturnPath } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { useExpoDetail } from '@/shared/queries';
@@ -59,7 +60,7 @@ const EditForm = ({ id }: { id: string }) => {
         queryKey: ['getApplicationForm', id, type, application],
       });
       queryClient.invalidateQueries({ queryKey: ['applicationFormEntry', id] });
-      router.replace(`/exhibition/detail/${id}`);
+      router.replace(getFormReturnPath(id));
     };
     remove.mutate(
       { participantType: type, applicationType: application },
