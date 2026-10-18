@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { ApplicationFormCard } from '@/entities/application';
 import { withLoading } from '@/shared/hocs';
@@ -42,6 +43,7 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
   const current =
     groups.find((group) => group.key === selected) ?? groups[0] ?? null;
   const currentForms = forms.filter((entry) => entry.group === current?.key);
+  const scheduleHref = `/application/forms/${expoId}/schedule`;
 
   if (view === 'home') {
     return withLoading({
@@ -52,6 +54,7 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
             expo={expo}
             onApply={() => setView('list')}
             onMy={() => setView('my')}
+            scheduleHref={scheduleHref}
           />
         </div>
       ),
@@ -62,13 +65,22 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
     isLoading,
     children: (
       <div className="mx-auto flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
-        <button
-          type="button"
-          onClick={() => setView('home')}
-          className="mt-30 self-start text-body2r text-gray-500"
-        >
-          ← 박람회 안내
-        </button>
+        <div className="mt-30 flex items-center justify-between gap-16">
+          <button
+            type="button"
+            onClick={() => setView('home')}
+            className="text-body2r text-gray-500"
+          >
+            ← 박람회 안내
+          </button>
+          {/* 접수 전 카드는 신청 버튼이 닫혀 있어 일정은 여기서 본다 */}
+          <Link
+            href={scheduleHref}
+            className="text-body2b text-main-600 underline"
+          >
+            신청 가능 일정 보기
+          </Link>
+        </div>
         <div role="tablist" className="flex justify-center gap-[18px]">
           {VIEWS.map(({ value, label }) => (
             <button
