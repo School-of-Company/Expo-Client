@@ -9,6 +9,7 @@ import { useFormQuery } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
+import { getExpoRoutes } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
@@ -96,8 +97,9 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         formattedData,
         submissionKeys.current.keyFor(JSON.stringify(formattedData)),
       );
-      router.push(
-        `/application/success/${params}?userType=${userType}&formType=application`,
+      // 뒤로 가기로 제출한 폼에 다시 돌아오지 않게 교체한다
+      router.replace(
+        `${getExpoRoutes(params).landing}?userType=${userType}&formType=application`,
       );
     } catch (error) {
       toast.error(

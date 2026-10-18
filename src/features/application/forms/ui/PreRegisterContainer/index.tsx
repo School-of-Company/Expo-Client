@@ -16,6 +16,7 @@ import {
   getSessionIssue,
 } from '@/features/phone-verification';
 import { formatDefinitionSchedule } from '@/features/registration/common/model/ledger';
+import { getExpoRoutes } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
@@ -142,8 +143,9 @@ const PreRegisterContainer = ({
         result?.status === 'WAITING'
           ? `&status=${result.status}${result.position ? `&position=${encodeURIComponent(result.position)}` : ''}`
           : '';
-      router.push(
-        `/application/success/${expoId}?userType=STANDARD&formType=application${waiting}`,
+      // 뒤로 가기로 제출한 신청서에 다시 돌아오지 않게 교체한다
+      router.replace(
+        `${getExpoRoutes(expoId).landing}?userType=STANDARD&formType=application${waiting}`,
       );
     } catch (submitError) {
       setSessionIssue(getSessionIssue(submitError));
