@@ -14,6 +14,7 @@ import {
   SessionIssue,
   SessionNotice,
   getSessionIssue,
+  useRequireParticipantSession,
 } from '@/features/phone-verification';
 import { formatDefinitionSchedule } from '@/features/registration/common/model/ledger';
 import { withLoading } from '@/shared/hocs';
@@ -52,6 +53,7 @@ const PreRegisterContainer = ({
 }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { isVerified } = useRequireParticipantSession(expoId);
   const {
     data: form,
     isLoading,
@@ -173,6 +175,9 @@ const PreRegisterContainer = ({
         {error.message || '사전등록 신청서를 불러오지 못했습니다'}
       </p>
     );
+
+  // 휴대폰 인증 전에는 회차 선택도 신청서도 보여 주지 않는다
+  if (!isVerified) return withLoading({ isLoading: true, children: null });
 
   // 회차 없이 들어온 링크는 회차를 고르게 한다. 임의 회차로 신청시키지 않는다
   if (!sessionId) return <PreRegisterSessionSelect expoId={expoId} />;
