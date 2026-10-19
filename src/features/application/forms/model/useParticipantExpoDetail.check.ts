@@ -4,32 +4,53 @@
 import assert from 'node:assert/strict';
 import { AxiosError, AxiosHeaders } from 'axios';
 import { ApiError } from '@/shared/libs/http/apiError';
-import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
+import clientInstance from '@/shared/libs/http/clientInstance';
 import { getParticipantExpoDetail } from './useParticipantExpoDetail';
 
-const location = { href: '/application/forms/expo-1' };
-Object.assign(globalThis, { window: { location } });
+const requested: string[] = [];
+let status = 200;
 
-// 토큰 없는 참가자: 프록시가 갱신 실패 401 을 준다
-clientTokenInstance.defaults.adapter = async (config) => {
-  throw new AxiosError('401', 'ERR_BAD_REQUEST', config, null, {
-    status: 401,
-    statusText: 'Unauthorized',
-    data: { isRefreshError: true },
+clientInstance.defaults.adapter = async (config) => {
+  requested.push(`${config.baseURL}${config.url}`);
+  const response = {
+    status,
+    statusText: '',
     headers: {},
     config: { ...config, headers: new AxiosHeaders() },
-  });
+    data:
+      status === 200
+        ? {
+            title: '박람회',
+            description: '소개',
+            location: '광주',
+            startedDay: '2026-10-31',
+            finishedDay: '2026-11-01',
+            // 공개 응답에 섞여 와도 화면은 쓰지 않는다
+            x: '1',
+          }
+        : { message: '찾을 수 없습니다.' },
+  };
+  if (status >= 400) {
+    throw new AxiosError('fail', 'ERR_BAD_REQUEST', config, null, response);
+  }
+  return response;
 };
 
-// /signin 으로 보내면 끝나지 않는 Promise 라 여기까지 오지 못한다. 그때 실패로 끝나게 한다
-process.exitCode = 1;
-
 const main = async () => {
+  const detail = await getParticipantExpoDetail('expo 1');
+  assert.deepEqual(requested, ['/api/server/expo/expo%201/public']);
+  assert.deepEqual(Object.keys(detail).sort(), [
+    'description',
+    'finishedDay',
+    'location',
+    'startedDay',
+    'title',
+  ]);
+
+  status = 404;
   const error = await getParticipantExpoDetail('expo-1').catch((e) => e);
   assert.ok(error instanceof ApiError);
-  assert.equal(error.status, 401);
-  assert.equal(location.href, '/application/forms/expo-1');
-  process.exitCode = 0;
+  assert.equal(error.status, 404);
   console.log('ok');
 };
 

@@ -3,6 +3,7 @@ import {
   toServerMessage,
   toStatusMessage,
 } from '@/shared/libs/handler/serverMessage';
+import { ApiError } from '@/shared/libs/http/apiError';
 
 // 스캔 API는 오류를 { status, message }로 돌려주지만 Next 프록시가 { error, status }로 바꿔 전달한다
 // (토큰 재발급 뒤 재시도 응답만 원본 그대로). 둘 다 읽어 서버 문구가 있으면 보여 주고,
@@ -26,4 +27,11 @@ export const getScanErrorMessage = (error: unknown, fallback: string) => {
   // 상태별 공통 문구에는 이미 재시도 안내가 있어, 대체 문구에 스캔 재시도 안내를 붙인다
   const base = message === toStatusMessage(status) ? fallback : message;
   return `${base} 잠시 후 다시 스캔해 주세요.`;
+};
+
+/** 스캔 오류 문구에 응답 상태를 함께 담는다. 화면이 상태와 모드로 안내를 고를 수 있다 */
+export const toScanError = (error: unknown, fallback: string) => {
+  const message = getScanErrorMessage(error, fallback);
+  const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+  return status ? new ApiError(message, status) : new Error(message);
 };

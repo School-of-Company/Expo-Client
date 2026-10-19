@@ -1,6 +1,6 @@
 import axios from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
-import { getScanErrorMessage } from '@/shared/libs/http/getScanErrorMessage';
+import { toScanError } from '@/shared/libs/http/getScanErrorMessage';
 import { EntryStatusFields } from '@/shared/types/exhibition/check-in/type';
 import { scannerNameConfig } from './scannerNameHeader';
 
@@ -21,9 +21,7 @@ export const patchPaperQrAttendance = async (
   } catch (error) {
     if (axios.isAxiosError(error)) {
       // 400은 '이미 입장'과 '진행 중인 박람회가 아님'이 모두 와서 서버 문구를 그대로 보여 준다
-      throw new Error(
-        getScanErrorMessage(error, '종이 QR 입장에 실패했습니다.'),
-      );
+      throw toScanError(error, '종이 QR 입장에 실패했습니다.');
     }
     throw error;
   }

@@ -419,6 +419,13 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   return (
     <section className="flex flex-col gap-12">
       <p className="text-body2b text-black">나의 신청 현황</p>
+      {/* 재신청은 문자를 다시 보내지 않아 QR 문자를 잃어버린 사람은 여기서 확인한다(Expo-User-Server#164) */}
+      {applications.length > 0 && (
+        <p className="break-keep text-body2r text-gray-500">
+          QR 문자를 받지 못하셨나요? 아래 신청의 &apos;QR 보기&apos;에서 QR을
+          확인할 수 있습니다. 다시 신청해도 QR 문자는 다시 발송되지 않습니다.
+        </p>
+      )}
 
       {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
       {(errorMessage || waitlistErrorMessage) && (
@@ -560,6 +567,12 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
             {cancelTarget.session}
             <br />이 신청이 취소됩니다. 다시 신청하면 새 신청으로 처리되어 지금
             자리가 보장되지 않습니다.
+            {cancelTarget.type === 'PREREGISTER' && (
+              <>
+                <br />
+                다시 신청하면 QR 문자는 오지 않고 기존 QR을 그대로 씁니다.
+              </>
+            )}
           </p>
           {cancelTarget.guardianNote && (
             <p

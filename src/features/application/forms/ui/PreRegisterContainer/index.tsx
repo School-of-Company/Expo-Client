@@ -213,7 +213,9 @@ const PreRegisterContainer = ({
           <p className="text-h2b text-black mobile:text-h3b">사전등록 신청</p>
           <p className="text-body2r text-gray-500">
             대표자가 함께 오는 사람까지 한 번에 신청합니다. 신청한 사람마다 QR이
-            대표자 번호로 발송됩니다.
+            대표자 번호로 발송됩니다. 취소 후 다시 신청하면 전에 QR을 받은
+            사람은 문자 없이 기존 QR을 그대로 쓰고, 새로 추가한 사람에게만
+            문자가 갑니다.
           </p>
           {/* 확정된 사전등록은 내 신청에서 동행자를 더할 수 있다(Expo-Application-Server#169) */}
           {companionFieldId && (
