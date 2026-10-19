@@ -1,8 +1,9 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'next/navigation';
 import { QRCodeCanvas } from 'qrcode.react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { AnswerList } from '@/entities/form';
 import { SessionNotice, getSessionIssue } from '@/features/phone-verification';
@@ -27,6 +28,7 @@ import {
 import { useMyApplications } from '../../model/useMyApplications';
 import { usePreRegisterSessions } from '../../model/usePreRegister';
 import AddCompanionDialog, { AddCompanionTarget } from '../AddCompanionDialog';
+import AddSessionDialog from '../AddSessionDialog';
 import PreRegisterWaitlist from '../PreRegisterWaitlist';
 import PromotionOffer from '../PromotionOffer';
 
@@ -164,7 +166,7 @@ const ApplicationRow = ({
               }
               className="whitespace-nowrap rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-caption1b text-main-600"
             >
-              동행자 추가
+              일행에 사람 추가
             </button>
           )}
           {cancellable ? (
@@ -369,6 +371,8 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     isRespondingOffer,
     addCompanions,
     isAddingCompanions,
+    addSession,
+    isAddingSession,
   } = useMyApplications(expoId);
   const { getSession, hasLookupError, retryLookup } = useApplicationSessions(
     expoId,
@@ -383,7 +387,23 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   const [declineOfferId, setDeclineOfferId] = useState<string | null>(null);
   const [companionTarget, setCompanionTarget] =
     useState<AddCompanionTarget | null>(null);
+  const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
   const { data: preRegisterSessions = [] } = usePreRegisterSessions(expoId);
+  // 다른 화면(프로그램 신청 등)에서 회차를 골라 들어오면 그 회차를 미리 선택해 추가 화면을 연다
+  const addSessionIdParam = Number(useSearchParams().get('addSessionId'));
+  const initialAddSessionId = Number.isInteger(addSessionIdParam)
+    ? addSessionIdParam
+    : undefined;
+  // 확정된 사전등록이 있어야 다른 회차를 추가할 수 있다
+  const canAddSession = applications.some(
+    ({ type, status }) => type === 'PREREGISTER' && status === 'CONFIRMED',
+  );
+  const autoOpened = useRef(false);
+  useEffect(() => {
+    if (autoOpened.current || !initialAddSessionId || !canAddSession) return;
+    autoOpened.current = true;
+    setIsAddSessionOpen(true);
+  }, [initialAddSessionId, canAddSession]);
 
   // 참가자별로 묶고 대표자를 먼저 둔다. 서버가 주는 참가자 순서와 신청 순서는 그대로 지킨다
   const groups = Array.from(new Set(applications.map((a) => a.participantId)))
@@ -423,7 +443,18 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
 
   return (
     <section className="flex flex-col gap-12">
-      <p className="text-body2b text-black">나의 신청 현황</p>
+      <div className="flex flex-wrap items-center justify-between gap-8">
+        <p className="text-body2b text-black">나의 신청 현황</p>
+        {!sessionIssue && canAddSession && (
+          <button
+            type="button"
+            onClick={() => setIsAddSessionOpen(true)}
+            className="whitespace-nowrap rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-caption1b text-main-600"
+          >
+            다른 회차 추가
+          </button>
+        )}
+      </div>
       {/* 재신청은 문자를 다시 보내지 않아 QR 문자를 잃어버린 사람은 여기서 확인한다(Expo-User-Server#164) */}
       {applications.length > 0 && (
         <p className="break-keep text-body2r text-gray-500">
@@ -562,6 +593,19 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
           isSubmitting={isAddingCompanions}
           onSubmit={addCompanions}
           onClose={() => setCompanionTarget(null)}
+        />
+      )}
+
+      {isAddSessionOpen && (
+        <AddSessionDialog
+          expoId={expoId}
+          sessions={preRegisterSessions}
+          applications={applications}
+          participants={participants}
+          initialSessionId={initialAddSessionId}
+          isSubmitting={isAddingSession}
+          onSubmit={addSession}
+          onClose={() => setIsAddSessionOpen(false)}
         />
       )}
 
