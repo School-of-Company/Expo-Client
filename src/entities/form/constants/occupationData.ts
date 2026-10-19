@@ -4,11 +4,11 @@ export const OCCUPATION_OPTIONS = [
   { key: 'ELEMENTARY_STUDENT', label: '초등학생' },
   { key: 'MIDDLE_SCHOOL_STUDENT', label: '중학생' },
   { key: 'HIGH_SCHOOL_STUDENT', label: '고등학생' },
+  { key: 'TEACHER', label: '교사' },
   { key: 'SCHOOL_STAFF', label: '교직원' },
   { key: 'PRE_SERVICE_TEACHER', label: '예비교사' },
   { key: 'PARENT', label: '보호자/학부모' },
   { key: 'GENERAL', label: '일반인' },
-  { key: 'TEACHER', label: '교사' },
 ] as const;
 
 export type Occupation = (typeof OCCUPATION_OPTIONS)[number]['key'];
