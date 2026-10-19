@@ -103,6 +103,24 @@ const getCancellationActorLabel = ({
   }
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/** 예약 스냅샷 답변. 서버는 JSON 문자열로 내려준다. 객체가 아니면 지우지 않고 원문으로 보여 준다 */
+export const parseInformationJson = (
+  value: unknown,
+): Record<string, unknown> | null => {
+  if (isRecord(value)) return value;
+  if (typeof value !== 'string' || !value.trim()) return null;
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (isRecord(parsed)) return parsed;
+  } catch {
+    // 원문으로 보여 준다
+  }
+  return { 원문: value };
+};
+
 /** 참가자 행은 로컬 대표자 ID 와 참가자 ID 가 같으면 대표자, 다르면 그 대표자의 동행자다 */
 const toRelation = (row: AdminPreregisterRow): PreregisterRelation => {
   if (row.participantId === null) return 'PARTY';
