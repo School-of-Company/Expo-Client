@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { ReactNode, useMemo, useRef, useState } from 'react';
+import { Fragment, ReactNode, useMemo, useRef, useState } from 'react';
 import { PrivacyConsent } from '@/entities/application';
 import { getProgramForm } from '@/entities/form/api/programForms';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
@@ -10,7 +10,9 @@ import { buildProgramApplyPayload } from '@/features/form/program';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { SessionNotice } from '@/features/phone-verification';
+import { formatDefinitionSchedule } from '@/features/registration/common/model/ledger';
 import { getPublicStandardProgram, getTrainingProgram } from '@/shared/api';
+import { getExpoRoutes } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
 import { getProgramSessionCsrfHeaders } from '@/shared/libs/http/programSessionCsrf';
 import { DynamicFormValues } from '@/shared/types/application/type';
@@ -21,17 +23,21 @@ import {
 } from '../../../api/postApplication';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { getProgramParticipants } from '../../api/programParticipants';
+import {
+  SCHEDULE_STATUS_LABEL,
+  ScheduleStatus,
+  getProgramScheduleStatus,
+} from '../../model/applicationSchedule';
 import { formatFormPeriod } from '../../model/formPeriodStatus';
 import {
   OUTCOME_LABEL,
   ProgramApplyOutcome,
   REUSED_GUARDIAN_NOTE,
-  formatProgramPlace,
   getProgramFormId,
   getIneligibleLabel,
   getSeatsLabel,
   getProgramPolicyNotes,
-  getProgramRecruitmentLabel,
+  getProgramInfoRows,
   isProgramApplicationEnded,
 } from '../../model/programApply';
 import { getGroupApplications, groupPrograms } from '../../model/programGroups';
@@ -365,6 +371,14 @@ const ParticipantLookup = ({
  * 프로그램별 신청(일반·연수 공통). 프로그램마다 따로 제출하고 결과도 프로그램별로 보여 준다.
  * 여러 프로그램을 한 번에 묶어 보내지 않는다(Expo-Config-Server#71).
  */
+const STATUS_CLASS: Record<ScheduleStatus, string> = {
+  UPCOMING: 'bg-main-100 text-main-600',
+  OPEN: 'bg-main-600 text-white',
+  CLOSED: 'bg-gray-100 text-gray-500',
+  ENDED: 'bg-gray-100 text-gray-400',
+  UNSET: 'bg-gray-100 text-gray-500',
+};
+
 const ProgramApplyContainer = ({
   expoId,
   programType,
@@ -387,10 +401,12 @@ const ProgramApplyContainer = ({
   });
   const queryClient = useQueryClient();
   // 신청 기간이 끝난 회차는 모집 목록에서만 숨긴다. 같은 쿼리를 내 신청 조회가 쓰므로 데이터는 거르지 않는다
+  // 켜 둔 화면도 접수 시작·마감 시각에 버튼과 상태가 바뀐다
   const now = useNow(
-    (allPrograms ?? []).map(({ policy }) =>
+    (allPrograms ?? []).flatMap(({ policy }) => [
+      new Date(policy?.applicationStartedAt ?? NaN).getTime(),
       new Date(policy?.applicationEndedAt ?? NaN).getTime(),
-    ),
+    ]),
   );
   const programs = useMemo(
     () =>
@@ -438,8 +454,8 @@ const ProgramApplyContainer = ({
     children: (
       <div className="mt-30 flex w-full max-w-[816px] flex-col gap-24">
         <DetailHeader headerTitle={`${label} 신청`} />
-        <p className="text-body2r text-gray-500">
-          신청할 {label}마다 따로 신청합니다. 결과도 {label}별로 표시됩니다.
+        <p className="break-keep text-body2r text-gray-500">
+          {label}마다 따로 신청합니다.
         </p>
         {error && <p className="text-body2r text-error">{error.message}</p>}
         {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
@@ -470,6 +486,26 @@ const ProgramApplyContainer = ({
           // 라디오는 현장 정원이 있는 회차에서만 보이므로, 정원 없는 회차로 바꾸면 사전 신청으로 돌아간다
           const onsite =
             !!program.policy?.onsiteCapacity && !!onsiteGroups[group.key];
+          const status = getProgramScheduleStatus(program, now);
+          // 현장 신청은 사전 접수 기간과 따로 서버가 판정하므로 막지 않는다. 운영 마감은 경로와 상관없이 막는다
+          const blockedLabel =
+            program.policy?.closed || status === 'ENDED'
+              ? '신청 마감'
+              : onsite
+                ? undefined
+                : status === 'UPCOMING' && program.policy
+                  ? `${formatFormPeriod(program.policy.applicationStartedAt)}부터 신청`
+                  : status === 'CLOSED'
+                    ? '사전 신청 마감'
+                    : undefined;
+          const notes = program.policy
+            ? getProgramPolicyNotes(
+                program.policy,
+                sharedGroups.has(program.policy.groupId ?? '')
+                  ? label
+                  : undefined,
+              )
+            : [];
           const existing = getGroupApplications(
             group,
             programType,
@@ -479,131 +515,152 @@ const ProgramApplyContainer = ({
           return (
             <section
               key={group.key}
-              className="flex flex-col gap-16 rounded-sm border-1 border-solid border-gray-200 p-24"
+              className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16"
             >
-              <div className="flex min-w-0 flex-wrap items-center gap-8">
-                <p className="min-w-0 break-words break-keep text-body1b">
+              <div className="flex min-w-0 items-start justify-between gap-12">
+                <p className="min-w-0 break-words break-keep text-h3b text-black mobile:text-body1b">
                   {program.title}
                 </p>
-                <span className="rounded-sm border-1 border-solid border-gray-200 px-8 py-4 text-caption2r text-gray-500">
-                  {getProgramRecruitmentLabel(program.policy)}
+                <span
+                  className={`flex-none rounded-full px-12 py-4 text-caption1b ${STATUS_CLASS[status]}`}
+                >
+                  {SCHEDULE_STATUS_LABEL[status]}
                 </span>
               </div>
-              <p className="min-w-0 break-words break-keep text-body2r text-gray-600">
-                장소: {formatProgramPlace(program.place)}
-              </p>
+
               {group.sessions.length > 1 && (
                 <fieldset className="flex flex-col gap-8">
-                  <legend className="mb-8 text-body2b">회차 선택</legend>
-                  {group.sessions.map((session) => (
-                    <label
-                      key={session.id}
-                      className="flex flex-wrap items-center gap-8 text-body2r"
-                    >
-                      <input
-                        type="radio"
-                        name={`session-${group.key}`}
-                        checked={session.id === program.id}
-                        onChange={() => {
-                          setSelectedByGroup((prev) => ({
-                            ...prev,
-                            [group.key]: session.id,
-                          }));
-                          // 신청서를 닫아 이전 회차의 참가자 선택·답변·정책을 버린다. 다시 열면 새 회차로 조회한다
-                          setOpenGroupKey(null);
-                        }}
-                      />
-                      <span className="min-w-0 break-words break-keep">
-                        {session.title} · {formatFormPeriod(session.startedAt)}{' '}
-                        ~ {formatFormPeriod(session.endedAt)} ·{' '}
-                        {formatProgramPlace(session.place)}
-                      </span>
-                      {session.policy?.closed && (
-                        <span className="text-caption1r text-gray-500">
-                          (마감)
-                        </span>
-                      )}
-                    </label>
-                  ))}
+                  <legend className="mb-8 text-body2b text-black">
+                    회차 선택
+                  </legend>
+                  <div className="grid grid-cols-2 gap-8 mobile:grid-cols-1">
+                    {group.sessions.map((session) => {
+                      const checked = session.id === program.id;
+                      return (
+                        <label
+                          key={session.id}
+                          className={`flex cursor-pointer flex-col gap-2 rounded-sm border-1 border-solid px-16 py-12 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-main-300 ${checked ? 'border-main-600 bg-main-100' : 'border-gray-200 bg-white'}`}
+                        >
+                          <input
+                            type="radio"
+                            className="sr-only"
+                            name={`session-${group.key}`}
+                            checked={checked}
+                            onChange={() => {
+                              setSelectedByGroup((prev) => ({
+                                ...prev,
+                                [group.key]: session.id,
+                              }));
+                              // 신청서를 닫아 이전 회차의 참가자 선택·답변·정책을 버린다. 다시 열면 새 회차로 조회한다
+                              setOpenGroupKey(null);
+                            }}
+                          />
+                          <span
+                            className={`text-body2b ${checked ? 'text-main-600' : 'text-black'}`}
+                          >
+                            {formatDefinitionSchedule(
+                              session.startedAt,
+                              session.endedAt,
+                            )}
+                            {session.policy?.closed && (
+                              <span className="ml-4 text-caption1r text-gray-500">
+                                (마감)
+                              </span>
+                            )}
+                          </span>
+                          <span className="break-words break-keep text-caption1r text-gray-500">
+                            {session.title}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </fieldset>
               )}
+
+              <dl className="grid grid-cols-[88px_1fr] gap-x-16 gap-y-10 rounded-sm bg-gray-100 px-20 py-16 mobile:grid-cols-[72px_1fr] mobile:px-16">
+                {getProgramInfoRows(program).map(({ label: name, value }) => (
+                  <Fragment key={name}>
+                    <dt className="text-body2r text-gray-500">{name}</dt>
+                    <dd className="min-w-0 break-words break-keep text-body2b text-black">
+                      {value}
+                    </dd>
+                  </Fragment>
+                ))}
+              </dl>
+
               {!!program.policy?.onsiteCapacity && (
                 <fieldset className="flex flex-col gap-8">
-                  <legend className="mb-8 text-body2b">신청 경로</legend>
-                  {[false, true].map((isOnsite) => (
-                    <label
-                      key={String(isOnsite)}
-                      className="flex items-center gap-8 text-body2r"
-                    >
-                      <input
-                        type="radio"
-                        name={`route-${group.key}`}
-                        checked={onsite === isOnsite}
-                        onChange={() => {
-                          setOnsiteGroups((prev) => ({
-                            ...prev,
-                            [group.key]: isOnsite,
-                          }));
-                          // 경로마다 참가자 후보와 정원이 달라 신청서를 닫고 다시 조회한다
-                          setOpenGroupKey(null);
-                        }}
-                      />
-                      {isOnsite ? '현장 신청' : '사전 신청'}
-                    </label>
-                  ))}
+                  <legend className="mb-8 text-body2b text-black">
+                    신청 경로
+                  </legend>
+                  <div className="flex gap-8">
+                    {[false, true].map((isOnsite) => (
+                      <label
+                        key={String(isOnsite)}
+                        className={`flex-1 cursor-pointer rounded-sm border-1 border-solid px-16 py-10 text-center text-body2b has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-main-300 ${onsite === isOnsite ? 'border-main-600 bg-main-100 text-main-600' : 'border-gray-200 text-gray-600'}`}
+                      >
+                        <input
+                          type="radio"
+                          className="sr-only"
+                          name={`route-${group.key}`}
+                          checked={onsite === isOnsite}
+                          onChange={() => {
+                            setOnsiteGroups((prev) => ({
+                              ...prev,
+                              [group.key]: isOnsite,
+                            }));
+                            // 경로마다 참가자 후보와 정원이 달라 신청서를 닫고 다시 조회한다
+                            setOpenGroupKey(null);
+                          }}
+                        />
+                        {isOnsite ? '현장 신청' : '사전 신청'}
+                      </label>
+                    ))}
+                  </div>
                   {onsite && (
                     <p className="break-keep text-caption1r text-gray-500">
                       현장 신청은 현장 정원 안에서 바로 확정되며, 정원이
-                      부족하면 대기 없이 거절됩니다. 현장 개방 여부는 서버가
-                      확인합니다.
+                      부족하면 대기 없이 거절됩니다.
                     </p>
                   )}
                 </fieldset>
               )}
+
+              {notes.length > 0 && (
+                <ul className="flex flex-col gap-4 text-caption1r text-gray-500">
+                  {notes.map((note) => (
+                    <li key={note}>· {note}</li>
+                  ))}
+                </ul>
+              )}
+
               {existing.length > 0 && (
                 <div
                   role="status"
-                  className="flex flex-col gap-4 break-words break-keep text-caption1r text-gray-600"
+                  className="flex flex-col gap-4 break-words break-keep rounded-sm border-1 border-solid border-main-300 px-16 py-12 text-caption1r text-gray-600"
                 >
+                  <p className="text-body2b text-main-600">이미 신청한 회차</p>
                   {existing.map(({ application, participantName, session }) => (
                     <p key={application.applicationId}>
                       {participantName}: {session.title}{' '}
-                      {formatFormPeriod(session.startedAt)} 회차(
-                      {formatProgramPlace(session.place)}){' '}
+                      {formatFormPeriod(session.startedAt)} ·{' '}
                       {application.status === 'CONFIRMED' ? '확정' : '대기'}
                     </p>
                   ))}
                   <p>
-                    같은 묶음은 참가자마다 하나만 신청할 수 있습니다. 회차를
-                    바꾸려면{' '}
+                    회차를 바꾸려면{' '}
                     <Link
-                      href={`/application/forms/${expoId}`}
+                      href={getExpoRoutes(expoId).applicationMy}
                       className="text-main-600 underline"
                     >
                       내 신청
                     </Link>
-                    에서 기존 신청을 확인하고, 취소가 가능하면 취소한 뒤 다시
-                    신청해주세요. 자동으로 바뀌지 않으며 최종 판정은 서버가
-                    합니다.
+                    에서 기존 신청을 취소한 뒤 다시 신청해주세요.
                   </p>
                 </div>
               )}
-              {program.policy && (
-                <ul className="flex flex-col gap-4 text-caption1r text-gray-600">
-                  {getProgramPolicyNotes(
-                    program.policy,
-                    sharedGroups.has(program.policy.groupId ?? '')
-                      ? label
-                      : undefined,
-                  ).map((note) => (
-                    <li key={note}>{note}</li>
-                  ))}
-                  <li className="text-gray-500">
-                    안내된 정원·기간은 참고용이며, 신청할 때 서버가 자격과 남은
-                    자리를 다시 확인합니다.
-                  </li>
-                </ul>
-              )}
+
               {!formId && (
                 <p className="text-caption1r text-gray-500">
                   이 {programType === 'TRAINING' ? '연수는' : '프로그램은'} 아직
@@ -612,10 +669,10 @@ const ProgramApplyContainer = ({
               )}
               <Button
                 type="button"
-                disabled={!formId}
+                disabled={!formId || !!blockedLabel}
                 onClick={() => setOpenGroupKey(isOpen ? null : group.key)}
               >
-                {isOpen ? '닫기' : '신청'}
+                {blockedLabel ?? (isOpen ? '닫기' : '신청하기')}
               </Button>
               {outcome && (
                 <p

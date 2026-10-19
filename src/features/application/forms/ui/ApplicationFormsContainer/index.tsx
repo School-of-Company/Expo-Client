@@ -1,8 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { ApplicationFormCard } from '@/entities/application';
 import { withLoading } from '@/shared/hocs';
+import { useExpoDetail } from '@/shared/queries';
 import { FORM_GROUPS, FormGroup } from '../../constant/formEntries';
 import { useFieldRelease } from '../../model/fieldRelease';
 import {
@@ -11,6 +13,7 @@ import {
   getFormPeriodStatus,
 } from '../../model/formPeriodStatus';
 import { useApplicationForms } from '../../model/useApplicationForms';
+import ApplicationLanding from '../ApplicationLanding';
 import MyApplicationList from '../MyApplicationList';
 
 const VIEWS = [
@@ -18,31 +21,84 @@ const VIEWS = [
   { value: 'my', label: '내 신청' },
 ] as const;
 
-const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
+type View = 'home' | (typeof VIEWS)[number]['value'];
+
+const isView = (value?: string): value is View =>
+  value === 'home' || VIEWS.some((view) => view.value === value);
+
+const ApplicationFormsContainer = ({
+  expoId,
+  initialView,
+}: {
+  expoId: string;
+  /** `?view=my|list` 로 들어오면 그 탭을 바로 연다. 신청 완료 화면의 "내 신청·QR 보기"가 쓴다 */
+  initialView?: string;
+}) => {
   const { forms: allForms, isLoading: isFormsLoading } =
     useApplicationForms(expoId);
   const field = useFieldRelease(expoId);
   const isLoading = isFormsLoading || field.isLoading;
-  // 현장 등록 폼은 행사 시작일 00:00(KST)부터 사용자 목록에 노출한다
-  const forms = allForms.filter(
-    (entry) => entry.group !== 'FIELD' || field.released,
+  // 행사 시작일 00:00(KST)부터 일반 사전등록은 숨기고 현장 등록을 노출한다. 교원연수·프로그램 신청 등 나머지 PRE 항목은 유지한다
+  const forms = allForms.filter((entry) =>
+    entry.group === 'FIELD'
+      ? field.released
+      : entry.key !== 'pre-standard' || !field.released,
   );
-  const [view, setView] = useState<(typeof VIEWS)[number]['value']>('list');
+  const { data: expo, isLoading: isExpoLoading } = useExpoDetail(expoId);
+  const [view, setView] = useState<View>(
+    isView(initialView) ? initialView : 'home',
+  );
   const [selected, setSelected] = useState<FormGroup | null>(null);
 
   // 폼이 하나라도 있는 그룹만 탭으로 노출
+  // 숨긴 일반 사전등록만 남은 PRE 도 유지한다. 프로그램 신청 카드가 이 탭에 있다
   const groups = FORM_GROUPS.filter((group) =>
-    forms.some((entry) => entry.group === group.key),
+    (group.key === 'PRE' ? allForms : forms).some(
+      (entry) => entry.group === group.key,
+    ),
   );
   const current =
     groups.find((group) => group.key === selected) ?? groups[0] ?? null;
   const currentForms = forms.filter((entry) => entry.group === current?.key);
+  const scheduleHref = `/application/forms/${expoId}/schedule`;
+
+  if (view === 'home') {
+    return withLoading({
+      isLoading: isExpoLoading,
+      children: (
+        <div className="mx-auto flex w-full max-w-[816px] flex-1 flex-col">
+          <ApplicationLanding
+            expo={expo}
+            onApply={() => setView('list')}
+            onMy={() => setView('my')}
+            scheduleHref={scheduleHref}
+          />
+        </div>
+      ),
+    });
+  }
 
   return withLoading({
     isLoading,
     children: (
-      <div className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
-        <div role="tablist" className="mt-30 flex justify-center gap-[18px]">
+      <div className="mx-auto flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
+        <div className="mt-30 flex items-center justify-between gap-16">
+          <button
+            type="button"
+            onClick={() => setView('home')}
+            className="text-body2r text-gray-500"
+          >
+            ← 박람회 안내
+          </button>
+          {/* 접수 전 카드는 신청 버튼이 닫혀 있어 일정은 여기서 본다 */}
+          <Link
+            href={scheduleHref}
+            className="text-body2b text-main-600 underline"
+          >
+            신청 가능 일정 보기
+          </Link>
+        </div>
+        <div role="tablist" className="flex justify-center gap-[18px]">
           {VIEWS.map(({ value, label }) => (
             <button
               key={value}
@@ -56,6 +112,22 @@ const ApplicationFormsContainer = ({ expoId }: { expoId: string }) => {
             </button>
           ))}
         </div>
+
+        {field.isError && view !== 'my' && (
+          <div className="flex flex-col gap-12">
+            <p role="alert" className="break-keep text-body2r text-error">
+              행사 정보를 불러오지 못해 현장 등록 공개 여부를 확인할 수
+              없습니다.
+            </p>
+            <button
+              type="button"
+              onClick={() => field.refetch()}
+              className="w-full rounded-sm border-1 border-solid border-main-600 px-24 py-14 text-body2b text-main-600"
+            >
+              다시 시도
+            </button>
+          </div>
+        )}
 
         {view === 'my' ? (
           <MyApplicationList expoId={expoId} />

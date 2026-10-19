@@ -42,9 +42,14 @@ export const getExpoRoutes = (expoId: string) => {
       `${qr}?tab=${EXPO_QR_TABS.access}&userType=${encodeURIComponent(userType)}&applicationType=${encodeURIComponent(applicationType)}`,
     checkIn: `${qr}?tab=${EXPO_QR_TABS.checkIn}`,
     program: `/program/${id}?navigation=standard`,
+    // 회차 참가자·QR 출석 화면. 연수와 일반 프로그램 ID 는 겹칠 수 있어 종류를 함께 넘긴다
+    programDetail: (programId: number, type: 'STANDARD' | 'TRAINING') =>
+      `/program/${id}/detail/${programId}?navigation=${type === 'TRAINING' ? 'training' : 'standard'}`,
     paperQr: `${qr}?tab=${EXPO_QR_TABS.paper}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
+    // 신청 화면은 박람회 안내부터 보여 주므로 내 신청 탭을 주소로 지정한다
+    applicationMy: `/application/forms/${id}?view=my`,
     applicationProgram: `/application/forms/${id}/program`,
     applicationTraining: `/application/forms/${id}/training`,
   };
@@ -59,11 +64,27 @@ export const getRegistrationRoutes = (expoId: string) => {
     history: `${base}/history`,
     attendance: `${base}/attendance`,
     participants: `${base}/participants`,
-    programForms: `${base}/program-forms`,
+    // 등록용 폼·만족도 조사·프로그램용 폼은 신청관리의 폼 탭에서 관리한다
+    forms: `${base}/schedule?view=forms`,
+    programForms: `${base}/schedule?view=forms`,
     programFormNew: `${base}/program-forms/new`,
     programForm: (formId: string) =>
       `${base}/program-forms/${encodeURIComponent(formId)}`,
     survey: `${base}/survey`,
     lottery: `${base}/survey?view=lottery`,
   };
+};
+
+/**
+ * 등록용 폼·만족도 조사를 만들거나 고치거나 지운 뒤 돌아갈 곳.
+ * 신청관리 폼 탭에서 왔으면(`?returnTo=schedule`) 그 탭으로, 아니면 박람회 상세로 돌아간다
+ */
+export const getFormReturnPath = (expoId: string) => {
+  const returnTo =
+    typeof window === 'undefined'
+      ? null
+      : new URLSearchParams(window.location.search).get('returnTo');
+  return returnTo === 'schedule'
+    ? getRegistrationRoutes(expoId).forms
+    : `/exhibition/detail/${segment(expoId)}`;
 };

@@ -14,6 +14,7 @@ import {
   SessionIssue,
   SessionNotice,
   getSessionIssue,
+  useRequireParticipantSession,
 } from '@/features/phone-verification';
 import { formatDefinitionSchedule } from '@/features/registration/common/model/ledger';
 import { withLoading } from '@/shared/hocs';
@@ -27,6 +28,7 @@ import {
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
 import { findRegistrationAnswerError } from '../../../lib/process/findRegistrationAnswerError';
+import { useFieldRelease } from '../../model/fieldRelease';
 import {
   getApplicantLimit,
   getCompanionLimit,
@@ -52,6 +54,7 @@ const PreRegisterContainer = ({
 }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { isVerified } = useRequireParticipantSession(expoId);
   const {
     data: form,
     isLoading,
@@ -66,6 +69,8 @@ const PreRegisterContainer = ({
   const selectedSession = sessions?.find(
     (session) => String(session.id) === sessionId,
   );
+  // 행사 시작일 00:00(KST) 이후(켜둔 화면 포함)에는 일반 사전등록 작성을 닫고 현장등록으로 안내한다. 서버 접수 제한은 따로 유지된다
+  const field = useFieldRelease(expoId);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionIssue, setSessionIssue] = useState<SessionIssue>();
   // 같은 내용을 다시 보내면(연타·네트워크 재시도·오류 뒤 재제출) 같은 키로 보낸다
@@ -167,12 +172,34 @@ const PreRegisterContainer = ({
     }
   };
 
+  if (field.released)
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-16 text-body1r text-gray-500 mobile:text-body2r">
+        <p>일반 사전등록은 종료되었습니다. 현장 등록을 이용해주세요.</p>
+        <Link
+          href={`/application/${expoId}?formType=application&userType=STANDARD&applicationType=FIELD`}
+          className="text-main-600 underline"
+        >
+          현장 등록하기
+        </Link>
+        <Link
+          href={`/application/forms/${expoId}`}
+          className="text-main-600 underline"
+        >
+          신청 폼 목록으로 돌아가기
+        </Link>
+      </div>
+    );
+
   if (error)
     return (
       <p className="flex flex-1 items-center justify-center text-body1r text-gray-500">
         {error.message || '사전등록 신청서를 불러오지 못했습니다'}
       </p>
     );
+
+  // 휴대폰 인증 전에는 회차 선택도 신청서도 보여 주지 않는다
+  if (!isVerified) return withLoading({ isLoading: true, children: null });
 
   // 회차 없이 들어온 링크는 회차를 고르게 한다. 임의 회차로 신청시키지 않는다
   if (!sessionId) return <PreRegisterSessionSelect expoId={expoId} />;
@@ -188,6 +215,13 @@ const PreRegisterContainer = ({
             대표자가 함께 오는 사람까지 한 번에 신청합니다. 신청한 사람마다 QR이
             대표자 번호로 발송됩니다.
           </p>
+          {/* 확정된 사전등록은 내 신청에서 동행자를 더할 수 있다(Expo-Application-Server#169) */}
+          {companionFieldId && (
+            <p className="break-keep text-body2r text-gray-500">
+              신청이 확정된 뒤에도 내 신청에서 대표자를 포함해 5명까지 동행자를
+              추가할 수 있습니다. 추가할 때 남은 자리를 다시 확인합니다.
+            </p>
+          )}
         </div>
 
         <div className="flex items-start justify-between gap-16 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:flex-col mobile:gap-8 mobile:p-16">

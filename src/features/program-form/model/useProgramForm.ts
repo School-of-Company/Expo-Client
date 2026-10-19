@@ -92,7 +92,8 @@ export const useEditProgramForm = (initial: ProgramFormResponseDto) => {
     } catch (error) {
       // 또 충돌이면 모달을 그대로 두고 다시 고르게 한다
       if (!isVersionConflict(error)) setConflict(null);
-      toast.error((error as Error).message);
+      // 저장 실패 사유는 길어서 기본 2초로는 읽기 어렵다
+      toast.error((error as Error).message, { autoClose: 6000 });
     }
   };
 

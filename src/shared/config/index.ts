@@ -4,6 +4,7 @@ export type { UserAuthority } from './authority';
 export {
   EXPO_QR_TABS,
   getExpoRoutes,
+  getFormReturnPath,
   getRegistrationRoutes,
   isValidExpoId,
   normalizeExpoId,

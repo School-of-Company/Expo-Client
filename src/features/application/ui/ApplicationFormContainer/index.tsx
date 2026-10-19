@@ -35,7 +35,10 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
   // 현장 등록은 행사 시작일 00:00(KST) 전에는 작성·제출 진입을 막는다. 서버의 접수 제한은 따로 유지된다
   const field = useFieldRelease(params);
   const isFieldPending =
-    applicationType === 'FIELD' && !field.isLoading && !field.released;
+    applicationType === 'FIELD' &&
+    !field.isLoading &&
+    !field.isError &&
+    !field.released;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   // 같은 내용의 재제출(연타·네트워크 재시도)은 같은 Idempotency-Key 로 보낸다
@@ -107,6 +110,21 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
       setIsSubmitting(false);
     }
   };
+
+  if (applicationType === 'FIELD' && field.isError) {
+    return (
+      <div className="flex w-full max-w-[816px] flex-1 flex-col items-center justify-center gap-16 text-body1r text-gray-500 mobile:text-body2r">
+        <p role="alert">행사 정보를 불러오지 못했습니다.</p>
+        <button
+          type="button"
+          onClick={() => field.refetch()}
+          className="text-main-600 underline"
+        >
+          다시 시도
+        </button>
+      </div>
+    );
+  }
 
   if (isFieldPending) {
     return (

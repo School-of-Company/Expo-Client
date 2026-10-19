@@ -25,6 +25,7 @@ import {
   useApplicationSessions,
 } from '../../model/useApplicationSessions';
 import { useMyApplications } from '../../model/useMyApplications';
+import AddCompanionDialog, { AddCompanionTarget } from '../AddCompanionDialog';
 import PreRegisterWaitlist from '../PreRegisterWaitlist';
 import PromotionOffer from '../PromotionOffer';
 
@@ -94,6 +95,7 @@ const ApplicationRow = ({
   participant,
   onCancel,
   onShowQr,
+  onAddCompanion,
   session,
 }: {
   application: OwnerApplication;
@@ -101,6 +103,7 @@ const ApplicationRow = ({
   session: SessionInfo;
   onCancel: (target: CancelTarget) => void;
   onShowQr: (target: QrTarget) => void;
+  onAddCompanion: (target: AddCompanionTarget) => void;
 }) => {
   const {
     type,
@@ -120,6 +123,10 @@ const ApplicationRow = ({
   const title = [participant?.name, TYPE_LABEL[type]]
     .filter(Boolean)
     .join(' · ');
+  // 서버가 대표자 본인의 확정 사전등록에만 true 를 준다. 일행이 5명이 찼거나 자리가 없으면 남은 인원이 0이다
+  const remainingCompanionSlots = application.companionAddable
+    ? (application.remainingCompanionSlots ?? 0)
+    : 0;
 
   return (
     <li className="flex flex-col gap-12 py-16">
@@ -141,6 +148,22 @@ const ApplicationRow = ({
               className="whitespace-nowrap rounded-sm bg-main-600 px-16 py-8 text-caption1b text-white"
             >
               QR 보기
+            </button>
+          )}
+          {type === 'PREREGISTER' && remainingCompanionSlots > 0 && (
+            <button
+              type="button"
+              onClick={() =>
+                onAddCompanion({
+                  applicationId,
+                  title,
+                  session: sessionLabel,
+                  remaining: remainingCompanionSlots,
+                })
+              }
+              className="whitespace-nowrap rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-caption1b text-main-600"
+            >
+              동행자 추가
             </button>
           )}
           {cancellable ? (
@@ -343,6 +366,8 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     offers,
     respondOffer,
     isRespondingOffer,
+    addCompanions,
+    isAddingCompanions,
   } = useMyApplications(expoId);
   const { getSession, hasLookupError, retryLookup } = useApplicationSessions(
     expoId,
@@ -352,6 +377,8 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null);
   const [isWaitlistCancelOpen, setIsWaitlistCancelOpen] = useState(false);
   const [declineOfferId, setDeclineOfferId] = useState<string | null>(null);
+  const [companionTarget, setCompanionTarget] =
+    useState<AddCompanionTarget | null>(null);
 
   // 참가자별로 묶고 대표자를 먼저 둔다. 서버가 주는 참가자 순서와 신청 순서는 그대로 지킨다
   const groups = Array.from(new Set(applications.map((a) => a.participantId)))
@@ -463,6 +490,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
                 session={getSession(application)}
                 onCancel={setCancelTarget}
                 onShowQr={setQrTarget}
+                onAddCompanion={setCompanionTarget}
               />
             );
             return (
@@ -510,6 +538,16 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
           expoId={expoId}
           target={qrTarget}
           onClose={() => setQrTarget(null)}
+        />
+      )}
+
+      {companionTarget && (
+        <AddCompanionDialog
+          expoId={expoId}
+          target={companionTarget}
+          isSubmitting={isAddingCompanions}
+          onSubmit={addCompanions}
+          onClose={() => setCompanionTarget(null)}
         />
       )}
 

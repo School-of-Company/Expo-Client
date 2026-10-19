@@ -26,6 +26,8 @@ interface CompanionFieldProps {
   required?: boolean;
   /** 추가할 수 있는 동행자 수. 대표자는 세지 않는다. */
   maxCount?: number;
+  /** 인원 안내 문구. 기본은 "대표자를 포함해 최대 N명까지" 이고, 이미 접수한 일행에 더할 때처럼 기준이 다르면 바꾼다 */
+  limitHint?: string;
   control: Control<FieldValues>;
   register: UseFormRegister<FieldValues>;
 }
@@ -54,6 +56,7 @@ export default function CompanionField({
   label,
   required = false,
   maxCount = COMPANION_MAX_COUNT,
+  limitHint,
   control,
   register,
 }: CompanionFieldProps) {
@@ -77,8 +80,10 @@ export default function CompanionField({
   return (
     <div className="flex flex-col gap-16">
       <p className="text-caption1r text-gray-500">
-        {maxCount > 0 &&
-          `대표자를 포함해 최대 ${maxCount + 1}명까지 함께 신청할 수 있습니다. `}
+        {limitHint !== undefined
+          ? `${limitHint} `
+          : maxCount > 0 &&
+            `대표자를 포함해 최대 ${maxCount + 1}명까지 함께 신청할 수 있습니다. `}
         동행자는 대표자 번호로 등록되고 사람마다 QR을 받습니다.
       </p>
 

@@ -1,14 +1,9 @@
-import { Metadata } from 'next';
-import { ProgramFormListPage } from '@/views/program-form';
+import { redirect } from 'next/navigation';
+import { getRegistrationRoutes } from '@/shared/config';
 
-export const metadata: Metadata = {
-  title: '프로그램용 폼',
-  description:
-    '회차 신청에 쓰는 프로그램용 폼을 만들고 다시 편집하는 관리자 전용 페이지입니다.',
-};
-
-const Page = () => {
-  return <ProgramFormListPage />;
+// 프로그램용 폼 목록은 신청관리의 폼 탭으로 옮겼다. 예전 주소·북마크는 그쪽으로 보낸다
+const Page = ({ params }: { params: { expoId: string } }) => {
+  redirect(getRegistrationRoutes(params.expoId).forms);
 };
 
 export default Page;

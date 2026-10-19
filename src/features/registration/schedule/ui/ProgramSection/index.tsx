@@ -1,8 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { retryProgramChanges } from '@/shared/api';
 import { Trash } from '@/shared/assets/icons';
+import { getExpoRoutes } from '@/shared/config';
+import { useExcelDownload } from '@/shared/model';
 import { AddItemButton, Button } from '@/shared/ui';
 import {
   deleteScheduleProgram,
@@ -84,6 +87,9 @@ const ProgramSection = ({
     () => retryProgramChanges(expoId),
     '중단된 프로그램 변경을 다시 처리했습니다.',
   );
+
+  const { mutate: downloadExcel, isPending: isExporting } = useExcelDownload();
+  const routes = getExpoRoutes(expoId);
 
   const pendingCount = programs.filter(
     ({ pendingRevision }) => pendingRevision !== null,
@@ -185,9 +191,33 @@ const ProgramSection = ({
     {
       key: 'actions',
       label: '관리',
-      flex: 1.1,
+      flex: 1.8,
       render: ({ program }) => (
         <div className="flex items-center justify-center gap-12">
+          <Link
+            href={routes.programDetail(program.id, program.programType)}
+            onClick={(e) => e.stopPropagation()}
+            className="text-body2r text-main-600"
+          >
+            참가자
+          </Link>
+          {/* 연수는 회차별 명단이 없어 표 위의 연수자 명단 엑셀로 받는다 */}
+          {program.programType === 'STANDARD' && (
+            <button
+              type="button"
+              className="text-body2r text-main-600 disabled:opacity-40"
+              disabled={isExporting}
+              onClick={(e) => {
+                e.stopPropagation();
+                downloadExcel({
+                  path: `/excel/program/${expoId}`,
+                  params: { programId: program.id },
+                });
+              }}
+            >
+              엑셀
+            </button>
+          )}
           <button
             type="button"
             className="text-body2r text-main-600 disabled:opacity-40"
@@ -239,6 +269,22 @@ const ProgramSection = ({
             onClick={() => retry(undefined)}
           >
             {isRetrying ? '처리 중...' : '다시 처리'}
+          </Button>
+        </div>
+      )}
+      {rows.some(({ program }) => program.programType === 'TRAINING') && (
+        <div className="flex items-center justify-between gap-16 mobile:flex-col mobile:items-stretch">
+          <p className="text-body2r text-gray-500">
+            연수 명단은 회차별이 아니라 행사 전체 연수자와 신청 강연을 한 파일로
+            받습니다.
+          </p>
+          <Button
+            variant="white"
+            width="180px"
+            disabled={isExporting}
+            onClick={() => downloadExcel({ path: `/excel/${expoId}` })}
+          >
+            {isExporting ? '받는 중...' : '연수자 명단 엑셀'}
           </Button>
         </div>
       )}

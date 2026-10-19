@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { getSessionIssue } from '@/features/phone-verification';
 import {
   OwnerApplicationType,
+  addMyPreRegisterCompanions,
   cancelMyApplication,
   cancelMyPreRegisterWaitlist,
   getMyApplications,
@@ -13,6 +14,7 @@ import {
   respondPromotionOffer,
 } from '../api/myApplications';
 import { getOfferErrorMessage } from './promotionOffer';
+import type { Companion } from '@/shared/types/application/type';
 
 // 401 은 세션 문제(sessionIssue)로 따로 안내하므로 오류 문구에서 뺀다. 5xx·네트워크 오류는 오류로 보여 준다
 const visibleError = (error: Error | null) =>
@@ -89,6 +91,24 @@ export const useMyApplications = (expoId: string) => {
       onSettled: refresh,
     });
 
+  // 결과 안내는 화면이 한다. 실패해도 추가 가능 인원이 바뀌었을 수 있어 다시 받는다
+  const { mutateAsync: addCompanions, isPending: isAddingCompanions } =
+    useMutation({
+      mutationFn: (target: {
+        applicationId: string;
+        companions: Companion[];
+        idempotencyKey: string;
+      }) =>
+        addMyPreRegisterCompanions(
+          expoId,
+          target.applicationId,
+          target.companions,
+          target.idempotencyKey,
+          data?.csrfToken,
+        ),
+      onSettled: refresh,
+    });
+
   // 수락·거절 모두 성공·실패 뒤 다시 받는다. 실패(409)해도 서버 상태를 따른다
   const { mutate: respondOffer, isPending: isRespondingOffer } = useMutation({
     mutationFn: (target: {
@@ -129,5 +149,7 @@ export const useMyApplications = (expoId: string) => {
     cancel,
     cancelWaitlist,
     isCancellingWaitlist,
+    addCompanions,
+    isAddingCompanions,
   };
 };

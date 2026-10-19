@@ -10,7 +10,7 @@ export const useSendSms = (
     mutationFn: (phoneNumber: string) => postSendSms(phoneNumber),
     onSuccess: () => {
       setIsSmsSent(true);
-      setTimer(180);
+      setTimer(300);
       toast.success('문자 메시지 전송이 완료되었습니다.');
     },
     onError: (error: Error) => {

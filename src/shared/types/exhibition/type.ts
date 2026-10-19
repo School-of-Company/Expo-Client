@@ -30,6 +30,9 @@ export type ExhibitionFormData = {
   image: File | null | string;
   startedDay: string;
   finishedDay: string;
+  /** 입력칸을 비우면 '' 이다. 둘 다 비우거나 둘 다 채운다 */
+  preregisterTeacherCapacity: number | '';
+  preregisterNonTeacherCapacity: number | '';
 };
 
 export interface MutationType {

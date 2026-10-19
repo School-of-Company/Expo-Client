@@ -8,6 +8,7 @@ import { formatDateTime, SectionError } from '../../../common';
 import {
   formatDefinitionSchedule,
   getLedgerErrorMessage,
+  getPromotionWindowLabel,
   isCancellableStatus,
   LEDGER_STATUS_LABEL,
   LEDGER_STATUS_STYLE,
@@ -16,6 +17,8 @@ import {
   toLedgerRow,
   useApplicationDetail,
   useCancelApplication,
+  usePromoteApplication,
+  useWaitlistContext,
 } from '../../../common/model/ledger';
 
 interface ApplicationDetailModalProps {
@@ -63,6 +66,7 @@ const ApplicationDetailModal = ({
     applicationId,
   );
   const cancellation = useCancelApplication(expoId);
+  const promotion = usePromoteApplication(expoId);
 
   const dialogRef = useModalDialog({ onClose });
 
@@ -71,6 +75,23 @@ const ApplicationDetailModal = ({
   const history = data
     ? [...data.history].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     : [];
+
+  const waitlist = useWaitlistContext(
+    expoId,
+    row?.status === 'WAITING' ? row : null,
+  );
+
+  const handlePromote = () => {
+    if (!row || promotion.isPending) return;
+    // 학생·보호자 묶음이면 서버가 구성원 하나만 지정해도 묶음 전체를 확정하거나 전부 대기로 둔다
+    if (
+      !window.confirm(
+        `${row.name}님의 '${row.title}' 대기를 확정할까요? 전화로 참여 의사를 확인한 뒤에 진행하세요. 학생·보호자 묶음이면 묶음 전체가 함께 확정되며, 확정한 신청은 되돌릴 수 없습니다.`,
+      )
+    )
+      return;
+    promotion.mutate(row.id);
+  };
 
   const handleCancel = () => {
     if (!row) return;
@@ -203,6 +224,37 @@ const ApplicationDetailModal = ({
             </ol>
           )}
         </section>
+
+        {row.status === 'WAITING' && (
+          <section className="space-y-[10px]">
+            <p className="text-h3b text-black">대기 수동 확정</p>
+            <dl className="space-y-8">
+              <Field
+                label="대기 순서"
+                value={
+                  waitlist.data?.position
+                    ? `${waitlist.data.position}번째 / 대기 ${waitlist.data.total}건`
+                    : '확인 중'
+                }
+              />
+              <Field
+                label="승급 방식"
+                value={
+                  getPromotionWindowLabel(waitlist.data?.policy ?? null) ??
+                  '확인 중'
+                }
+              />
+            </dl>
+            <p className="text-caption1r text-gray-400">
+              자동 승급이 멈춘 뒤 대기 승급 마감 전까지만 확정할 수 있습니다.
+              정원·자격·시간 충돌·진행 중 참여 제안은 서버가 다시 확인하며,
+              실패해도 대기는 그대로 남습니다.
+            </p>
+            <Button disabled={promotion.isPending} onClick={handlePromote}>
+              {promotion.isPending ? '확정하는 중...' : '대기 수동 확정'}
+            </Button>
+          </section>
+        )}
 
         {isCancellableStatus(row.status) && (
           <section className="space-y-[10px]">

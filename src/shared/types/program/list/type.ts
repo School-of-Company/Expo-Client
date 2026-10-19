@@ -56,6 +56,10 @@ export interface ProgramPolicy {
   // 수정은 정책을 통째로 바꾸므로 빠뜨리면 기존 현장 접수 기간이 지워진다
   onsiteStartedAt?: string | null;
   onsiteEndedAt?: string | null;
+  // 자동 승급 설정(Expo-Expo-Server#143). 둘 다 생략하면 promotionEndedAt 까지 자동 승급한다. 수정은 정책을 통째로
+  // 바꾸므로 빠뜨리면 기존 설정이 지워진다. 대기 정원이 0 이면 보낼 수 없다
+  autoPromotionEnabled?: boolean | null;
+  autoPromotionEndedAt?: string | null;
 }
 
 // 프로그램 생성·수정 요청 공통 필드. 시각은 'yyyy-MM-dd HH:mm' 이다.

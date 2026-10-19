@@ -70,7 +70,7 @@ const ProgramFormCreatePage = () => {
           />
           <p className="text-caption1r text-gray-500">
             프로그램·연수 회차의 신청서로 쓰는 폼입니다. 행사 입장 사전·현장
-            등록용 폼은 박람회 운영의 폼 생성에서 만듭니다.
+            등록용 폼은 신청관리 폼 탭의 등록용 폼에서 만듭니다.
           </p>
           {draft === undefined ? (
             <Loading />
