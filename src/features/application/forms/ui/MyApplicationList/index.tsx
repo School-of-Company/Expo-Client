@@ -25,6 +25,7 @@ import {
   useApplicationSessions,
 } from '../../model/useApplicationSessions';
 import { useMyApplications } from '../../model/useMyApplications';
+import { usePreRegisterSessions } from '../../model/usePreRegister';
 import AddCompanionDialog, { AddCompanionTarget } from '../AddCompanionDialog';
 import PreRegisterWaitlist from '../PreRegisterWaitlist';
 import PromotionOffer from '../PromotionOffer';
@@ -358,7 +359,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     sessionIssue,
     errorMessage,
     retry,
-    waitlist,
+    waitlists,
     waitlistErrorMessage,
     cancel,
     cancelWaitlist,
@@ -375,10 +376,14 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   );
   const [qrTarget, setQrTarget] = useState<QrTarget | null>(null);
   const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null);
-  const [isWaitlistCancelOpen, setIsWaitlistCancelOpen] = useState(false);
+  // 대기 취소를 확인받을 회차. 회차마다 따로 대기할 수 있다
+  const [waitlistCancelSessionId, setWaitlistCancelSessionId] = useState<
+    number | null
+  >(null);
   const [declineOfferId, setDeclineOfferId] = useState<string | null>(null);
   const [companionTarget, setCompanionTarget] =
     useState<AddCompanionTarget | null>(null);
+  const { data: preRegisterSessions = [] } = usePreRegisterSessions(expoId);
 
   // 참가자별로 묶고 대표자를 먼저 둔다. 서버가 주는 참가자 순서와 신청 순서는 그대로 지킨다
   const groups = Array.from(new Set(applications.map((a) => a.participantId)))
@@ -404,7 +409,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   // 조회 실패를 신청 없음으로 보이지 않게 오류를 그대로 알린다
   if (
     applications.length === 0 &&
-    !waitlist &&
+    waitlists.length === 0 &&
     offers.length === 0 &&
     !errorMessage &&
     !waitlistErrorMessage &&
@@ -477,14 +482,16 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
           />
         ))}
 
-      {!sessionIssue && waitlist && (
-        <PreRegisterWaitlist
-          expoId={expoId}
-          waitlist={waitlist}
-          onCancel={() => setIsWaitlistCancelOpen(true)}
-          isCancelling={isCancellingWaitlist}
-        />
-      )}
+      {!sessionIssue &&
+        waitlists.map((waitlist) => (
+          <PreRegisterWaitlist
+            key={waitlist.sessionId}
+            expoId={expoId}
+            waitlist={waitlist}
+            onCancel={() => setWaitlistCancelSessionId(waitlist.sessionId)}
+            isCancelling={isCancellingWaitlist}
+          />
+        ))}
 
       {!sessionIssue &&
         groups.map(
@@ -636,20 +643,24 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         </Dialog>
       )}
 
-      {isWaitlistCancelOpen && (
+      {waitlistCancelSessionId !== null && (
         <Dialog
           label="대기 신청 취소 확인"
-          onClose={() => setIsWaitlistCancelOpen(false)}
+          onClose={() => setWaitlistCancelSessionId(null)}
         >
           <p className="text-h3b text-black">대기 신청을 취소할까요?</p>
           <p className="break-keep text-center text-body2r text-gray-500">
-            일행 전체의 대기가 함께 취소되고 대기 순번이 사라집니다. 다시
-            신청하면 새 신청으로 맨 뒤에 접수됩니다.
+            {preRegisterSessions.find(
+              ({ id }) => id === waitlistCancelSessionId,
+            )?.title ?? `회차 ${waitlistCancelSessionId}`}
+            <br />이 회차에 대기 중인 일행 전체가 함께 취소되고 대기 순번이
+            사라집니다. 다른 회차 신청은 그대로입니다. 다시 신청하면 새 신청으로
+            맨 뒤에 접수됩니다.
           </p>
           <div className="flex w-full gap-8">
             <button
               type="button"
-              onClick={() => setIsWaitlistCancelOpen(false)}
+              onClick={() => setWaitlistCancelSessionId(null)}
               className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-body2b text-gray-700"
             >
               닫기
@@ -657,8 +668,8 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
             <button
               type="button"
               onClick={() => {
-                cancelWaitlist();
-                setIsWaitlistCancelOpen(false);
+                cancelWaitlist(waitlistCancelSessionId);
+                setWaitlistCancelSessionId(null);
               }}
               className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
             >

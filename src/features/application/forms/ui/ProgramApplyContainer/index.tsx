@@ -419,7 +419,7 @@ const ProgramApplyContainer = ({
   );
   // 사전등록 대기 중인 일행이 있으면 "미등록" 대신 대기 안내를 보여 준다
   const {
-    waitlist,
+    waitlists,
     applications,
     participants,
     errorMessage,
@@ -702,7 +702,7 @@ const ProgramApplyContainer = ({
                   expoId={expoId}
                   programType={programType}
                   program={program}
-                  waiting={!!waitlist}
+                  waiting={waitlists.length > 0}
                   onsite={onsite}
                   onSelect={() =>
                     // 다른 참가자의 이전 결과 문구가 남지 않게 한다
