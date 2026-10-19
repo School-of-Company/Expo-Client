@@ -16,7 +16,11 @@ import {
   getAdminPreregistrationTargets,
   postAdminPreregistrationCancellation,
 } from '../api/preregisterLedgerApi';
-import { LEDGER_PAGE_SIZE, LEDGER_REFRESH_MS } from './ledger';
+import {
+  CANCEL_FORBIDDEN_MESSAGE,
+  LEDGER_PAGE_SIZE,
+  LEDGER_REFRESH_MS,
+} from './ledger';
 import { preregisterSummaryQueryKey } from './preregisterSummary';
 import { scheduleQueryKeys } from './useSchedule';
 
@@ -219,15 +223,18 @@ export const usePreregisterParty = (
 
 const CANCEL_ERROR_MESSAGE: Record<number, string> = {
   400: '한 번에 한 일행만 취소할 수 있습니다. 목록을 새로고침한 뒤 다시 시도해주세요.',
-  403: '이 행사의 사전등록을 취소할 권한이 없습니다.',
   404: '사전등록 신청을 찾을 수 없습니다. 상태가 바뀌었거나 다른 행사의 신청입니다.',
   409: '지금은 취소할 수 없습니다. 이미 입장했거나 취소 기간이 끝났거나, 동행자가 남아 있거나 상태가 바뀌었습니다.',
   502: '참가자·출석 연동을 확인하지 못해 취소하지 않았습니다. 잠시 후 다시 시도해주세요.',
   503: '참가자·출석 연동을 확인하지 못해 취소하지 않았습니다. 잠시 후 다시 시도해주세요.',
 };
 
-/** 서버가 준 한국어 사유를 먼저 보여 주고, 없으면 상태별 안내를 쓴다 */
+/**
+ * 서버가 준 한국어 사유를 먼저 보여 주고, 없으면 상태별 안내를 쓴다.
+ * 403 은 프록시가 공통 문구("이 작업을 할 권한이 없습니다.")로 바꿔 보내므로 취소 권한 안내로 대신한다
+ */
 const getCancelErrorMessage = (error: unknown) =>
+  (getErrorStatus(error) === 403 && CANCEL_FORBIDDEN_MESSAGE) ||
   (error instanceof Error && error.message) ||
   CANCEL_ERROR_MESSAGE[getErrorStatus(error) ?? 0] ||
   '사전등록을 취소하지 못했습니다.';
