@@ -9,7 +9,7 @@ import {
   getCategoryLabel,
   MAX_TOKENS_PER_ISSUE,
   PAPER_QR_CATEGORIES,
-  PaperQrCategory,
+  PaperQrIssueCategory,
 } from '../../model/constants';
 import { issuePaperQrTokens } from '../../model/issuePaperQrTokens';
 import {
@@ -34,7 +34,7 @@ const PaperQrIssueCard = ({
   hasIssued,
   onIssued,
 }: PaperQrIssueCardProps) => {
-  const [counts, setCounts] = useState<Record<PaperQrCategory, string>>({
+  const [counts, setCounts] = useState<Record<PaperQrIssueCategory, string>>({
     ADULT: '',
     CHILD: '',
   });
