@@ -1,6 +1,10 @@
 'use client';
 
 import { Component, ReactNode } from 'react';
+import {
+  LEGACY_WALK_IN_CATEGORY_LABEL,
+  WALK_IN_CATEGORY_LABEL,
+} from '@/shared/config';
 import { EntrySummary } from '@/shared/types/exhibition/check-in/entry';
 import { useEntrySummary } from '../../model/useEntrySummary';
 
@@ -10,7 +14,14 @@ const PAPER_CATEGORY_LABEL: Record<string, string> = {
   GENERAL: '구분 없음',
 };
 
-const WALK_IN_CATEGORY_LABEL = { ADULT: '성인', STUDENT: '어린이·학생' };
+// 예전 구분(성인·어린이·학생)은 기록이 없으면 숨긴다
+const isShownWalkIn = ({
+  category,
+  count,
+}: {
+  category: string;
+  count: number;
+}) => count > 0 || !(category in LEGACY_WALK_IN_CATEGORY_LABEL);
 
 // 서버는 시간대 없는 지역 일시('2026-10-13T14:05:12.123')를 준다
 const toTimeLabel = (generatedAt: unknown) =>
@@ -86,13 +97,15 @@ const SummaryItems = ({ summary }: { summary: EntrySummary }) => (
         sub={`퇴장 ${exited}`}
       />
     ))}
-    {(summary.walkIn?.counts ?? []).map(({ category, count }) => (
-      <Item
-        key={category}
-        label={`간편입장 ${WALK_IN_CATEGORY_LABEL[category] ?? category}`}
-        value={count}
-      />
-    ))}
+    {(summary.walkIn?.counts ?? [])
+      .filter(isShownWalkIn)
+      .map(({ category, count }) => (
+        <Item
+          key={category}
+          label={`간편입장 ${WALK_IN_CATEGORY_LABEL[category] ?? category}`}
+          value={count}
+        />
+      ))}
   </div>
 );
 

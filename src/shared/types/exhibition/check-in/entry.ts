@@ -14,7 +14,18 @@ export interface ExitScanResponse {
   stayedMinutes: number;
 }
 
-export type WalkInCategory = 'ADULT' | 'STUDENT';
+// ADULT·STUDENT 는 예전 구분이다. 이미 기록된 박람회의 응답에만 오고 새로 기록하지 않는다
+export type WalkInCategory =
+  | 'KINDERGARTEN_STUDENT'
+  | 'ELEMENTARY_STUDENT'
+  | 'MIDDLE_SCHOOL_STUDENT'
+  | 'HIGH_SCHOOL_STUDENT'
+  | 'PARENT'
+  | 'GENERAL'
+  | 'TEACHER'
+  | 'PRE_SERVICE_TEACHER'
+  | 'ADULT'
+  | 'STUDENT';
 
 export interface WalkInCounts {
   expoId: string;
