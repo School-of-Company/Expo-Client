@@ -183,7 +183,7 @@ export const isPreregisterCancellable = (row: PreregisterRow) =>
  */
 export const usePreregisterParty = (
   expoId: string,
-  row: PreregisterRow | null,
+  row: PreregisterRow,
   enabled: boolean,
 ) =>
   useQuery({
@@ -191,17 +191,17 @@ export const usePreregisterParty = (
       'adminPreregistrations',
       expoId,
       'party',
-      row?.sessionId,
-      row?.representativeId,
+      row.sessionId,
+      row.representativeId,
     ],
     queryFn: async () => {
       const items = await getAdminPreregistrationTargets(expoId, {
-        sessionId: row!.sessionId,
+        sessionId: row.sessionId,
         status: ['CONFIRMED'],
       });
       return items
         .map(toPreregisterRow)
-        .filter((item) => item.representativeId === row!.representativeId)
+        .filter((item) => item.representativeId === row.representativeId)
         .sort((a, b) =>
           a.relation === b.relation
             ? 0
@@ -212,7 +212,7 @@ export const usePreregisterParty = (
     },
     enabled:
       enabled &&
-      row?.relation === 'REPRESENTATIVE' &&
+      row.relation === 'REPRESENTATIVE' &&
       row.status === 'CONFIRMED',
     meta: { silent: true },
   });
