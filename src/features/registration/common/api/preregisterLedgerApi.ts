@@ -18,7 +18,8 @@ export interface PreregisterReservationSnapshot {
   name?: string | null;
   phoneNumber?: string | null;
   occupation?: AdminOccupation | null;
-  informationJson?: Record<string, unknown> | null;
+  /** 서버가 저장한 JSON 문자열을 그대로 내려준다. 화면에서는 parseInformationJson 으로 읽는다 */
+  informationJson?: string | Record<string, unknown> | null;
   questions?: unknown;
 }
 
