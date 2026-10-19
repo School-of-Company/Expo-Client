@@ -1,16 +1,20 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AnswerList } from '@/entities/form';
 import { XMark } from '@/shared/assets/icons';
-import { Loading } from '@/shared/ui';
+import { Button, Loading } from '@/shared/ui';
 import { formatDateTime, SectionError } from '../../../common';
 import { OCCUPATION_LABEL } from '../../../common/model/ledger';
 import {
   getPreregisterErrorMessage,
+  isPreregisterCancellable,
   PREREGISTER_STATUS_LABEL,
+  PreregisterRow,
   toPreregisterRow,
+  useCancelPreregistration,
   usePreregisterDetail,
+  usePreregisterParty,
 } from '../../../common/model/preregisterLedger';
 
 interface PreregisterDetailModalProps {
@@ -26,6 +30,122 @@ const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <dd className="min-w-0 text-body2r text-black">{value}</dd>
   </div>
 );
+
+const RELATION_LABEL = {
+  REPRESENTATIVE: '대표자',
+  COMPANION: '동행자',
+  PARTY: '대기 일행',
+} as const;
+
+/**
+ * 확정 행은 취소, 대기 행은 대기 철회. 누르면 바로 보내지 않고 대상 이름·인원을 확인받는다.
+ * 대표자는 동행자가 남아 있으면 혼자 취소할 수 없어(서버 409) 같은 일행 전체를 함께 취소한다
+ */
+const CancelSection = ({
+  expoId,
+  row,
+}: {
+  expoId: string;
+  row: PreregisterRow;
+}) => {
+  const [isConfirming, setIsConfirming] = useState(false);
+  const cancellation = useCancelPreregistration(expoId);
+  const party = usePreregisterParty(expoId, row, isConfirming);
+  const isWithdrawal = row.status === 'WAITING';
+  const isParty = row.relation === 'REPRESENTATIVE' && !isWithdrawal;
+  // 일행 조회 사이에 상태가 바뀌어 대표자가 빠졌으면 대표자만 대상으로 둔다. 서버가 다시 판정한다
+  const targets = isParty
+    ? party.data?.length
+      ? party.data
+      : party.isSuccess
+        ? [row]
+        : null
+    : [row];
+  const people = targets?.reduce((sum, target) => sum + target.applicants, 0);
+  const action = isWithdrawal ? '대기 철회' : '취소';
+
+  const handleConfirm = () => {
+    if (!targets || cancellation.isPending) return;
+    cancellation.mutate(
+      { keys: targets.map((target) => target.id), isWithdrawal },
+      { onSuccess: () => setIsConfirming(false) },
+    );
+  };
+
+  if (!isConfirming) {
+    return (
+      <section className="space-y-[10px]">
+        <p className="text-caption1r text-gray-400">
+          이미 입장한 참가자이거나 취소 기간이 끝났으면 서버가 {action}를
+          거절합니다.
+        </p>
+        <Button variant="white" onClick={() => setIsConfirming(true)}>
+          {action}
+        </Button>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      role="alertdialog"
+      aria-labelledby="preregister-cancel-title"
+      className="space-y-[12px] rounded-sm border-1 border-solid border-error p-18"
+    >
+      <p id="preregister-cancel-title" className="text-body2b text-black">
+        {isWithdrawal
+          ? '선택한 대기 신청을 철회하시겠습니까? 철회한 대기 신청은 복구할 수 없습니다.'
+          : '선택한 사전등록 신청을 취소하시겠습니까? 취소한 신청은 복구할 수 없습니다.'}
+      </p>
+      {isParty && (
+        <p className="text-caption1r text-gray-500">
+          대표자는 동행자가 남아 있으면 혼자 취소할 수 없어 같은 일행을 함께
+          취소합니다. 동행자만 취소하려면 동행자 행에서 취소하세요.
+        </p>
+      )}
+      {party.isError ? (
+        <SectionError
+          message={getPreregisterErrorMessage(
+            party.error,
+            '같은 일행을 불러오지 못했습니다.',
+          )}
+          onRetry={() => party.refetch()}
+        />
+      ) : !targets ? (
+        <div className="flex justify-center py-12">
+          <Loading />
+        </div>
+      ) : (
+        <>
+          <ul className="space-y-4">
+            {targets.map((target) => (
+              <li key={target.id} className="text-body2r text-black">
+                {target.name ?? '이름 없음'} · {RELATION_LABEL[target.relation]}
+                {target.relation === 'PARTY' && ` ${target.applicants}명`}
+              </li>
+            ))}
+          </ul>
+          <p className="text-body2b text-black">총 {people}명</p>
+        </>
+      )}
+      <div className="flex gap-12">
+        <Button
+          disabled={!targets || cancellation.isPending}
+          onClick={handleConfirm}
+        >
+          {cancellation.isPending ? `${action} 중...` : '확인'}
+        </Button>
+        <Button
+          variant="white"
+          disabled={cancellation.isPending}
+          onClick={() => setIsConfirming(false)}
+        >
+          취소
+        </Button>
+      </div>
+    </section>
+  );
+};
 
 /** 목록 행의 key 로 한 행을 다시 조회한다. 참가자 행은 User 현재 정보, 예약 행은 제출 당시 스냅샷을 보여 준다 */
 const PreregisterDetailModal = ({
@@ -117,6 +237,12 @@ const PreregisterDetailModal = ({
           <dl className="space-y-8">
             <Field label="회차" value={sessionLabel(row.sessionId)} />
             <Field label="상태" value={PREREGISTER_STATUS_LABEL[row.status]} />
+            {row.cancellationActor && (
+              <Field
+                label="취소 처리"
+                value={`${row.cancellationActor}${row.cancelledAt ? ` · ${formatDateTime(row.cancelledAt)}` : ''}`}
+              />
+            )}
             <Field
               label="신청일시"
               value={
@@ -151,9 +277,9 @@ const PreregisterDetailModal = ({
           </section>
         )}
 
-        <p className="text-caption1r text-gray-400">
-          사전등록 관리자 취소는 서버 계약 확장 전이라 제공하지 않습니다.
-        </p>
+        {isPreregisterCancellable(row) && (
+          <CancelSection key={row.id} expoId={expoId} row={row} />
+        )}
       </>
     );
   };
