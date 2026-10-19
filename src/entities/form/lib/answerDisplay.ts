@@ -1,4 +1,5 @@
 import {
+  LEGACY_OCCUPATION_LABEL,
   OCCUPATION_OPTIONS,
   REGION_OPTIONS,
 } from '../constants/occupationData';
@@ -33,9 +34,12 @@ export const NO_ANSWER = '답변 없음';
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const OCCUPATION_LABEL: Record<string, string> = Object.fromEntries(
-  OCCUPATION_OPTIONS.map(({ key, label }) => [key, label]),
-);
+const OCCUPATION_LABEL: Record<string, string> = {
+  ...Object.fromEntries(
+    OCCUPATION_OPTIONS.map(({ key, label }) => [key, label]),
+  ),
+  ...LEGACY_OCCUPATION_LABEL,
+};
 const REGION_LABEL: Record<string, string> = Object.fromEntries(
   REGION_OPTIONS.map(({ key, label }) => [key, label]),
 );
