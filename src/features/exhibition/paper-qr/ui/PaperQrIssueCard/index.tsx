@@ -37,7 +37,6 @@ const PaperQrIssueCard = ({
   const [counts, setCounts] = useState<Record<PaperQrCategory, string>>({
     ADULT: '',
     CHILD: '',
-    GENERAL: '',
   });
   const [isIssuing, setIsIssuing] = useState(false);
   // 일부만 발급되고 실패했을 때 화면에 남겨 두는 안내
@@ -137,7 +136,10 @@ const PaperQrIssueCard = ({
       </div>
 
       <div className="space-y-12">
-        <div className="grid grid-cols-3 gap-12 mobile:grid-cols-1">
+        <p className="break-keep text-caption1r text-gray-500">
+          학생은 성인 외 모두(어린이·청소년 포함)입니다.
+        </p>
+        <div className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
           {PAPER_QR_CATEGORIES.map(({ value, label }) => (
             <div key={value} className="space-y-8">
               <p className="text-caption1r text-gray-600">{label}</p>
