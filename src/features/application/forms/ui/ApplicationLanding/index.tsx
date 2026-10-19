@@ -64,22 +64,25 @@ const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
         </h1>
       </header>
 
-      <section className="relative -mt-[96px] flex flex-col gap-18 rounded-md bg-white p-30 shadow-lg mobile:-mt-[80px] mobile:p-18">
-        <h2 className="text-h3b text-black">박람회 참가 안내</h2>
-        <ul className="flex flex-col gap-16">
-          {rows.map(([label, value]) => (
-            <li
-              key={label}
-              className="flex flex-col gap-4 border-b-1 border-solid border-gray-100 pb-16 last:border-b-0 last:pb-0"
-            >
-              <span className="text-caption1b text-main-600">{label}</span>
-              <span className="whitespace-pre-line break-keep text-body2r text-black">
-                {value}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* 박람회 정보를 못 받으면 안내 없이 신청·내 신청 진입만 보인다 */}
+      {rows.length > 0 && (
+        <section className="relative -mt-[96px] flex flex-col gap-18 rounded-md bg-white p-30 shadow-lg mobile:-mt-[80px] mobile:p-18">
+          <h2 className="text-h3b text-black">박람회 참가 안내</h2>
+          <ul className="flex flex-col gap-16">
+            {rows.map(([label, value]) => (
+              <li
+                key={label}
+                className="flex flex-col gap-4 border-b-1 border-solid border-gray-100 pb-16 last:border-b-0 last:pb-0"
+              >
+                <span className="text-caption1b text-main-600">{label}</span>
+                <span className="whitespace-pre-line break-keep text-body2r text-black">
+                  {value}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         {actions.map(({ title, text, button, onClick, className }) => (

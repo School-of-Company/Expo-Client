@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { withLoading } from '@/shared/hocs';
-import { useExpoDetail } from '@/shared/queries';
 import { FORM_GROUPS, FormGroup } from '../../constant/formEntries';
 import { useFieldRelease } from '../../model/fieldRelease';
 import {
@@ -10,6 +9,7 @@ import {
   getFormPeriodStatus,
 } from '../../model/formPeriodStatus';
 import { useApplicationForms } from '../../model/useApplicationForms';
+import { useParticipantExpoDetail } from '../../model/useParticipantExpoDetail';
 import ApplicationLanding from '../ApplicationLanding';
 import ApplicationSchedule from '../ApplicationSchedule';
 import MyApplicationList from '../MyApplicationList';
@@ -43,7 +43,8 @@ const ApplicationFormsContainer = ({
       ? field.released
       : entry.key !== 'pre-standard' || !field.released,
   );
-  const { data: expo, isLoading: isExpoLoading } = useExpoDetail(expoId);
+  const { data: expo, isLoading: isExpoLoading } =
+    useParticipantExpoDetail(expoId);
   const [view, setView] = useState<View>(
     isView(initialView) ? initialView : 'home',
   );
