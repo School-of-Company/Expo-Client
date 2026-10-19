@@ -4,13 +4,13 @@ import { postParticipantAuthCode } from '../api/participantAuth';
 
 export const useSendVerificationSms = (
   expoId: string,
-  onSuccess: () => void,
+  onSuccess: (phoneNumber: string) => void,
 ) => {
   return useMutation({
     mutationFn: (phoneNumber: string) =>
       postParticipantAuthCode(expoId, phoneNumber),
-    onSuccess: () => {
-      onSuccess();
+    onSuccess: (_, phoneNumber) => {
+      onSuccess(phoneNumber);
       toast.success('문자 메시지 전송이 완료되었습니다.');
     },
     onError: (error: Error) => {
