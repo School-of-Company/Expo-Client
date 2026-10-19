@@ -73,7 +73,7 @@ export const useEditExhibitionMutation = (id: string) => {
       // 일정 화면의 프로그램 목록도 같은 revision 을 쓰므로 함께 다시 읽는다
       invalidateExpoPrograms(queryClient, id);
 
-      router.push(`/exhibition/detail/${id}`);
+      router.push(`/admin/exhibition/detail/${id}`);
       toast.success('박람회가 수정되었습니다.');
     },
     onError: (error: Error, data) => {
