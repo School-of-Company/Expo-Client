@@ -59,7 +59,7 @@ assert.equal(byId['2'].text, '로봇\nAI\n기타: 직접 입력');
 // 삭제된 선택지는 키를 숨기지 않고 표시
 assert.equal(byId['3'].text, 'gone (당시 선택지 정보 없음)');
 assert.equal(byId['4'].text, '예');
-assert.equal(byId['5'].text, '김교사 (교사 · 광주 · 광주초)');
+assert.equal(byId['5'].text, '김교사 (교원 · 광주 · 광주초)');
 assert.equal(byId['6'].text, '답변 없음');
 // 스냅샷에 없는 답변은 지우지 않는다
 assert.equal(byId['99'].label, '문항 99');
@@ -78,7 +78,7 @@ assert.equal(byName['지역'].text, '광주');
 assert.equal(
   toAnswerDisplay([q(1, '참가 유형', 'OCCUPATION')], { '1': 'TEACHER' }).rows[0]
     .text,
-  '교사',
+  '교원',
 );
 
 // 스냅샷 null 이어도 답변은 남고, JSON 문자열이 되지 않는다
