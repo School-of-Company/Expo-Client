@@ -6,7 +6,7 @@ import { useEntrySummary } from '../../model/useEntrySummary';
 
 const PAPER_CATEGORY_LABEL: Record<string, string> = {
   ADULT: '성인',
-  CHILD: '어린이',
+  CHILD: '학생',
   GENERAL: '구분 없음',
 };
 
