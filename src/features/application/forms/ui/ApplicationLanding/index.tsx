@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { Logo } from '@/shared/assets/svg';
 import { ExpoDetail } from '@/shared/types/exhibition/detail/type';
 
@@ -17,11 +16,9 @@ interface Props {
   expo?: ExpoDetail;
   onApply: () => void;
   onMy: () => void;
-  /** 신청 시작 전에도 볼 수 있는 전체 일정 화면 */
-  scheduleHref: string;
 }
 
-const ApplicationLanding = ({ expo, onApply, onMy, scheduleHref }: Props) => {
+const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
   const rows = expo
     ? [
         [
@@ -36,7 +33,7 @@ const ApplicationLanding = ({ expo, onApply, onMy, scheduleHref }: Props) => {
   const actions = [
     {
       title: '신청하기',
-      text: '사전등록, 현장등록, 프로그램 신청과 만족도 조사를 한곳에서 진행할 수 있습니다.',
+      text: '사전등록·프로그램·교원연수 회차와 신청 기간을 확인하고, 접수 중인 항목을 바로 신청할 수 있습니다.',
       button: '신청 목록 보기',
       onClick: onApply,
       className: 'bg-main-600 text-white',
@@ -104,22 +101,6 @@ const ApplicationLanding = ({ expo, onApply, onMy, scheduleHref }: Props) => {
           </div>
         ))}
       </div>
-
-      <Link
-        href={scheduleHref}
-        className="flex items-center justify-between gap-16 rounded-md border-1 border-solid border-gray-200 bg-white p-24 shadow-sm mobile:flex-col mobile:items-stretch"
-      >
-        <span className="flex flex-col gap-4">
-          <span className="text-body1b text-black">신청 가능 일정 보기</span>
-          <span className="break-keep text-caption1r text-gray-500">
-            접수 시작 전에도 사전등록·프로그램·교원연수 회차와 신청 시작일을
-            확인할 수 있습니다.
-          </span>
-        </span>
-        <span className="flex-none rounded-sm border-1 border-solid border-main-600 px-24 py-12 text-center text-body2b text-main-600">
-          일정 보기
-        </span>
-      </Link>
     </div>
   );
 };

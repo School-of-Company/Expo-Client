@@ -1,20 +1,19 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
-import { ApplicationFormCard } from '@/entities/application';
 import { withLoading } from '@/shared/hocs';
 import { useExpoDetail } from '@/shared/queries';
 import { FORM_GROUPS, FormGroup } from '../../constant/formEntries';
 import { useFieldRelease } from '../../model/fieldRelease';
 import {
-  FORM_PERIOD_STATUS_LABEL,
   formatFormPeriod,
   getFormPeriodStatus,
 } from '../../model/formPeriodStatus';
 import { useApplicationForms } from '../../model/useApplicationForms';
 import ApplicationLanding from '../ApplicationLanding';
+import ApplicationSchedule from '../ApplicationSchedule';
 import MyApplicationList from '../MyApplicationList';
+import ScheduleRow from '../ScheduleRow';
 
 const VIEWS = [
   { value: 'list', label: '신청 목록' },
@@ -50,17 +49,14 @@ const ApplicationFormsContainer = ({
   );
   const [selected, setSelected] = useState<FormGroup | null>(null);
 
-  // 폼이 하나라도 있는 그룹만 탭으로 노출
-  // 숨긴 일반 사전등록만 남은 PRE 도 유지한다. 프로그램 신청 카드가 이 탭에 있다
-  const groups = FORM_GROUPS.filter((group) =>
-    (group.key === 'PRE' ? allForms : forms).some(
-      (entry) => entry.group === group.key,
-    ),
+  // 사전등록 탭은 회차·프로그램 일정이라 신청서가 없어도 노출하고, 나머지는 폼이 하나라도 있는 그룹만 노출
+  const groups = FORM_GROUPS.filter(
+    (group) =>
+      group.key === 'PRE' || forms.some((entry) => entry.group === group.key),
   );
   const current =
     groups.find((group) => group.key === selected) ?? groups[0] ?? null;
   const currentForms = forms.filter((entry) => entry.group === current?.key);
-  const scheduleHref = `/application/forms/${expoId}/schedule`;
 
   if (view === 'home') {
     return withLoading({
@@ -71,7 +67,6 @@ const ApplicationFormsContainer = ({
             expo={expo}
             onApply={() => setView('list')}
             onMy={() => setView('my')}
-            scheduleHref={scheduleHref}
           />
         </div>
       ),
@@ -82,22 +77,13 @@ const ApplicationFormsContainer = ({
     isLoading,
     children: (
       <div className="mx-auto flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
-        <div className="mt-30 flex items-center justify-between gap-16">
-          <button
-            type="button"
-            onClick={() => setView('home')}
-            className="text-body2r text-gray-500"
-          >
-            ← 박람회 안내
-          </button>
-          {/* 접수 전 카드는 신청 버튼이 닫혀 있어 일정은 여기서 본다 */}
-          <Link
-            href={scheduleHref}
-            className="text-body2b text-main-600 underline"
-          >
-            신청 가능 일정 보기
-          </Link>
-        </div>
+        <button
+          type="button"
+          onClick={() => setView('home')}
+          className="mt-30 self-start text-body2r text-gray-500"
+        >
+          ← 박람회 안내
+        </button>
         <div role="tablist" className="flex justify-center gap-[18px]">
           {VIEWS.map(({ value, label }) => (
             <button
@@ -159,66 +145,60 @@ const ApplicationFormsContainer = ({
               })}
             </div>
 
-            <div className="flex flex-col gap-16">
-              {currentForms.map(
-                ({
-                  key,
-                  audience,
-                  formType,
-                  userType,
-                  applicationType,
-                  form,
-                }) => {
-                  // 설문에는 신청 기간이 없다
-                  const hasPeriod = 'startDate' in form;
-                  const status = hasPeriod
-                    ? getFormPeriodStatus(form.startDate, form.endDate)
-                    : 'OPEN';
+            {current.key === 'PRE' ? (
+              <ApplicationSchedule
+                expoId={expoId}
+                showPreRegister={!field.released}
+              />
+            ) : (
+              <ul className="flex flex-col gap-12">
+                {currentForms.map(
+                  ({
+                    key,
+                    audience,
+                    formType,
+                    userType,
+                    applicationType,
+                    form,
+                  }) => {
+                    // 설문에는 신청 기간이 없다
+                    const hasPeriod = 'startDate' in form;
+                    const status = hasPeriod
+                      ? getFormPeriodStatus(form.startDate, form.endDate)
+                      : 'OPEN';
 
-                  return (
-                    <ApplicationFormCard
-                      key={key}
-                      category={audience}
-                      title={form.title}
-                      description={form.informationText}
-                      period={
-                        hasPeriod
-                          ? `${formatFormPeriod(form.startDate)} ~ ${formatFormPeriod(form.endDate)}`
-                          : '-'
-                      }
-                      statusLabel={FORM_PERIOD_STATUS_LABEL[status]}
-                      isOpen={status === 'OPEN'}
-                      buttonLabel={
-                        formType === 'survey'
-                          ? '응답하기'
-                          : `${current.label}하기`
-                      }
-                      href={
-                        // 일반 사전등록은 참가자 선택 페이지로, 연수 사전신청은 프로그램별 신청으로, 나머지는 기존 동적 폼으로
-                        key === 'pre-standard'
-                          ? `/application/forms/${expoId}/pre-register`
-                          : key === 'pre-trainee'
-                            ? `/application/forms/${expoId}/training`
-                            : `/application/${expoId}?formType=${formType}&userType=${userType}&applicationType=${applicationType}`
-                      }
-                    />
-                  );
-                },
-              )}
-              {current.key === 'PRE' && (
-                <ApplicationFormCard
-                  category="일반"
-                  title="프로그램 신청"
-                  description="사전등록이 확정된 참가자가 일반 프로그램을 골라 신청합니다."
-                  period="프로그램별 신청 기간"
-                  // 회차마다 기간·마감이 달라 이 카드에서 접수 가능 여부를 단정하지 않는다
-                  statusLabel="프로그램·회차 확인"
-                  isOpen
-                  buttonLabel="프로그램 신청하기"
-                  href={`/application/forms/${expoId}/program`}
-                />
-              )}
-            </div>
+                    return (
+                      <ScheduleRow
+                        key={key}
+                        category={audience}
+                        title={form.title}
+                        schedule={
+                          hasPeriod
+                            ? `신청 기간 ${formatFormPeriod(form.startDate)} ~ ${formatFormPeriod(form.endDate)}`
+                            : undefined
+                        }
+                        place={null}
+                        notes={
+                          form.informationText ? [form.informationText] : []
+                        }
+                        status={status}
+                        action={
+                          status === 'OPEN'
+                            ? {
+                                label:
+                                  formType === 'survey'
+                                    ? '응답하기'
+                                    : `${current.label}하기`,
+                                href: `/application/${expoId}?formType=${formType}&userType=${userType}&applicationType=${applicationType}`,
+                              }
+                            : undefined
+                        }
+                      />
+                    );
+                  },
+                )}
+              </ul>
+            )}
           </>
         )}
       </div>
