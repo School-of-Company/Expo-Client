@@ -28,6 +28,10 @@ interface CompanionFieldProps {
   maxCount?: number;
   /** 인원 안내 문구. 기본은 "대표자를 포함해 최대 N명까지" 이고, 이미 접수한 일행에 더할 때처럼 기준이 다르면 바꾼다 */
   limitHint?: string;
+  /** 지금 고를 수 있는 구분. 없으면 모두 고를 수 있고, 나머지는 보이되 고를 수 없다 */
+  allowedOccupations?: string[];
+  /** 고를 수 없는 구분이 있을 때 구분 아래에 보이는 안내 */
+  occupationNotice?: string;
   control: Control<FieldValues>;
   register: UseFormRegister<FieldValues>;
 }
@@ -57,6 +61,8 @@ export default function CompanionField({
   required = false,
   maxCount = COMPANION_MAX_COUNT,
   limitHint,
+  allowedOccupations,
+  occupationNotice,
   control,
   register,
 }: CompanionFieldProps) {
@@ -126,13 +132,24 @@ export default function CompanionField({
               >
                 <option value="">구분 선택</option>
                 {OCCUPATION_OPTIONS.map(({ key, label: optionLabel }) => (
-                  <option key={key} value={key}>
+                  <option
+                    key={key}
+                    value={key}
+                    disabled={
+                      !!allowedOccupations && !allowedOccupations.includes(key)
+                    }
+                  >
                     {optionLabel}
                   </option>
                 ))}
               </select>
               <SelectArrow />
             </div>
+            {allowedOccupations && occupationNotice && (
+              <p className="break-keep text-caption1r text-gray-500">
+                {occupationNotice}
+              </p>
+            )}
             <ErrorText message={fieldError(`${index}.occupation`)} />
 
             <div className="relative">
