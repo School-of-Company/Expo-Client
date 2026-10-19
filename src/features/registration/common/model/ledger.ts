@@ -46,11 +46,11 @@ export const OCCUPATION_LABEL: Record<AdminOccupation, string> = {
   ELEMENTARY_STUDENT: '초등학생',
   MIDDLE_SCHOOL_STUDENT: '중학생',
   HIGH_SCHOOL_STUDENT: '고등학생',
+  TEACHER: '교사',
   SCHOOL_STAFF: '교직원',
+  PRE_SERVICE_TEACHER: '예비교사',
   PARENT: '보호자/학부모',
   GENERAL: '일반인',
-  TEACHER: '교사',
-  PRE_SERVICE_TEACHER: '예비교사',
 };
 
 export const PROGRAM_TYPE_LABEL: Record<ProgramSessionType, string> = {
