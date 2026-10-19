@@ -9,6 +9,7 @@ import { OCCUPATION_LABEL } from '../../../common/model/ledger';
 import {
   getPreregisterErrorMessage,
   isPreregisterCancellable,
+  parseInformationJson,
   PREREGISTER_STATUS_LABEL,
   PreregisterRow,
   toPreregisterRow,
@@ -272,7 +273,7 @@ const PreregisterDetailModal = ({
             <p className="text-h3b text-black">제출 당시 답변</p>
             <AnswerList
               questions={data.reservation.questions ?? null}
-              answers={data.reservation.informationJson ?? null}
+              answers={parseInformationJson(data.reservation.informationJson)}
             />
           </section>
         )}
