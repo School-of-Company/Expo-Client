@@ -72,7 +72,11 @@ export const useQRScanner = (
       if (event.key.length !== 1 && event.key !== 'Enter') return;
       if (isEditableTarget(event.target)) return;
 
-      if (!isScanningRef.current) {
+      // 문자 없이 Enter만 온 것은 스캔이 아니다. 포커스된 버튼의 Enter 동작을 그대로 둔다
+      if (event.key === 'Enter' && bufferRef.current === '') return;
+
+      const wasScanning = isScanningRef.current;
+      if (!wasScanning) {
         isScanningRef.current = true;
         bufferRef.current = '';
       }
@@ -83,11 +87,19 @@ export const useQRScanner = (
           timeoutRef.current = null;
         }
 
+        // 스캔을 끝내는 Enter가 포커스된 버튼까지 누르지 않게 한다
+        event.preventDefault();
         handleQRScan(bufferRef.current);
 
         bufferRef.current = '';
         isScanningRef.current = false;
         return;
+      }
+
+      // 스캔 도중 들어온 문자(특히 공백)가 포커스된 버튼을 누르지 않게 한다.
+      // 첫 글자는 일반 타이핑과 구분할 수 없어 그대로 둔다
+      if (wasScanning && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
       }
 
       bufferRef.current += event.key;
