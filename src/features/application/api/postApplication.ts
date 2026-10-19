@@ -34,6 +34,12 @@ const APPLICATION_ERROR_CODE_MESSAGES: Record<string, string> = {
     '취소한 대기 신청입니다. 다시 신청하려면 처음부터 새로 신청해주세요.',
 };
 
+// 서버 문구가 더 구체적인 코드. 서버 문구(오픈 날짜 포함)가 없을 때만 쓴다
+const APPLICATION_ERROR_CODE_FALLBACKS: Record<string, string> = {
+  OCCUPATION_NOT_OPEN:
+    '교원·예비교사 외 유형은 아직 신청할 수 없습니다. 신청 가능 일정을 확인해주세요.',
+};
+
 /** 제출 실패. 화면이 인증 만료(401)·키 교체가 필요한 코드를 구분할 수 있게 상태와 코드를 남긴다. */
 export class ApplicationSubmitError extends Error {
   constructor(
@@ -92,6 +98,7 @@ const submit = async (
         throw new ApplicationSubmitError(
           (code && APPLICATION_ERROR_CODE_MESSAGES[code]) ||
             specific ||
+            (code && APPLICATION_ERROR_CODE_FALLBACKS[code]) ||
             messages[status] ||
             serverText ||
             '폼 등록 실패',
