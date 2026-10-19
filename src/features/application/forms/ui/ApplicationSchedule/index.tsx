@@ -17,6 +17,7 @@ import {
   formatFormPeriod,
   getFormPeriodStatus,
 } from '../../model/formPeriodStatus';
+import { getOccupationLock } from '../../model/occupationOpen';
 import { formatProgramPlace } from '../../model/programApply';
 import { useNow } from '../../model/useNow';
 import { usePreRegisterSessions } from '../../model/usePreRegister';
@@ -130,13 +131,19 @@ const ApplicationSchedule = ({
       ? preForm.error
       : null;
 
-  const now = useNow(
-    getScheduleBoundaries(
+  const occupationOpenAt = form?.occupationOpenAt
+    ? new Date(form.occupationOpenAt).getTime()
+    : NaN;
+  const now = useNow([
+    ...getScheduleBoundaries(
       [...(standard.data ?? []), ...(training.data ?? [])],
       sessions.data ?? [],
       form,
     ),
-  );
+    ...(Number.isFinite(occupationOpenAt) ? [occupationOpenAt] : []),
+  ]);
+  // 교원·예비교사 조기 오픈. 그 외 유형의 오픈 시각이 지나면 안내를 거둔다
+  const occupationLock = getOccupationLock(form?.occupationOpenAt, now);
   const formStatus = form
     ? getFormPeriodStatus(form.startDate, form.endDate, new Date(now))
     : null;
@@ -145,6 +152,8 @@ const ApplicationSchedule = ({
     ? [
         form.informationText,
         `신청 기간 ${period(form.startDate, form.endDate)}`,
+        occupationLock &&
+          `교원·예비교사는 ${formatFormPeriod(form.startDate)}부터, 그 외 유형은 ${formatFormPeriod(form.occupationOpenAt ?? '')}부터 신청할 수 있습니다.`,
       ]
         .filter(Boolean)
         .join('\n')
