@@ -18,6 +18,8 @@ const CONFLICT_REASON_LABEL: Record<string, string> = {
   TIME_CONFLICT: '이미 신청한 일정과 시간이 겹쳐 수락할 수 없습니다.',
   GROUP_ALREADY_APPLIED: '같은 그룹의 프로그램에 이미 신청되어 있습니다.',
   PREREGISTRATION_NOT_CONFIRMED: '사전등록이 확정되지 않아 수락할 수 없습니다.',
+  SESSION_TIME_MISMATCH:
+    '사전등록한 회차 시간과 맞지 않는 프로그램이라 수락할 수 없습니다.',
   CAPACITY_CHANGED:
     '자리가 바뀌어 수락하지 못했습니다. 대기는 유지되니 기한 안에 다시 시도해주세요.',
   TRAINEE_UNAVAILABLE: '참가자 정보를 확인하지 못해 수락할 수 없습니다.',
