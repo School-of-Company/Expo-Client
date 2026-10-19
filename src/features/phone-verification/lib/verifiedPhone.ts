@@ -9,6 +9,15 @@ export const saveVerifiedPhone = (expoId: string, phoneNumber: string) => {
   }
 };
 
+// 인증을 해제하면 다음 사람에게 앞사람 번호가 붙지 않도록 지운다
+export const clearVerifiedPhone = (expoId: string) => {
+  try {
+    sessionStorage.removeItem(key(expoId));
+  } catch {
+    // 저장소를 못 쓰면 남은 번호도 없다
+  }
+};
+
 export const loadVerifiedPhone = (expoId: string) => {
   try {
     return sessionStorage.getItem(key(expoId)) ?? undefined;
