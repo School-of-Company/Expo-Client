@@ -18,7 +18,7 @@ const ExhibitionParticipantsPage = ({ id }: { id: string }) => {
             className="gap-12"
             headerTitle="참가자"
             onBack={() =>
-              router.push(`/exhibition/detail/${encodeURIComponent(id)}`)
+              router.push(`/admin/exhibition/detail/${encodeURIComponent(id)}`)
             }
           />
         </div>
