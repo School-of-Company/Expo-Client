@@ -42,15 +42,16 @@ export const LEDGER_STATUS_STYLE: Record<AdminApplicationStatus, string> = {
 };
 
 export const OCCUPATION_LABEL: Record<AdminOccupation, string> = {
-  KINDERGARTEN_STUDENT: '유치원생',
+  KINDERGARTEN_STUDENT: '미취학',
   ELEMENTARY_STUDENT: '초등학생',
   MIDDLE_SCHOOL_STUDENT: '중학생',
   HIGH_SCHOOL_STUDENT: '고등학생',
-  TEACHER: '교사',
-  SCHOOL_STAFF: '교직원',
+  TEACHER: '교원',
   PRE_SERVICE_TEACHER: '예비교사',
-  PARENT: '보호자/학부모',
+  PARENT: '학부모',
   GENERAL: '일반인',
+  // 새 신청에서는 고를 수 없지만 예전 답변·필터에 남아 있다
+  SCHOOL_STAFF: '교직원',
 };
 
 export const PROGRAM_TYPE_LABEL: Record<ProgramSessionType, string> = {
