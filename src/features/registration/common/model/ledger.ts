@@ -365,6 +365,8 @@ const PROMOTION_CONFLICT_MESSAGE: Record<string, string> = {
   CAPACITY_CHANGED: '정원이 바뀌어 남은 자리가 없습니다.',
   TIME_CONFLICT: '같은 시간에 확정된 다른 신청이 있어 확정할 수 없습니다.',
   PREREGISTRATION_NOT_CONFIRMED: '사전등록이 확정되지 않아 확정할 수 없습니다.',
+  SESSION_TIME_MISMATCH:
+    '사전등록한 회차 시간과 맞지 않는 프로그램이라 확정할 수 없습니다.',
   GROUP_ALREADY_APPLIED:
     '같은 묶음의 다른 회차를 이미 신청해 확정할 수 없습니다.',
   TRAINEE_UNAVAILABLE: '연수자 연결을 확인할 수 없어 확정할 수 없습니다.',

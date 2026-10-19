@@ -23,6 +23,7 @@ import {
   postProgramApplication,
 } from '../../../api/postApplication';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
+import { getPublicPreregisterSessions } from '../../api/preRegister';
 import { getProgramParticipants } from '../../api/programParticipants';
 import {
   SCHEDULE_STATUS_LABEL,
@@ -42,8 +43,13 @@ import {
   isProgramApplicationEnded,
 } from '../../model/programApply';
 import { getGroupApplications, groupPrograms } from '../../model/programGroups';
+import {
+  getConfirmedSessionWindows,
+  matchesSessionTime,
+} from '../../model/sessionTimeMatch';
 import { useMyApplications } from '../../model/useMyApplications';
 import { useNow } from '../../model/useNow';
+import { getPreRegisterSessionState } from '../../model/usePreRegister';
 import CompanionApplyFlow from '../CompanionApplyFlow';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
@@ -218,7 +224,7 @@ const ParticipantStep = ({
             {participant.name}
             {!participant.eligible && (
               <span className="text-caption1r text-gray-500">
-                ({getIneligibleLabel(participant.reason)})
+                ({getIneligibleLabel(participant.reason, program.startedAt)})
               </span>
             )}
           </label>
@@ -426,7 +432,50 @@ const ProgramApplyContainer = ({
     sessionIssue,
     retry,
   } = useMyApplications(expoId);
-  const groups = useMemo(() => groupPrograms(programs ?? []), [programs]);
+  // 내 확정 사전등록 회차와 시간이 겹치는 프로그램을 위로, 나머지는 아래로 둔다(숨기지 않는다).
+  // 확정 회차를 알 수 없으면 정렬·비활성을 하지 않는다
+  const hasConfirmedPreRegister = applications.some(
+    ({ type, status }) => type === 'PREREGISTER' && status === 'CONFIRMED',
+  );
+  const { data: preRegisterSessions } = useQuery({
+    queryKey: ['preRegisterSessions', expoId],
+    queryFn: () => getPublicPreregisterSessions(expoId),
+    enabled: hasConfirmedPreRegister,
+    retry: false,
+    meta: { silent: true },
+  });
+  // 확정·대기 중인 사전등록 회차. 이미 신청한 회차를 다시 추천하지 않는다
+  const appliedSessionIds = useMemo(
+    () =>
+      new Set(
+        applications
+          .filter(
+            ({ type, status }) =>
+              type === 'PREREGISTER' &&
+              (status === 'CONFIRMED' || status === 'WAITING'),
+          )
+          .map(({ sessionOrProgramId }) => sessionOrProgramId),
+      ),
+    [applications],
+  );
+  const sessionWindows = useMemo(
+    () => getConfirmedSessionWindows(applications, preRegisterSessions),
+    [applications, preRegisterSessions],
+  );
+  const groups = useMemo(
+    () =>
+      groupPrograms(programs ?? [])
+        .map((group) => ({
+          group,
+          matches: group.sessions.some((session) =>
+            matchesSessionTime(session, sessionWindows),
+          ),
+        }))
+        // 안정 정렬이라 같은 쪽끼리는 기존 순서를 지킨다
+        .sort((a, b) => Number(b.matches) - Number(a.matches))
+        .map(({ group }) => group),
+    [programs, sessionWindows],
+  );
   // 묶음별로 고른 회차와 신청서를 연 묶음. 회차를 바꾸면 신청서를 닫아 이전 회차의 선택·답변이 남지 않게 한다
   const [selectedByGroup, setSelectedByGroup] = useState<
     Record<string, number>
@@ -493,17 +542,31 @@ const ProgramApplyContainer = ({
           const onsite =
             !!program.policy?.onsiteCapacity && !!onsiteGroups[group.key];
           const status = getProgramScheduleStatus(program, now);
+          // 현장 신청은 사전등록 회차와 상관없는 경로라 맞추지 않는다
+          const isTimeMismatch =
+            !onsite && !matchesSessionTime(program, sessionWindows);
+          // 시간이 맞지 않으면 이 프로그램 시간과 겹치고 아직 신청하지 않은 접수 중 회차를 골라 사전등록을 안내한다
+          const addSession = isTimeMismatch
+            ? preRegisterSessions?.find(
+                (session) =>
+                  getPreRegisterSessionState(session) === 'OPEN' &&
+                  matchesSessionTime(program, [session]) &&
+                  !appliedSessionIds.has(session.id),
+              )
+            : undefined;
           // 현장 신청은 사전 접수 기간과 따로 서버가 판정하므로 막지 않는다. 운영 마감은 경로와 상관없이 막는다
           const blockedLabel =
             program.policy?.closed || status === 'ENDED'
               ? '신청 마감'
-              : onsite
-                ? undefined
-                : status === 'UPCOMING' && program.policy
-                  ? `${formatFormPeriod(program.policy.applicationStartedAt)}부터 신청`
-                  : status === 'CLOSED'
-                    ? '사전 신청 마감'
-                    : undefined;
+              : isTimeMismatch
+                ? '회차 시간이 맞지 않음'
+                : onsite
+                  ? undefined
+                  : status === 'UPCOMING' && program.policy
+                    ? `${formatFormPeriod(program.policy.applicationStartedAt)}부터 신청`
+                    : status === 'CLOSED'
+                      ? '사전 신청 마감'
+                      : undefined;
           const notes = program.policy
             ? getProgramPolicyNotes(
                 program.policy,
@@ -521,7 +584,7 @@ const ProgramApplyContainer = ({
           return (
             <section
               key={group.key}
-              className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16"
+              className={`flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16 ${isTimeMismatch ? 'opacity-60' : ''}`}
             >
               <div className="flex min-w-0 items-start justify-between gap-12">
                 <p className="min-w-0 break-words break-keep text-h3b text-black mobile:text-body1b">
@@ -631,6 +694,24 @@ const ProgramApplyContainer = ({
                     </p>
                   )}
                 </fieldset>
+              )}
+
+              {isTimeMismatch && (
+                <p
+                  role="status"
+                  className="break-keep text-caption1r text-gray-600"
+                >
+                  사전등록한 회차 시간과 맞지 않는 프로그램입니다. 이 시간대
+                  회차를 사전등록하면 신청할 수 있습니다.
+                </p>
+              )}
+              {addSession && (
+                <Link
+                  href={`${getExpoRoutes(expoId).applicationMy}&addSessionId=${addSession.id}`}
+                  className="flex h-[44px] items-center justify-center rounded-sm border-1 border-solid border-main-600 text-body2b text-main-600"
+                >
+                  이 회차 사전등록 · {addSession.title}
+                </Link>
               )}
 
               {notes.length > 0 && (
