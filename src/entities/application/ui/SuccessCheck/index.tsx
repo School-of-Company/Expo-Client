@@ -50,7 +50,9 @@ const SuccessCheck = () => {
             }
             className="flex h-[50px] w-full items-center justify-center rounded-sm border border-main-600 text-body1b text-main-600"
           >
-            다른 프로그램 신청하기
+            {userType === 'STANDARD' && formType === 'application'
+              ? '이 시간대 프로그램 신청하기'
+              : '다른 프로그램 신청하기'}
           </Link>
         )}
       </div>
