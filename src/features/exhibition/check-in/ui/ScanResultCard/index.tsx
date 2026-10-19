@@ -50,6 +50,11 @@ const ScanResultCard = ({
       {result.detail && (
         <p className="break-keep text-body1r text-gray-700">{result.detail}</p>
       )}
+      {result.hint && (
+        <p className="break-keep rounded-sm bg-gray-100 px-16 py-12 text-body2r text-gray-700">
+          {result.hint}
+        </p>
+      )}
       <p className="text-caption1r text-gray-500">{result.at}</p>
     </div>
   );
