@@ -2,6 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Fragment, ReactNode, useMemo, useRef, useState } from 'react';
 import { PrivacyConsent } from '@/entities/application';
 import { getProgramForm } from '@/entities/form/api/programForms';
@@ -400,6 +401,7 @@ const ProgramApplyContainer = ({
     retry: false,
   });
   const queryClient = useQueryClient();
+  const router = useRouter();
   // 신청 기간이 끝난 회차는 모집 목록에서만 숨긴다. 같은 쿼리를 내 신청 조회가 쓰므로 데이터는 거르지 않는다
   // 켜 둔 화면도 접수 시작·마감 시각에 버튼과 상태가 바뀐다
   const now = useNow(
@@ -453,7 +455,11 @@ const ProgramApplyContainer = ({
     isLoading,
     children: (
       <div className="mt-30 flex w-full max-w-[816px] flex-col gap-24">
-        <DetailHeader headerTitle={`${label} 신청`} />
+        <DetailHeader
+          headerTitle={`${label} 신청`}
+          // 인증 화면을 거치거나 링크로 바로 열면 이전 기록이 없거나 인증 화면이라 신청 목록으로 보낸다
+          onBack={() => router.push(getExpoRoutes(expoId).applicationList)}
+        />
         <p className="break-keep text-body2r text-gray-500">
           {label}마다 따로 신청합니다.
         </p>
