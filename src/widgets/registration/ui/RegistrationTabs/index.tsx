@@ -46,7 +46,7 @@ const RegistrationTabs = () => {
                 headerTitle="모니터링/관리"
                 onBack={() =>
                   router.push(
-                    `/exhibition/detail/${encodeURIComponent(expoId)}`,
+                    `/admin/exhibition/detail/${encodeURIComponent(expoId)}`,
                   )
                 }
               />
