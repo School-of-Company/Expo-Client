@@ -1,5 +1,5 @@
 import { Logo } from '@/shared/assets/svg';
-import { ExpoDetail } from '@/shared/types/exhibition/detail/type';
+import { PublicExpoDetail } from '../../model/useParticipantExpoDetail';
 
 const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -13,7 +13,7 @@ const formatDay = (day: string) => {
 };
 
 interface Props {
-  expo?: ExpoDetail;
+  expo?: PublicExpoDetail;
   onApply: () => void;
   onMy: () => void;
 }
