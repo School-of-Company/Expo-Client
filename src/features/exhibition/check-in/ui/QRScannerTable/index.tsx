@@ -17,6 +17,7 @@ import {
   errorResult,
   reEntryResult,
   ScanResult,
+  scanFailureResult,
   successResult,
 } from '../../model/scanResult';
 import { toExitRequest } from '../../model/toExitRequest';
@@ -169,12 +170,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
         invalidateSummary();
       } catch (error) {
         // 토스트는 mutation의 onError가 띄우고, 결과 카드에는 같은 문구를 남긴다
-        setLastResult(
-          errorResult(
-            `${mode === 'entry' ? '입장' : '퇴장'} 실패`,
-            error instanceof Error ? error.message : undefined,
-          ),
-        );
+        setLastResult(scanFailureResult(mode, error));
       } finally {
         setScannedQR(null);
       }
@@ -211,7 +207,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
           <p className="break-keep text-body2r text-gray-600">
             {isExitMode
               ? '스캔한 QR은 퇴장으로 기록되고 아래 표에는 추가되지 않습니다.'
-              : '스캔한 QR은 입장으로 기록됩니다.'}
+              : '스캔한 QR은 입장으로 기록됩니다. 다시 들어오는 분은 먼저 퇴장 처리해야 합니다.'}
           </p>
         </div>
         <ScanModeToggle mode={mode} onChange={setMode} />
