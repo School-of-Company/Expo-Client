@@ -60,7 +60,7 @@ const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
         />
         <Logo className="relative h-[40px] w-auto" />
         <h1 className="relative break-keep text-[2rem] font-bold leading-tight text-main-600 mobile:text-h2b">
-          {expo?.title ?? '박람회'}
+          {expo?.title ?? '박람회'} 사전등록
         </h1>
       </header>
 
