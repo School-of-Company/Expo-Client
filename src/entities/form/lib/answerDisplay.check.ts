@@ -65,6 +65,22 @@ assert.equal(byId['6'].text, '답변 없음');
 assert.equal(byId['99'].label, '문항 99');
 assert.equal(byId['99'].questionMissing, true);
 
+// 문항명이 키인 답변은 키를 라벨로, 참가 유형·지역 키는 표시 이름으로
+const named = toAnswerDisplay(questions, {
+  이름: '조화정',
+  '참가 유형': 'GENERAL',
+  지역: 'GWANGJU',
+});
+const byName = Object.fromEntries(named.rows.map((r) => [r.id, r]));
+assert.equal(byName['이름'].label, '이름');
+assert.equal(byName['참가 유형'].text, '일반인');
+assert.equal(byName['지역'].text, '광주');
+assert.equal(
+  toAnswerDisplay([q(1, '참가 유형', 'OCCUPATION')], { '1': 'TEACHER' }).rows[0]
+    .text,
+  '교사',
+);
+
 // 스냅샷 null 이어도 답변은 남고, JSON 문자열이 되지 않는다
 const missing = toAnswerDisplay(null, { '7': { a: ['x', true] }, '8': 3 });
 assert.equal(missing.snapshotMissing, true);
