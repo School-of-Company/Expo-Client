@@ -1,6 +1,8 @@
 'use client';
 
 import { ReactNode, useMemo, useState } from 'react';
+import { normalizeExpoId } from '@/shared/config';
+import { useExcelDownload } from '@/shared/model';
 import { Loading } from '@/shared/ui';
 import {
   formatDateWithWeekday,
@@ -71,6 +73,7 @@ const AttendanceOverview = () => {
   const day = selectedDay ?? getDefaultDay(days);
   const isAll = day === ALL_DAYS;
 
+  const { mutate: downloadExcel, isPending: isExporting } = useExcelDownload();
   const summary = useAttendanceSummary(expoId, day);
   const activity = useAttendanceActivity(expoId, day);
   const data = summary.data;
@@ -111,13 +114,29 @@ const AttendanceOverview = () => {
               />
             )
           )}
-          <RefreshStatus
-            updatedAt={summary.updatedAt}
-            isFetching={summary.isFetching}
-            onRefresh={summary.refetch}
-            intervalMs={ATTENDANCE_REFRESH_MS}
-            hasError={summary.isError && Boolean(data)}
-          />
+          <div className="flex flex-wrap items-center gap-12">
+            {/* 고른 날짜의 기록을 받고, 전체 기록이면 기간을 생략해 박람회 전체를 받는다 */}
+            <button
+              type="button"
+              disabled={isExporting || !normalizeExpoId(expoId)}
+              onClick={() =>
+                downloadExcel({
+                  path: `/excel/entry-records/${normalizeExpoId(expoId)}`,
+                  params: isAll ? undefined : { from: day, to: day },
+                })
+              }
+              className="rounded-sm border-1 border-solid border-gray-200 px-12 py-6 text-caption1b text-gray-700 disabled:text-gray-300"
+            >
+              {isExporting ? '받는 중...' : '입장 기록 엑셀'}
+            </button>
+            <RefreshStatus
+              updatedAt={summary.updatedAt}
+              isFetching={summary.isFetching}
+              onRefresh={summary.refetch}
+              intervalMs={ATTENDANCE_REFRESH_MS}
+              hasError={summary.isError && Boolean(data)}
+            />
+          </div>
         </div>
 
         {summary.isError && !data ? (
