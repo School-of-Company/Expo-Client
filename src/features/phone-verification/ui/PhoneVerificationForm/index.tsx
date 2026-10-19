@@ -12,6 +12,7 @@ import { useTimer } from '@/shared/model';
 import { Button, Input } from '@/shared/ui';
 import { getExpoId } from '../../lib/getExpoId';
 import { getRedirectPath } from '../../lib/getRedirectPath';
+import { normalizePhoneInput } from '../../lib/normalizePhoneInput';
 import { loadVerifiedPhone, saveVerifiedPhone } from '../../lib/verifiedPhone';
 import { useLogoutParticipantSession } from '../../model/useLogoutParticipantSession';
 import { useParticipantSession } from '../../model/useParticipantSession';
@@ -102,10 +103,11 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
   // 버튼을 누르기 전까지는 검증 메시지를 띄우지 않고, 다시 입력하면 지운다
   const withDigitsOnly = (
     registration: UseFormRegisterReturn<keyof PhoneVerificationFormValues>,
+    normalize = (value: string) => value.replace(/[^0-9]/g, ''),
   ) => ({
     ...registration,
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+      e.target.value = normalize(e.target.value);
       clearErrors(registration.name);
       return registration.onChange(e);
     },
@@ -169,10 +171,10 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
                   required: '연락처를 입력해주세요.',
                   pattern: PHONE_NUMBER_PATTERN,
                 }),
+                normalizePhoneInput,
               )}
               type="tel"
               inputMode="numeric"
-              maxLength={11}
               placeholder="연락처는 - 빼고 입력해주세요"
               disabled={isSmsSent || isSmsVerified}
               error={!!errors.phoneNumber}
