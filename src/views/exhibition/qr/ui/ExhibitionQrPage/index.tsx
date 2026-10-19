@@ -69,7 +69,9 @@ const ExhibitionQrPage = ({
               className="gap-12"
               headerTitle="QR"
               onBack={() =>
-                router.push(`/exhibition/detail/${encodeURIComponent(id)}`)
+                router.push(
+                  `/admin/exhibition/detail/${encodeURIComponent(id)}`,
+                )
               }
             />
             <SegmentTabs

@@ -30,7 +30,7 @@ export const useSignin = () => {
     mutationFn: (data: SignInData) => postSignin(data),
     onSuccess: () => {
       toast.success('로그인이 완료되었습니다.');
-      router.push('/');
+      router.push('/admin');
     },
     onError: (error: Error) => {
       if (error instanceof SigninError && error.status === 429) {

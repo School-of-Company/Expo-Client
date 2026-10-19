@@ -33,21 +33,23 @@ export type ExpoQrTab = (typeof EXPO_QR_TABS)[keyof typeof EXPO_QR_TABS];
 
 export const getExpoRoutes = (expoId: string) => {
   const id = segment(expoId);
-  const qr = `/exhibition/qr/${id}`;
+  const qr = `/admin/exhibition/qr/${id}`;
   return {
-    participants: `/exhibition/participants/${id}?page=1&userType=STANDARD`,
-    edit: `/exhibition/edit/${id}`,
+    participants: `/admin/exhibition/participants/${id}?page=1&userType=STANDARD`,
+    edit: `/admin/exhibition/edit/${id}`,
     qr,
     accessQr: (userType: string, applicationType: string) =>
       `${qr}?tab=${EXPO_QR_TABS.access}&userType=${encodeURIComponent(userType)}&applicationType=${encodeURIComponent(applicationType)}`,
     checkIn: `${qr}?tab=${EXPO_QR_TABS.checkIn}`,
-    program: `/program/${id}?navigation=standard`,
+    program: `/admin/program/${id}?navigation=standard`,
     // 회차 참가자·QR 출석 화면. 연수와 일반 프로그램 ID 는 겹칠 수 있어 종류를 함께 넘긴다
     programDetail: (programId: number, type: 'STANDARD' | 'TRAINING') =>
-      `/program/${id}/detail/${programId}?navigation=${type === 'TRAINING' ? 'training' : 'standard'}`,
+      `/admin/program/${id}/detail/${programId}?navigation=${type === 'TRAINING' ? 'training' : 'standard'}`,
     paperQr: `${qr}?tab=${EXPO_QR_TABS.paper}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
+    // 사전등록·프로그램 회차를 보는 신청 목록 탭. 프로그램 신청 화면의 뒤로 가기가 쓴다
+    applicationList: `/application/forms/${id}?view=list`,
     // 신청 화면은 박람회 안내부터 보여 주므로 내 신청 탭을 주소로 지정한다
     applicationMy: `/application/forms/${id}?view=my`,
     applicationProgram: `/application/forms/${id}/program`,
@@ -86,5 +88,5 @@ export const getFormReturnPath = (expoId: string) => {
       : new URLSearchParams(window.location.search).get('returnTo');
   return returnTo === 'schedule'
     ? getRegistrationRoutes(expoId).forms
-    : `/exhibition/detail/${segment(expoId)}`;
+    : `/admin/exhibition/detail/${segment(expoId)}`;
 };

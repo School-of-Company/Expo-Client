@@ -46,11 +46,11 @@ export const OCCUPATION_LABEL: Record<AdminOccupation, string> = {
   ELEMENTARY_STUDENT: '초등학생',
   MIDDLE_SCHOOL_STUDENT: '중학생',
   HIGH_SCHOOL_STUDENT: '고등학생',
+  TEACHER: '교사',
   SCHOOL_STAFF: '교직원',
+  PRE_SERVICE_TEACHER: '예비교사',
   PARENT: '보호자/학부모',
   GENERAL: '일반인',
-  TEACHER: '교사',
-  PRE_SERVICE_TEACHER: '예비교사',
 };
 
 export const PROGRAM_TYPE_LABEL: Record<ProgramSessionType, string> = {
@@ -280,13 +280,20 @@ export const isCancellableStatus = (status: AdminApplicationStatus) =>
   status === 'CONFIRMED' || status === 'WAITING';
 
 /**
+ * 관리자 취소 403. 주원인은 Expo 의 행사별 취소 허용 목록에 이 관리자가 없는 경우라
+ * 전역 관리자·조회 권한이 있어도 거절된다. 원인과 다음 행동을 함께 알린다
+ */
+export const CANCEL_FORBIDDEN_MESSAGE =
+  '이 행사의 신청 취소 권한이 없습니다. 운영자에게 권한을 요청해주세요.';
+
+/**
  * 관리자 취소 실패 안내. 서버 사유(입장·마감·상태 변경 등)는 프록시를 거치며 공통 문구가 되므로
  * 상태로 나눠 안내한다
  */
 const getCancellationErrorMessage = (error: unknown) => {
   switch (getErrorStatus(error)) {
     case 403:
-      return '이 행사의 신청을 취소할 권한이 없습니다.';
+      return CANCEL_FORBIDDEN_MESSAGE;
     case 404:
       return '신청을 찾을 수 없습니다. 원장에서 삭제되었거나 다른 행사의 신청입니다.';
     case 409:

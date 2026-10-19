@@ -28,7 +28,9 @@ const SurveyViews = () => {
           aria-label="뒤로 가기"
           className="absolute left-0 top-1/2 flex h-[44px] w-[44px] -translate-y-1/2 items-center justify-center"
           onClick={() =>
-            router.push(`/exhibition/detail/${encodeURIComponent(expoId)}`)
+            router.push(
+              `/admin/exhibition/detail/${encodeURIComponent(expoId)}`,
+            )
           }
         >
           <ArrowLeft size={32} />
