@@ -15,6 +15,12 @@ const nextConfig = {
         destination: '/admin/registration/:expoId/survey?view=lottery',
         permanent: false,
       },
+      // 관리자 화면은 /admin 아래로 모았다. 예전 주소·즐겨찾기는 새 주소로 보낸다
+      ...['exhibition', 'form', 'program'].map((prefix) => ({
+        source: `/${prefix}/:path*`,
+        destination: `/admin/${prefix}/:path*`,
+        permanent: false,
+      })),
     ];
   },
   async headers() {
