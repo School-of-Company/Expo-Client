@@ -49,6 +49,7 @@ import {
 } from '../../model/sessionTimeMatch';
 import { useMyApplications } from '../../model/useMyApplications';
 import { useNow } from '../../model/useNow';
+import { getPreRegisterSessionState } from '../../model/usePreRegister';
 import CompanionApplyFlow from '../CompanionApplyFlow';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
@@ -443,6 +444,20 @@ const ProgramApplyContainer = ({
     retry: false,
     meta: { silent: true },
   });
+  // 확정·대기 중인 사전등록 회차. 이미 신청한 회차를 다시 추천하지 않는다
+  const appliedSessionIds = useMemo(
+    () =>
+      new Set(
+        applications
+          .filter(
+            ({ type, status }) =>
+              type === 'PREREGISTER' &&
+              (status === 'CONFIRMED' || status === 'WAITING'),
+          )
+          .map(({ sessionOrProgramId }) => sessionOrProgramId),
+      ),
+    [applications],
+  );
   const sessionWindows = useMemo(
     () => getConfirmedSessionWindows(applications, preRegisterSessions),
     [applications, preRegisterSessions],
@@ -530,6 +545,15 @@ const ProgramApplyContainer = ({
           // 현장 신청은 사전등록 회차와 상관없는 경로라 맞추지 않는다
           const isTimeMismatch =
             !onsite && !matchesSessionTime(program, sessionWindows);
+          // 시간이 맞지 않으면 이 프로그램 시간과 겹치고 아직 신청하지 않은 접수 중 회차를 골라 사전등록을 안내한다
+          const addSession = isTimeMismatch
+            ? preRegisterSessions?.find(
+                (session) =>
+                  getPreRegisterSessionState(session) === 'OPEN' &&
+                  matchesSessionTime(program, [session]) &&
+                  !appliedSessionIds.has(session.id),
+              )
+            : undefined;
           // 현장 신청은 사전 접수 기간과 따로 서버가 판정하므로 막지 않는다. 운영 마감은 경로와 상관없이 막는다
           const blockedLabel =
             program.policy?.closed || status === 'ENDED'
@@ -680,6 +704,14 @@ const ProgramApplyContainer = ({
                   사전등록한 회차 시간과 맞지 않는 프로그램입니다. 이 시간대
                   회차를 사전등록하면 신청할 수 있습니다.
                 </p>
+              )}
+              {addSession && (
+                <Link
+                  href={`${getExpoRoutes(expoId).applicationMy}&addSessionId=${addSession.id}`}
+                  className="flex h-[44px] items-center justify-center rounded-sm border-1 border-solid border-main-600 text-body2b text-main-600"
+                >
+                  이 회차 사전등록 · {addSession.title}
+                </Link>
               )}
 
               {notes.length > 0 && (
