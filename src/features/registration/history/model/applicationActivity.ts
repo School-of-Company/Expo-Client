@@ -53,19 +53,18 @@ const ACTIVITY_ACTOR_LABEL: Record<AdminApplicationActorType, string> = {
 export const getActivityActorLabel = ({
   actorType,
   actorId,
-  actorUserId,
-  actorName,
-}: Pick<
-  AdminApplicationActivity,
-  'actorType' | 'actorId' | 'actorUserId' | 'actorName'
->) => {
+  actorUser,
+}: Pick<AdminApplicationActivity, 'actorType' | 'actorId' | 'actorUser'>) => {
   const label = ACTIVITY_ACTOR_LABEL[actorType ?? 'UNKNOWN'] ?? '미기록';
   if (actorType === 'ADMIN' && actorId !== null) return `${label} #${actorId}`;
   if (actorType !== 'USER') return label;
-  if (actorUserId == null && !actorName) return `${label} · 처리자 미기록`;
-  return `${label} · ${[actorName, actorUserId != null && `#${actorUserId}`]
+  if (!actorUser) return `${label} · 처리자 미기록`;
+  const { name, participantId } = actorUser;
+  // 대기 예약 실행자는 participantId 가 없다. 이름 조회에 실패하면 id 만 남는다
+  const actor = [name, participantId != null && `#${participantId}`]
     .filter(Boolean)
-    .join(' ')}`;
+    .join(' ');
+  return `${label} · ${actor || '대기 예약 대표자'}`;
 };
 
 export const MAX_PARTICIPANT_LENGTH = 50;
