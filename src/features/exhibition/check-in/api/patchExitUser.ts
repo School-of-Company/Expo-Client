@@ -1,6 +1,6 @@
 import axios from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
-import { getScanErrorMessage } from '@/shared/libs/http/getScanErrorMessage';
+import { toScanError } from '@/shared/libs/http/getScanErrorMessage';
 import {
   ExitScanRequest,
   ExitScanResponse,
@@ -23,7 +23,7 @@ export const patchExitUser = async (
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(getScanErrorMessage(error, '퇴장 처리에 실패했습니다.'));
+      throw toScanError(error, '퇴장 처리에 실패했습니다.');
     }
     throw error;
   }
