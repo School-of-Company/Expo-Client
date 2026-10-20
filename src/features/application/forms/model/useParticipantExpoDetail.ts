@@ -3,10 +3,18 @@ import { toApiError } from '@/shared/libs/http/apiError';
 import clientInstance from '@/shared/libs/http/clientInstance';
 import { ExpoDetail } from '@/shared/types/exhibition/detail/type';
 
-/** 공개 조회 응답에서 참가자 화면이 쓰는 필드(Expo-Expo-Server#155 계약) */
+/**
+ * 공개 조회 응답에서 참가자 화면이 쓰는 필드(Expo-Expo-Server#155 계약).
+ * 휴대전화 본인 인증 여부는 Expo-Expo-Server#179 에서 더해졌다. 없으면 인증 필요로 본다
+ */
 export type PublicExpoDetail = Pick<
   ExpoDetail,
-  'title' | 'description' | 'location' | 'startedDay' | 'finishedDay'
+  | 'title'
+  | 'description'
+  | 'location'
+  | 'startedDay'
+  | 'finishedDay'
+  | 'participantPhoneVerificationRequired'
 >;
 
 /**
@@ -20,8 +28,22 @@ export const getParticipantExpoDetail = async (
     const { data } = await clientInstance.get<PublicExpoDetail>(
       `/expo/${encodeURIComponent(id)}/public`,
     );
-    const { title, description, location, startedDay, finishedDay } = data;
-    return { title, description, location, startedDay, finishedDay };
+    const {
+      title,
+      description,
+      location,
+      startedDay,
+      finishedDay,
+      participantPhoneVerificationRequired,
+    } = data;
+    return {
+      title,
+      description,
+      location,
+      startedDay,
+      finishedDay,
+      participantPhoneVerificationRequired,
+    };
   } catch (error) {
     throw toApiError(error, '박람회 정보 불러오기 실패');
   }
