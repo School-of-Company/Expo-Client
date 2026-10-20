@@ -6,14 +6,10 @@ import { useState } from 'react';
 import { formKeys, getForm } from '@/entities/form';
 import { getSurvey, surveyKeys } from '@/entities/survey';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
+import { formatKstDateTime } from '@/shared/libs/kstDateTime';
 import { useModalDialog } from '@/shared/model';
 import { Button, KstDateTimeInput } from '@/shared/ui';
-import {
-  formatDateTimeValue,
-  fromOffsetDateTime,
-  RegistrationTable,
-  TableColumn,
-} from '../../../common';
+import { RegistrationTable, TableColumn } from '../../../common';
 import ScheduleSection from '../ScheduleSection';
 
 type UserType = 'STANDARD' | 'TRAINEE';
@@ -265,7 +261,7 @@ const RegistrationFormSection = ({ expoId }: { expoId: string }) => {
       render: ({ form, mode }) =>
         mode === 'survey' || !form?.startDate || !form.endDate
           ? '-'
-          : `${formatDateTimeValue(fromOffsetDateTime(form.startDate))} ~ ${formatDateTimeValue(fromOffsetDateTime(form.endDate))}`,
+          : `${formatKstDateTime(form.startDate)} ~ ${formatKstDateTime(form.endDate)}`,
     },
     {
       key: 'actions',
