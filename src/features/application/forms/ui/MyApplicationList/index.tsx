@@ -16,6 +16,7 @@ import {
 import { downloadQrImage } from '@/shared/libs/downloadQrImage';
 import { useModalDialog } from '@/shared/model';
 import {
+  COMPANIONS_ACTIVE_MESSAGE,
   getParticipantQr,
   OwnerApplication,
   OwnerApplicationType,
@@ -55,8 +56,7 @@ const BLOCKED_REASON_LABEL: Record<string, string> = {
   APPLICATION_STATE_CHANGED: '신청 상태가 바뀌었습니다. 새로고침해주세요.',
   ACTIVE_PROGRAMS:
     '이 참가자가 신청한 프로그램을 먼저 취소해야 사전등록을 취소할 수 있습니다.',
-  ACTIVE_COMPANIONS:
-    '동행자의 사전등록을 먼저 취소해주세요. 대표자는 마지막에 취소할 수 있습니다.',
+  COMPANIONS_ACTIVE: COMPANIONS_ACTIVE_MESSAGE,
 };
 
 // 서버가 학생·보호자 연결 정보를 주지 않으므로 학생 신청에만 일반 안내를 한다.
@@ -126,6 +126,11 @@ const ApplicationRow = ({
     BLOCKED_REASON_LABEL[cancellationBlockedReason] ??
     (cancellationBlockedReason ||
       '지금은 취소할 수 없습니다. 운영 측에 문의해주세요.');
+  // 동행자를 먼저 취소하면 풀리는 사유라 누르기 전에도 줄 아래에 보여 준다
+  const showsBlockedReason =
+    !cancellable &&
+    status !== 'CANCELLED' &&
+    cancellationBlockedReason === 'COMPANIONS_ACTIVE';
   const title = [participant?.name, TYPE_LABEL[type]]
     .filter(Boolean)
     .join(' · ');
@@ -198,9 +203,11 @@ const ApplicationRow = ({
               className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 px-16 py-8 text-caption1b text-gray-400"
             >
               신청취소
-              <span id={reasonId} className="sr-only">
-                {blockedReason}
-              </span>
+              {!showsBlockedReason && (
+                <span id={reasonId} className="sr-only">
+                  {blockedReason}
+                </span>
+              )}
             </button>
           )}
         </div>
@@ -225,6 +232,11 @@ const ApplicationRow = ({
             expoId={expoId}
             sessionId={String(application.sessionOrProgramId)}
           />
+        )}
+        {showsBlockedReason && (
+          <p id={reasonId} className="break-keep text-caption1r text-gray-500">
+            {blockedReason}
+          </p>
         )}
         {SESSION_STATE_NOTE[session.state] && (
           <p className="text-caption1r text-gray-500">

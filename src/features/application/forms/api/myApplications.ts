@@ -98,6 +98,13 @@ export const getMyApplications = async (
   }
 };
 
+/**
+ * 같은 회차에 확정된 동행자가 남아 있으면 대표자 취소를 막는다(Application #257).
+ * 내 신청 조회의 cancellationBlockedReason 과 취소 409 code 가 같은 값이다
+ */
+export const COMPANIONS_ACTIVE_MESSAGE =
+  '동행자 신청을 먼저 취소해 주세요. 동행자를 모두 취소하면 대표자 신청도 취소할 수 있습니다.';
+
 export const cancelMyApplication = async (
   expoId: string,
   type: OwnerApplicationType,
@@ -111,7 +118,7 @@ export const cancelMyApplication = async (
       { headers: { 'X-CSRF-TOKEN': csrfToken } },
     );
   } catch (error) {
-    throw toError(
+    const apiError = toError(
       error,
       {
         ...COMMON_ERRORS,
@@ -121,6 +128,14 @@ export const cancelMyApplication = async (
       },
       '신청 취소에 실패했습니다.',
     );
+    // 화면이 오래되어 버튼이 열려 있었던 경우. 목록은 취소 시도 뒤 다시 받는다
+    if (apiError instanceof ApiError && apiError.code === 'COMPANIONS_ACTIVE')
+      throw new ApiError(
+        COMPANIONS_ACTIVE_MESSAGE,
+        apiError.status,
+        apiError.code,
+      );
+    throw apiError;
   }
 };
 
