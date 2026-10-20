@@ -27,6 +27,7 @@ import { useNow } from '../../model/useNow';
 import { usePreRegisterSessions } from '../../model/usePreRegister';
 import CategoryCard, { CategorySession } from './CategoryCard';
 import { SectionFrame, SectionTabs } from './SectionFrame';
+import TrainingCard from './TrainingCard';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
 const usePublicPrograms = (expoId: string, programType: ProgramType) =>
@@ -253,15 +254,15 @@ const ApplicationSchedule = ({
         <SectionFrame
           id="section-training"
           title="교원연수 신청"
-          description="교사·예비교사가 신청합니다. 연수를 고른 뒤 희망 회차를 선택해 주세요."
+          description="교사·예비교사가 신청합니다. 삼성 → 구글 → 애플 순서로 모든 연수 회차를 바로 확인하고 선택할 수 있습니다."
           error={training.error}
           onRetry={() => training.refetch()}
           isLoading={training.isLoading}
           isEmpty={training.data?.length === 0}
         >
-          <ul className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
+          <ul className="flex flex-col gap-16">
             {trainingGroups.map((group) => (
-              <CategoryCard
+              <TrainingCard
                 key={group.key}
                 group={group}
                 sessions={group.sessions.map(toCategorySession)}
