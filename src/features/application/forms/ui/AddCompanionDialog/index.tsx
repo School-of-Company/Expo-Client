@@ -3,7 +3,12 @@
 import { useRef, useState } from 'react';
 import { FieldValues, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { CompanionField } from '@/entities/form';
+import {
+  CompanionField,
+  getOccupationLabels,
+  OccupationLabelsProvider,
+  useFormQuery,
+} from '@/entities/form';
 import {
   SessionIssue,
   SessionNotice,
@@ -59,6 +64,8 @@ const AddCompanionDialog = ({
   onClose: () => void;
 }) => {
   const dialogRef = useModalDialog({ onClose });
+  // 동행자 구분 문구를 본인 신청 폼과 같게 맞춘다. 폼을 못 받으면 기본 문구를 쓴다
+  const { data: form } = useFormQuery(expoId, 'STANDARD', 'PRE');
   const { control, register, handleSubmit } = useForm<FieldValues>({
     defaultValues: { companions: [] },
   });
@@ -114,15 +121,19 @@ const AddCompanionDialog = ({
         </div>
 
         <form onSubmit={submit} className="flex flex-col gap-16">
-          <CompanionField
-            name="companions"
-            label="동행자"
-            required
-            maxCount={target.remaining}
-            limitHint={`이 일행에는 ${target.remaining}명까지 더 추가할 수 있습니다(대표자 포함 최대 5명).`}
-            control={control}
-            register={register}
-          />
+          <OccupationLabelsProvider
+            value={getOccupationLabels(form?.dynamicForm)}
+          >
+            <CompanionField
+              name="companions"
+              label="동행자"
+              required
+              maxCount={target.remaining}
+              limitHint={`이 일행에는 ${target.remaining}명까지 더 추가할 수 있습니다(대표자 포함 최대 5명).`}
+              control={control}
+              register={register}
+            />
+          </OccupationLabelsProvider>
 
           {sessionIssue ? (
             <SessionNotice expoId={expoId} issue={sessionIssue} />
