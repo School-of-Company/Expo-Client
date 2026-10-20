@@ -85,9 +85,10 @@ export const groupByCategory = (
   programs: Program[],
   categories: SectionCategory[],
 ): CategoryGroup[] => {
-  const known = categories.map(
-    (category): CategoryGroup => ({ ...category, sessions: [] }),
-  );
+  const known = categories.map((category) => ({
+    ...category,
+    sessions: [] as Program[],
+  }));
   const others: CategoryGroup[] = [];
   [...programs].sort(byStart).forEach((program) => {
     const group = known.find((candidate) =>
