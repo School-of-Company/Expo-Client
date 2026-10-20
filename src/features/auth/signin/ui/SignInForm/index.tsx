@@ -29,7 +29,7 @@ const SignInForm = () => {
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form method="POST" onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-20">
         <IdInput register={register} errors={errors} />
         <PasswordInput

@@ -112,7 +112,7 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
   });
 
   return (
-    <form className="space-y-[50px]" onSubmit={handleSubmit(onSubmit)}>
+    <form method="POST" className="space-y-[50px]" onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col items-center gap-12 text-center">
         <p className="text-body1b text-main-600 mobile:text-body2b">
           프로그램 신청 및 QR 발급을 위한
