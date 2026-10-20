@@ -11,7 +11,7 @@ const page = ({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { category?: string };
+  searchParams: { category?: string; programId?: string };
 }) => (
   <div className="flex min-h-screen flex-col">
     <div className="flex flex-1 justify-center p-16">
@@ -19,6 +19,7 @@ const page = ({
         expoId={params.id}
         programType="TRAINING"
         category={searchParams.category}
+        programId={searchParams.programId}
       />
     </div>
   </div>
