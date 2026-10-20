@@ -19,12 +19,32 @@ const LotterySettingsForm = ({ expoId }: { expoId: string }) => {
   const [enabled, setEnabled] = useState(false);
   const [numbersInput, setNumbersInput] = useState('');
   const [surveyUrl, setSurveyUrl] = useState('');
+  /** 마지막으로 입력 칸에 넣은 서버 설정. 고친 뒤 서버 설정이 이와 달라지면 알린다 */
+  const [syncedKey, setSyncedKey] = useState<string | null>(null);
+  const [isEdited, setIsEdited] = useState(false);
 
+  // 재조회는 응답 순번(currentSequence)이 바뀔 때마다 새 data 를 준다. 설정 값이 바뀌었고 고치는 중이 아닐 때만 입력 칸을 맞춘다.
+  // 저장에 성공하면 서버 응답이 캐시에 들어가므로 isEdited 를 풀면 저장한 값으로 맞춰진다
+  const serverEnabled = data?.enabled;
+  const serverNumbers = data?.numbers.join(', ');
+  const serverKey =
+    serverNumbers === undefined ? null : `${serverEnabled}|${serverNumbers}`;
   useEffect(() => {
-    if (!data) return;
-    setEnabled(data.enabled);
-    setNumbersInput(data.numbers.join(', '));
-  }, [data]);
+    if (serverKey === null || isEdited) return;
+    setEnabled(!!serverEnabled);
+    setNumbersInput(serverNumbers ?? '');
+    setSyncedKey(serverKey);
+  }, [serverKey, serverEnabled, serverNumbers, isEdited]);
+  const isChangedElsewhere = isEdited && serverKey !== syncedKey;
+
+  const changeEnabled = (value: boolean) => {
+    setIsEdited(true);
+    setEnabled(value);
+  };
+  const changeNumbers = (value: string) => {
+    setIsEdited(true);
+    setNumbersInput(value);
+  };
 
   useEffect(() => {
     setSurveyUrl(`${window.location.origin}/survey/${expoId}`);
@@ -41,7 +61,10 @@ const LotterySettingsForm = ({ expoId }: { expoId: string }) => {
     mutate(
       { enabled, numbers: parsed.numbers },
       {
-        onSuccess: () => toast.success('경품 추첨 설정을 저장했습니다.'),
+        onSuccess: () => {
+          setIsEdited(false);
+          toast.success('경품 추첨 설정을 저장했습니다.');
+        },
         onError: (error) => toast.error(error.message),
       },
     );
@@ -81,7 +104,7 @@ const LotterySettingsForm = ({ expoId }: { expoId: string }) => {
               <p className="text-body2r text-gray-600">
                 {enabled ? '켜짐' : '꺼짐'}
               </p>
-              <ToggleButton value={enabled} onChange={setEnabled} />
+              <ToggleButton value={enabled} onChange={changeEnabled} />
             </div>
           </div>
           <p className="break-keep text-caption1r text-gray-400">
@@ -105,7 +128,7 @@ const LotterySettingsForm = ({ expoId }: { expoId: string }) => {
           <textarea
             rows={4}
             value={numbersInput}
-            onChange={(e) => setNumbersInput(e.target.value)}
+            onChange={(e) => changeNumbers(e.target.value)}
             placeholder="예: 10, 50, 100"
             className="w-full resize-none rounded-sm border-1 border-solid border-gray-200 px-16 py-12 text-body2r"
           />
@@ -125,6 +148,13 @@ const LotterySettingsForm = ({ expoId }: { expoId: string }) => {
             </p>
           )}
         </section>
+
+        {isChangedElsewhere && (
+          <p role="status" className="break-keep text-body2r text-red-500">
+            고치는 동안 다른 곳에서 설정이 바뀌었습니다. 저장하면 지금 입력한
+            값으로 덮어씁니다. 서버 값을 보려면 새로고침하세요.
+          </p>
+        )}
 
         <Button onClick={handleSave} disabled={isPending || !!parsed.error}>
           {isPending ? '저장 중...' : '저장하기'}
