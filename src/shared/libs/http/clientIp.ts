@@ -30,13 +30,25 @@ export const getClientIp = (req: Request): string | null => {
 };
 
 /**
+ * Gateway 가 BFF 를 알아보는 공유 비밀(서버 환경 변수 GATEWAY_BFF_TOKEN, Gateway Vault secret/gateway 의 bff.token).
+ * Vercel 함수는 나가는 IP 가 고정이 아니라 Gateway 가 IP 로 BFF 를 믿을 수 없어서,
+ * 이 토큰이 맞을 때만 X-Forwarded-For 의 사용자 IP 로 요청 수를 센다. 브라우저에 노출하지 않는다
+ */
+const getBffToken = () => process.env.GATEWAY_BFF_TOKEN?.trim() || null;
+
+/**
  * Gateway 로 넘길 클라이언트 IP 헤더. Gateway 는 이 IP 로 요청 수를 제한하므로,
  * 넘기지 않으면 모든 사용자가 Next 서버 IP 하나로 묶여 한도를 함께 쓰게 된다.
  * 앞단 구성(TRUSTED_PROXY_HOPS)이 설정되지 않으면 이 값은 클라이언트가 정한 것일 수 있어
- * (로그인 시도·문자 발송 한도를 위조한 IP 로 피할 수 있음) 넘기지 않는다
+ * (로그인 시도·문자 발송 한도를 위조한 IP 로 피할 수 있음) 넘기지 않는다.
+ * BFF 토큰은 IP 를 넘길 때만 함께 싣는다(토큰은 넘긴 IP 를 믿어 달라는 뜻이다)
  */
 export const clientIpHeaders = (req: Request): Record<string, string> => {
   if (!isClientIpTrusted()) return {};
   const ip = getClientIp(req);
-  return ip ? { 'X-Forwarded-For': ip } : {};
+  if (!ip) return {};
+  const token = getBffToken();
+  return token
+    ? { 'X-Forwarded-For': ip, 'X-Bff-Token': token }
+    : { 'X-Forwarded-For': ip };
 };
