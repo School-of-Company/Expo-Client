@@ -58,7 +58,10 @@ const QRScannerTable = ({ id }: { id: string }) => {
     (message: string) => setLastResult(errorResult('읽을 수 없는 QR', message)),
     [],
   );
-  const { submitScan } = useQRScanner(setScannedQR, handleInvalidQr);
+  const { submitScan, clearLastScan } = useQRScanner(
+    setScannedQR,
+    handleInvalidQr,
+  );
 
   const toAttendRequest = ({
     traineeId,
@@ -169,6 +172,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
         // 처리한 건수가 바로 보이도록 집계를 다시 읽는다
         invalidateSummary();
       } catch (error) {
+        clearLastScan();
         // 토스트는 mutation의 onError가 띄우고, 결과 카드에는 같은 문구를 남긴다
         setLastResult(scanFailureResult(mode, error));
       } finally {
