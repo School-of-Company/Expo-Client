@@ -16,7 +16,9 @@ import { ApiError } from '@/shared/libs/http/apiError';
 import { useModalDialog } from '@/shared/model';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import {
+  PARTICIPANT_BLOCK_LABEL,
   SESSION_BLOCK_LABEL,
+  getParticipantBlockReason,
   getSessionBlockReason,
   hasOnlyStudents,
 } from '../../model/addSession';
@@ -68,25 +70,36 @@ const AddSessionDialog = ({
   onClose: () => void;
 }) => {
   const dialogRef = useModalDialog({ onClose });
+  const participantIds = participants.map(({ participantId }) => participantId);
   const blockOf = (session: PublicPreregisterSession) =>
-    getSessionBlockReason(session, sessions, applications);
+    getSessionBlockReason(session, sessions, applications, participantIds);
   const initial = sessions.find(
     (session) => session.id === initialSessionId && !blockOf(session),
   );
   const [sessionId, setSessionId] = useState<number | undefined>(initial?.id);
   // 기본은 일행 전체
-  const [selectedIds, setSelectedIds] = useState<number[]>(
-    participants.map(({ participantId }) => participantId),
-  );
+  const [selectedIds, setSelectedIds] = useState<number[]>(participantIds);
   const submissionKeys = useRef(createSubmissionKeys());
   const [errorMessage, setErrorMessage] = useState<string>();
   const [formChanged, setFormChanged] = useState(false);
   const [sessionIssue, setSessionIssue] = useState<SessionIssue>();
 
-  const onlyStudents = hasOnlyStudents(participants, selectedIds);
+  const selectedSession = sessions.find(({ id }) => id === sessionId);
+  // 고른 회차에 이미 신청했거나 시간이 겹치는 참석자는 빼고 보낸다
+  const participantBlockOf = (participantId: number) =>
+    selectedSession
+      ? getParticipantBlockReason(
+          selectedSession,
+          sessions,
+          applications,
+          participantId,
+        )
+      : null;
+  const addableIds = selectedIds.filter((id) => !participantBlockOf(id));
+  const onlyStudents = hasOnlyStudents(participants, addableIds);
   const canSubmit =
     sessionId !== undefined &&
-    selectedIds.length > 0 &&
+    addableIds.length > 0 &&
     !onlyStudents &&
     !isSubmitting;
 
@@ -102,7 +115,7 @@ const AddSessionDialog = ({
     setErrorMessage(undefined);
     setFormChanged(false);
     setSessionIssue(undefined);
-    const participantIds = [...selectedIds].sort((a, b) => a - b);
+    const participantIds = [...addableIds].sort((a, b) => a - b);
     try {
       const result = await onSubmit({
         sessionId,
@@ -195,24 +208,35 @@ const AddSessionDialog = ({
         <fieldset className="flex flex-col gap-8">
           <legend className="mb-8 text-body2b text-black">참석자 선택</legend>
           {participants.map(
-            ({ participantId, name, occupation, representative }) => (
-              <label
-                key={participantId}
-                className="flex items-center gap-8 text-body2r text-black"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedIds.includes(participantId)}
-                  onChange={() => toggle(participantId)}
-                />
-                {name}
-                <span className="text-caption1r text-gray-500">
-                  {representative ? '대표자' : '일행'}
-                  {occupation &&
-                    ` · ${OCCUPATION_LABEL[occupation] ?? occupation}`}
-                </span>
-              </label>
-            ),
+            ({ participantId, name, occupation, representative }) => {
+              const block = participantBlockOf(participantId);
+              return (
+                <label
+                  key={participantId}
+                  className={`flex items-center gap-8 text-body2r ${
+                    block ? 'cursor-not-allowed text-gray-400' : 'text-black'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!block && selectedIds.includes(participantId)}
+                    disabled={!!block}
+                    onChange={() => toggle(participantId)}
+                  />
+                  {name}
+                  <span className="text-caption1r text-gray-500">
+                    {representative ? '대표자' : '일행'}
+                    {occupation &&
+                      ` · ${OCCUPATION_LABEL[occupation] ?? occupation}`}
+                  </span>
+                  {block && (
+                    <span className="text-caption1r">
+                      ({PARTICIPANT_BLOCK_LABEL[block]})
+                    </span>
+                  )}
+                </label>
+              );
+            },
           )}
           <p className="break-keep text-caption1r text-gray-500">
             대표자는 이 회차에 참석하지 않아도 됩니다. 단, 학생만 참석할 수는
