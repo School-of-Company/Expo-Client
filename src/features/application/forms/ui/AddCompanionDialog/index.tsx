@@ -4,7 +4,13 @@ import { useQuery } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { FieldValues, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { CompanionField, formKeys, getForm } from '@/entities/form';
+import {
+  CompanionField,
+  formKeys,
+  getForm,
+  getOccupationLabels,
+  OccupationLabelsProvider,
+} from '@/entities/form';
 import {
   SessionIssue,
   SessionNotice,
@@ -124,17 +130,21 @@ const AddCompanionDialog = ({
         </div>
 
         <form onSubmit={submit} className="flex flex-col gap-16">
-          <CompanionField
-            name="companions"
-            label="동행자"
-            required
-            maxCount={target.remaining}
-            limitHint={`이 일행에는 ${target.remaining}명까지 더 추가할 수 있습니다(대표자 포함 최대 5명).`}
-            allowedOccupations={occupationLock?.allowed}
-            occupationNotice={occupationLock?.notice}
-            control={control}
-            register={register}
-          />
+          <OccupationLabelsProvider
+            value={getOccupationLabels(preForm.data?.dynamicForm)}
+          >
+            <CompanionField
+              name="companions"
+              label="동행자"
+              required
+              maxCount={target.remaining}
+              limitHint={`이 일행에는 ${target.remaining}명까지 더 추가할 수 있습니다(대표자 포함 최대 5명).`}
+              allowedOccupations={occupationLock?.allowed}
+              occupationNotice={occupationLock?.notice}
+              control={control}
+              register={register}
+            />
+          </OccupationLabelsProvider>
 
           {sessionIssue ? (
             <SessionNotice expoId={expoId} issue={sessionIssue} />

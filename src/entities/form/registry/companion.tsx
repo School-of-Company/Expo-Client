@@ -3,9 +3,9 @@
 import { ArrowDown } from '@/shared/assets/icons';
 import {
   COMPANION_MAX_COUNT,
-  OCCUPATION_OPTIONS,
   SCHOOL_OCCUPATIONS,
 } from '../constants/occupationData';
+import { useOccupationOptions } from '../lib/occupationOptions';
 import { isRegion, RegionSelect } from './region';
 import type { FieldDefinition, FieldRendererProps } from './model';
 import type {
@@ -57,6 +57,7 @@ const inputClassName =
 
 /** 동행자 목록. 대표자가 한 명씩 추가하고 사람마다 이름·구분·지역(교사·예비교사는 소속까지)을 받는다. */
 function CompanionRenderer({ item, value, onChange }: FieldRendererProps) {
+  const occupationOptions = useOccupationOptions();
   const list = toList(value);
   const { max } = companionCountRange(item);
   const update = (index: number, patch: Partial<Companion>) =>
@@ -102,7 +103,7 @@ function CompanionRenderer({ item, value, onChange }: FieldRendererProps) {
               <option value="" disabled>
                 구분 선택
               </option>
-              {OCCUPATION_OPTIONS.map(({ key, label }) => (
+              {occupationOptions.map(({ key, label }) => (
                 <option key={key} value={key}>
                   {label}
                 </option>

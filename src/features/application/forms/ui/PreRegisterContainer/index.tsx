@@ -6,7 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
-import { useFormQuery } from '@/entities/form';
+import {
+  getOccupationLabels,
+  OccupationLabelsProvider,
+  useFormQuery,
+} from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
@@ -365,84 +369,86 @@ const PreRegisterContainer = ({
         )}
 
         {schema && (
-          <FormRenderer
-            schema={schema}
-            onSubmit={onSubmit}
-            companionMaxCount={companionLimit}
-            occupationLock={
-              occupationLock
-                ? {
-                    ...occupationLock,
-                    fieldId:
-                      occupationFieldId === undefined
-                        ? undefined
-                        : String(occupationFieldId),
-                  }
-                : undefined
-            }
-            renderFooter={(methods) => {
-              const companionCount = companionFieldId
-                ? ((methods.watch(companionFieldId) as unknown[] | undefined)
-                    ?.length ?? 0)
-                : 0;
-              // 회차를 바꾸면 이미 추가한 동행자가 새 회차의 상한을 넘을 수 있다
-              const isOverCapacity =
-                applicantLimit !== undefined &&
-                companionCount + 1 > applicantLimit;
+          <OccupationLabelsProvider value={getOccupationLabels(questions)}>
+            <FormRenderer
+              schema={schema}
+              onSubmit={onSubmit}
+              companionMaxCount={companionLimit}
+              occupationLock={
+                occupationLock
+                  ? {
+                      ...occupationLock,
+                      fieldId:
+                        occupationFieldId === undefined
+                          ? undefined
+                          : String(occupationFieldId),
+                    }
+                  : undefined
+              }
+              renderFooter={(methods) => {
+                const companionCount = companionFieldId
+                  ? ((methods.watch(companionFieldId) as unknown[] | undefined)
+                      ?.length ?? 0)
+                  : 0;
+                // 회차를 바꾸면 이미 추가한 동행자가 새 회차의 상한을 넘을 수 있다
+                const isOverCapacity =
+                  applicantLimit !== undefined &&
+                  companionCount + 1 > applicantLimit;
 
-              const willWait =
-                !!capacity &&
-                !isOverCapacity &&
-                isWaitingParty(capacity, companionCount + 1);
+                const willWait =
+                  !!capacity &&
+                  !isOverCapacity &&
+                  isWaitingParty(capacity, companionCount + 1);
 
-              return (
-                <div className="mt-48 flex flex-col gap-30">
-                  <PrivacyConsent
-                    content={form?.informationText ?? ''}
-                    watch={methods.watch}
-                    setValue={methods.setValue}
-                  />
-                  {willWait && (
-                    <p className="text-body2b text-main-600">
-                      이 인원은 확정 자리가 부족해 일행 전체가 대기로
-                      접수됩니다. 대기는 자리가 나야 확정되며 최종 판정은 제출할
-                      때 서버가 합니다.
-                    </p>
-                  )}
-                  {isOverCapacity && (
-                    <p className="text-body2r text-error">
-                      이번에 신청할 수 있는 인원은 대표자를 포함해{' '}
-                      {(applicantLimit ?? 0).toLocaleString()}명까지입니다.
-                      인원을 줄이거나 다른 회차를 선택해 주세요.
-                    </p>
-                  )}
+                return (
+                  <div className="mt-48 flex flex-col gap-30">
+                    <PrivacyConsent
+                      content={form?.informationText ?? ''}
+                      watch={methods.watch}
+                      setValue={methods.setValue}
+                    />
+                    {willWait && (
+                      <p className="text-body2b text-main-600">
+                        이 인원은 확정 자리가 부족해 일행 전체가 대기로
+                        접수됩니다. 대기는 자리가 나야 확정되며 최종 판정은
+                        제출할 때 서버가 합니다.
+                      </p>
+                    )}
+                    {isOverCapacity && (
+                      <p className="text-body2r text-error">
+                        이번에 신청할 수 있는 인원은 대표자를 포함해{' '}
+                        {(applicantLimit ?? 0).toLocaleString()}명까지입니다.
+                        인원을 줄이거나 다른 회차를 선택해 주세요.
+                      </p>
+                    )}
 
-                  <div className="flex gap-16 mobile:flex-col-reverse">
-                    <Link
-                      href={backHref}
-                      className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-center text-body2b text-gray-700"
-                    >
-                      신청 폼 모음으로
-                    </Link>
-                    <div className="flex-1">
-                      <Button
-                        type="submit"
-                        disabled={
-                          isSubmitting ||
-                          !!sessionError ||
-                          !capacity ||
-                          !canApply ||
-                          isOverCapacity
-                        }
+                    <div className="flex gap-16 mobile:flex-col-reverse">
+                      <Link
+                        href={backHref}
+                        className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-center text-body2b text-gray-700"
                       >
-                        {isSubmitting ? '신청 중...' : '신청 완료하기'}
-                      </Button>
+                        신청 폼 모음으로
+                      </Link>
+                      <div className="flex-1">
+                        <Button
+                          type="submit"
+                          disabled={
+                            isSubmitting ||
+                            !!sessionError ||
+                            !capacity ||
+                            !canApply ||
+                            isOverCapacity
+                          }
+                        >
+                          {isSubmitting ? '신청 중...' : '신청 완료하기'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            }}
-          />
+                );
+              }}
+            />
+          </OccupationLabelsProvider>
         )}
       </div>
     ),

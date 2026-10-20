@@ -14,11 +14,11 @@ import { ArrowDown } from '@/shared/assets/icons';
 import { Input } from '@/shared/ui';
 import {
   COMPANION_MAX_COUNT,
-  OCCUPATION_OPTIONS,
   Occupation,
   REGION_OPTIONS,
   SCHOOL_OCCUPATIONS,
 } from '../../constants/occupationData';
+import { useOccupationOptions } from '../../lib/occupationOptions';
 
 interface CompanionFieldProps {
   name: string;
@@ -66,6 +66,7 @@ export default function CompanionField({
   control,
   register,
 }: CompanionFieldProps) {
+  const occupationOptions = useOccupationOptions();
   const { fields, append, remove } = useFieldArray({
     control,
     name,
@@ -131,7 +132,7 @@ export default function CompanionField({
                 className={selectClassName}
               >
                 <option value="">구분 선택</option>
-                {OCCUPATION_OPTIONS.map(({ key, label: optionLabel }) => (
+                {occupationOptions.map(({ key, label: optionLabel }) => (
                   <option
                     key={key}
                     value={key}

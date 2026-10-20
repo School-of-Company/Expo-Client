@@ -22,6 +22,10 @@ export {
   REGION_OPTIONS,
   COMPANION_MAX_COUNT,
 } from './constants/occupationData';
+export {
+  getOccupationLabels,
+  OccupationLabelsProvider,
+} from './lib/occupationOptions';
 export type { Occupation, Region } from './constants/occupationData';
 export { default as OptionListEditor } from './ui/OptionListEditor';
 export { formTypeRegistry } from './model/registry';
