@@ -236,19 +236,20 @@ const ApplicationSchedule = ({
         <SectionFrame
           id="section-program"
           title="프로그램 신청"
-          description="사전등록이 확정된 참가자가 신청합니다. 기조강연, AI·SW 골든벨, 전시체험 투어 등"
+          description="사전등록이 확정된 참가자가 신청합니다. 기조강연, AI·SW 골든벨, 전시체험 투어 등 모든 회차를 바로 확인하고 선택할 수 있습니다."
           error={standard.error}
           onRetry={() => standard.refetch()}
           isLoading={standard.isLoading}
           isEmpty={standard.data?.length === 0}
         >
-          <ul className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
+          <ul className="flex flex-col gap-16">
             {programGroups.map((group) => (
               <CategoryCard
                 key={group.key}
                 group={group}
                 sessions={group.sessions.map(toCategorySession)}
                 applyHref={`/application/forms/${expoId}/program`}
+                selectable
               />
             ))}
           </ul>
