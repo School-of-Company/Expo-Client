@@ -9,10 +9,8 @@ import type { Program } from '@/shared/types/program/list/type';
 export interface SectionCategory {
   key: string;
   label: string;
-  /** 카드 강조색. 같은 덩어리 안에서 카드끼리 구분한다 */
-  accent: string;
-  /** 카드 마크(한 글자) */
-  mark: string;
+  /** 서버에 장소가 없을 때 대신 보여 줄 장소 */
+  place?: string;
   match: RegExp;
 }
 
@@ -20,22 +18,16 @@ export const PROGRAM_CATEGORIES: SectionCategory[] = [
   {
     key: 'keynote',
     label: '기조강연',
-    accent: '#2466d4',
-    mark: '1',
     match: /기조/,
   },
   {
     key: 'goldenbell',
     label: 'AI·SW 골든벨',
-    accent: '#8742ad',
-    mark: '2',
     match: /골든벨/,
   },
   {
     key: 'tour',
     label: 'AI교육원 전시체험 투어',
-    accent: '#087e78',
-    mark: '3',
     match: /전시체험|투어/,
   },
 ];
@@ -44,33 +36,25 @@ export const TRAINING_CATEGORIES: SectionCategory[] = [
   {
     key: 'samsung',
     label: '삼성 연수',
-    accent: '#183f99',
-    mark: 'S',
     match: /삼성/,
   },
   {
     key: 'google',
     label: '구글 연수',
-    accent: '#2478d4',
-    mark: 'G',
     match: /구글/,
   },
   {
     key: 'apple',
     label: '애플 연수',
-    accent: '#505762',
-    mark: 'A',
+    place: '202호',
     match: /애플/,
   },
 ];
 
-const OTHER_ACCENT = '#64748b';
-
 export interface CategoryGroup {
   key: string;
   label: string;
-  accent: string;
-  mark: string;
+  place?: string;
   sessions: Program[];
 }
 
@@ -99,12 +83,25 @@ export const groupByCategory = (
       others.push({
         key: `other:${program.id}`,
         label: program.title,
-        accent: OTHER_ACCENT,
-        mark: program.title.slice(0, 1),
         sessions: [program],
       });
   });
   return [...known.filter((group) => group.sessions.length > 0), ...others];
+};
+
+/** 카드의 key(삼성은 samsung, 분류에 안 맞는 건 other:프로그램 id)에 해당하는 프로그램만 남긴다. key 가 없으면 전부 둔다 */
+export const filterByCategory = (
+  programs: Program[],
+  categories: SectionCategory[],
+  key: string | undefined,
+) => {
+  if (!key) return programs;
+  const category = categories.find((candidate) => candidate.key === key);
+  return programs.filter((program) =>
+    category
+      ? category.match.test(program.title)
+      : key === `other:${program.id}`,
+  );
 };
 
 const compact = (value: string) => value.replace(/[\s·]/g, '');

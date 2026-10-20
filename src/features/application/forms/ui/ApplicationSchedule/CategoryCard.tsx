@@ -4,10 +4,6 @@ import {
   SCHEDULE_STATUS_LABEL,
   ScheduleStatus,
 } from '../../model/applicationSchedule';
-import {
-  getSessionLabel,
-  getSessionTopic,
-} from '../../model/applicationSections';
 import { formatProgramPlace } from '../../model/programApply';
 import type { CategoryGroup } from '../../model/applicationSections';
 
@@ -17,22 +13,23 @@ export interface CategorySession {
   startedAt: string;
   endedAt: string;
   status: ScheduleStatus;
-  /** 정원 숫자를 보여도 되는 회차만 채운다(교사 대상은 신청 전 숫자를 숨긴다) */
-  capacity?: number;
   place?: string | null;
 }
 
 const STATUS_CLASS: Record<ScheduleStatus, string> = {
-  UPCOMING: 'bg-main-100 text-main-600',
-  OPEN: 'bg-main-600 text-white',
-  CLOSED: 'bg-gray-100 text-gray-500',
-  ENDED: 'bg-gray-100 text-gray-400',
-  UNSET: 'bg-gray-100 text-gray-500',
+  UPCOMING: 'text-gray-400',
+  OPEN: 'text-main-600',
+  CLOSED: 'text-gray-400',
+  ENDED: 'text-gray-400',
+  UNSET: 'text-gray-400',
 };
 
+const dateOf = (startedAt: string) =>
+  formatDefinitionSchedule(startedAt, null).split(' ')[0];
+
 /**
- * 프로그램·연수 분류 하나(삼성 연수, 기조강연 등)의 카드. 회차를 줄로 보여 주고 아래 버튼으로 신청 화면에 간다.
- * 신청 화면이 회차를 고르게 하므로 이 카드는 회차 선택을 넘기지 않는다
+ * 프로그램·연수 분류 하나(삼성 연수, 기조강연 등)의 카드. 목록에서는 이름·장소·날짜·접수 여부만 보여 주고,
+ * 회차별 시간과 자세한 내용은 신청 화면에서 보인다
  */
 const CategoryCard = ({
   group,
@@ -44,71 +41,32 @@ const CategoryCard = ({
   applyHref: string;
 }) => {
   const isOpen = sessions.some(({ status }) => status === 'OPEN');
-  const place = sessions.find(({ place: value }) => value?.trim())?.place;
+  const status: ScheduleStatus = isOpen ? 'OPEN' : sessions[0].status;
+  const place =
+    sessions.find(({ place: value }) => value?.trim())?.place ?? group.place;
+  const first = dateOf(sessions[0].startedAt);
+  const last = dateOf(sessions[sessions.length - 1].startedAt);
   return (
-    <li
-      className="flex min-w-0 flex-col gap-12 rounded-md border-1 border-t-[4px] border-solid border-gray-200 bg-white p-16"
-      style={{ borderTopColor: group.accent }}
-    >
-      <div className="flex items-center gap-12">
-        <span
-          aria-hidden
-          className="grid h-[34px] min-w-[34px] place-items-center rounded-sm text-body2b text-white"
-          style={{ backgroundColor: group.accent }}
-        >
-          {group.mark}
-        </span>
+    <li className="flex min-w-0 flex-col gap-8 rounded-sm border-1 border-solid border-gray-200 bg-white p-20">
+      <div className="flex items-center justify-between gap-8">
         <h3 className="break-keep text-body1b text-black">{group.label}</h3>
+        <span className={`flex-none text-caption1b ${STATUS_CLASS[status]}`}>
+          {SCHEDULE_STATUS_LABEL[status]}
+        </span>
       </div>
-      <p className="break-words break-keep rounded-sm border-1 border-solid border-gray-200 px-12 py-8 text-caption1b text-gray-700">
+      <p className="break-words break-keep text-caption1r text-gray-500">
         {formatProgramPlace(place)}
       </p>
-      <ul className="flex flex-col gap-8">
-        {sessions.map((session) => {
-          const label = getSessionLabel(session.title, group.label);
-          const topic = getSessionTopic(session.title, group.label);
-          return (
-            <li
-              key={session.id}
-              className="flex flex-col gap-4 rounded-sm border-1 border-solid border-gray-200 px-12 py-10"
-            >
-              <div className="flex flex-wrap items-center gap-8">
-                {label !== '신청' && (
-                  <span
-                    className="rounded-sm px-8 py-2 text-caption1b text-white"
-                    style={{ backgroundColor: group.accent }}
-                  >
-                    {label}
-                  </span>
-                )}
-                <span
-                  className={`rounded-full px-8 py-2 text-caption1b ${STATUS_CLASS[session.status]}`}
-                >
-                  {SCHEDULE_STATUS_LABEL[session.status]}
-                </span>
-              </div>
-              <p className="text-body2b" style={{ color: group.accent }}>
-                {formatDefinitionSchedule(session.startedAt, session.endedAt)}
-              </p>
-              {topic && (
-                <p className="break-keep text-caption1r text-gray-600">
-                  {topic}
-                </p>
-              )}
-              {session.capacity !== undefined && (
-                <p className="text-caption1r text-gray-500">
-                  정원 {session.capacity.toLocaleString()}명
-                </p>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <p className="mb-8 text-body2b text-black">
+        {first === last ? first : `${first} ~ ${last}`}
+        {sessions.length > 1 && (
+          <span className="text-gray-500"> · 총 {sessions.length}회</span>
+        )}
+      </p>
       {isOpen ? (
         <Link
-          href={applyHref}
-          className="mt-auto rounded-sm px-16 py-12 text-center text-body2b text-white"
-          style={{ backgroundColor: group.accent }}
+          href={`${applyHref}?category=${encodeURIComponent(group.key)}`}
+          className="mt-auto rounded-sm bg-main-600 px-16 py-12 text-center text-body2b text-white"
         >
           신청하기 →
         </Link>

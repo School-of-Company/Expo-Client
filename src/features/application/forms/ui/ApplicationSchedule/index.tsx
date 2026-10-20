@@ -2,14 +2,13 @@
 
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { formKeys, getForm } from '@/entities/form';
 import { formatDefinitionSchedule } from '@/features/registration/common/model/ledger';
 import { getPublicStandardProgram, getTrainingProgram } from '@/shared/api';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import {
   SCHEDULE_STATUS_LABEL,
-  canShowProgramCapacity,
   getPreRegisterScheduleStatus,
   getProgramScheduleStatus,
   getScheduleBoundaries,
@@ -27,7 +26,7 @@ import { getOccupationLock } from '../../model/occupationOpen';
 import { useNow } from '../../model/useNow';
 import { usePreRegisterSessions } from '../../model/usePreRegister';
 import CategoryCard, { CategorySession } from './CategoryCard';
-import { QuickNav, SectionFrame } from './SectionFrame';
+import { SectionFrame, SectionTabs } from './SectionFrame';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
 const usePublicPrograms = (expoId: string, programType: ProgramType) =>
@@ -49,7 +48,7 @@ const byStart = (a: { startedAt: string }, b: { startedAt: string }) =>
   a.startedAt.localeCompare(b.startedAt);
 
 const STATUS_BADGE_CLASS = {
-  UPCOMING: 'bg-main-100 text-main-600',
+  UPCOMING: 'bg-gray-100 text-gray-600',
   OPEN: 'bg-main-600 text-white',
   CLOSED: 'bg-gray-100 text-gray-500',
   ENDED: 'bg-gray-100 text-gray-400',
@@ -57,8 +56,7 @@ const STATUS_BADGE_CLASS = {
 } as const;
 
 /**
- * 신청을 사전등록 / 프로그램 신청 / 교원연수 신청 세 덩어리로 보여 준다. 위쪽 탭으로 덩어리 사이를 오가고
- * 각 덩어리는 접을 수 있다. 로그인·휴대폰 인증 없이 공개 API 만 쓰고, 신청은 각 신청 화면이 기간·자격·정원을 판정한다.
+ * 신청을 사전등록 / 프로그램 신청 / 교원연수 신청 세 덩어리로 나눠 탭 버튼으로 하나씩 보여 준다. 로그인·휴대폰 인증 없이 공개 API 만 쓰고, 신청은 각 신청 화면이 기간·자격·정원을 판정한다.
  * showPreRegister 가 false 면 사전등록 덩어리를 뺀다(행사 시작 뒤에는 일반 사전등록을 닫는다)
  */
 const ApplicationSchedule = ({
@@ -109,10 +107,6 @@ const ApplicationSchedule = ({
     endedAt: program.endedAt,
     place: program.place,
     status: getProgramScheduleStatus(program, now),
-    capacity:
-      program.policy && canShowProgramCapacity(program)
-        ? program.policy.capacity
-        : undefined,
   });
 
   const programGroups = useMemo(
@@ -127,29 +121,27 @@ const ApplicationSchedule = ({
   const navItems = useMemo(
     () => [
       ...(showPreRegister
-        ? [{ id: 'section-registration', number: '01', label: '사전등록' }]
+        ? [{ id: 'section-registration', label: '사전등록' }]
         : []),
-      { id: 'section-program', number: '02', label: '프로그램 신청' },
-      { id: 'section-training', number: '03', label: '교원연수 신청' },
+      { id: 'section-program', label: '프로그램 신청' },
+      { id: 'section-training', label: '교원연수 신청' },
     ],
     [showPreRegister],
   );
+
+  const [tab, setTab] = useState(navItems[0].id);
+  // 사전등록 탭이 빠진 뒤에도 고른 탭이 남아 있지 않게 첫 탭으로 돌린다
+  const active = navItems.some(({ id }) => id === tab) ? tab : navItems[0].id;
 
   const sessionList = [...(sessions.data ?? [])].sort(byStart);
 
   return (
     <div className="flex flex-col gap-20">
-      <p className="break-keep rounded-sm bg-gray-100 px-16 py-12 text-body2r text-gray-500">
-        먼저 사전등록을 완료한 뒤 프로그램이나 교원연수를 신청해 주세요. 접수
-        전에도 회차와 신청 기간을 확인할 수 있고, 접수 중인 회차에서 바로 신청할
-        수 있습니다. 남은 자리와 신청 자격은 신청할 때 확인합니다.
-      </p>
-      <QuickNav items={navItems} />
+      <SectionTabs items={navItems} active={active} onChange={setTab} />
 
-      {showPreRegister && (
+      {showPreRegister && active === 'section-registration' && (
         <SectionFrame
           id="section-registration"
-          number="01"
           title="사전등록"
           description={
             formError
@@ -184,7 +176,7 @@ const ApplicationSchedule = ({
               return (
                 <li
                   key={session.id}
-                  className="flex min-w-0 flex-col gap-12 rounded-md border-1 border-solid border-gray-200 bg-white p-16"
+                  className="flex min-w-0 flex-col gap-12 rounded-sm border-1 border-solid border-gray-200 bg-white p-20"
                 >
                   <div className="flex items-center justify-between gap-8">
                     <h3 className="break-keep text-body1b text-black">
@@ -196,7 +188,7 @@ const ApplicationSchedule = ({
                       {SCHEDULE_STATUS_LABEL[status]}
                     </span>
                   </div>
-                  <p className="text-body2b text-main-600">
+                  <p className="text-body2b text-black">
                     {formatDefinitionSchedule(
                       session.startedAt,
                       session.endedAt,
@@ -234,49 +226,51 @@ const ApplicationSchedule = ({
         </SectionFrame>
       )}
 
-      <SectionFrame
-        id="section-program"
-        number="02"
-        title="프로그램 신청"
-        description="사전등록이 확정된 참가자가 신청합니다. 기조강연, AI·SW 골든벨, 전시체험 투어 등"
-        error={standard.error}
-        onRetry={() => standard.refetch()}
-        isLoading={standard.isLoading}
-        isEmpty={standard.data?.length === 0}
-      >
-        <ul className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
-          {programGroups.map((group) => (
-            <CategoryCard
-              key={group.key}
-              group={group}
-              sessions={group.sessions.map(toCategorySession)}
-              applyHref={`/application/forms/${expoId}/program`}
-            />
-          ))}
-        </ul>
-      </SectionFrame>
+      {active === 'section-program' && (
+        <SectionFrame
+          id="section-program"
+          title="프로그램 신청"
+          description="사전등록이 확정된 참가자가 신청합니다. 기조강연, AI·SW 골든벨, 전시체험 투어 등"
+          error={standard.error}
+          onRetry={() => standard.refetch()}
+          isLoading={standard.isLoading}
+          isEmpty={standard.data?.length === 0}
+        >
+          <ul className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
+            {programGroups.map((group) => (
+              <CategoryCard
+                key={group.key}
+                group={group}
+                sessions={group.sessions.map(toCategorySession)}
+                applyHref={`/application/forms/${expoId}/program`}
+              />
+            ))}
+          </ul>
+        </SectionFrame>
+      )}
 
-      <SectionFrame
-        id="section-training"
-        number="03"
-        title="교원연수 신청"
-        description="교사·예비교사가 신청합니다. 연수를 고른 뒤 희망 회차를 선택해 주세요."
-        error={training.error}
-        onRetry={() => training.refetch()}
-        isLoading={training.isLoading}
-        isEmpty={training.data?.length === 0}
-      >
-        <ul className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
-          {trainingGroups.map((group) => (
-            <CategoryCard
-              key={group.key}
-              group={group}
-              sessions={group.sessions.map(toCategorySession)}
-              applyHref={`/application/forms/${expoId}/training`}
-            />
-          ))}
-        </ul>
-      </SectionFrame>
+      {active === 'section-training' && (
+        <SectionFrame
+          id="section-training"
+          title="교원연수 신청"
+          description="교사·예비교사가 신청합니다. 연수를 고른 뒤 희망 회차를 선택해 주세요."
+          error={training.error}
+          onRetry={() => training.refetch()}
+          isLoading={training.isLoading}
+          isEmpty={training.data?.length === 0}
+        >
+          <ul className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
+            {trainingGroups.map((group) => (
+              <CategoryCard
+                key={group.key}
+                group={group}
+                sessions={group.sessions.map(toCategorySession)}
+                applyHref={`/application/forms/${expoId}/training`}
+              />
+            ))}
+          </ul>
+        </SectionFrame>
+      )}
     </div>
   );
 };

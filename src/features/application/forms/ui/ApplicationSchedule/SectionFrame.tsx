@@ -1,70 +1,49 @@
 'use client';
 
-import { ReactNode, useEffect, useId, useState } from 'react';
+import { ReactNode, useId } from 'react';
 import { Loading } from '@/shared/ui';
 
 export interface SectionNavItem {
   id: string;
-  number: string;
   label: string;
 }
 
-/** 위쪽에 붙어 다니는 빠른 이동 탭. 눌러서 그 덩어리로 가고, 지금 보는 덩어리를 표시한다 */
-export const QuickNav = ({ items }: { items: SectionNavItem[] }) => {
-  const [active, setActive] = useState(items[0]?.id);
+/** 사전등록 / 프로그램 신청 / 교원연수 신청을 버튼으로 나눠 한 번에 하나만 보여 주는 탭 */
+export const SectionTabs = ({
+  items,
+  active,
+  onChange,
+}: {
+  items: SectionNavItem[];
+  active: string;
+  onChange: (id: string) => void;
+}) => (
+  <div
+    role="tablist"
+    aria-label="신청 종류"
+    className="flex gap-4 rounded-md bg-gray-100 p-4"
+  >
+    {items.map(({ id, label }) => (
+      <button
+        key={id}
+        type="button"
+        role="tab"
+        aria-selected={active === id}
+        aria-controls={id}
+        onClick={() => onChange(id)}
+        className={`flex-1 rounded-sm px-8 py-10 text-body2b transition-colors mobile:text-caption1b ${
+          active === id ? 'bg-white text-main-600 shadow-sm' : 'text-gray-500'
+        }`}
+      >
+        {label}
+      </button>
+    ))}
+  </div>
+);
 
-  useEffect(() => {
-    const targets = items
-      .map(({ id }) => document.getElementById(id))
-      .filter((node): node is HTMLElement => node !== null);
-    if (targets.length === 0 || !('IntersectionObserver' in window)) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.find((entry) => entry.isIntersecting);
-        if (visible) setActive(visible.target.id);
-      },
-      // 화면 위쪽 1/3에 닿은 덩어리를 현재 덩어리로 본다
-      { rootMargin: '-10% 0px -65% 0px' },
-    );
-    targets.forEach((target) => observer.observe(target));
-    return () => observer.disconnect();
-  }, [items]);
-
-  const jump = (id: string) => {
-    setActive(id);
-    document
-      .getElementById(id)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  return (
-    <nav
-      aria-label="신청 영역 빠른 이동"
-      className="sticky top-0 z-10 grid grid-cols-3 gap-8 rounded-sm border-1 border-solid border-gray-200 bg-white p-8"
-    >
-      {items.map(({ id, number, label }) => (
-        <button
-          key={id}
-          type="button"
-          onClick={() => jump(id)}
-          aria-current={active === id ? 'location' : undefined}
-          className={`rounded-sm px-4 py-12 text-body2b mobile:py-10 mobile:text-caption1b ${
-            active === id
-              ? 'bg-main-100 text-main-600'
-              : 'bg-white text-gray-500'
-          }`}
-        >
-          {number} {label}
-        </button>
-      ))}
-    </nav>
-  );
-};
-
-/** 접었다 펼 수 있는 한 덩어리. 목록 불러오기 실패·로딩·빈 상태를 같은 모양으로 보여 준다 */
+/** 탭 하나의 내용. 목록 불러오기 실패·로딩·빈 상태를 같은 모양으로 보여 준다 */
 export const SectionFrame = ({
   id,
-  number,
   title,
   description,
   error,
@@ -74,7 +53,6 @@ export const SectionFrame = ({
   children,
 }: {
   id: string;
-  number: string;
   title: string;
   description: string;
   error: Error | null;
@@ -83,41 +61,16 @@ export const SectionFrame = ({
   isEmpty: boolean;
   children: ReactNode;
 }) => {
-  const [expanded, setExpanded] = useState(true);
   const headingId = useId();
-  const bodyId = useId();
   return (
-    <section
-      id={id}
-      aria-labelledby={headingId}
-      className="scroll-mt-80 rounded-md border-1 border-solid border-gray-200 bg-white p-24 shadow-sm mobile:p-16"
-    >
-      <button
-        type="button"
-        aria-expanded={expanded}
-        aria-controls={bodyId}
-        onClick={() => setExpanded((prev) => !prev)}
-        className="flex w-full items-center gap-12 text-left"
-      >
-        <span className="grid h-[35px] min-w-[35px] place-items-center rounded-sm bg-main-100 text-body2b text-main-600">
-          {number}
-        </span>
-        <span className="flex min-w-0 flex-1 flex-col gap-4">
-          <h2 id={headingId} className="text-h3b text-black mobile:text-body1b">
-            {title}
-          </h2>
-          <span className="whitespace-pre-line break-keep text-body2r text-gray-500">
-            {description}
-          </span>
-        </span>
-        <span
-          aria-hidden
-          className={`text-h3b text-gray-400 transition-transform ${expanded ? '' : '-rotate-90'}`}
-        >
-          ⌄
-        </span>
-      </button>
-      <div id={bodyId} hidden={!expanded} className="mt-20">
+    <section id={id} role="tabpanel" aria-labelledby={headingId}>
+      <h2 id={headingId} className="text-h3b text-black mobile:text-body1b">
+        {title}
+      </h2>
+      <p className="mt-4 whitespace-pre-line break-keep text-caption1r text-gray-500">
+        {description}
+      </p>
+      <div className="mt-16">
         {error ? (
           <div
             role="alert"
@@ -140,7 +93,7 @@ export const SectionFrame = ({
             <Loading />
           </div>
         ) : isEmpty ? (
-          <p className="rounded-sm bg-gray-100 px-16 py-12 text-body2r text-gray-500">
+          <p className="rounded-sm bg-gray-100 px-16 py-16 text-center text-body2r text-gray-500">
             등록된 회차가 없습니다.
           </p>
         ) : (

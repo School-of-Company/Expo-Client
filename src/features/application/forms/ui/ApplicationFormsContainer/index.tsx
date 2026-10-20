@@ -124,27 +124,29 @@ const ApplicationFormsContainer = ({
           </p>
         ) : (
           <>
-            <div role="tablist" className="flex flex-wrap gap-12">
-              {groups.map((group) => {
-                const isActive = group.key === current.key;
-                return (
-                  <button
-                    key={group.key}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    onClick={() => setSelected(group.key)}
-                    className={`rounded-sm border-1 border-solid px-24 py-12 text-body2b mobile:px-16 mobile:py-8 mobile:text-caption1b ${
-                      isActive
-                        ? 'border-main-600 bg-main-600 text-white'
-                        : 'border-gray-200 bg-white text-gray-400'
-                    }`}
-                  >
-                    {group.label}
-                  </button>
-                );
-              })}
-            </div>
+            {groups.length > 1 && (
+              <div role="tablist" className="flex flex-wrap gap-12">
+                {groups.map((group) => {
+                  const isActive = group.key === current.key;
+                  return (
+                    <button
+                      key={group.key}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      onClick={() => setSelected(group.key)}
+                      className={`rounded-sm border-1 border-solid px-24 py-12 text-body2b mobile:px-16 mobile:py-8 mobile:text-caption1b ${
+                        isActive
+                          ? 'border-main-600 bg-main-600 text-white'
+                          : 'border-gray-200 bg-white text-gray-400'
+                      }`}
+                    >
+                      {group.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {current.key === 'PRE' ? (
               <ApplicationSchedule

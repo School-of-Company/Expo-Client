@@ -30,6 +30,11 @@ import {
   ScheduleStatus,
   getProgramScheduleStatus,
 } from '../../model/applicationSchedule';
+import {
+  PROGRAM_CATEGORIES,
+  TRAINING_CATEGORIES,
+  filterByCategory,
+} from '../../model/applicationSections';
 import { formatFormPeriod } from '../../model/formPeriodStatus';
 import {
   OUTCOME_LABEL,
@@ -389,9 +394,12 @@ const STATUS_CLASS: Record<ScheduleStatus, string> = {
 const ProgramApplyContainer = ({
   expoId,
   programType,
+  category,
 }: {
   expoId: string;
   programType: ProgramType;
+  /** 목록에서 고른 분류(삼성·구글 등). 있으면 그 분류의 회차만 보여 준다 */
+  category?: string;
 }) => {
   const label = PROGRAM_LABEL[programType];
   const {
@@ -418,10 +426,15 @@ const ProgramApplyContainer = ({
   );
   const programs = useMemo(
     () =>
-      allPrograms?.filter(
-        ({ policy }) => !isProgramApplicationEnded(policy, now),
+      allPrograms &&
+      filterByCategory(
+        allPrograms.filter(
+          ({ policy }) => !isProgramApplicationEnded(policy, now),
+        ),
+        programType === 'TRAINING' ? TRAINING_CATEGORIES : PROGRAM_CATEGORIES,
+        category,
       ),
-    [allPrograms, now],
+    [allPrograms, now, programType, category],
   );
   // 사전등록 대기 중인 일행이 있으면 "미등록" 대신 대기 안내를 보여 준다
   const {

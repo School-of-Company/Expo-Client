@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import {
   PROGRAM_CATEGORIES,
   TRAINING_CATEGORIES,
+  filterByCategory,
   getSessionLabel,
   getSessionTopic,
   groupByCategory,
@@ -55,6 +56,15 @@ assert.deepEqual(
     ['구글 연수', [14]],
     ['애플 연수', [16]],
   ],
+);
+// 분류 key 로 그 분류의 회차만 남긴다
+assert.deepEqual(
+  filterByCategory(trainings, TRAINING_CATEGORIES, 'samsung').map((x) => x.id),
+  [13, 15],
+);
+assert.equal(
+  filterByCategory(trainings, TRAINING_CATEGORIES, undefined).length,
+  4,
 );
 // 회차 없는 분류는 카드를 만들지 않는다
 assert.equal(groupByCategory([], TRAINING_CATEGORIES).length, 0);
