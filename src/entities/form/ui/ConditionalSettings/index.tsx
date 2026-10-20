@@ -134,41 +134,57 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
       </label>
 
       {isConditional && (
-        <div className="ml-24 rounded-sm bg-gray-50 p-16">
-          <div className="flex flex-wrap items-center gap-8 text-body2r text-gray-700">
-            <select
-              value={parentId ?? ''}
-              onChange={(e) => handleParentChange(e.target.value)}
-              className="inline-flex rounded-sm border border-gray-300 px-12 py-6 text-body2r"
-            >
-              <option value="">연결할 질문 선택</option>
-              {availableParents.map((question, idx) => (
-                <option key={question.id} value={question.id}>
-                  {idx + 1}. {question.title || '(제목 없음)'}
-                </option>
-              ))}
-            </select>
-
-            <span>에서</span>
-
-            {parentId !== null && parentOptions.length > 0 && (
-              <>
+        <div className="ml-24 space-y-8 rounded-sm bg-gray-50 p-16">
+          {availableParents.length === 0 ? (
+            <p role="status" className="break-keep text-body2r text-gray-700">
+              조건부로 만들려면 이 질문 위에 복수 선택 또는 드롭다운 질문이 먼저
+              있어야 합니다. 먼저 그런 질문을 위에 추가하거나 순서를 바꿔
+              주세요.
+            </p>
+          ) : (
+            <>
+              <p className="break-keep text-caption1r text-gray-500">
+                이 질문 위의 복수 선택·드롭다운 질문만 연결할 수 있습니다.
+              </p>
+              <div className="flex flex-wrap items-center gap-8 text-body2r text-gray-700">
                 <select
-                  value={triggerValue ?? ''}
-                  onChange={(e) => handleTriggerChange(e.target.value)}
+                  value={parentId ?? ''}
+                  onChange={(e) => handleParentChange(e.target.value)}
                   className="inline-flex rounded-sm border border-gray-300 px-12 py-6 text-body2r"
                 >
-                  <option value="">선택 시 표시될 값</option>
-                  {parentOptions.map((opt) => (
-                    <option key={opt.id || opt.value} value={opt.id}>
-                      {opt.value}
+                  <option value="">연결할 질문 선택</option>
+                  {availableParents.map((question, idx) => (
+                    <option key={question.id} value={question.id}>
+                      {idx + 1}. {question.title || '(제목 없음)'}
                     </option>
                   ))}
                 </select>
-                <span>를 선택하면 이 질문이 표시됩니다</span>
-              </>
-            )}
-          </div>
+
+                <span>에서</span>
+
+                {parentId !== null && parentOptions.length > 0 && (
+                  <>
+                    <select
+                      value={triggerValue ?? ''}
+                      onChange={(e) => handleTriggerChange(e.target.value)}
+                      className="inline-flex rounded-sm border border-gray-300 px-12 py-6 text-body2r"
+                    >
+                      <option value="">선택 시 표시될 값</option>
+                      {parentOptions.map((opt) => (
+                        <option key={opt.id || opt.value} value={opt.id}>
+                          {opt.value}
+                        </option>
+                      ))}
+                    </select>
+                    <span>를 선택하면 이 질문이 표시됩니다</span>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+          <p className="break-keep text-caption1r text-gray-500">
+            조건부 질문은 조건에 맞을 때만 보이므로 필수가 자동으로 꺼집니다.
+          </p>
         </div>
       )}
     </div>
