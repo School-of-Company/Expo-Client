@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
+import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { FORM_GROUPS, FormGroup } from '../../constant/formEntries';
 import { useFieldRelease } from '../../model/fieldRelease';
 import {
@@ -36,15 +38,25 @@ const ApplicationFormsContainer = ({
   const { forms: allForms, isLoading: isFormsLoading } =
     useApplicationForms(expoId);
   const field = useFieldRelease(expoId);
-  const isLoading = isFormsLoading || field.isLoading;
+  // 처음 한 번만 로딩으로 막는다. 이미 보이는 화면의 조회가 다시 시작돼도 화면을 지웠다 다시 그리지 않는다
+  // (없는 폼 조회를 다시 받는 동안 화면이 사라졌다 돌아오면 같은 조회가 끝없이 반복된다)
+  const isInitialLoading = isFormsLoading || field.isLoading;
+  const [hasLoaded, setHasLoaded] = useState(false);
+  useEffect(() => {
+    if (!isInitialLoading) setHasLoaded(true);
+  }, [isInitialLoading]);
+  const isLoading = isInitialLoading && !hasLoaded;
   // 행사 시작일 00:00(KST)부터 일반 사전등록은 숨기고 현장 등록을 노출한다. 교원연수·프로그램 신청 등 나머지 PRE 항목은 유지한다
   const forms = allForms.filter((entry) =>
     entry.group === 'FIELD'
       ? field.released
       : entry.key !== 'pre-standard' || !field.released,
   );
-  const { data: expo, isLoading: isExpoLoading } =
-    useParticipantExpoDetail(expoId);
+  const {
+    data: expo,
+    isLoading: isExpoLoading,
+    error: expoError,
+  } = useParticipantExpoDetail(expoId);
   const [view, setView] = useState<View>(
     isView(initialView) ? initialView : 'home',
   );
@@ -58,6 +70,24 @@ const ApplicationFormsContainer = ({
   const current =
     groups.find((group) => group.key === selected) ?? groups[0] ?? null;
   const currentForms = forms.filter((entry) => entry.group === current?.key);
+
+  // 없는 박람회(404)는 로딩을 끝내고 안내한다. 일시적인 네트워크·서버 오류는 아래 화면의 다시 시도로 구분한다
+  if (getErrorStatus(expoError) === 404)
+    return (
+      <div className="mx-auto flex w-full max-w-[816px] flex-1 flex-col items-center justify-center gap-16 text-center">
+        <p className="text-h3b text-black">박람회를 찾을 수 없습니다</p>
+        <p className="break-keep text-body2r text-gray-500">
+          주소가 잘못되었거나 삭제된 박람회입니다. 안내받은 링크를 다시 확인해
+          주세요.
+        </p>
+        <Link
+          href="/"
+          className="rounded-sm bg-main-600 px-24 py-12 text-body2b text-white"
+        >
+          박람회 목록으로
+        </Link>
+      </div>
+    );
 
   if (view === 'home') {
     return withLoading({

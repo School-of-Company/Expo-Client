@@ -26,6 +26,8 @@ export const usePreRegisterSessions = (expoId: string) =>
     queryKey: ['preRegisterSessions', expoId],
     queryFn: () => getPublicPreregisterSessions(expoId),
     retry: false,
+    // 실패한 조회는 화면이 다시 그려질 때마다 다시 보내지 않고 "다시 불러오기"로만 다시 받는다
+    retryOnMount: false,
     // 실패는 회차 선택 화면이 직접 안내한다
     meta: { silent: true },
   });
