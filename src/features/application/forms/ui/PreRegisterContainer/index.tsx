@@ -41,6 +41,7 @@ import {
   getWaitingLimit,
   isWaitingParty,
 } from '../../model/sessionSeats';
+import { useParticipantExpoDetail } from '../../model/useParticipantExpoDetail';
 import {
   getTeacherSeatNotice,
   usePreRegisterCapacity,
@@ -61,7 +62,17 @@ const PreRegisterContainer = ({
 }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isVerified } = useRequireParticipantSession(expoId);
+  // 박람회가 휴대전화 본인 인증을 끄면 인증 없이 신청하고, 번호는 신청서에 적은 값을 쓴다.
+  // 설정을 못 받으면(오류·필드 없음) 인증 필요로 본다
+  const { data: expo, isError: isExpoError } = useParticipantExpoDetail(expoId);
+  const verificationRequired =
+    expo || isExpoError
+      ? expo?.participantPhoneVerificationRequired !== false
+      : undefined;
+  const { isVerified } = useRequireParticipantSession(
+    expoId,
+    verificationRequired,
+  );
   const {
     data: form,
     isLoading,
@@ -159,6 +170,11 @@ const PreRegisterContainer = ({
         questions,
         'PRE',
       )(data as DynamicFormValues & { privacyConsent: boolean });
+      // 인증하지 않으면 서버가 신청서의 번호로 QR을 보내므로 번호 없이는 접수되지 않는다
+      if (verificationRequired === false && !formatted.phoneNumber) {
+        toast.error('휴대전화 번호를 입력해주세요');
+        return;
+      }
       const payload = { ...formatted, sessionId: session };
       const result: ApplicationWaitResult | undefined = await postApplication(
         expoId,

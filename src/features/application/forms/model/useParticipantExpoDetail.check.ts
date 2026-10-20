@@ -25,6 +25,7 @@ clientInstance.defaults.adapter = async (config) => {
             location: '광주',
             startedDay: '2026-10-31',
             finishedDay: '2026-11-01',
+            participantPhoneVerificationRequired: false,
             // 공개 응답에 섞여 와도 화면은 쓰지 않는다
             x: '1',
           }
@@ -43,9 +44,11 @@ const main = async () => {
     'description',
     'finishedDay',
     'location',
+    'participantPhoneVerificationRequired',
     'startedDay',
     'title',
   ]);
+  assert.equal(detail.participantPhoneVerificationRequired, false);
 
   status = 404;
   const error = await getParticipantExpoDetail('expo-1').catch((e) => e);
