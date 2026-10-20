@@ -21,6 +21,7 @@ import {
   useRequireParticipantSession,
 } from '@/features/phone-verification';
 import { formatDefinitionSchedule } from '@/features/registration/common/model/ledger';
+import { getExpoRoutes } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button } from '@/shared/ui';
@@ -79,6 +80,8 @@ const PreRegisterContainer = ({
   const field = useFieldRelease(expoId);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionIssue, setSessionIssue] = useState<SessionIssue>();
+  // 같은 번호의 활성 신청이 있어 접수되지 않았을 때 나의 신청 현황으로 안내한다
+  const [isPhoneInUse, setIsPhoneInUse] = useState(false);
   // 같은 내용을 다시 보내면(연타·네트워크 재시도·오류 뒤 재제출) 같은 키로 보낸다
   const submissionKeys = useRef(createSubmissionKeys());
 
@@ -192,6 +195,10 @@ const PreRegisterContainer = ({
       );
     } catch (submitError) {
       setSessionIssue(getSessionIssue(submitError));
+      setIsPhoneInUse(
+        submitError instanceof ApplicationSubmitError &&
+          submitError.code === 'PHONE_IN_USE',
+      );
       // 취소한 대기의 같은 키 재전송은 거절된다. 다시 신청하려면 새 키가 필요하다
       if (
         submitError instanceof ApplicationSubmitError &&
@@ -251,6 +258,25 @@ const PreRegisterContainer = ({
     children: (
       <div className="mt-30 flex w-full max-w-[816px] flex-col gap-30">
         {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
+        {isPhoneInUse && (
+          <div
+            role="alert"
+            className="flex flex-col gap-8 rounded-sm border-1 border-solid border-error bg-white p-24"
+          >
+            <p className="text-body2b text-error">이미 신청한 번호입니다</p>
+            <p className="text-body2r text-gray-600">
+              이 번호로 접수된 신청이 있어 다시 신청할 수 없습니다. 신청 내역이
+              맞는지, 취소 후 다시 신청해야 하는지 나의 신청 현황에서
+              확인해주세요.
+            </p>
+            <Link
+              href={getExpoRoutes(expoId).applicationMy}
+              className="self-start text-body2b text-main-600 underline"
+            >
+              나의 신청 현황 보기
+            </Link>
+          </div>
+        )}
         <div className="flex flex-col gap-8 border-b-1 border-solid border-gray-200 pb-24">
           <p className="text-h2b text-black mobile:text-h3b">사전등록 신청</p>
           <p className="text-body2r text-gray-500">
