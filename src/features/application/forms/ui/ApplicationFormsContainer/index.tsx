@@ -9,6 +9,7 @@ import {
   getFormPeriodStatus,
 } from '../../model/formPeriodStatus';
 import { useApplicationForms } from '../../model/useApplicationForms';
+import { useNow } from '../../model/useNow';
 import { useParticipantExpoDetail } from '../../model/useParticipantExpoDetail';
 import ApplicationLanding from '../ApplicationLanding';
 import ApplicationSchedule from '../ApplicationSchedule';
@@ -58,6 +59,17 @@ const ApplicationFormsContainer = ({
   const current =
     groups.find((group) => group.key === selected) ?? groups[0] ?? null;
   const currentForms = forms.filter((entry) => entry.group === current?.key);
+  // 목록을 켜둔 채 신청 시작·마감 시각이 지나도 상태와 신청 링크를 바꾼다(#749)
+  const now = useNow(
+    currentForms.flatMap(({ form }) =>
+      'startDate' in form
+        ? [
+            new Date(form.startDate).getTime(),
+            new Date(form.endDate).getTime(),
+          ].filter(Number.isFinite)
+        : [],
+    ),
+  );
 
   if (view === 'home') {
     return withLoading({
@@ -167,7 +179,11 @@ const ApplicationFormsContainer = ({
                     // 설문에는 신청 기간이 없다
                     const hasPeriod = 'startDate' in form;
                     const status = hasPeriod
-                      ? getFormPeriodStatus(form.startDate, form.endDate)
+                      ? getFormPeriodStatus(
+                          form.startDate,
+                          form.endDate,
+                          new Date(now),
+                        )
                       : 'OPEN';
 
                     return (
