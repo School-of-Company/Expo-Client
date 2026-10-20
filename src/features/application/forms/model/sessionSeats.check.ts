@@ -41,3 +41,24 @@ assert.equal(isWaitingParty(cap(0, 5, 4), 1), true);
 assert.equal(isWaitingParty(cap(2, 5, 4), 5), false); // 대기 한도도 넘으면 대기 아님(제출 불가)
 
 console.log('sessionSeats checks passed');
+
+// 대상별 정원 회차: remaining·maxApplicants 가 null 이어도 마감으로 보지 않는다
+const target = (teacherAvailable: boolean, other: number, max = 5) => ({
+  sessionId: 1,
+  remaining: null,
+  maxApplicants: null,
+  targetSeats: {
+    teacherAvailable,
+    nonTeacherRemaining: other,
+    nonTeacherMaxApplicants: max,
+  },
+});
+assert.equal(getApplicantLimit(target(true, 0)), 5);
+assert.equal(getApplicantLimit(target(false, 3)), 3);
+assert.equal(getApplicantLimit(target(false, 0)), 0);
+assert.equal(getCompanionLimit(target(true, 2)), 4);
+// 대상별 정원 회차는 대기를 받지 않는다
+assert.equal(
+  isWaitingParty({ ...target(true, 0), maxWaitingApplicants: 5 }, 3),
+  false,
+);
