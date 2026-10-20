@@ -27,7 +27,6 @@ import { useNow } from '../../model/useNow';
 import { usePreRegisterSessions } from '../../model/usePreRegister';
 import CategoryCard, { CategorySession } from './CategoryCard';
 import { SectionFrame, SectionTabs } from './SectionFrame';
-import TrainingCard from './TrainingCard';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
 const usePublicPrograms = (expoId: string, programType: ProgramType) =>
@@ -262,11 +261,12 @@ const ApplicationSchedule = ({
         >
           <ul className="flex flex-col gap-16">
             {trainingGroups.map((group) => (
-              <TrainingCard
+              <CategoryCard
                 key={group.key}
                 group={group}
                 sessions={group.sessions.map(toCategorySession)}
                 applyHref={`/application/forms/${expoId}/training`}
+                selectable
               />
             ))}
           </ul>
