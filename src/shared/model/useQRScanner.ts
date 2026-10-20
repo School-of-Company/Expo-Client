@@ -18,6 +18,7 @@ const isEditableTarget = (target: EventTarget | null) =>
 /**
  * USB 스캐너(키보드 HID + Enter) 입력을 QR 값으로 바꾼다.
  * 돌려주는 submitScan 은 직접 입력한 값을 같은 규칙(중복 무시·형식 검사)으로 처리한다.
+ * clearLastScan 은 요청이 실패했을 때 불러 같은 QR의 재스캔을 허용한다.
  * onInvalid 는 형식이 틀린 값을 화면에도 남기고 싶을 때 쓴다
  */
 export const useQRScanner = (
@@ -106,5 +107,10 @@ export const useQRScanner = (
     };
   }, [handleQRScan]);
 
-  return { submitScan: handleQRScan };
+  // 요청이 실패한 스캔은 중복 기준에서 빼서 바로 다시 찍을 수 있게 한다
+  const clearLastScan = useCallback(() => {
+    lastScanRef.current = null;
+  }, []);
+
+  return { submitScan: handleQRScan, clearLastScan };
 };
