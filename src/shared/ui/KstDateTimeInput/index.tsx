@@ -1,12 +1,6 @@
 'use client';
 
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
-
-/** ISO 8601 → 'YYYY-MM-DDTHH:mm'(한국 시각). datetime-local 값이다 */
-const toKstLocal = (value: Date | null) =>
-  value && Number.isFinite(value.getTime())
-    ? new Date(value.getTime() + KST_OFFSET_MS).toISOString().slice(0, 16)
-    : '';
+import { fromKstLocal, toKstLocal } from '@/shared/libs/kstDateTime';
 
 /** 달력 아이콘만이 아니라 칸 어디를 눌러도 날짜 선택을 연다. 지원하지 않는 브라우저는 기본 동작 그대로다. */
 const openPicker = (e: React.MouseEvent<HTMLInputElement>) => {
@@ -30,9 +24,7 @@ const KstDateTimeInput = ({ value, onChange, label }: Props) => (
     aria-label={label}
     value={toKstLocal(value)}
     onClick={openPicker}
-    onChange={(e) =>
-      onChange(e.target.value ? new Date(`${e.target.value}:00+09:00`) : null)
-    }
+    onChange={(e) => onChange(fromKstLocal(e.target.value))}
     className="text-body4 w-full cursor-pointer rounded-sm border-1 border-solid border-gray-200 px-16 py-12 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
   />
 );
