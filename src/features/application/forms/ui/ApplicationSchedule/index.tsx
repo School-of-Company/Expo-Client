@@ -10,6 +10,7 @@ import { getErrorStatus } from '@/shared/libs/http/apiError';
 import {
   SCHEDULE_STATUS_LABEL,
   getPreRegisterScheduleStatus,
+  getProgramCapacity,
   getProgramScheduleStatus,
   getScheduleBoundaries,
 } from '../../model/applicationSchedule';
@@ -107,6 +108,7 @@ const ApplicationSchedule = ({
     endedAt: program.endedAt,
     place: program.place,
     status: getProgramScheduleStatus(program, now),
+    capacity: getProgramCapacity(program),
   });
 
   const programGroups = useMemo(
