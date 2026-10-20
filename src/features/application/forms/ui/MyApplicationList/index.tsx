@@ -174,7 +174,7 @@ const ApplicationRow = ({
               }
               className="whitespace-nowrap rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-caption1b text-main-600"
             >
-              일행에 사람 추가
+              동행자 추가
             </button>
           )}
           {cancellable ? (
