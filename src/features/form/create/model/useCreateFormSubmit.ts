@@ -23,7 +23,11 @@ export const useCreateFormSubmit = (
     isSuccess: isSurveySuccess,
   } = useCreateSurveyForm(id, type);
 
-  const handleSubmitForm = (data: FormValues) => {
+  /** `occupationOpenAt` 은 일반 사전등록만 넘긴다. 생략하면 요청에서도 뺀다 */
+  const handleSubmitForm = (
+    data: FormValues,
+    occupationOpenAt?: string | null,
+  ) => {
     const formattedData = transformFormData(
       data,
       type,
@@ -31,6 +35,7 @@ export const useCreateFormSubmit = (
       applicationType,
       startDate,
       endDate,
+      occupationOpenAt,
     );
     const submitFunction =
       mode === 'survey' ? createSurveyForm : createApplicationForm;

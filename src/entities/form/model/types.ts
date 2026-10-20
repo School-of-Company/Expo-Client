@@ -41,6 +41,8 @@ export interface CreateFormRequestDto {
   applicationType: ApplicationType;
   startDate: string;
   endDate: string;
+  /** 생략하면 생성은 null, 수정은 기존 값 유지. null 이면 해제한다(Form #164) */
+  occupationOpenAt?: string | null;
   dynamicForm: DynamicFormItemRequest[];
 }
 
