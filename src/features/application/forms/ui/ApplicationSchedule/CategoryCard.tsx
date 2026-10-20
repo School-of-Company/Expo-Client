@@ -5,6 +5,10 @@ import {
   ScheduleStatus,
   formatCapacity,
 } from '../../model/applicationSchedule';
+import {
+  getSessionLabel,
+  getSessionTopic,
+} from '../../model/applicationSections';
 import { formatProgramPlace } from '../../model/programApply';
 import type { CategoryGroup } from '../../model/applicationSections';
 
@@ -38,10 +42,13 @@ const CategoryCard = ({
   group,
   sessions,
   applyHref,
+  selectable,
 }: {
   group: CategoryGroup;
   sessions: CategorySession[];
   applyHref: string;
+  /** 켜면 회차를 카드 안에 펼쳐 누른 회차로 바로 신청 화면에 보낸다 */
+  selectable?: boolean;
 }) => {
   const isOpen = sessions.some(({ status }) => status === 'OPEN');
   const status: ScheduleStatus = isOpen ? 'OPEN' : sessions[0].status;
@@ -62,9 +69,54 @@ const CategoryCard = ({
       <p className="break-words break-keep text-caption1r text-gray-500">
         {formatProgramPlace(place)}
       </p>
+      {selectable ? (
+        <ul
+          aria-label={`${group.label} 회차`}
+          className="mb-8 grid auto-rows-fr grid-cols-2 gap-8 mobile:grid-cols-1"
+        >
+          {sessions.map((session) => {
+            const open = session.status === 'OPEN';
+            const topic = getSessionTopic(session.title, group.label);
+            const className = `flex min-w-0 flex-1 flex-col gap-2 rounded-sm border-1 border-solid border-gray-200 bg-white px-12 py-12 text-left ${open ? 'hover:border-main-600 hover:bg-main-100' : 'opacity-60'}`;
+            const content = (
+              <>
+                <span className="truncate text-body2b text-black">
+                  {getSessionLabel(session.title, group.label)} ·{' '}
+                  {formatDefinitionSchedule(session.startedAt, session.endedAt)}
+                </span>
+                <span className="truncate text-caption1r text-gray-500">
+                  {open
+                    ? topic || '신청하기 →'
+                    : SCHEDULE_STATUS_LABEL[session.status]}
+                </span>
+              </>
+            );
+            return (
+              <li key={session.id} className="flex">
+                {open ? (
+                  <Link
+                    href={`${applyHref}?category=${encodeURIComponent(group.key)}&programId=${session.id}`}
+                    className={className}
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <span aria-disabled className={className}>
+                    {content}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
       <p
         className={
-          capacity ? 'text-body2b text-black' : 'mb-8 text-body2b text-black'
+          selectable
+            ? 'hidden'
+            : capacity
+              ? 'text-body2b text-black'
+              : 'mb-8 text-body2b text-black'
         }
       >
         {first === last ? first : `${first} ~ ${last}`}
@@ -75,7 +127,7 @@ const CategoryCard = ({
       {capacity && (
         <p className="mb-8 text-caption1r text-gray-500">{capacity}</p>
       )}
-      {isOpen ? (
+      {selectable ? null : isOpen ? (
         <Link
           href={`${applyHref}?category=${encodeURIComponent(group.key)}`}
           className="mt-auto rounded-sm bg-main-600 px-16 py-12 text-center text-body2b text-white"
