@@ -10,6 +10,7 @@ import { getErrorStatus } from '@/shared/libs/http/apiError';
 import {
   SCHEDULE_STATUS_LABEL,
   getPreRegisterScheduleStatus,
+  getProgramCapacity,
   getProgramScheduleStatus,
   getScheduleBoundaries,
 } from '../../model/applicationSchedule';
@@ -38,6 +39,8 @@ const usePublicPrograms = (expoId: string, programType: ProgramType) =>
         ? getPublicStandardProgram(expoId)
         : getTrainingProgram(expoId),
     retry: false,
+    // 실패한 조회는 화면이 다시 그려질 때마다 다시 보내지 않고 "다시 불러오기"로만 다시 받는다
+    retryOnMount: false,
     meta: { silent: true },
   });
 
@@ -71,6 +74,8 @@ const ApplicationSchedule = ({
     queryKey: formKeys.detail(expoId, 'STANDARD', 'PRE'),
     queryFn: () => getForm(expoId, 'STANDARD', 'PRE'),
     retry: false,
+    // 실패한 조회는 화면이 다시 그려질 때마다 다시 보내지 않고 "다시 불러오기"로만 다시 받는다
+    retryOnMount: false,
     meta: { silent: true },
   });
   const sessions = usePreRegisterSessions(expoId);
@@ -107,6 +112,7 @@ const ApplicationSchedule = ({
     endedAt: program.endedAt,
     place: program.place,
     status: getProgramScheduleStatus(program, now),
+    capacity: getProgramCapacity(program),
   });
 
   const programGroups = useMemo(
