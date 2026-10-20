@@ -10,7 +10,7 @@ const STATUS_LABEL: Record<MyPreRegisterWaitlist['status'], string> = {
 
 const STATUS_GUIDE: Record<MyPreRegisterWaitlist['status'], string> = {
   WAITING:
-    '대기는 일행 단위 선착순입니다. 앞 일행 전체가 들어갈 자리가 생겨야 승급되므로, 빈자리가 보여도 바로 확정되지 않을 수 있습니다. 확정되면 QR이 대표자 번호로 발송됩니다.',
+    '대기는 일행 단위 선착순입니다. 앞 일행 전체가 들어갈 자리가 생겨야 승급되므로, 빈자리가 보여도 바로 확정되지 않을 수 있습니다. 확정되면 QR이 대표자 번호로 발송되며, 전에 QR을 받은 사람은 문자 없이 기존 QR을 그대로 씁니다.',
   PROCESSING:
     '자리가 나서 확정 처리 중입니다. 잠시 후 새로고침하면 신청 현황에 확정으로 표시됩니다.',
   PROMOTION_ENDED: '회차가 시작되어 더 이상 대기에서 확정으로 바뀌지 않습니다.',

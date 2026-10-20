@@ -54,7 +54,7 @@ const ProgramFormCreatePage = () => {
       returnsToSchedule
         ? `${routes.schedule}?${DRAFT_QUERY.resume}=1`
         : returnTo === 'detail'
-          ? `/exhibition/detail/${encodeURIComponent(expoId)}`
+          ? `/admin/exhibition/detail/${encodeURIComponent(expoId)}`
           : routes.programForms,
     );
 

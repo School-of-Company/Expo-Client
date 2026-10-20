@@ -2,18 +2,16 @@ import {
   COMPANION_MAX_COUNT,
   REGION_OPTIONS,
 } from '@/entities/form/constants/occupationData';
+import { optionEntries } from '@/entities/form/registry/model';
 import {
   FormSchema,
   FormItem,
   FormLogic,
 } from '@/features/form/common/model/formSchema';
-import { DynamicFormItem, JsonData } from '@/shared/types/application/type';
+import { DynamicFormItem } from '@/shared/types/application/type';
 
 /** 렌더러 필드 id. 서버 문항 id이고, 설문 답변(`answers`)의 키로도 쓴다. */
 export const getFieldId = (item: DynamicFormItem) => String(item.id);
-
-export const optionLabel = (option: JsonData[string]) =>
-  typeof option === 'string' ? option : option.value;
 
 function mapFormType(formType: DynamicFormItem['formType']): FormItem['type'] {
   switch (formType) {
@@ -40,13 +38,11 @@ function adaptDynamicFormItem(
 
   // 선택지 값은 jsonData 키 그대로라 답변에 바로 실을 수 있다.
   // 지역은 선택지가 서버에 고정돼 jsonData가 비어 있으므로 클라이언트 목록을 쓴다.
+  // 직업은 `optionEntries`가 고정 순서로 맞추고 교직원 같은 예전 선택지를 숨긴다.
   const entries: [string, string][] =
     item.formType === 'REGION'
       ? REGION_OPTIONS.map(({ key, label }) => [key, label])
-      : Object.entries(item.jsonData).map(([key, option]) => [
-          key,
-          optionLabel(option),
-        ]);
+      : optionEntries(item).map(({ key, label }) => [key, label]);
   const options =
     type === 'MULTI_SELECT' || type === 'DROPDOWN'
       ? entries.map(([key, label]) => ({ id: key, label, value: key }))

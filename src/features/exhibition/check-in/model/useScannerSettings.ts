@@ -6,10 +6,12 @@ import type { ScanMode } from '../ui/ScanModeToggle';
 const storageKey = (expoId: string) => `checkInScanner:${expoId}`;
 
 // 브라우저는 헤더 값에 한글이 있으면 요청을 보내지 못해 영문·숫자·기호만 받는다
+// QR JSON이 이름으로 저장되지 않도록 `{`, `"`도 거절한다
 const SCANNER_NAME_PATTERN = /^[\x20-\x7E]*$/;
+const QR_JSON_CHARS = /[{}"]/;
 
 export const isValidScannerName = (name: string) =>
-  SCANNER_NAME_PATTERN.test(name);
+  SCANNER_NAME_PATTERN.test(name) && !QR_JSON_CHARS.test(name);
 
 /** 입력한 이름을 서버 규칙(trim, 최대 40자)대로 다듬는다. 쓸 수 없는 값이면 빈 문자열 */
 export const toScannerName = (raw: string) => {

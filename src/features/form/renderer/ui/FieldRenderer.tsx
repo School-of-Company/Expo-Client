@@ -27,6 +27,14 @@ interface FieldRendererProps {
   setValue: UseFormSetValue<FormValues>;
   /** 회차 잔여석 등 폼 정의 밖에서 오는 동행자 상한. 폼 정의 상한과 함께 더 작은 쪽을 쓴다. */
   companionMaxCount?: number;
+  /** 지금 고를 수 있는 직업만 남긴다. `fieldId` 는 직업 문항, 동행자 구분에도 같이 쓴다 */
+  occupationLock?: OccupationLock;
+}
+
+export interface OccupationLock {
+  fieldId?: string;
+  allowed: string[];
+  notice: string;
 }
 
 export default function FieldRenderer({
@@ -36,6 +44,7 @@ export default function FieldRenderer({
   watch,
   setValue,
   companionMaxCount,
+  occupationLock,
 }: FieldRendererProps) {
   const formValues = watch();
 
@@ -154,6 +163,14 @@ export default function FieldRenderer({
               placeholder={item.config?.placeholder}
               register={register}
               setValue={setValue}
+              {...(occupationLock?.fieldId === item.id && {
+                disabledValues: (item.options ?? [])
+                  .filter(
+                    (option) => !occupationLock.allowed.includes(option.value),
+                  )
+                  .map((option) => option.id),
+                disabledNotice: occupationLock.notice,
+              })}
             />
           </div>
         </div>
@@ -178,6 +195,8 @@ export default function FieldRenderer({
                     companionMaxCount,
                   )
             }
+            allowedOccupations={occupationLock?.allowed}
+            occupationNotice={occupationLock?.notice}
             control={control}
             register={register}
           />

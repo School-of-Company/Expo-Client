@@ -1,6 +1,11 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { eachDayOfInterval, isValid, parseISO } from 'date-fns';
-import { normalizeExpoId } from '@/shared/config';
+import {
+  LEGACY_WALK_IN_CATEGORY_LABEL,
+  normalizeExpoId,
+  WALK_IN_CATEGORIES,
+  WALK_IN_CATEGORY_LABEL,
+} from '@/shared/config';
 import { useRealtimeRefetchInterval } from '@/shared/libs/realtime/AdminRealtimeProvider';
 import { EntrySummary } from '@/shared/types/exhibition/check-in/entry';
 import { dateToString } from '../../common';
@@ -61,13 +66,8 @@ export const useAttendanceSummary = (expoId: string, day: string) => {
 
 const PAPER_CATEGORY_LABEL: Record<string, string> = {
   ADULT: '성인',
-  CHILD: '어린이·학생',
+  CHILD: '학생',
   GENERAL: '구분 없음',
-};
-
-const WALK_IN_CATEGORY_LABEL: Record<string, string> = {
-  ADULT: '성인',
-  STUDENT: '어린이·학생',
 };
 
 /** 입장 방식별 건수. 구분 없는 종이 QR 은 있을 때만 보여 준다 */
@@ -102,7 +102,11 @@ export const getEntryMethodCounts = (summary: EntrySummary) => {
           },
         ]
       : []),
-    ...['ADULT', 'STUDENT'].map((category) => ({
+    // 예전 구분(성인·어린이·학생)은 기록이 있을 때만 보여 준다
+    ...[
+      ...WALK_IN_CATEGORIES.map(({ value }) => value as string),
+      ...Object.keys(LEGACY_WALK_IN_CATEGORY_LABEL).filter(walkInCount),
+    ].map((category) => ({
       label: `간편입장 +1 · ${WALK_IN_CATEGORY_LABEL[category]}`,
       count: walkInCount(category),
     })),

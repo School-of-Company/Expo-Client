@@ -5,6 +5,11 @@ import { useEffect } from 'react';
 export const LEAVE_CONFIRM_MESSAGE =
   '지금 나가면 작성한 내용이 저장되지 않습니다. 나갈까요?';
 
+// 지금 작성 중인 화면 수. 로그아웃처럼 코드로 화면을 옮기는 쪽이 미리 물어볼 때 쓴다
+let activeCount = 0;
+
+export const hasUnsavedChanges = () => activeCount > 0;
+
 /**
  * 작성 중일 때 새로고침·창 닫기와 화면 안 링크 이동 전에 묻는다.
  * 새로고침·창 닫기는 브라우저 기본 경고창이라 문구를 바꿀 수 없다.
@@ -13,6 +18,7 @@ export const LEAVE_CONFIRM_MESSAGE =
 export const useLeaveConfirm = (enabled: boolean) => {
   useEffect(() => {
     if (!enabled) return undefined;
+    activeCount += 1;
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -52,6 +58,7 @@ export const useLeaveConfirm = (enabled: boolean) => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('click', handleClick, true);
     return () => {
+      activeCount -= 1;
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('click', handleClick, true);
     };

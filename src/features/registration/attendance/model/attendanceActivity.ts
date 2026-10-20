@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { normalizeExpoId } from '@/shared/config';
+import { normalizeExpoId, WALK_IN_CATEGORY_LABEL } from '@/shared/config';
 import { useRealtimeRefetchInterval } from '@/shared/libs/realtime/AdminRealtimeProvider';
 import {
   EntryMethod,
@@ -20,7 +20,7 @@ const METHOD_LABEL: Record<EntryMethod, string> = {
 
 const CATEGORY_LABEL: Record<string, string> = {
   ADULT: '성인',
-  CHILD: '어린이·학생',
+  CHILD: '학생',
   STUDENT: '어린이·학생',
   GENERAL: '구분 없음',
 };
@@ -28,9 +28,11 @@ const CATEGORY_LABEL: Record<string, string> = {
 /** 입장 방식과 종이 QR·간편입장 구분을 한 줄로 */
 export const getEntryMethodLabel = ({ method, category }: EntryRecord) => {
   const label = METHOD_LABEL[method] ?? method;
-  return category
-    ? `${label} · ${CATEGORY_LABEL[category] ?? category}`
-    : label;
+  // GENERAL 은 종이 QR 에서는 구분 없음, 간편입장에서는 일반인이라 방식별로 따로 찾는다
+  const categoryLabel = (
+    method === 'WALK_IN' ? WALK_IN_CATEGORY_LABEL : CATEGORY_LABEL
+  )[category ?? ''];
+  return category ? `${label} · ${categoryLabel ?? category}` : label;
 };
 
 // 기록이 없어도 행사 운영 시간대는 그래프에 보이게 한다

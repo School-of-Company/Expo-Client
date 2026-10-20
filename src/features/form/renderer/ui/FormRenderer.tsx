@@ -5,7 +5,7 @@ import { useForm, UseFormReturn } from 'react-hook-form';
 import { FormSchema } from '@/features/form/common/model/formSchema';
 import { useLeaveConfirm } from '@/shared/model';
 import { FormValues } from '../lib/visibilityEngine';
-import FieldRenderer from './FieldRenderer';
+import FieldRenderer, { OccupationLock } from './FieldRenderer';
 
 interface FormRendererProps {
   schema: FormSchema;
@@ -14,6 +14,8 @@ interface FormRendererProps {
   renderFooter?: (methods: UseFormReturn<FormValues>) => React.ReactNode;
   /** 회차 잔여석 등 폼 정의 밖에서 오는 동행자 상한. */
   companionMaxCount?: number;
+  /** 유형별 오픈 시각 전에 고를 수 없는 직업을 막는다 */
+  occupationLock?: OccupationLock;
 }
 
 export default function FormRenderer({
@@ -22,6 +24,7 @@ export default function FormRenderer({
   defaultValues = {},
   renderFooter,
   companionMaxCount,
+  occupationLock,
 }: FormRendererProps) {
   const methods = useForm<FormValues>({
     defaultValues,
@@ -60,6 +63,7 @@ export default function FormRenderer({
           watch={watch}
           setValue={setValue}
           companionMaxCount={companionMaxCount}
+          occupationLock={occupationLock}
         />
       ))}
 

@@ -97,7 +97,7 @@ const toEditorPath = (
     endDate: endDate?.toISOString() ?? '',
     returnTo: 'schedule',
   });
-  return `/form/${kind}/${encodeURIComponent(expoId)}?${params}`;
+  return `/admin/form/${kind}/${encodeURIComponent(expoId)}?${params}`;
 };
 
 const toDate = (value?: string) => {

@@ -1,8 +1,9 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'next/navigation';
 import { QRCodeCanvas } from 'qrcode.react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { AnswerList } from '@/entities/form';
 import { SessionNotice, getSessionIssue } from '@/features/phone-verification';
@@ -25,7 +26,9 @@ import {
   useApplicationSessions,
 } from '../../model/useApplicationSessions';
 import { useMyApplications } from '../../model/useMyApplications';
+import { usePreRegisterSessions } from '../../model/usePreRegister';
 import AddCompanionDialog, { AddCompanionTarget } from '../AddCompanionDialog';
+import AddSessionDialog from '../AddSessionDialog';
 import PreRegisterWaitlist from '../PreRegisterWaitlist';
 import PromotionOffer from '../PromotionOffer';
 
@@ -163,7 +166,7 @@ const ApplicationRow = ({
               }
               className="whitespace-nowrap rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-caption1b text-main-600"
             >
-              동행자 추가
+              일행에 사람 추가
             </button>
           )}
           {cancellable ? (
@@ -358,7 +361,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     sessionIssue,
     errorMessage,
     retry,
-    waitlist,
+    waitlists,
     waitlistErrorMessage,
     cancel,
     cancelWaitlist,
@@ -368,6 +371,8 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     isRespondingOffer,
     addCompanions,
     isAddingCompanions,
+    addSession,
+    isAddingSession,
   } = useMyApplications(expoId);
   const { getSession, hasLookupError, retryLookup } = useApplicationSessions(
     expoId,
@@ -375,10 +380,30 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   );
   const [qrTarget, setQrTarget] = useState<QrTarget | null>(null);
   const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null);
-  const [isWaitlistCancelOpen, setIsWaitlistCancelOpen] = useState(false);
+  // 대기 취소를 확인받을 회차. 회차마다 따로 대기할 수 있다
+  const [waitlistCancelSessionId, setWaitlistCancelSessionId] = useState<
+    number | null
+  >(null);
   const [declineOfferId, setDeclineOfferId] = useState<string | null>(null);
   const [companionTarget, setCompanionTarget] =
     useState<AddCompanionTarget | null>(null);
+  const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
+  const { data: preRegisterSessions = [] } = usePreRegisterSessions(expoId);
+  // 다른 화면(프로그램 신청 등)에서 회차를 골라 들어오면 그 회차를 미리 선택해 추가 화면을 연다
+  const addSessionIdParam = Number(useSearchParams().get('addSessionId'));
+  const initialAddSessionId = Number.isInteger(addSessionIdParam)
+    ? addSessionIdParam
+    : undefined;
+  // 확정된 사전등록이 있어야 다른 회차를 추가할 수 있다
+  const canAddSession = applications.some(
+    ({ type, status }) => type === 'PREREGISTER' && status === 'CONFIRMED',
+  );
+  const autoOpened = useRef(false);
+  useEffect(() => {
+    if (autoOpened.current || !initialAddSessionId || !canAddSession) return;
+    autoOpened.current = true;
+    setIsAddSessionOpen(true);
+  }, [initialAddSessionId, canAddSession]);
 
   // 참가자별로 묶고 대표자를 먼저 둔다. 서버가 주는 참가자 순서와 신청 순서는 그대로 지킨다
   const groups = Array.from(new Set(applications.map((a) => a.participantId)))
@@ -404,7 +429,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   // 조회 실패를 신청 없음으로 보이지 않게 오류를 그대로 알린다
   if (
     applications.length === 0 &&
-    !waitlist &&
+    waitlists.length === 0 &&
     offers.length === 0 &&
     !errorMessage &&
     !waitlistErrorMessage &&
@@ -418,7 +443,25 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
 
   return (
     <section className="flex flex-col gap-12">
-      <p className="text-body2b text-black">나의 신청 현황</p>
+      <div className="flex flex-wrap items-center justify-between gap-8">
+        <p className="text-body2b text-black">나의 신청 현황</p>
+        {!sessionIssue && canAddSession && (
+          <button
+            type="button"
+            onClick={() => setIsAddSessionOpen(true)}
+            className="whitespace-nowrap rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-caption1b text-main-600"
+          >
+            다른 회차 추가
+          </button>
+        )}
+      </div>
+      {/* 재신청은 문자를 다시 보내지 않아 QR 문자를 잃어버린 사람은 여기서 확인한다(Expo-User-Server#164) */}
+      {applications.length > 0 && (
+        <p className="break-keep text-body2r text-gray-500">
+          QR 문자를 받지 못하셨나요? 아래 신청의 &apos;QR 보기&apos;에서 QR을
+          확인할 수 있습니다. 다시 신청해도 QR 문자는 다시 발송되지 않습니다.
+        </p>
+      )}
 
       {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
       {(errorMessage || waitlistErrorMessage) && (
@@ -470,14 +513,16 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
           />
         ))}
 
-      {!sessionIssue && waitlist && (
-        <PreRegisterWaitlist
-          expoId={expoId}
-          waitlist={waitlist}
-          onCancel={() => setIsWaitlistCancelOpen(true)}
-          isCancelling={isCancellingWaitlist}
-        />
-      )}
+      {!sessionIssue &&
+        waitlists.map((waitlist) => (
+          <PreRegisterWaitlist
+            key={waitlist.sessionId}
+            expoId={expoId}
+            waitlist={waitlist}
+            onCancel={() => setWaitlistCancelSessionId(waitlist.sessionId)}
+            isCancelling={isCancellingWaitlist}
+          />
+        ))}
 
       {!sessionIssue &&
         groups.map(
@@ -551,6 +596,19 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         />
       )}
 
+      {isAddSessionOpen && (
+        <AddSessionDialog
+          expoId={expoId}
+          sessions={preRegisterSessions}
+          applications={applications}
+          participants={participants}
+          initialSessionId={initialAddSessionId}
+          isSubmitting={isAddingSession}
+          onSubmit={addSession}
+          onClose={() => setIsAddSessionOpen(false)}
+        />
+      )}
+
       {cancelTarget && (
         <Dialog label="신청 취소 확인" onClose={() => setCancelTarget(null)}>
           <p className="text-h3b text-black">신청을 취소할까요?</p>
@@ -560,6 +618,12 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
             {cancelTarget.session}
             <br />이 신청이 취소됩니다. 다시 신청하면 새 신청으로 처리되어 지금
             자리가 보장되지 않습니다.
+            {cancelTarget.type === 'PREREGISTER' && (
+              <>
+                <br />
+                다시 신청하면 QR 문자는 오지 않고 기존 QR을 그대로 씁니다.
+              </>
+            )}
           </p>
           {cancelTarget.guardianNote && (
             <p
@@ -623,20 +687,24 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         </Dialog>
       )}
 
-      {isWaitlistCancelOpen && (
+      {waitlistCancelSessionId !== null && (
         <Dialog
           label="대기 신청 취소 확인"
-          onClose={() => setIsWaitlistCancelOpen(false)}
+          onClose={() => setWaitlistCancelSessionId(null)}
         >
           <p className="text-h3b text-black">대기 신청을 취소할까요?</p>
           <p className="break-keep text-center text-body2r text-gray-500">
-            일행 전체의 대기가 함께 취소되고 대기 순번이 사라집니다. 다시
-            신청하면 새 신청으로 맨 뒤에 접수됩니다.
+            {preRegisterSessions.find(
+              ({ id }) => id === waitlistCancelSessionId,
+            )?.title ?? `회차 ${waitlistCancelSessionId}`}
+            <br />이 회차에 대기 중인 일행 전체가 함께 취소되고 대기 순번이
+            사라집니다. 다른 회차 신청은 그대로입니다. 다시 신청하면 새 신청으로
+            맨 뒤에 접수됩니다.
           </p>
           <div className="flex w-full gap-8">
             <button
               type="button"
-              onClick={() => setIsWaitlistCancelOpen(false)}
+              onClick={() => setWaitlistCancelSessionId(null)}
               className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-body2b text-gray-700"
             >
               닫기
@@ -644,8 +712,8 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
             <button
               type="button"
               onClick={() => {
-                cancelWaitlist();
-                setIsWaitlistCancelOpen(false);
+                cancelWaitlist(waitlistCancelSessionId);
+                setWaitlistCancelSessionId(null);
               }}
               className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
             >

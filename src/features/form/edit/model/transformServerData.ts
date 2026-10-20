@@ -1,3 +1,4 @@
+import { occupationRank } from '@/entities/form/constants/occupationData';
 import type { ApplicationForm } from '@/shared/types/application/type';
 import type {
   ConditionalSettings,
@@ -60,9 +61,16 @@ export const transformServerData = (
       return {
         id: questions[index].id,
         // 키는 직업처럼 고정된 것만 남긴다. 나머지는 저장할 때 순서로 다시 매겨 새 선택지와 겹치지 않게 한다.
-        options: questions[index].options.map(({ key, ...option }) =>
-          item.dynamicFormType === 'OCCUPATION' ? { ...option, key } : option,
-        ),
+        options: [...questions[index].options]
+          // 직업은 저장된 순서와 상관없이 고정 순서로 보여 준다
+          .sort((a, b) =>
+            item.dynamicFormType === 'OCCUPATION'
+              ? occupationRank(a.key ?? '') - occupationRank(b.key ?? '')
+              : 0,
+          )
+          .map(({ key, ...option }) =>
+            item.dynamicFormType === 'OCCUPATION' ? { ...option, key } : option,
+          ),
         title: item.title,
         formType: item.formType,
         requiredStatus: item.requiredStatus,

@@ -1,4 +1,5 @@
 import {
+  LEGACY_OCCUPATION_LABEL,
   OCCUPATION_OPTIONS,
   REGION_OPTIONS,
 } from '../constants/occupationData';
@@ -33,9 +34,12 @@ export const NO_ANSWER = '답변 없음';
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const OCCUPATION_LABEL: Record<string, string> = Object.fromEntries(
-  OCCUPATION_OPTIONS.map(({ key, label }) => [key, label]),
-);
+const OCCUPATION_LABEL: Record<string, string> = {
+  ...Object.fromEntries(
+    OCCUPATION_OPTIONS.map(({ key, label }) => [key, label]),
+  ),
+  ...LEGACY_OCCUPATION_LABEL,
+};
 const REGION_LABEL: Record<string, string> = Object.fromEntries(
   REGION_OPTIONS.map(({ key, label }) => [key, label]),
 );
@@ -123,7 +127,12 @@ const toText = (question: SnapshotQuestion | undefined, value: unknown) => {
   }
   if (typeof value === 'string') {
     if (question?.formType === 'REGION') return REGION_LABEL[value] ?? value;
+    if (question?.formType === 'OCCUPATION')
+      return OCCUPATION_LABEL[value] ?? value;
     if (question?.formType === 'DROPDOWN') return option(question, value);
+    // 문항을 모르면 참가 유형·지역 키(GENERAL·GWANGJU 등)만 표시 이름으로 바꾼다
+    if (!question)
+      return OCCUPATION_LABEL[value] ?? REGION_LABEL[value] ?? value;
     return value;
   }
   return plainText(value);
@@ -153,12 +162,12 @@ export const toAnswerDisplay = (
       questionMissing: false,
     });
   }
-  // 스냅샷에 없는 키는 현재 폼으로 덮어쓰지 않고 ID 로 남긴다
+  // 스냅샷에 없는 키는 현재 폼으로 덮어쓰지 않고 ID 로 남긴다. "이름"처럼 문항명이 키인 답변은 키를 그대로 라벨로 쓴다
   for (const [id, value] of Object.entries(answerMap)) {
     if (used.has(id)) continue;
     rows.push({
       id,
-      label: `문항 ${id}`,
+      label: /^\d+$/.test(id) ? `문항 ${id}` : id,
       text: toText(undefined, value),
       questionMissing: true,
     });

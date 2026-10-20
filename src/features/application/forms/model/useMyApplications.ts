@@ -7,9 +7,10 @@ import {
   OwnerApplicationType,
   addMyPreRegisterCompanions,
   cancelMyApplication,
+  addMyPreRegisterSession,
   cancelMyPreRegisterWaitlist,
   getMyApplications,
-  getMyPreRegisterWaitlist,
+  getMyPreRegisterWaitlists,
   getMyPromotionOffers,
   respondPromotionOffer,
 } from '../api/myApplications';
@@ -36,12 +37,12 @@ export const useMyApplications = (expoId: string) => {
 
   // 대기 일행은 User 에 없어 위 목록에 나오지 않으므로 따로 조회한다
   const {
-    data: waitlist,
+    data: waitlists,
     error: waitlistError,
     refetch: refetchWaitlist,
   } = useQuery({
     queryKey: waitlistKey,
-    queryFn: () => getMyPreRegisterWaitlist(expoId),
+    queryFn: () => getMyPreRegisterWaitlists(expoId),
     retry: false,
     meta: { silent: true },
   });
@@ -84,8 +85,12 @@ export const useMyApplications = (expoId: string) => {
 
   const { mutate: cancelWaitlist, isPending: isCancellingWaitlist } =
     useMutation({
-      mutationFn: () =>
-        cancelMyPreRegisterWaitlist(expoId, waitlist?.csrfToken),
+      mutationFn: (sessionId: number) =>
+        cancelMyPreRegisterWaitlist(
+          expoId,
+          sessionId,
+          waitlists?.find((item) => item.sessionId === sessionId)?.csrfToken,
+        ),
       onSuccess: () => toast.success('대기 신청이 취소되었습니다.'),
       onError: (error: Error) => toast.error(error.message),
       onSettled: refresh,
@@ -108,6 +113,22 @@ export const useMyApplications = (expoId: string) => {
         ),
       onSettled: refresh,
     });
+
+  // 결과 안내는 화면이 한다. 실패해도 회차별 신청·대기가 바뀌었을 수 있어 다시 받는다
+  const { mutateAsync: addSession, isPending: isAddingSession } = useMutation({
+    mutationFn: (target: {
+      sessionId: number;
+      participantIds: number[];
+      idempotencyKey: string;
+    }) =>
+      addMyPreRegisterSession(
+        expoId,
+        { sessionId: target.sessionId, participantIds: target.participantIds },
+        target.idempotencyKey,
+        data?.csrfToken,
+      ),
+    onSettled: refresh,
+  });
 
   // 수락·거절 모두 성공·실패 뒤 다시 받는다. 실패(409)해도 서버 상태를 따른다
   const { mutate: respondOffer, isPending: isRespondingOffer } = useMutation({
@@ -138,7 +159,7 @@ export const useMyApplications = (expoId: string) => {
     sessionIssue: getSessionIssue(error) ?? getSessionIssue(waitlistError),
     errorMessage: visibleError(error),
     retry: () => Promise.all([refetch(), refetchWaitlist()]),
-    waitlist: waitlist ?? null,
+    waitlists: waitlists ?? [],
     waitlistErrorMessage: visibleError(waitlistError),
     // 응답 대기 중(PENDING)·응답 가능(OPEN) 제안만 카드로 보인다
     offers: (offerData?.offers ?? []).filter(
@@ -151,5 +172,7 @@ export const useMyApplications = (expoId: string) => {
     isCancellingWaitlist,
     addCompanions,
     isAddingCompanions,
+    addSession,
+    isAddingSession,
   };
 };

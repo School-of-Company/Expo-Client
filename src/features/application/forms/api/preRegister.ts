@@ -17,6 +17,11 @@ export interface PreRegisterCapacity {
    * 내려주지 않으면 0(대기 불가)으로 본다.
    */
   maxWaitingApplicants?: number;
+  /**
+   * 교원·예비교사와 그 외를 따로 받는 회차(Application #173)만 있다. 대기를 받지 않고, 한쪽 좌석만 모자라도
+   * 일행 전체가 거절된다. 세부 필드는 #643 에서 쓴다
+   */
+  targetSeats?: object | null;
 }
 
 const CAPACITY_ERRORS: Record<number, string> = {

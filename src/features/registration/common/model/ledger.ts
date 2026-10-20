@@ -42,15 +42,16 @@ export const LEDGER_STATUS_STYLE: Record<AdminApplicationStatus, string> = {
 };
 
 export const OCCUPATION_LABEL: Record<AdminOccupation, string> = {
-  KINDERGARTEN_STUDENT: '유치원생',
+  KINDERGARTEN_STUDENT: '미취학',
   ELEMENTARY_STUDENT: '초등학생',
   MIDDLE_SCHOOL_STUDENT: '중학생',
   HIGH_SCHOOL_STUDENT: '고등학생',
-  SCHOOL_STAFF: '교직원',
-  PARENT: '보호자/학부모',
-  GENERAL: '일반인',
-  TEACHER: '교사',
+  TEACHER: '교원',
   PRE_SERVICE_TEACHER: '예비교사',
+  PARENT: '학부모',
+  GENERAL: '일반인',
+  // 새 신청에서는 고를 수 없지만 예전 답변·필터에 남아 있다
+  SCHOOL_STAFF: '교직원',
 };
 
 export const PROGRAM_TYPE_LABEL: Record<ProgramSessionType, string> = {
@@ -280,13 +281,20 @@ export const isCancellableStatus = (status: AdminApplicationStatus) =>
   status === 'CONFIRMED' || status === 'WAITING';
 
 /**
+ * 관리자 취소 403. 주원인은 Expo 의 행사별 취소 허용 목록에 이 관리자가 없는 경우라
+ * 전역 관리자·조회 권한이 있어도 거절된다. 원인과 다음 행동을 함께 알린다
+ */
+export const CANCEL_FORBIDDEN_MESSAGE =
+  '이 행사의 신청 취소 권한이 없습니다. 운영자에게 권한을 요청해주세요.';
+
+/**
  * 관리자 취소 실패 안내. 서버 사유(입장·마감·상태 변경 등)는 프록시를 거치며 공통 문구가 되므로
  * 상태로 나눠 안내한다
  */
 const getCancellationErrorMessage = (error: unknown) => {
   switch (getErrorStatus(error)) {
     case 403:
-      return '이 행사의 신청을 취소할 권한이 없습니다.';
+      return CANCEL_FORBIDDEN_MESSAGE;
     case 404:
       return '신청을 찾을 수 없습니다. 원장에서 삭제되었거나 다른 행사의 신청입니다.';
     case 409:
@@ -357,6 +365,8 @@ const PROMOTION_CONFLICT_MESSAGE: Record<string, string> = {
   CAPACITY_CHANGED: '정원이 바뀌어 남은 자리가 없습니다.',
   TIME_CONFLICT: '같은 시간에 확정된 다른 신청이 있어 확정할 수 없습니다.',
   PREREGISTRATION_NOT_CONFIRMED: '사전등록이 확정되지 않아 확정할 수 없습니다.',
+  SESSION_TIME_MISMATCH:
+    '사전등록한 회차 시간과 맞지 않는 프로그램이라 확정할 수 없습니다.',
   GROUP_ALREADY_APPLIED:
     '같은 묶음의 다른 회차를 이미 신청해 확정할 수 없습니다.',
   TRAINEE_UNAVAILABLE: '연수자 연결을 확인할 수 없어 확정할 수 없습니다.',
