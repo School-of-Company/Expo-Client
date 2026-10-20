@@ -3,7 +3,8 @@
  */
 import assert from 'node:assert/strict';
 import {
-  canShowProgramCapacity,
+  formatCapacity,
+  getProgramCapacity,
   getPreRegisterScheduleStatus,
   getProgramScheduleStatus,
 } from './applicationSchedule.ts';
@@ -87,25 +88,27 @@ function time(value: string) {
   return new Date(value).getTime();
 }
 
-// 정원 숫자: 일반 대상 일반 프로그램만 보인다
-assert.equal(canShowProgramCapacity({ programType: 'STANDARD', policy }), true);
+// 정원: 설정 정원은 대상·프로그램 종류와 상관없이 신청 전에도 보인다(#748)
+assert.equal(getProgramCapacity({ policy }), policy.capacity);
 assert.equal(
-  canShowProgramCapacity({
-    programType: 'STANDARD',
+  getProgramCapacity({
     policy: {
       ...policy,
-      allowedOccupations: ['GENERAL', 'PRE_SERVICE_TEACHER'],
+      allowedOccupations: ['TEACHER', 'PRE_SERVICE_TEACHER'],
     },
   }),
-  false,
+  policy.capacity,
 );
+assert.equal(getProgramCapacity({ policy: null }), undefined);
 assert.equal(
-  canShowProgramCapacity({ programType: 'TRAINING', policy }),
-  false,
+  getProgramCapacity({ policy: { ...policy, capacity: 0 } }),
+  undefined,
 );
-assert.equal(
-  canShowProgramCapacity({ programType: 'STANDARD', policy: null }),
-  false,
-);
+
+assert.equal(formatCapacity([300]), '정원 300명');
+assert.equal(formatCapacity([16, 16, 16]), '회차당 정원 16명');
+assert.equal(formatCapacity([20, 30, 1000]), '회차당 정원 20~1,000명');
+assert.equal(formatCapacity([undefined, 30]), '회차당 정원 30명');
+assert.equal(formatCapacity([undefined]), null);
 
 console.log('applicationSchedule ok');
