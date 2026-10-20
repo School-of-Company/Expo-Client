@@ -24,6 +24,8 @@ export const FORM_ERROR_MESSAGES: Record<string, string> = {
     '박람회 서비스에서 이 폼의 사용 여부를 확인하지 못해 수정할 수 없습니다. 계속되면 운영진에게 문의해 주세요.',
   SURVEY_NOT_FOUND: '만족도 조사를 찾을 수 없습니다.',
   SURVEY_ALREADY_EXISTS: '같은 참여자군의 만족도 조사가 이미 있습니다.',
+  SURVEY_ALREADY_ANSWERED:
+    '응답이 있는 만족도 조사는 문항을 바꿀 수 없습니다. 제목·안내 문구·경품 추첨 설정만 수정할 수 있습니다.',
   SURVEY_ANSWER_INVALID: '답변을 다시 확인해주세요.',
   SURVEY_ANSWER_ALREADY_EXISTS: '이미 만족도 조사에 응답했습니다.',
   PARTICIPANT_NOT_FOUND: '이 전화번호로 등록된 참가자를 찾을 수 없습니다.',
