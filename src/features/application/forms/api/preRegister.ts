@@ -23,7 +23,7 @@ export interface PreRegisterCapacity {
   /** 대기 도입 이후 서버가 주는 값. 구형 응답에는 없다. */
   confirmed?: number | null;
   waiting?: number;
-  /** 교사·예비교사 / 그 외 구분별 정원 회차(#643)에서만 온다 */
+  /** 교사·예비교사 / 그 외를 따로 받는 회차(Application #173)에서만 온다. 대기를 받지 않고, 한쪽 좌석만 모자라도 일행 전체가 거절된다 */
   targetSeats?: TargetSeats | null;
   /**
    * 대기로 받는 1회 신청 최대 인원(대표자 포함). 확정 자리가 모자라면 일행 전체가 대기로 접수된다.

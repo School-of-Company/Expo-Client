@@ -222,7 +222,7 @@ const ScheduleManager = () => {
       !window.confirm('저장하지 않은 회차 변경 내용이 사라집니다. 나갈까요?')
     )
       return;
-    router.push(`/exhibition/detail/${encodeURIComponent(expoId)}`);
+    router.push(`/admin/exhibition/detail/${encodeURIComponent(expoId)}`);
   };
 
   return withLoading({

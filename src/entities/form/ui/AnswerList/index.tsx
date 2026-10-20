@@ -38,11 +38,6 @@ const AnswerList = ({
             >
               <dt className="w-[120px] flex-none break-keep text-body2r text-gray-500">
                 {currentInfo ? row.id : row.label}
-                {row.questionMissing && !currentInfo && (
-                  <span className="block text-caption1r text-gray-400">
-                    당시 문항 정보 없음
-                  </span>
-                )}
               </dt>
               <dd className="min-w-0 whitespace-pre-line break-all text-body2r text-black">
                 {row.text}

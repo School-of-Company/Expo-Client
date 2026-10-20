@@ -1,5 +1,5 @@
-import { useExpoDetail } from '@/shared/queries';
 import { useNow } from './useNow';
+import { useParticipantExpoDetail } from './useParticipantExpoDetail';
 
 /** 현장 등록 폼의 공개 시각. 행사 시작일(KST 날짜) 00:00 이며 행사 시작 시간이 아니다 */
 const getFieldOpenAt = (startedDay: string) =>
@@ -10,7 +10,8 @@ const getFieldOpenAt = (startedDay: string) =>
  * 행사 정보를 못 받으면(isError) 공개로 단정하지 않고 released=false 로 두며, 호출부가 오류·재시도를 보여 준다
  */
 export const useFieldRelease = (expoId: string) => {
-  const { data, isLoading, isError, refetch } = useExpoDetail(expoId);
+  const { data, isLoading, isError, refetch } =
+    useParticipantExpoDetail(expoId);
   const openAt = data ? getFieldOpenAt(data.startedDay) : NaN;
   const now = useNow([openAt]);
   return {

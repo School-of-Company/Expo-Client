@@ -29,6 +29,7 @@ import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { createStandardApplicationFormatter } from '../../../lib/formatter/createStandardApplicationFormatter';
 import { findRegistrationAnswerError } from '../../../lib/process/findRegistrationAnswerError';
 import { useFieldRelease } from '../../model/fieldRelease';
+import { isMixedParty, useOccupationLock } from '../../model/occupationOpen';
 import {
   getApplicantLimit,
   getCompanionLimit,
@@ -77,6 +78,9 @@ const PreRegisterContainer = ({
   // 같은 내용을 다시 보내면(연타·네트워크 재시도·오류 뒤 재제출) 같은 키로 보낸다
   const submissionKeys = useRef(createSubmissionKeys());
 
+  // 교원·예비교사 조기 오픈: occupationOpenAt 전에는 그 외 직업을 고를 수 없다. 서버도 같은 기준으로 거절한다
+  const occupationLock = useOccupationLock(form?.occupationOpenAt);
+
   const questions = useMemo(() => form?.dynamicForm ?? [], [form]);
   const schema = useMemo(
     () => (form ? adaptDynamicFormToSchema(questions, form.title) : null),
@@ -89,7 +93,34 @@ const PreRegisterContainer = ({
   const companionFieldId = schema?.items.find(
     (item) => item.type === 'COMPANION',
   )?.id;
+  const occupationFieldId = questions.find(
+    (question) => question.dynamicFormType === 'OCCUPATION',
+  )?.id;
   const backHref = `/application/forms/${expoId}`;
+
+  // 구분 정원 회차의 409 는 사유 코드가 없다. 교원·예비교사와 그 외가 섞인 일행이면 한쪽 좌석 부족으로 안내한다
+  const isTargetSeatShortage = (
+    submitError: unknown,
+    data: RendererFormValues,
+  ) => {
+    if (
+      !capacity?.targetSeats ||
+      !(submitError instanceof ApplicationSubmitError) ||
+      submitError.status !== 409 ||
+      submitError.code
+    )
+      return false;
+    const companions = companionFieldId
+      ? ((data[companionFieldId] as { occupation?: string }[] | undefined) ??
+        [])
+      : [];
+    return isMixedParty([
+      occupationFieldId === undefined
+        ? undefined
+        : (data[String(occupationFieldId)] as string | undefined),
+      ...companions.map(({ occupation }) => occupation),
+    ]);
+  };
 
   const onSubmit = async (
     data: RendererFormValues & { privacyConsent?: boolean },
@@ -164,9 +195,11 @@ const PreRegisterContainer = ({
       )
         submissionKeys.current.reset();
       toast.error(
-        submitError instanceof Error
-          ? submitError.message
-          : '사전등록에 실패했습니다',
+        isTargetSeatShortage(submitError, data)
+          ? '일반 좌석이 부족해 일행 전체가 신청되지 않았습니다. 동행자를 빼고 다시 신청할 수 있습니다.'
+          : submitError instanceof Error
+            ? submitError.message
+            : '사전등록에 실패했습니다',
       );
       // 제출 시 서버가 정원을 다시 판정해 일행 전체를 거절했을 수 있으므로 잔여석을 다시 받는다
       queryClient.invalidateQueries({
@@ -218,13 +251,20 @@ const PreRegisterContainer = ({
           <p className="text-h2b text-black mobile:text-h3b">사전등록 신청</p>
           <p className="text-body2r text-gray-500">
             대표자가 함께 오는 사람까지 한 번에 신청합니다. 신청한 사람마다 QR이
-            대표자 번호로 발송됩니다.
+            대표자 번호로 발송됩니다. 취소 후 다시 신청하면 전에 QR을 받은
+            사람은 문자 없이 기존 QR을 그대로 쓰고, 새로 추가한 사람에게만
+            문자가 갑니다.
           </p>
           {/* 확정된 사전등록은 내 신청에서 동행자를 더할 수 있다(Expo-Application-Server#169) */}
           {companionFieldId && (
             <p className="break-keep text-body2r text-gray-500">
               신청이 확정된 뒤에도 내 신청에서 대표자를 포함해 5명까지 동행자를
               추가할 수 있습니다. 추가할 때 남은 자리를 다시 확인합니다.
+            </p>
+          )}
+          {occupationLock && (
+            <p role="status" className="break-keep text-body2b text-main-600">
+              지금은 교원·예비교사만 신청할 수 있습니다. {occupationLock.notice}
             </p>
           )}
         </div>
@@ -329,6 +369,17 @@ const PreRegisterContainer = ({
             schema={schema}
             onSubmit={onSubmit}
             companionMaxCount={companionLimit}
+            occupationLock={
+              occupationLock
+                ? {
+                    ...occupationLock,
+                    fieldId:
+                      occupationFieldId === undefined
+                        ? undefined
+                        : String(occupationFieldId),
+                  }
+                : undefined
+            }
             renderFooter={(methods) => {
               const companionCount = companionFieldId
                 ? ((methods.watch(companionFieldId) as unknown[] | undefined)

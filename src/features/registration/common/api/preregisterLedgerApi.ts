@@ -1,4 +1,6 @@
-import { toApiError } from '@/shared/libs/http/apiError';
+import axios from 'axios';
+import { toKoreanServerText } from '@/shared/libs/handler/serverMessage';
+import { ApiError, toApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { AdminOccupation, AdminParticipantDetail } from './ledgerApi';
 
@@ -16,7 +18,8 @@ export interface PreregisterReservationSnapshot {
   name?: string | null;
   phoneNumber?: string | null;
   occupation?: AdminOccupation | null;
-  informationJson?: Record<string, unknown> | null;
+  /** 서버가 저장한 JSON 문자열을 그대로 내려준다. 화면에서는 parseInformationJson 으로 읽는다 */
+  informationJson?: string | Record<string, unknown> | null;
   questions?: unknown;
 }
 
@@ -43,6 +46,14 @@ export interface AdminPreregisterRow {
   participant: AdminParticipantDetail | null;
   /** 예약 행의 제출 당시 정보 */
   reservation: PreregisterReservationSnapshot | null;
+  /** 취소·대기 철회 시각. 취소가 아니거나 기록 전 취소면 null */
+  cancelledAt?: string | null;
+  /** 취소 주체. 취소가 아니면 null, 과거 미기록은 UNKNOWN */
+  cancellationActorType?: 'USER' | 'ADMIN' | 'SYSTEM' | 'UNKNOWN' | null;
+  /** ADMIN 취소의 관리자 ID. Application #182 배포 전에는 오지 않는다 */
+  cancellationActorId?: number | null;
+  /** USER 취소의 실제 실행 대표자 */
+  cancellationActorUser?: { name?: string | null } | null;
 }
 
 export interface AdminPreregisterPage {
@@ -103,5 +114,44 @@ export const getAdminPreregistration = async (
     return response.data;
   } catch (error) {
     throw toApiError(error, '사전등록 상세를 불러오지 못했습니다.');
+  }
+};
+
+/**
+ * 검색 전체 대상. 목록과 같은 필터로 페이지 없이 최대 5000행을 읽는다.
+ * 대표자 일행 취소에서 같은 회차의 동행자 key 를 모으는 데 쓴다
+ */
+export const getAdminPreregistrationTargets = async (
+  expoId: string,
+  filter: { sessionId: number; status: AdminPreregisterStatus[] },
+): Promise<AdminPreregisterRow[]> => {
+  try {
+    const response = await clientTokenInstance.post(
+      `${basePath(expoId)}/targets`,
+      { kind: 'FILTERED', filter },
+    );
+    return response.data.items;
+  } catch (error) {
+    throw toApiError(error, '같은 일행을 불러오지 못했습니다.');
+  }
+};
+
+/**
+ * 관리자 사전등록 취소·대기 철회(Application #182). 한 요청은 한 일행의 APPLICATION key(최대 5건)
+ * 또는 대기 RESERVATION key 1개다. 서버가 APPLICATION_CANCEL 권한·입장·마감·남은 동행자를 다시 검사한다.
+ * 거절 사유를 화면이 고를 수 있게 서버 한국어 문구가 없으면 빈 문구로 둔다
+ */
+export const postAdminPreregistrationCancellation = async (
+  expoId: string,
+  keys: string[],
+): Promise<void> => {
+  try {
+    await clientTokenInstance.post(`${basePath(expoId)}/cancellation`, {
+      keys,
+    });
+  } catch (error) {
+    if (!axios.isAxiosError(error) || !error.response) throw error;
+    const { status, data } = error.response;
+    throw new ApiError(toKoreanServerText(data) ?? '', status);
   }
 };

@@ -1,9 +1,10 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { FieldValues, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { CompanionField } from '@/entities/form';
+import { CompanionField, formKeys, getForm } from '@/entities/form';
 import {
   SessionIssue,
   SessionNotice,
@@ -14,6 +15,7 @@ import { Companion } from '@/shared/types/application/type';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { processCompanions } from '../../../lib/process/processFormField';
 import { AddCompanionsResult } from '../../api/myApplications';
+import { useOccupationLock } from '../../model/occupationOpen';
 
 export interface AddCompanionTarget {
   applicationId: string;
@@ -66,6 +68,14 @@ const AddCompanionDialog = ({
   const submissionKeys = useRef(createSubmissionKeys());
   const [errorMessage, setErrorMessage] = useState<string>();
   const [sessionIssue, setSessionIssue] = useState<SessionIssue>();
+  // 유형별 오픈 시각 전에는 교원·예비교사만 더할 수 있다(서버 #209). 신청 목록·일정 화면과 같은 키라 캐시를 같이 쓴다
+  const preForm = useQuery({
+    queryKey: formKeys.detail(expoId, 'STANDARD', 'PRE'),
+    queryFn: () => getForm(expoId, 'STANDARD', 'PRE'),
+    retry: false,
+    meta: { silent: true },
+  });
+  const occupationLock = useOccupationLock(preForm.data?.occupationOpenAt);
 
   const submit = handleSubmit(async (values) => {
     const companions = processCompanions(values.companions);
@@ -99,13 +109,13 @@ const AddCompanionDialog = ({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="동행자 추가"
+        aria-label="일행에 사람 추가"
         tabIndex={-1}
         className="flex max-h-[90vh] w-full max-w-[480px] flex-col gap-16 overflow-y-auto rounded-sm bg-white p-24 outline-none mobile:p-18"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex flex-col gap-4">
-          <p className="text-h3b text-black">동행자 추가</p>
+          <p className="text-h3b text-black">일행에 사람 추가</p>
           <p className="break-keep text-body2r text-gray-500">
             {target.title}
             <br />
@@ -120,6 +130,8 @@ const AddCompanionDialog = ({
             required
             maxCount={target.remaining}
             limitHint={`이 일행에는 ${target.remaining}명까지 더 추가할 수 있습니다(대표자 포함 최대 5명).`}
+            allowedOccupations={occupationLock?.allowed}
+            occupationNotice={occupationLock?.notice}
             control={control}
             register={register}
           />

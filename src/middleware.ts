@@ -17,22 +17,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isPublicPath && accessToken) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/admin', request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    '/admin',
-    '/admin/:path*',
-    '/exhibition/:path*',
-    '/form/:path*',
-    '/name-tag/:path*',
-    '/program/:path*',
-    '/signin',
-    '/signup',
-    '/',
-  ],
+  matcher: ['/admin', '/admin/:path*', '/signin', '/signup', '/'],
 };

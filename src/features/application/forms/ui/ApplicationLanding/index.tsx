@@ -1,6 +1,5 @@
-import Link from 'next/link';
 import { Logo } from '@/shared/assets/svg';
-import { ExpoDetail } from '@/shared/types/exhibition/detail/type';
+import { PublicExpoDetail } from '../../model/useParticipantExpoDetail';
 
 const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -14,14 +13,12 @@ const formatDay = (day: string) => {
 };
 
 interface Props {
-  expo?: ExpoDetail;
+  expo?: PublicExpoDetail;
   onApply: () => void;
   onMy: () => void;
-  /** 신청 시작 전에도 볼 수 있는 전체 일정 화면 */
-  scheduleHref: string;
 }
 
-const ApplicationLanding = ({ expo, onApply, onMy, scheduleHref }: Props) => {
+const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
   const rows = expo
     ? [
         [
@@ -36,7 +33,7 @@ const ApplicationLanding = ({ expo, onApply, onMy, scheduleHref }: Props) => {
   const actions = [
     {
       title: '신청하기',
-      text: '사전등록, 현장등록, 프로그램 신청과 만족도 조사를 한곳에서 진행할 수 있습니다.',
+      text: '사전등록·프로그램·교원연수 회차와 신청 기간을 확인하고, 접수 중인 항목을 바로 신청할 수 있습니다.',
       button: '신청 목록 보기',
       onClick: onApply,
       className: 'bg-main-600 text-white',
@@ -63,26 +60,29 @@ const ApplicationLanding = ({ expo, onApply, onMy, scheduleHref }: Props) => {
         />
         <Logo className="relative h-[40px] w-auto" />
         <h1 className="relative break-keep text-[2rem] font-bold leading-tight text-main-600 mobile:text-h2b">
-          {expo?.title ?? '박람회'}
+          {expo?.title ?? '박람회'} 사전등록
         </h1>
       </header>
 
-      <section className="relative -mt-[96px] flex flex-col gap-18 rounded-md bg-white p-30 shadow-lg mobile:-mt-[80px] mobile:p-18">
-        <h2 className="text-h3b text-black">박람회 참가 안내</h2>
-        <ul className="flex flex-col gap-16">
-          {rows.map(([label, value]) => (
-            <li
-              key={label}
-              className="flex flex-col gap-4 border-b-1 border-solid border-gray-100 pb-16 last:border-b-0 last:pb-0"
-            >
-              <span className="text-caption1b text-main-600">{label}</span>
-              <span className="whitespace-pre-line break-keep text-body2r text-black">
-                {value}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* 박람회 정보를 못 받으면 안내 없이 신청·내 신청 진입만 보인다 */}
+      {rows.length > 0 && (
+        <section className="relative -mt-[96px] flex flex-col gap-18 rounded-md bg-white p-30 shadow-lg mobile:-mt-[80px] mobile:p-18">
+          <h2 className="text-h3b text-black">박람회 참가 안내</h2>
+          <ul className="flex flex-col gap-16">
+            {rows.map(([label, value]) => (
+              <li
+                key={label}
+                className="flex flex-col gap-4 border-b-1 border-solid border-gray-100 pb-16 last:border-b-0 last:pb-0"
+              >
+                <span className="text-caption1b text-main-600">{label}</span>
+                <span className="whitespace-pre-line break-keep text-body2r text-black">
+                  {value}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
         {actions.map(({ title, text, button, onClick, className }) => (
@@ -104,22 +104,6 @@ const ApplicationLanding = ({ expo, onApply, onMy, scheduleHref }: Props) => {
           </div>
         ))}
       </div>
-
-      <Link
-        href={scheduleHref}
-        className="flex items-center justify-between gap-16 rounded-md border-1 border-solid border-gray-200 bg-white p-24 shadow-sm mobile:flex-col mobile:items-stretch"
-      >
-        <span className="flex flex-col gap-4">
-          <span className="text-body1b text-black">신청 가능 일정 보기</span>
-          <span className="break-keep text-caption1r text-gray-500">
-            접수 시작 전에도 사전등록·프로그램·교원연수 회차와 신청 시작일을
-            확인할 수 있습니다.
-          </span>
-        </span>
-        <span className="flex-none rounded-sm border-1 border-solid border-main-600 px-24 py-12 text-center text-body2b text-main-600">
-          일정 보기
-        </span>
-      </Link>
     </div>
   );
 };

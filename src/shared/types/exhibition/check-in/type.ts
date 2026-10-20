@@ -22,7 +22,16 @@ export interface AttendUserBadge {
   qrCode: string;
 }
 
-export interface AttendUserResponse {
+// 최초 입장과 재입장. 서버 필드 이름은 Expo-Attendance-Server#148 에서 확정 전이라 없을 수 있다(없으면 최초 입장으로 본다)
+export type EntryStatus = 'FIRST' | 'RE_ENTRY';
+
+export interface EntryStatusFields {
+  entryStatus?: EntryStatus;
+  // 그날 최초 입장 시각. 재입장 응답에만 온다
+  firstEnteredTime?: string;
+}
+
+export interface AttendUserResponse extends EntryStatusFields {
   id: number;
   name: string;
   // 번호 없이 등록한 동행자는 null

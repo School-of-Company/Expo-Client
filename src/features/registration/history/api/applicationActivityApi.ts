@@ -12,6 +12,18 @@ export type AdminApplicationAction = 'APPLIED' | 'CANCELLED' | 'PROMOTED';
 /** UNKNOWN 은 처리주체가 기록되기 전의 과거 이력이다 */
 export type AdminApplicationActorType = 'USER' | 'ADMIN' | 'SYSTEM' | 'UNKNOWN';
 
+/** USER 취소를 실제로 실행한 대표자(서버 #143). participantId 와 reservationRequestId 중 하나만 있다 */
+export interface AdminApplicationUserActor {
+  /** User 대표 참가자 id. 대기 예약 실행자는 null */
+  participantId: number | null;
+  /** 같은 행사의 원본 대기 예약 requestId */
+  reservationRequestId: string | null;
+  role: 'REPRESENTATIVE';
+  /** 조회 시점 User 이름(CURRENT_USER) 또는 대기 신청 당시 이름(REGISTRATION_SNAPSHOT). 조회 실패 시 null */
+  name: string | null;
+  nameSource: 'CURRENT_USER' | 'REGISTRATION_SNAPSHOT';
+}
+
 // 새 필드(처리주체·이전 상태·definition 등)는 서버 #131 배포 전에는 오지 않으므로 optional 로 둔다
 export interface AdminApplicationActivity {
   id: number;
@@ -27,9 +39,8 @@ export interface AdminApplicationActivity {
   actorId: number | null;
   /** 처리주체. 과거 이력은 UNKNOWN 이며 사용자·자동으로 추정하지 않는다 */
   actorType?: AdminApplicationActorType;
-  /** 사용자 처리의 실제 처리자(대표자) id·이름. 서버 #143 계약 확정 전 가정한 이름이며 없으면 미기록이다. participantId(대상)와 다르다 */
-  actorUserId?: number | null;
-  actorName?: string | null;
+  /** 사용자 취소의 실제 처리자(대표자). 신청 이력·과거 이력은 null 이며 participantId(대상)와 다르다 */
+  actorUser?: AdminApplicationUserActor | null;
   /** 처리 전 상태. 최초 신청이면 null (previousStatusRecorded=true) */
   previousStatus?: string | null;
   /** false 는 과거 미기록, true 이면서 previousStatus=null 은 최초 신청 */

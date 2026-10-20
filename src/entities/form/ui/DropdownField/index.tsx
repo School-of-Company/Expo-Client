@@ -17,6 +17,10 @@ interface DropdownFieldProps {
   placeholder?: string;
   register: UseFormRegister<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
+  /** 지금 고를 수 없는 선택지 값. 보이되 누를 수 없다 */
+  disabledValues?: string[];
+  /** 고를 수 없는 선택지가 있을 때 아래에 보이는 안내 */
+  disabledNotice?: string;
 }
 
 export default function DropdownField({
@@ -26,6 +30,8 @@ export default function DropdownField({
   placeholder = '선택하세요',
   register,
   setValue,
+  disabledValues = [],
+  disabledNotice,
 }: DropdownFieldProps) {
   const [selectedOption, setSelectedOption] = useState<string>('');
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -64,17 +70,32 @@ export default function DropdownField({
           className="absolute z-10 mt-2 space-y-8 rounded-sm bg-white py-16 shadow-lg"
           style={{ width: dropdownWidth }}
         >
-          {options.map((option) => (
-            <li
-              key={option.id}
-              className="cursor-pointer px-10 py-2 text-gray-600 hover:text-main-600"
-              onClick={() => handleOptionClick(option.id)}
-            >
-              {option.label}
-            </li>
-          ))}
+          {options.map((option) => {
+            const disabled = disabledValues.includes(option.id);
+            return (
+              <li
+                key={option.id}
+                aria-disabled={disabled || undefined}
+                className={
+                  disabled
+                    ? 'cursor-not-allowed px-10 py-2 text-gray-300'
+                    : 'cursor-pointer px-10 py-2 text-gray-600 hover:text-main-600'
+                }
+                onClick={() => !disabled && handleOptionClick(option.id)}
+              >
+                {option.label}
+              </li>
+            );
+          })}
         </ul>
       )}
+
+      {disabledNotice &&
+        options.some((option) => disabledValues.includes(option.id)) && (
+          <p className="mt-8 break-keep text-caption1r text-gray-500">
+            {disabledNotice}
+          </p>
+        )}
 
       <input
         type="hidden"

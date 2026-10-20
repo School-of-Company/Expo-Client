@@ -20,9 +20,6 @@ import { category, selectOptionCategories } from '../../model/category';
 import { useExpoManageQueries } from '../../model/useExpoData';
 import DateContainer from '../DateContainer';
 
-// ponytail: Expo-Attendance-Server#142 배포 전에는 sessionId 조회가 빈 목록이라 꺼 둔다. 배포 후 true로 바꾸면 date 대신 회차 ID로 조회한다
-const FILTER_BY_SESSION_ID = false;
-
 const ParticipantTable = ({ id }: { id: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -36,7 +33,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
   const { data: sessions = [], isLoading: sessionsLoading } =
     usePreregisterSessions(id);
 
-  // 탭은 사전등록 회차 이름이다. 서버는 날짜로만 입장자를 거르므로 선택한 회차의 시작일을 보낸다
+  // 탭은 사전등록 회차 이름이다. 입장자는 회차 ID로 조회하고, 날짜는 서버가 sessionId 가 있으면 무시한다
   const [selectedSessionId, setSelectedSessionId] = useState<string>();
   const selectedSession =
     sessions.find((s) => String(s.id) === selectedSessionId) ?? sessions[0];
@@ -54,7 +51,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
       page,
       selectedDate || '',
       Boolean(selectedDate),
-      FILTER_BY_SESSION_ID ? selectedSession?.id : undefined,
+      selectedSession?.id,
     );
 
   const requestPrintCategories = useMemo(() => {
@@ -63,7 +60,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
 
   const expoData = expoManageQueries.data;
 
-  // 연수자는 전체 목록 배열, 일반 참가자는 날짜별 페이지 응답이다
+  // 연수자는 전체 목록 배열, 일반 참가자는 회차별 페이지 응답이다
   const participantsData: (Trainee | participants)[] =
     (isTrainee
       ? (expoData as TraineeResponse | undefined)
@@ -73,12 +70,10 @@ const ParticipantTable = ({ id }: { id: string }) => {
     ? 1
     : ((expoData as ParticipantResponse | undefined)?.info?.totalPage ?? 1);
 
-  // 일반 참가자는 선택일 입장자 전체 건수, 연수자는 행사 전체 연수자 수
+  // 일반 참가자는 선택 회차 입장자 전체 건수, 연수자는 행사 전체 연수자 수
   const attendeeCount = (expoData as ParticipantResponse | undefined)?.info
     ?.totalElement;
   const isSearching = Boolean(searchQuery.trim());
-  const formatDay = (date?: string) =>
-    date ? date.replace(/^\d{4}-(\d{2})-(\d{2})$/, '$1.$2') : '';
 
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) return participantsData;
@@ -158,7 +153,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
           <p className="text-caption1r text-gray-500">
             {sessions.length === 0
               ? '등록된 사전등록 회차가 없습니다. 신청 관리에서 회차를 먼저 추가해주세요.'
-              : '선택한 회차가 열리는 날 입장한 참가자입니다. 사전등록한 전체 신청자는 접수대장에서 확인할 수 있습니다.'}
+              : '선택한 회차로 입장한 참가자입니다. 회차 기록이 없는 예전 입장분은 보이지 않습니다. 사전등록한 전체 신청자는 접수대장에서 확인할 수 있습니다.'}
           </p>
         )}
 
@@ -190,11 +185,11 @@ const ParticipantTable = ({ id }: { id: string }) => {
             data={filteredData as participants[]}
             maxHeight="414px"
             footerType="file"
-            // 이 목록은 사전등록 전체가 아니라 선택일에 입장한 참가자다. 검색은 현재 페이지에서만 거른다
+            // 이 목록은 사전등록 전체가 아니라 선택 회차로 입장한 참가자다. 검색은 현재 페이지에서만 거른다
             text={
               isSearching
                 ? '현재 페이지 검색 결과'
-                : `${formatDay(selectedDate)} 입장자 수`
+                : `${selectedSession?.title ?? ''} 입장자 수`
             }
             totalCount={isSearching ? undefined : attendeeCount}
             actions={standardExcelFile}

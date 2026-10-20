@@ -9,8 +9,12 @@ export const usePaperQrAttendanceMutation = (
   return useMutation({
     mutationFn: (token: string) =>
       patchPaperQrAttendance(expoId, token, scannerName),
-    onSuccess: () => {
-      toast.success('종이 QR 입장이 확인되었습니다.');
+    onSuccess: ({ entryStatus }) => {
+      toast.success(
+        entryStatus === 'RE_ENTRY'
+          ? '종이 QR 재입장이 확인되었습니다.'
+          : '종이 QR 입장이 확인되었습니다.',
+      );
     },
     onError: (error: Error) => {
       toast.error(error.message);

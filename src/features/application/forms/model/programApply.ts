@@ -136,11 +136,27 @@ export const INELIGIBLE_REASON_LABEL: Record<ProgramIneligibleReason, string> =
     PREREGISTRATION_NOT_CONFIRMED: '사전등록이 확정되지 않았습니다',
     GROUP_ALREADY_APPLIED: '같은 묶음에 이미 신청했습니다',
     TIME_CONFLICT: '운영 시간이 겹치는 신청이 있습니다',
+    SESSION_TIME_MISMATCH: '사전등록한 회차 시간과 맞지 않는 프로그램입니다',
   };
 
-export const getIneligibleLabel = (reason?: string | null) =>
-  INELIGIBLE_REASON_LABEL[reason as ProgramIneligibleReason] ??
-  '신청할 수 없는 참가자';
+/**
+ * 신청 불가 사유 문구. 회차 시간 불일치는 프로그램 시작 시각을 알면 오전·오후 회차를 짚어 준다
+ * (일행 화면에서 사람마다 어느 회차 사전등록이 필요한지 알 수 있게)
+ */
+export const getIneligibleLabel = (
+  reason?: string | null,
+  programStartedAt?: string,
+) => {
+  if (reason === 'SESSION_TIME_MISMATCH' && programStartedAt) {
+    const hour = Number(programStartedAt.replace(' ', 'T').slice(11, 13));
+    if (!Number.isNaN(hour))
+      return `${hour < 12 ? '오전' : '오후'} 회차 사전등록이 필요해요`;
+  }
+  return (
+    INELIGIBLE_REASON_LABEL[reason as ProgramIneligibleReason] ??
+    '신청할 수 없는 참가자'
+  );
+};
 
 /** 회차의 현재 잔여석·대기 현황(참고값). 잔여·대기 인원·남은 대기석은 서로 다른 값이다. */
 export const getSeatsLabel = (c: ProgramCapacity): string =>

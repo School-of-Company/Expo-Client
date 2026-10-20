@@ -30,7 +30,8 @@ const SuccessCheck = () => {
       {isWaiting && (
         <p className="text-center text-body1r text-gray-600">
           {status === 'WAITING' && position && `대기 순번 ${position}번 · `}
-          자리가 나야 확정되며, 확정되면 QR이 대표자 번호로 발송됩니다.
+          자리가 나야 확정되며, 확정되면 QR이 대표자 번호로 발송됩니다. 전에
+          QR을 받은 사람은 문자 없이 기존 QR을 그대로 씁니다.
           <br />
           대기 중에는 QR과 연수 신청이 없으며, 신청 폼 모음의 나의 신청 현황에서
           대기 순번을 확인하거나 일행 전체 대기를 취소할 수 있습니다.
@@ -38,6 +39,16 @@ const SuccessCheck = () => {
       )}
       {!isWaiting && sessionId && formType === 'application' && (
         <OwnTeacherSeats expoId={id} sessionId={sessionId} />
+      )}
+      {/* 재신청은 새로 추가한 사람에게만 QR 문자를 보낸다(Expo-User-Server#164). 응답으로 재신청을 구분할 수 없어 함께 안내한다 */}
+      {!isWaiting && userType === 'STANDARD' && formType === 'application' && (
+        <p className="break-keep text-center text-body1r text-gray-600 mobile:text-body2r">
+          QR 문자는 처음 신청한 사람에게만 발송되며, 취소 후 다시 신청하면 기존
+          QR을 그대로 씁니다.
+          <br />
+          QR 문자를 받지 못하셨나요? 대표자 번호로 인증한 뒤 &apos;내 신청·QR
+          보기&apos;에서 확인할 수 있습니다.
+        </p>
       )}
       <div className="flex w-full flex-col gap-12">
         <Link
@@ -55,7 +66,9 @@ const SuccessCheck = () => {
             }
             className="flex h-[50px] w-full items-center justify-center rounded-sm border border-main-600 text-body1b text-main-600"
           >
-            다른 프로그램 신청하기
+            {userType === 'STANDARD' && formType === 'application'
+              ? '이 시간대 프로그램 신청하기'
+              : '다른 프로그램 신청하기'}
           </Link>
         )}
       </div>

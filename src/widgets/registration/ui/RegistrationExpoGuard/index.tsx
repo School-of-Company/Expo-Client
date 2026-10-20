@@ -40,7 +40,7 @@ const RegistrationExpoGuard = ({ children }: { children: React.ReactNode }) => {
                 </button>
               )}
               <Link
-                href="/"
+                href="/admin"
                 className="rounded-sm border-1 border-solid border-gray-200 px-24 py-12 text-body2r text-black"
               >
                 박람회 목록으로

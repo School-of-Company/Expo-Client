@@ -13,7 +13,13 @@ import {
 } from '@/shared/types/exhibition/check-in/type';
 import { TableForm } from '@/shared/ui/Table';
 import { CHECK_IN_PRINT_CATEGORIES } from '../../model/constants';
-import { errorResult, ScanResult, successResult } from '../../model/scanResult';
+import {
+  errorResult,
+  reEntryResult,
+  ScanResult,
+  scanFailureResult,
+  successResult,
+} from '../../model/scanResult';
 import { toExitRequest } from '../../model/toExitRequest';
 import { useInvalidateEntrySummary } from '../../model/useEntrySummary';
 import { useExitUserMutation } from '../../model/useExitUserMutation';
@@ -52,7 +58,10 @@ const QRScannerTable = ({ id }: { id: string }) => {
     (message: string) => setLastResult(errorResult('읽을 수 없는 QR', message)),
     [],
   );
-  const { submitScan } = useQRScanner(setScannedQR, handleInvalidQr);
+  const { submitScan, clearLastScan } = useQRScanner(
+    setScannedQR,
+    handleInvalidQr,
+  );
 
   const toAttendRequest = ({
     traineeId,
@@ -108,7 +117,14 @@ const QRScannerTable = ({ id }: { id: string }) => {
     }
     // 종이 QR은 참가자 정보가 없어 표에 넣지 않고 입장 수만 센다
     if (scannedQR.token) {
-      await attendPaperQr(scannedQR.token);
+      const { entryStatus, firstEnteredTime } = await attendPaperQr(
+        scannedQR.token,
+      );
+      // 재입장은 누적 입장 수에 다시 세지 않는다
+      if (entryStatus === 'RE_ENTRY') {
+        setLastResult(reEntryResult('종이 QR', firstEnteredTime));
+        return;
+      }
       setPaperQrCount((prev) => prev + 1);
       setLastResult(successResult('입장 완료', '종이 QR'));
       return;
@@ -122,7 +138,13 @@ const QRScannerTable = ({ id }: { id: string }) => {
       return;
     }
     const newUser: AttendUserResponse = await attendUser(request);
-    // 5분 안에 같은 QR을 다시 찍으면 서버가 처음 응답을 그대로 돌려준다
+    // 재입장은 표에 다시 넣지 않고 결과 카드에서만 구분해 보여 준다
+    if (newUser.entryStatus === 'RE_ENTRY') {
+      toast.info(`${newUser.name}님이 재입장했습니다.`);
+      setLastResult(reEntryResult(newUser.name, newUser.firstEnteredTime));
+      return;
+    }
+    // 예전 서버는 5분 안에 같은 QR을 다시 찍으면 처음 응답을 그대로 돌려준다
     const rowKey = toAttendUserRowKey(newUser);
     if (userData.some((user) => toAttendUserRowKey(user) === rowKey)) {
       toast.info(`${newUser.name}님은 이미 입장 처리되었습니다.`);
@@ -150,13 +172,9 @@ const QRScannerTable = ({ id }: { id: string }) => {
         // 처리한 건수가 바로 보이도록 집계를 다시 읽는다
         invalidateSummary();
       } catch (error) {
+        clearLastScan();
         // 토스트는 mutation의 onError가 띄우고, 결과 카드에는 같은 문구를 남긴다
-        setLastResult(
-          errorResult(
-            `${mode === 'entry' ? '입장' : '퇴장'} 실패`,
-            error instanceof Error ? error.message : undefined,
-          ),
-        );
+        setLastResult(scanFailureResult(mode, error));
       } finally {
         setScannedQR(null);
       }
@@ -193,7 +211,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
           <p className="break-keep text-body2r text-gray-600">
             {isExitMode
               ? '스캔한 QR은 퇴장으로 기록되고 아래 표에는 추가되지 않습니다.'
-              : '스캔한 QR은 입장으로 기록됩니다.'}
+              : '스캔한 QR은 입장으로 기록됩니다. 다시 들어오는 분은 먼저 퇴장 처리해야 합니다.'}
           </p>
         </div>
         <ScanModeToggle mode={mode} onChange={setMode} />

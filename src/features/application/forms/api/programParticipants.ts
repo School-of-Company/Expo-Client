@@ -8,7 +8,8 @@ export type ProgramIneligibleReason =
   | 'OCCUPATION_NOT_ALLOWED'
   | 'PREREGISTRATION_NOT_CONFIRMED'
   | 'GROUP_ALREADY_APPLIED'
-  | 'TIME_CONFLICT';
+  | 'TIME_CONFLICT'
+  | 'SESSION_TIME_MISMATCH';
 
 export interface ProgramParticipant {
   participant: OwnerParticipant;

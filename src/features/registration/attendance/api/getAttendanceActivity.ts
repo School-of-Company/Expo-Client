@@ -25,7 +25,7 @@ export interface EntryRecord {
   at: string;
   type: EntryRecordType;
   method: EntryMethod;
-  /** 종이 QR 은 ADULT·CHILD 등, 간편입장은 ADULT·STUDENT */
+  /** 종이 QR 은 ADULT·CHILD 등, 간편입장은 참가 유형 8종(예전 기록은 ADULT·STUDENT) */
   category: string | null;
   /** 등록 QR 이고 유저 서비스가 이름을 돌려줄 때만 있다 */
   name: string | null;
