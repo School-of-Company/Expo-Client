@@ -414,21 +414,23 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     setIsAddSessionOpen(true);
   }, [initialAddSessionId, canAddSession]);
 
-  // 참가자별로 묶고 대표자를 먼저 둔다. 서버가 주는 참가자 순서와 신청 순서는 그대로 지킨다
-  const groups = Array.from(new Set(applications.map((a) => a.participantId)))
-    .map((participantId) => {
-      const mine = applications.filter(
+  // 취소된 신청은 숨긴다(관리자 화면에서만 본다). 서버 응답은 동행자 추가 판단에도 쓰므로 여기서만 거른다
+  const visibleApplications = applications.filter(
+    (a) => a.status !== 'CANCELLED',
+  );
+
+  // 참가자별로 묶고 대표자를 먼저 둔다. 서버가 주는 참가자 순서와 신청 순서는 그대로 지킨다.
+  // 활성 신청이 없는 참가자는 목록에서 빠진다
+  const groups = Array.from(
+    new Set(visibleApplications.map((a) => a.participantId)),
+  )
+    .map((participantId) => ({
+      participantId,
+      participant: participants.find((p) => p.participantId === participantId),
+      active: visibleApplications.filter(
         (a) => a.participantId === participantId,
-      );
-      return {
-        participantId,
-        participant: participants.find(
-          (p) => p.participantId === participantId,
-        ),
-        active: mine.filter((a) => a.status !== 'CANCELLED'),
-        cancelled: mine.filter((a) => a.status === 'CANCELLED'),
-      };
-    })
+      ),
+    }))
     .sort(
       (a, b) =>
         Number(b.participant?.representative ?? false) -
@@ -437,7 +439,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
 
   // 조회 실패를 신청 없음으로 보이지 않게 오류를 그대로 알린다
   if (
-    applications.length === 0 &&
+    visibleApplications.length === 0 &&
     waitlists.length === 0 &&
     offers.length === 0 &&
     !errorMessage &&
@@ -465,7 +467,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         )}
       </div>
       {/* 재신청은 문자를 다시 보내지 않아 QR 문자를 잃어버린 사람은 여기서 확인한다(Expo-User-Server#164) */}
-      {applications.length > 0 && (
+      {visibleApplications.length > 0 && (
         <p className="break-keep text-body2r text-gray-500">
           QR 문자를 받지 못하셨나요? 아래 신청의 &apos;QR 보기&apos;에서 QR을
           확인할 수 있습니다. 다시 신청해도 QR 문자는 다시 발송되지 않습니다.
@@ -534,59 +536,47 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         ))}
 
       {!sessionIssue &&
-        groups.map(
-          ({ participantId, participant, active, cancelled }, index) => {
-            const renderRow = (application: OwnerApplication) => (
-              <ApplicationRow
-                key={`${application.type}-${application.applicationId}`}
-                expoId={expoId}
-                application={application}
-                participant={participant}
-                session={getSession(application)}
-                onCancel={setCancelTarget}
-                onShowQr={setQrTarget}
-                onAddCompanion={setCompanionTarget}
-              />
-            );
-            return (
-              // 신청이 쌓여도 사람별로 접어 두고, 취소된 신청은 한 번 더 접어서 현재 신청만 먼저 보이게 한다
-              <details
-                key={participantId}
-                open={index === 0}
-                className="rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6 [&[open]>summary]:border-b-1 [&[open]>summary]:border-solid [&[open]>summary]:border-gray-100"
-              >
-                <summary className="flex cursor-pointer list-none flex-wrap items-center gap-8 py-12 [&::-webkit-details-marker]:hidden">
-                  <span className="text-body2b text-black">
-                    {participant?.name ?? '참가자'}
+        groups.map(({ participantId, participant, active }, index) => {
+          const renderRow = (application: OwnerApplication) => (
+            <ApplicationRow
+              key={`${application.type}-${application.applicationId}`}
+              expoId={expoId}
+              application={application}
+              participant={participant}
+              session={getSession(application)}
+              onCancel={setCancelTarget}
+              onShowQr={setQrTarget}
+              onAddCompanion={setCompanionTarget}
+            />
+          );
+          return (
+            // 신청이 쌓여도 사람별로 접어 둔다
+            <details
+              key={participantId}
+              open={index === 0}
+              className="rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6 [&[open]>summary]:border-b-1 [&[open]>summary]:border-solid [&[open]>summary]:border-gray-100"
+            >
+              <summary className="flex cursor-pointer list-none flex-wrap items-center gap-8 py-12 [&::-webkit-details-marker]:hidden">
+                <span className="text-body2b text-black">
+                  {participant?.name ?? '참가자'}
+                </span>
+                {participant && (
+                  <span className="text-body2r text-gray-500">
+                    {participant.representative ? '대표자' : '참여자'}
+                    {participant.occupation &&
+                      ` · ${OCCUPATION_LABEL[participant.occupation] ?? participant.occupation}`}
                   </span>
-                  {participant && (
-                    <span className="text-body2r text-gray-500">
-                      {participant.representative ? '대표자' : '참여자'}
-                      {participant.occupation &&
-                        ` · ${OCCUPATION_LABEL[participant.occupation] ?? participant.occupation}`}
-                    </span>
-                  )}
-                  <span className="text-caption1b text-main-600">
-                    신청 {active.length}건
-                  </span>
-                </summary>
-                <ul className="flex flex-col divide-y divide-solid divide-gray-100">
-                  {active.map(renderRow)}
-                </ul>
-                {cancelled.length > 0 && (
-                  <details className="border-t-1 border-solid border-gray-100 py-8">
-                    <summary className="cursor-pointer text-caption1b text-gray-500">
-                      취소된 신청 {cancelled.length}건
-                    </summary>
-                    <ul className="flex flex-col divide-y divide-solid divide-gray-100">
-                      {cancelled.map(renderRow)}
-                    </ul>
-                  </details>
                 )}
-              </details>
-            );
-          },
-        )}
+                <span className="text-caption1b text-main-600">
+                  신청 {active.length}건
+                </span>
+              </summary>
+              <ul className="flex flex-col divide-y divide-solid divide-gray-100">
+                {active.map(renderRow)}
+              </ul>
+            </details>
+          );
+        })}
 
       {qrTarget && (
         <QrDialog
