@@ -52,7 +52,10 @@ const QRScannerTable = ({ id }: { id: string }) => {
     (message: string) => setLastResult(errorResult('읽을 수 없는 QR', message)),
     [],
   );
-  const { submitScan, clearLastScan } = useQRScanner(setScannedQR, handleInvalidQr);
+  const { submitScan, clearLastScan } = useQRScanner(
+    setScannedQR,
+    handleInvalidQr,
+  );
 
   const toAttendRequest = ({
     traineeId,
