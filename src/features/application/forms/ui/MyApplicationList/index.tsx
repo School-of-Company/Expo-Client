@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { AnswerList } from '@/entities/form';
 import { SessionNotice, getSessionIssue } from '@/features/phone-verification';
 import {
   LEDGER_STATUS_LABEL,
@@ -117,8 +116,6 @@ const ApplicationRow = ({
     status,
     cancellable,
     cancellationBlockedReason,
-    questions,
-    answers,
   } = application;
   const sessionLabel = `${session.title}${session.startedAt ? ` (${formatDefinitionSchedule(session.startedAt, session.endedAt)})` : ''}`;
   const reasonId = `cancel-blocked-${type}-${applicationId}`;
@@ -244,21 +241,6 @@ const ApplicationRow = ({
           </p>
         )}
       </div>
-
-      <details className="rounded-sm bg-gray-100 px-12 py-8">
-        <summary className="cursor-pointer text-caption1b text-gray-600">
-          신청 당시 답변
-        </summary>
-        <div className="pt-8">
-          {questions == null && answers == null ? (
-            <p className="text-caption1r text-gray-500">
-              접수 당시 문항과 답변이 저장되어 있지 않습니다.
-            </p>
-          ) : (
-            <AnswerList questions={questions} answers={answers} hideEmpty />
-          )}
-        </div>
-      </details>
     </li>
   );
 };
