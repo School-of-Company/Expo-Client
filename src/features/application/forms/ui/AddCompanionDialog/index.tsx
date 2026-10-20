@@ -115,13 +115,13 @@ const AddCompanionDialog = ({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="일행에 사람 추가"
+        aria-label="동행자 추가"
         tabIndex={-1}
         className="flex max-h-[90vh] w-full max-w-[480px] flex-col gap-16 overflow-y-auto rounded-sm bg-white p-24 outline-none mobile:p-18"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex flex-col gap-4">
-          <p className="text-h3b text-black">일행에 사람 추가</p>
+          <p className="text-h3b text-black">동행자 추가</p>
           <p className="break-keep text-body2r text-gray-500">
             {target.title}
             <br />
