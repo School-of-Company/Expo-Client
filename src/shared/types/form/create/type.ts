@@ -62,6 +62,8 @@ export interface DynamicFieldRequest {
 export interface ApplicationFormRequest {
   startDate: string;
   endDate: string;
+  /** 일반 사전등록의 그 외 유형 신청 시작. 생략하면 수정에서 기존 값을 유지하고, null 이면 해제한다 */
+  occupationOpenAt?: string | null;
   participantType: 'STANDARD' | 'TRAINEE';
   applicationType: ApplicationType;
   dynamicForm: (DynamicFieldRequest & {
