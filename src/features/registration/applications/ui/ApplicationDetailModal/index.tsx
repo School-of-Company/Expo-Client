@@ -232,9 +232,13 @@ const ApplicationDetailModal = ({
               <Field
                 label="대기 순서"
                 value={
-                  waitlist.data?.position
-                    ? `${waitlist.data.position}번째 / 대기 ${waitlist.data.total}건`
-                    : '확인 중'
+                  waitlist.data
+                    ? waitlist.data.position
+                      ? `${waitlist.data.position}번째 / 대기 ${waitlist.data.total}건`
+                      : `순서를 찾지 못했습니다 / 대기 ${waitlist.data.total}건`
+                    : waitlist.isError
+                      ? '확인하지 못했습니다'
+                      : '확인 중'
                 }
               />
               <Field
