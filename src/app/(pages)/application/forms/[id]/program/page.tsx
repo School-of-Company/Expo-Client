@@ -6,10 +6,20 @@ export const metadata: Metadata = {
   description: '일반 프로그램을 골라 프로그램별로 신청하는 페이지입니다.',
 };
 
-const page = ({ params }: { params: { id: string } }) => (
+const page = ({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { category?: string };
+}) => (
   <div className="flex min-h-screen flex-col">
     <div className="flex flex-1 justify-center p-16">
-      <ProgramApplyContainer expoId={params.id} programType="STANDARD" />
+      <ProgramApplyContainer
+        expoId={params.id}
+        programType="STANDARD"
+        category={searchParams.category}
+      />
     </div>
   </div>
 );
