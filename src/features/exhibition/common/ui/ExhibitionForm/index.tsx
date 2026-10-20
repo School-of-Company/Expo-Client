@@ -72,6 +72,12 @@ const ExhibitionForm = ({
   register('startedDay', { required: '박람회 시작 일과 시간을 입력해주세요.' });
   register('finishedDay', {
     required: '박람회 종료 일과 시간을 입력해주세요.',
+    // 하루짜리 박람회가 있어 같은 날은 받는다. 수정 화면 기본값에 시각이 붙어 와도 날짜로만 비교한다
+    validate: (finishedDay, { startedDay }) =>
+      !startedDay ||
+      !finishedDay ||
+      finishedDay.slice(0, 10) >= startedDay.slice(0, 10) ||
+      '박람회 종료일은 시작일보다 빠를 수 없습니다.',
   });
 
   return (
@@ -112,7 +118,11 @@ const ExhibitionForm = ({
                   watch('startedDay') ? new Date(watch('startedDay')) : null
                 }
                 onChange={(date) =>
-                  setValue('startedDay', date ? format(date, 'yyyy-MM-dd') : '')
+                  setValue(
+                    'startedDay',
+                    date ? format(date, 'yyyy-MM-dd') : '',
+                    { shouldDirty: true },
+                  )
                 }
                 placeholder="시작일"
               />
@@ -124,6 +134,7 @@ const ExhibitionForm = ({
                   setValue(
                     'finishedDay',
                     date ? format(date, 'yyyy-MM-dd') : '',
+                    { shouldDirty: true },
                   )
                 }
                 placeholder="마감일"
