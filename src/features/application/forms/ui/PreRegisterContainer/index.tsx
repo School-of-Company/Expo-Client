@@ -37,6 +37,7 @@ import {
   isWaitingParty,
 } from '../../model/sessionSeats';
 import {
+  getTeacherSeatNotice,
   usePreRegisterCapacity,
   usePreRegisterSessions,
 } from '../../model/usePreRegister';
@@ -173,13 +174,17 @@ const PreRegisterContainer = ({
       queryClient.invalidateQueries({
         queryKey: ['myPreRegisterWaitlist', expoId],
       });
+      // 신청으로 잔여석이 바뀌었고 완료 화면이 내 교사 구분 잔여석을 다시 받아야 한다
+      queryClient.invalidateQueries({
+        queryKey: ['preRegisterCapacity', expoId, sessionId],
+      });
       // 서버가 대기로 접수하면(202) 확정이 아니므로 성공 페이지가 대기 접수와 순번을 안내한다
       const waiting =
         result?.status === 'WAITING'
           ? `&status=${result.status}${result.position ? `&position=${encodeURIComponent(result.position)}` : ''}`
           : '';
       router.push(
-        `/application/success/${expoId}?userType=STANDARD&formType=application${waiting}`,
+        `/application/success/${expoId}?userType=STANDARD&formType=application&sessionId=${encodeURIComponent(sessionId)}${waiting}`,
       );
     } catch (submitError) {
       setSessionIssue(getSessionIssue(submitError));
@@ -319,17 +324,37 @@ const PreRegisterContainer = ({
             >
               {!canApply
                 ? '신청 마감'
-                : capacity.remaining > 0
-                  ? `현재 남은 자리 ${capacity.remaining.toLocaleString()}명`
-                  : '정원 마감 · 대기 신청 가능'}
+                : capacity.targetSeats
+                  ? '신청 가능'
+                  : (capacity.remaining ?? 0) > 0
+                    ? `현재 남은 자리 ${(capacity.remaining ?? 0).toLocaleString()}명`
+                    : '정원 마감 · 대기 신청 가능'}
             </p>
-            {canApply && (
+            {capacity.targetSeats && (
+              <ul className="flex flex-col gap-4 text-caption1r text-gray-600">
+                <li>
+                  교사·예비교사: {getTeacherSeatNotice(capacity.targetSeats)}
+                </li>
+                <li>
+                  그 외 대상: 남은 자리{' '}
+                  {capacity.targetSeats.nonTeacherRemaining.toLocaleString()}명
+                </li>
+              </ul>
+            )}
+            {canApply && !capacity.targetSeats && (
               <p className="text-caption1r text-gray-600">
                 대표자를 포함해 {applicantLimit?.toLocaleString()}명까지 신청할
                 수 있습니다. 한 일행은 나뉘지 않고 모두 확정되거나 모두 대기로
                 접수됩니다.
                 {getWaitingLimit(capacity) === 0 &&
                   ' 이 회차는 대기를 받지 않아 자리가 부족하면 신청이 거절됩니다.'}
+              </p>
+            )}
+            {canApply && capacity.targetSeats && (
+              <p className="text-caption1r text-gray-600">
+                교사·예비교사와 그 외 대상은 정원이 따로 있어 일행 구성에 따라
+                신청이 거절될 수 있습니다. 한 일행은 나뉘지 않고 모두 확정되어야
+                접수되며 이 회차는 대기를 받지 않습니다.
               </p>
             )}
             <p className="text-caption1r text-gray-500">

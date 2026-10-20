@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { getSuccessMessage } from '@/features/application';
+import OwnTeacherSeats from '@/features/application/forms/ui/OwnTeacherSeats';
 import { ApplicationSuccessLogo } from '@/shared/assets/svg';
 import { getExpoRoutes } from '@/shared/config';
 
@@ -13,6 +14,7 @@ const SuccessCheck = () => {
   const formType = searchParams.get('formType');
   const status = searchParams.get('status');
   const position = searchParams.get('position');
+  const sessionId = searchParams.get('sessionId');
 
   const isWaiting = status === 'WAITING' || status === 'PROCESSING';
   const routes = getExpoRoutes(id);
@@ -34,6 +36,9 @@ const SuccessCheck = () => {
           대기 중에는 QR과 연수 신청이 없으며, 신청 폼 모음의 나의 신청 현황에서
           대기 순번을 확인하거나 일행 전체 대기를 취소할 수 있습니다.
         </p>
+      )}
+      {!isWaiting && sessionId && formType === 'application' && (
+        <OwnTeacherSeats expoId={id} sessionId={sessionId} />
       )}
       {/* 재신청은 새로 추가한 사람에게만 QR 문자를 보낸다(Expo-User-Server#164). 응답으로 재신청을 구분할 수 없어 함께 안내한다 */}
       {!isWaiting && userType === 'STANDARD' && formType === 'application' && (
