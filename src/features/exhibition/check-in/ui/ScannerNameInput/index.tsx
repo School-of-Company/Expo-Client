@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Button, Input } from '@/shared/ui';
 import { SCANNER_NAME_MAX_LENGTH } from '../../api/scannerNameHeader';
 import {
@@ -20,6 +20,7 @@ const ScannerNameInput = ({
   onSave: (name: string) => void;
 }) => {
   const [value, setValue] = useState(scannerName);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // 저장값을 늦게 읽거나 박람회가 바뀌면 입력창도 그 값으로 맞춘다
   useEffect(() => {
@@ -35,6 +36,8 @@ const ScannerNameInput = ({
     const name = toScannerName(value);
     onSave(name);
     setValue(name);
+    // 포커스가 남으면 키보드형 스캐너 입력이 스캔이 아니라 이름 입력창으로 들어간다
+    inputRef.current?.blur();
   };
 
   return (
@@ -42,6 +45,7 @@ const ScannerNameInput = ({
       <div className="flex gap-12">
         <div className="flex-1">
           <Input
+            ref={inputRef}
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="스캐너 이름(예: gate-1)"
@@ -60,7 +64,7 @@ const ScannerNameInput = ({
       </div>
       {isInvalid && (
         <p role="alert" className="break-keep text-caption1r text-error">
-          영문·숫자·기호만 쓸 수 있습니다.
+          {'영문·숫자·기호만 쓸 수 있습니다. ({, }, " 는 제외)'}
         </p>
       )}
     </form>
