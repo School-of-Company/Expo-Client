@@ -424,7 +424,37 @@ export const usePromoteApplication = (expoId: string) => {
   });
 };
 
+/** 서버 목록 size 상한 */
 const WAITING_PAGE_SIZE = 100;
+/** 순번을 찾으려고 넘겨 볼 최대 페이지. 대기 2,000건까지 */
+const WAITING_MAX_PAGES = 20;
+
+/**
+ * 대기 목록을 접수 순으로 한 페이지씩 받아 대상의 순번(1부터)을 찾는다. 서버가 순번을 주지 않고 size 가 100까지라
+ * 앞 페이지에 없으면 다음 페이지를 받는다. 끝까지 없으면(그 사이 확정·취소됐거나 상한 밖) position 은 null 이다
+ */
+export const findWaitingPosition = async (
+  fetchPage: (
+    page: number,
+  ) => Promise<{ items: { applicationId: string }[]; totalElements: number }>,
+  targetId: string | undefined,
+  maxPages = WAITING_MAX_PAGES,
+) => {
+  const first = await fetchPage(0);
+  const indexIn = (items: { applicationId: string }[], page: number) => {
+    const index = items.findIndex((item) => item.applicationId === targetId);
+    return index >= 0 ? page * WAITING_PAGE_SIZE + index + 1 : null;
+  };
+  let position = indexIn(first.items, 0);
+  const pageCount = Math.min(
+    Math.ceil(first.totalElements / WAITING_PAGE_SIZE),
+    maxPages,
+  );
+  for (let page = 1; position === null && page < pageCount; page++) {
+    position = indexIn((await fetchPage(page)).items, page);
+  }
+  return { position, total: first.totalElements };
+};
 
 /** 대기 신청이 속한 회차의 현재 정책과 대기 순서. 순서는 접수 순이며 처리 가능 여부는 서버가 정한다 */
 export const useWaitlistContext = (
@@ -438,6 +468,7 @@ export const useWaitlistContext = (
       'waitlist',
       target?.programType,
       target?.programId,
+      target?.id,
     ],
     enabled: target !== null,
     queryFn: async () => {
@@ -446,23 +477,20 @@ export const useWaitlistContext = (
         programId: target?.programId,
       };
       const [waiting, sessions] = await Promise.all([
-        getAdminApplications(expoId, {
-          ...query,
-          status: 'WAITING',
-          sort: 'CREATED_ASC',
-          page: 0,
-          size: WAITING_PAGE_SIZE,
-        }),
+        findWaitingPosition(
+          (page) =>
+            getAdminApplications(expoId, {
+              ...query,
+              status: 'WAITING',
+              sort: 'CREATED_ASC',
+              page,
+              size: WAITING_PAGE_SIZE,
+            }),
+          target?.id,
+        ),
         getAllCurrentSessions(expoId, query),
       ]);
-      const index = waiting.items.findIndex(
-        (item) => item.applicationId === target?.id,
-      );
-      return {
-        position: index >= 0 ? index + 1 : null,
-        total: waiting.totalElements,
-        policy: sessions[0]?.policy ?? null,
-      };
+      return { ...waiting, policy: sessions[0]?.policy ?? null };
     },
     meta: { silent: true },
   });
