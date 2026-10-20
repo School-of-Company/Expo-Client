@@ -125,15 +125,19 @@ assert.equal(visible([plain, when({ parentIndex: 0 })], ['A'], 1), false);
   }
 }
 
-// 범위 밖: 없는 부모, 없는 문항.
+// 범위 밖: 없는 부모는 Form 서버처럼 보이는 것으로 본다. 없는 문항은 숨긴다.
 {
   const fields = [
     plain,
     when({ parentIndex: 5, triggerValue: 'Y' }),
     when({ parentIndex: -1, triggerValue: 'Y' }),
+    when({ parentIndex: 1, triggerValue: 'Y' }),
   ];
-  assert.equal(visible(fields, { 5: 'Y', [-1]: 'Y' }, 1), false);
-  assert.equal(visible(fields, { [-1]: 'Y' }, 2), false);
+  assert.equal(visible(fields, {}, 1), true);
+  assert.equal(visible(fields, {}, 2), true);
+  // 없는 부모에 매달린 문항은 자기 조건만 본다
+  assert.equal(visible(fields, { 1: 'Y' }, 3), true);
+  assert.equal(visible(fields, { 1: 'N' }, 3), false);
   assert.equal(visible(fields, [], 9), false);
   assert.equal(visible([], [], 0), false);
 }

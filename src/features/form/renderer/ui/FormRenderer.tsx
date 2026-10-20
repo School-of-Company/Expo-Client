@@ -4,7 +4,7 @@ import React from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { FormSchema } from '@/features/form/common/model/formSchema';
 import { useLeaveConfirm } from '@/shared/model';
-import { FormValues } from '../lib/visibilityEngine';
+import { FormValues, getVisibleFieldIds } from '../lib/visibilityEngine';
 import FieldRenderer, { OccupationLock } from './FieldRenderer';
 
 interface FormRendererProps {
@@ -41,6 +41,9 @@ export default function FormRenderer({
 
   useLeaveConfirm(isDirty);
 
+  // 숨겨진 부모의 옛 값이 남아 있어도 자식이 뜨지 않도록 부모 연쇄까지 본다
+  const visibleIds = getVisibleFieldIds(schema.items, watch());
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-20">
       {schema.title && (
@@ -64,6 +67,7 @@ export default function FormRenderer({
           setValue={setValue}
           companionMaxCount={companionMaxCount}
           occupationLock={occupationLock}
+          visible={visibleIds.has(item.id)}
         />
       ))}
 
