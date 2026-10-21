@@ -94,7 +94,7 @@ const ProgramDetailTable = ({
           filter: {
             programType: 'STANDARD',
             programId: Number(programId),
-            status: 'CONFIRMED',
+            status: ['CONFIRMED'],
           },
         },
       }),
