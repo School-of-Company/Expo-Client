@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useProgramFormQuery } from '@/entities/form';
 import { getRegistrationRoutes } from '@/shared/config';
@@ -64,6 +64,10 @@ const ProgramForm = ({
       initialForm ?? (program ? toProgramForm(program) : EMPTY_PROGRAM_FORM),
   );
   const programKey = program ? toProgramKey(program) : undefined;
+  // 폼을 연 뒤 다른 곳에서 이 회차가 저장되면 revision 이 바뀐다. 저장하면 입력한 값으로 덮어쓴다
+  const openedRevision = useRef(program?.revision);
+  const isChangedElsewhere =
+    program !== undefined && program.revision !== openedRevision.current;
   const { data: linkedForm } = useProgramFormQuery(
     form.hasPolicy ? form.policy.formId : '',
   );
@@ -122,6 +126,12 @@ const ProgramForm = ({
       <p className="text-body1b text-black">
         {program ? `${program.title} 수정` : '새 프로그램'}
       </p>
+      {isChangedElsewhere && (
+        <p role="status" className="break-keep text-caption1r text-red-500">
+          이 프로그램이 다른 곳에서 수정되었습니다. 지금 저장하면 입력한 값으로
+          덮어씁니다.
+        </p>
+      )}
       <div className="grid grid-cols-4 gap-16 mobile:grid-cols-1 tablet:grid-cols-2">
         <Field label="구분">
           {program ? (
