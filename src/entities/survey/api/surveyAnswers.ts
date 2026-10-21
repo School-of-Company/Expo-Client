@@ -4,7 +4,7 @@ import type { SubmitSurveyAnswerRequestDto } from '../model/types';
 import type { FormParticipantType } from '@/entities/form/model/types';
 
 /**
- * 전화번호로 응답자를 확인하고 접수한다. 저장은 비동기라 202로 끝난다.
+ * 참가자 세션 쿠키로 응답자를 확인하고 접수한다. 이미 응답했으면 409 SURVEY_ANSWER_ALREADY_EXISTS 다. 저장은 비동기라 202로 끝난다.
  * 503 EXTERNAL_SERVICE_UNAVAILABLE은 잠시 후 다시 보내면 된다.
  */
 export const submitSurveyAnswer = (
