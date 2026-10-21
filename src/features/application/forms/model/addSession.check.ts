@@ -5,7 +5,6 @@ import assert from 'node:assert/strict';
 import {
   getParticipantBlockReason,
   getSessionBlockReason,
-  hasOnlyStudents,
   isCurrentParticipant,
 } from './addSession';
 import type { OwnerApplication } from '../api/myApplications';
@@ -107,23 +106,6 @@ assert.equal(reason(morning, split, [1, 3]), null);
 assert.equal(reason(afternoon, split, [1, 3]), null);
 assert.equal(getParticipantBlockReason(morning, sessions, split, 3), 'APPLIED');
 assert.equal(getParticipantBlockReason(morning, sessions, split, 1), null);
-
-const person = (participantId: number, occupation: string | null) => ({
-  participantId,
-  occupation: occupation as never,
-});
-const group = [
-  person(1, 'GENERAL'),
-  person(2, 'ELEMENTARY_STUDENT'),
-  person(3, 'HIGH_SCHOOL_STUDENT'),
-  person(4, null),
-];
-// 대표 불참: 학생만 남으면 막고, 학생이 아닌 사람이 1명이라도 있으면 허용한다
-assert.equal(hasOnlyStudents(group, [2, 3]), true);
-assert.equal(hasOnlyStudents(group, [1, 2]), false);
-// 직업을 모르는 참석자는 학생으로 보지 않는다
-assert.equal(hasOnlyStudents(group, [2, 4]), false);
-assert.equal(hasOnlyStudents(group, []), false);
 
 // 현재 신청(applied)이 하나라도 있어야 지금 일행이다(#775)
 const applied = (participantId: number, value: boolean) => ({

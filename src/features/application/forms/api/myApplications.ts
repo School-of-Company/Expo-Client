@@ -286,7 +286,7 @@ export interface AddSessionResult {
 
 /**
  * 이미 신청한 일행이 답변을 다시 쓰지 않고 다른 회차를 추가한다(Expo-Application-Server#199).
- * 참석자는 일행 중에서 고르고 대표자는 빠져도 되지만, 학생만 남으면 거절된다.
+ * 참석자는 일행 중에서 고르고 대표자는 빠져도 된다.
  * 409 FORM_CHANGED 는 신청 뒤 사전등록 폼이 바뀌어 처음 신청부터 다시 해야 한다는 뜻이다
  */
 export const addMyPreRegisterSession = async (
