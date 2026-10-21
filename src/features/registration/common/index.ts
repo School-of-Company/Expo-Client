@@ -1,6 +1,9 @@
 export * from './lib/format';
 export { useRegistrationExpo } from './model/useRegistrationExpo';
-export { useReportExcelDownload } from './model/useReportExcelDownload';
+export {
+  programRosterRequest,
+  useReportExcelDownload,
+} from './model/useReportExcelDownload';
 export * from './model/useSchedule';
 export * from './api/scheduleApi';
 export * from './lib/dateTime';

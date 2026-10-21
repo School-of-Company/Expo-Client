@@ -12,9 +12,11 @@ import {
   deleteScheduleProgram,
   formatDateTimeValue,
   fromOffsetDateTime,
+  programRosterRequest,
   RegistrationTable,
   ScheduleProgram,
   TableColumn,
+  useReportExcelDownload,
   useScheduleMutation,
 } from '../../../common';
 import { ProgramSessionType } from '../../../common/api/ledgerApi';
@@ -112,7 +114,11 @@ const ProgramSection = ({
     '중단된 프로그램 변경을 다시 처리했습니다.',
   );
 
-  const { mutate: downloadExcel, isPending: isExporting } = useExcelDownload();
+  const { mutate: downloadExcel, isPending: isExcelExporting } =
+    useExcelDownload();
+  const { mutate: downloadReport, isPending: isReportExporting } =
+    useReportExcelDownload(() => {});
+  const isExporting = isExcelExporting || isReportExporting;
   const routes = getExpoRoutes(expoId);
 
   const pendingCount = programs.filter(
@@ -229,9 +235,9 @@ const ProgramSection = ({
               disabled={isExporting}
               onClick={(e) => {
                 e.stopPropagation();
-                downloadExcel({
-                  path: `/excel/program/${expoId}`,
-                  params: { programId: program.id },
+                downloadReport({
+                  expoId,
+                  request: programRosterRequest(program.id),
                 });
               }}
             >
