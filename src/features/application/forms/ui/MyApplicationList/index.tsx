@@ -21,6 +21,7 @@ import {
   OwnerApplicationType,
   OwnerParticipant,
 } from '../../api/myApplications';
+import { useFieldRelease } from '../../model/fieldRelease';
 import {
   SessionInfo,
   useApplicationSessions,
@@ -398,10 +399,14 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   const initialAddSessionId = Number.isInteger(addSessionIdParam)
     ? addSessionIdParam
     : undefined;
-  // 확정된 사전등록이 있어야 다른 회차를 추가할 수 있다
-  const canAddSession = applications.some(
-    ({ type, status }) => type === 'PREREGISTER' && status === 'CONFIRMED',
-  );
+  // 확정된 사전등록이 있어야 다른 회차를 추가할 수 있다. 행사가 시작되면 사전등록을 받지 않아 숨긴다
+  const field = useFieldRelease(expoId);
+  const canAddSession =
+    !field.isLoading &&
+    !field.released &&
+    applications.some(
+      ({ type, status }) => type === 'PREREGISTER' && status === 'CONFIRMED',
+    );
   const autoOpened = useRef(false);
   useEffect(() => {
     if (autoOpened.current || !initialAddSessionId || !canAddSession) return;
@@ -611,7 +616,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         />
       )}
 
-      {isAddSessionOpen && (
+      {isAddSessionOpen && canAddSession && (
         <AddSessionDialog
           expoId={expoId}
           sessions={preRegisterSessions}
