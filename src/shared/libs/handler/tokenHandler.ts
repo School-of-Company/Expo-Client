@@ -72,6 +72,9 @@ export async function tokenHandleRequest(
       let newTokens: Awaited<ReturnType<typeof performTokenRefresh>>;
       try {
         newTokens = await performTokenRefresh(refreshToken);
+        // 다른 요청이 이미 이 refresh token 을 써서 실패했을 수 있다. 쿠키를 지우기 전에 한 번 더 본다.
+        // 그 요청의 결과는 잠시 캐시에 남아 있어 두 번째에는 받아 온다
+        if (!newTokens) newTokens = await performTokenRefresh(refreshToken);
       } catch (refreshError) {
         if (!(refreshError instanceof RefreshUnavailableError))
           throw refreshError;

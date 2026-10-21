@@ -2,7 +2,6 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { clientIpHeaders } from '@/shared/libs/http/clientIp';
 import { GATEWAY_URL } from '@/shared/libs/http/serverInstance';
-import { deleteAuthCookies } from '../cookie/deleteCookies';
 import { RefreshUnavailableError } from './refreshAccessToken';
 import { createErrorResponse } from './response';
 import { performTokenRefresh } from './token';
@@ -19,8 +18,11 @@ const SSE_HEADERS = {
   'X-Accel-Buffering': 'no',
 };
 
+// 쿠키는 지우지 않는다. 실시간 연결은 재연결이 잦아 다른 요청과 재발급이 겹치기 쉬운데,
+// 여기서 지우면 겹친 요청이 방금 받은 새 토큰 쿠키까지 사라져 화면이 조용히 로그아웃된다.
+// 정말 만료된 세션은 일반 API 의 재발급 실패 응답이 쿠키를 정리하고 로그인으로 보낸다
 const refreshFailedResponse = (message: string) =>
-  deleteAuthCookies(createErrorResponse(message, 401, true));
+  createErrorResponse(message, 401, true);
 
 /**
  * 관리자 SSE 를 같은 출처에서 그대로 흘려보낸다. native EventSource 는 Authorization 을 못 싣고
