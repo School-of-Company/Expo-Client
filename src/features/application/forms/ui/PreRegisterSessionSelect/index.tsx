@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { formatDefinitionSchedule } from '@/features/registration/common/model/ledger';
+import { getExpoRoutes } from '@/shared/config';
 import { Loading } from '@/shared/ui';
 import {
   getPreRegisterSessionState,
@@ -31,7 +32,7 @@ const PreRegisterSessionSelect = ({ expoId }: { expoId: string }) => {
     isFetching,
   } = usePreRegisterSessions(expoId);
   const basePath = `/application/forms/${expoId}/pre-register`;
-  const backHref = `/application/forms/${expoId}`;
+  const backHref = getExpoRoutes(expoId).applicationListTab('registration');
 
   const openSessions = (sessions ?? []).filter(
     (session) => getPreRegisterSessionState(session) === 'OPEN',

@@ -12,9 +12,15 @@ const page = ({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { view?: string };
+  searchParams: { view?: string; tab?: string };
 }) => {
-  return <ApplicationFormsPage params={params.id} view={searchParams.view} />;
+  return (
+    <ApplicationFormsPage
+      params={params.id}
+      view={searchParams.view}
+      tab={searchParams.tab}
+    />
+  );
 };
 
 export default page;

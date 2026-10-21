@@ -66,9 +66,12 @@ const STATUS_BADGE_CLASS = {
 const ApplicationSchedule = ({
   expoId,
   showPreRegister = true,
+  initialTab,
 }: {
   expoId: string;
   showPreRegister?: boolean;
+  /** 주소의 `?tab=` 값. 신청 화면에서 뒤로 왔을 때 보던 탭을 연다 */
+  initialTab?: string;
 }) => {
   // 신청서가 없는 박람회는 404 가 정상이다
   const preForm = useQuery({
@@ -136,7 +139,17 @@ const ApplicationSchedule = ({
     [showPreRegister],
   );
 
-  const [tab, setTab] = useState(navItems[0].id);
+  const [tab, setTab] = useState(
+    navItems.find(({ id }) => id === `section-${initialTab}`)?.id ??
+      navItems[0].id,
+  );
+  const changeTab = (id: string) => {
+    setTab(id);
+    // 브라우저 뒤로 가기로 돌아와도 같은 탭이 열리게 주소에 남긴다
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', id.replace('section-', ''));
+    window.history.replaceState(window.history.state, '', url);
+  };
   // 사전등록 탭이 빠진 뒤에도 고른 탭이 남아 있지 않게 첫 탭으로 돌린다
   const active = navItems.some(({ id }) => id === tab) ? tab : navItems[0].id;
 
@@ -144,7 +157,7 @@ const ApplicationSchedule = ({
 
   return (
     <div className="flex flex-col gap-20">
-      <SectionTabs items={navItems} active={active} onChange={setTab} />
+      <SectionTabs items={navItems} active={active} onChange={changeTab} />
 
       {showPreRegister && active === 'section-registration' && (
         <SectionFrame

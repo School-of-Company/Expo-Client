@@ -33,10 +33,13 @@ const isView = (value?: string): value is View =>
 const ApplicationFormsContainer = ({
   expoId,
   initialView,
+  initialTab,
 }: {
   expoId: string;
   /** `?view=my|list` 로 들어오면 그 탭을 바로 연다. 신청 완료 화면의 "내 신청·QR 보기"가 쓴다 */
   initialView?: string;
+  /** `?tab=registration|program|training` 로 들어오면 신청 목록의 그 탭을 연다. 신청 화면에서 뒤로 올 때 보던 탭을 지키려고 쓴다 */
+  initialTab?: string;
 }) => {
   const { forms: allForms, isLoading: isFormsLoading } =
     useApplicationForms(expoId);
@@ -66,6 +69,15 @@ const ApplicationFormsContainer = ({
     isView(initialView) ? initialView : 'home',
   );
   const [selected, setSelected] = useState<FormGroup | null>(null);
+
+  // 신청 화면에서 뒤로 오면 이 주소로 돌아오므로, 보던 화면과 탭을 주소에 남겨 둔다
+  const changeView = (next: View) => {
+    setView(next);
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', next);
+    if (next !== 'list') url.searchParams.delete('tab');
+    window.history.replaceState(window.history.state, '', url);
+  };
 
   // 사전등록 탭은 회차·프로그램 일정이라 신청서가 없어도 노출하고, 나머지는 폼이 하나라도 있는 그룹만 노출.
   // 행사가 시작되면 현장등록을 기본 탭으로 앞에 두고, 사전등록 탭은 남은 프로그램·연수 일정만 보여 준다
@@ -124,8 +136,8 @@ const ApplicationFormsContainer = ({
           <ApplicationLanding
             expo={expo}
             isFieldReleased={field.released}
-            onApply={() => setView('list')}
-            onMy={() => setView('my')}
+            onApply={() => changeView('list')}
+            onMy={() => changeView('my')}
           />
         </div>
       ),
@@ -138,7 +150,7 @@ const ApplicationFormsContainer = ({
       <div className="mx-auto flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
         <button
           type="button"
-          onClick={() => setView('home')}
+          onClick={() => changeView('home')}
           className="mt-30 self-start text-body2r text-gray-500"
         >
           ← 박람회 안내
@@ -150,7 +162,7 @@ const ApplicationFormsContainer = ({
               type="button"
               role="tab"
               aria-selected={view === value}
-              onClick={() => setView(value)}
+              onClick={() => changeView(value)}
               className={`text-h2b mobile:text-h3b ${view === value ? 'text-black' : 'text-gray-500'}`}
             >
               {label}
@@ -216,6 +228,7 @@ const ApplicationFormsContainer = ({
               <ApplicationSchedule
                 expoId={expoId}
                 showPreRegister={!field.released}
+                initialTab={initialTab}
               />
             ) : (
               <ul className="flex flex-col gap-12">
