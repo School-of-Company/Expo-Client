@@ -42,15 +42,16 @@ export const LEDGER_STATUS_STYLE: Record<AdminApplicationStatus, string> = {
 };
 
 export const OCCUPATION_LABEL: Record<AdminOccupation, string> = {
-  KINDERGARTEN_STUDENT: '유치원생',
+  KINDERGARTEN_STUDENT: '미취학',
   ELEMENTARY_STUDENT: '초등학생',
   MIDDLE_SCHOOL_STUDENT: '중학생',
   HIGH_SCHOOL_STUDENT: '고등학생',
-  SCHOOL_STAFF: '교직원',
-  PARENT: '보호자/학부모',
-  GENERAL: '일반인',
-  TEACHER: '교사',
+  TEACHER: '교원',
   PRE_SERVICE_TEACHER: '예비교사',
+  PARENT: '학부모',
+  GENERAL: '일반인',
+  // 새 신청에서는 고를 수 없지만 예전 답변·필터에 남아 있다
+  SCHOOL_STAFF: '교직원',
 };
 
 export const PROGRAM_TYPE_LABEL: Record<ProgramSessionType, string> = {
@@ -124,14 +125,32 @@ export const parseSessionKey = (
 /** 확정과 대기를 함께 보는 상태 필터. 서버에는 쉼표로 보낸다 */
 export const ACTIVE_STATUS_FILTER = 'CONFIRMED,WAITING';
 
+/** 확정과 취소 이력을 함께 보는 상태 필터. 같은 사람의 취소·재신청을 나란히 본다 */
+export const SETTLED_STATUS_FILTER = 'CONFIRMED,CANCELLED';
+
 export type LedgerStatusFilter =
   | AdminApplicationStatus
   | typeof ACTIVE_STATUS_FILTER
+  | typeof SETTLED_STATUS_FILTER
   | '';
 
 /** 상태 필터를 상태 목록으로. 비어 있으면 모든 상태 */
 export const toStatusList = (status: LedgerStatusFilter) =>
   status ? (status.split(',') as AdminApplicationStatus[]) : [];
+
+export const LEDGER_SORT_OPTIONS: {
+  value: AdminApplicationSort;
+  label: string;
+}[] = [
+  { value: 'CREATED_DESC', label: '최근 신청순' },
+  { value: 'CREATED_ASC', label: '오래된 신청순' },
+  { value: 'RECEIPT_ASC', label: '접수번호 오름차순' },
+  { value: 'RECEIPT_DESC', label: '접수번호 내림차순' },
+  { value: 'PROGRAM_ASC', label: '프로그램 가나다순' },
+  { value: 'PROGRAM_DESC', label: '프로그램 역순' },
+  { value: 'SESSION_ASC', label: '회차 일시 빠른순' },
+  { value: 'SESSION_DESC', label: '회차 일시 늦은순' },
+];
 
 /** 서버 필터와 1:1 로 대응하는 관리대장 필터 */
 export interface LedgerFilter {
@@ -280,13 +299,20 @@ export const isCancellableStatus = (status: AdminApplicationStatus) =>
   status === 'CONFIRMED' || status === 'WAITING';
 
 /**
+ * 관리자 취소 403. 주원인은 Expo 의 행사별 취소 허용 목록에 이 관리자가 없는 경우라
+ * 전역 관리자·조회 권한이 있어도 거절된다. 원인과 다음 행동을 함께 알린다
+ */
+export const CANCEL_FORBIDDEN_MESSAGE =
+  '이 행사의 신청 취소 권한이 없습니다. 운영자에게 권한을 요청해주세요.';
+
+/**
  * 관리자 취소 실패 안내. 서버 사유(입장·마감·상태 변경 등)는 프록시를 거치며 공통 문구가 되므로
  * 상태로 나눠 안내한다
  */
 const getCancellationErrorMessage = (error: unknown) => {
   switch (getErrorStatus(error)) {
     case 403:
-      return '이 행사의 신청을 취소할 권한이 없습니다.';
+      return CANCEL_FORBIDDEN_MESSAGE;
     case 404:
       return '신청을 찾을 수 없습니다. 원장에서 삭제되었거나 다른 행사의 신청입니다.';
     case 409:
@@ -357,6 +383,8 @@ const PROMOTION_CONFLICT_MESSAGE: Record<string, string> = {
   CAPACITY_CHANGED: '정원이 바뀌어 남은 자리가 없습니다.',
   TIME_CONFLICT: '같은 시간에 확정된 다른 신청이 있어 확정할 수 없습니다.',
   PREREGISTRATION_NOT_CONFIRMED: '사전등록이 확정되지 않아 확정할 수 없습니다.',
+  SESSION_TIME_MISMATCH:
+    '사전등록한 회차 시간과 맞지 않는 프로그램이라 확정할 수 없습니다.',
   GROUP_ALREADY_APPLIED:
     '같은 묶음의 다른 회차를 이미 신청해 확정할 수 없습니다.',
   TRAINEE_UNAVAILABLE: '연수자 연결을 확인할 수 없어 확정할 수 없습니다.',
@@ -414,7 +442,37 @@ export const usePromoteApplication = (expoId: string) => {
   });
 };
 
+/** 서버 목록 size 상한 */
 const WAITING_PAGE_SIZE = 100;
+/** 순번을 찾으려고 넘겨 볼 최대 페이지. 대기 2,000건까지 */
+const WAITING_MAX_PAGES = 20;
+
+/**
+ * 대기 목록을 접수 순으로 한 페이지씩 받아 대상의 순번(1부터)을 찾는다. 서버가 순번을 주지 않고 size 가 100까지라
+ * 앞 페이지에 없으면 다음 페이지를 받는다. 끝까지 없으면(그 사이 확정·취소됐거나 상한 밖) position 은 null 이다
+ */
+export const findWaitingPosition = async (
+  fetchPage: (
+    page: number,
+  ) => Promise<{ items: { applicationId: string }[]; totalElements: number }>,
+  targetId: string | undefined,
+  maxPages = WAITING_MAX_PAGES,
+) => {
+  const first = await fetchPage(0);
+  const indexIn = (items: { applicationId: string }[], page: number) => {
+    const index = items.findIndex((item) => item.applicationId === targetId);
+    return index >= 0 ? page * WAITING_PAGE_SIZE + index + 1 : null;
+  };
+  let position = indexIn(first.items, 0);
+  const pageCount = Math.min(
+    Math.ceil(first.totalElements / WAITING_PAGE_SIZE),
+    maxPages,
+  );
+  for (let page = 1; position === null && page < pageCount; page++) {
+    position = indexIn((await fetchPage(page)).items, page);
+  }
+  return { position, total: first.totalElements };
+};
 
 /** 대기 신청이 속한 회차의 현재 정책과 대기 순서. 순서는 접수 순이며 처리 가능 여부는 서버가 정한다 */
 export const useWaitlistContext = (
@@ -428,6 +486,7 @@ export const useWaitlistContext = (
       'waitlist',
       target?.programType,
       target?.programId,
+      target?.id,
     ],
     enabled: target !== null,
     queryFn: async () => {
@@ -436,23 +495,20 @@ export const useWaitlistContext = (
         programId: target?.programId,
       };
       const [waiting, sessions] = await Promise.all([
-        getAdminApplications(expoId, {
-          ...query,
-          status: 'WAITING',
-          sort: 'CREATED_ASC',
-          page: 0,
-          size: WAITING_PAGE_SIZE,
-        }),
+        findWaitingPosition(
+          (page) =>
+            getAdminApplications(expoId, {
+              ...query,
+              status: 'WAITING',
+              sort: 'CREATED_ASC',
+              page,
+              size: WAITING_PAGE_SIZE,
+            }),
+          target?.id,
+        ),
         getAllCurrentSessions(expoId, query),
       ]);
-      const index = waiting.items.findIndex(
-        (item) => item.applicationId === target?.id,
-      );
-      return {
-        position: index >= 0 ? index + 1 : null,
-        total: waiting.totalElements,
-        policy: sessions[0]?.policy ?? null,
-      };
+      return { ...waiting, policy: sessions[0]?.policy ?? null };
     },
     meta: { silent: true },
   });

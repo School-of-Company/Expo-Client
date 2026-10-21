@@ -6,15 +6,10 @@ import { useState } from 'react';
 import { formKeys, getForm } from '@/entities/form';
 import { getSurvey, surveyKeys } from '@/entities/survey';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
+import { formatKstDateTime } from '@/shared/libs/kstDateTime';
 import { useModalDialog } from '@/shared/model';
-import { Button } from '@/shared/ui';
-import SelectDateInput from '@/shared/ui/SelectDateInput';
-import {
-  formatDateTimeValue,
-  fromOffsetDateTime,
-  RegistrationTable,
-  TableColumn,
-} from '../../../common';
+import { Button, KstDateTimeInput } from '@/shared/ui';
+import { RegistrationTable, TableColumn } from '../../../common';
 import ScheduleSection from '../ScheduleSection';
 
 type UserType = 'STANDARD' | 'TRAINEE';
@@ -97,7 +92,7 @@ const toEditorPath = (
     endDate: endDate?.toISOString() ?? '',
     returnTo: 'schedule',
   });
-  return `/form/${kind}/${encodeURIComponent(expoId)}?${params}`;
+  return `/admin/form/${kind}/${encodeURIComponent(expoId)}?${params}`;
 };
 
 const toDate = (value?: string) => {
@@ -141,22 +136,22 @@ const PeriodDialog = ({
           {action.row.label} 폼 {action.kind === 'create' ? '만들기' : '수정'}
         </p>
         <p className="break-keep text-body2r text-gray-500">
-          신청 기간을 고르면 폼 {action.kind === 'create' ? '만들기' : '수정'}{' '}
-          화면으로 이동합니다.
+          신청 기간을 한국 시각 날짜·시·분으로 고르면 폼{' '}
+          {action.kind === 'create' ? '만들기' : '수정'} 화면으로 이동합니다.
         </p>
-        <SelectDateInput
-          placeholder="시작 날짜"
+        <KstDateTimeInput
+          label="신청 시작 일시"
           value={startDate}
           onChange={setStartDate}
         />
-        <SelectDateInput
-          placeholder="마감 날짜"
+        <KstDateTimeInput
+          label="신청 마감 일시"
           value={endDate}
           onChange={setEndDate}
         />
         {isInvalid && (
           <p role="alert" className="text-caption1r text-error">
-            마감 날짜는 시작 날짜보다 늦어야 합니다.
+            마감 일시는 시작 일시보다 늦어야 합니다.
           </p>
         )}
         <div className="flex gap-8">
@@ -266,7 +261,7 @@ const RegistrationFormSection = ({ expoId }: { expoId: string }) => {
       render: ({ form, mode }) =>
         mode === 'survey' || !form?.startDate || !form.endDate
           ? '-'
-          : `${formatDateTimeValue(fromOffsetDateTime(form.startDate))} ~ ${formatDateTimeValue(fromOffsetDateTime(form.endDate))}`,
+          : `${formatKstDateTime(form.startDate)} ~ ${formatKstDateTime(form.endDate)}`,
     },
     {
       key: 'actions',

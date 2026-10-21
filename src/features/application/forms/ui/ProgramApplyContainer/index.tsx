@@ -2,6 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Fragment, ReactNode, useMemo, useRef, useState } from 'react';
 import { PrivacyConsent } from '@/entities/application';
 import { getProgramForm } from '@/entities/form/api/programForms';
@@ -22,12 +23,22 @@ import {
   postProgramApplication,
 } from '../../../api/postApplication';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
+import { getPublicPreregisterSessions } from '../../api/preRegister';
 import { getProgramParticipants } from '../../api/programParticipants';
 import {
   SCHEDULE_STATUS_LABEL,
   ScheduleStatus,
+  getOnsitePhase,
   getProgramScheduleStatus,
+  getScheduleBoundaries,
+  isPreApplicationOpen,
 } from '../../model/applicationSchedule';
+import {
+  PROGRAM_CATEGORIES,
+  TRAINING_CATEGORIES,
+  filterByCategory,
+} from '../../model/applicationSections';
+import { useFieldRelease } from '../../model/fieldRelease';
 import { formatFormPeriod } from '../../model/formPeriodStatus';
 import {
   OUTCOME_LABEL,
@@ -35,14 +46,20 @@ import {
   REUSED_GUARDIAN_NOTE,
   getProgramFormId,
   getIneligibleLabel,
+  getOnsiteSeatsLabel,
   getSeatsLabel,
   getProgramPolicyNotes,
   getProgramInfoRows,
   isProgramApplicationEnded,
 } from '../../model/programApply';
 import { getGroupApplications, groupPrograms } from '../../model/programGroups';
+import {
+  getConfirmedSessionWindows,
+  matchesSessionTime,
+} from '../../model/sessionTimeMatch';
 import { useMyApplications } from '../../model/useMyApplications';
 import { useNow } from '../../model/useNow';
+import { getPreRegisterSessionState } from '../../model/usePreRegister';
 import CompanionApplyFlow from '../CompanionApplyFlow';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
@@ -217,7 +234,7 @@ const ParticipantStep = ({
             {participant.name}
             {!participant.eligible && (
               <span className="text-caption1r text-gray-500">
-                ({getIneligibleLabel(participant.reason)})
+                ({getIneligibleLabel(participant.reason, program.startedAt)})
               </span>
             )}
           </label>
@@ -236,6 +253,7 @@ const ParticipantLookup = ({
   formId,
   waiting,
   onsite,
+  isFieldReleased,
   onSelect,
   onResult,
 }: {
@@ -245,6 +263,8 @@ const ParticipantLookup = ({
   formId: string;
   waiting: boolean;
   onsite: boolean;
+  /** 행사가 시작돼 사전등록 대신 현장등록을 받는 중. 등록 안내를 현장등록으로 바꾼다 */
+  isFieldReleased: boolean;
   onSelect: () => void;
   onResult: (outcome: ProgramApplyOutcome) => void;
 }) => {
@@ -264,6 +284,18 @@ const ParticipantLookup = ({
     );
   if (error) return <p className="text-body2r text-error">{error.message}</p>;
   if (!data) return null;
+  if (!data.registered && isFieldReleased)
+    return (
+      <p className="break-keep text-body2r text-gray-600">
+        현장등록을 마친 참가자만 신청할 수 있습니다.{' '}
+        <Link
+          href={`/application/${expoId}?formType=application&userType=STANDARD&applicationType=FIELD`}
+          className="text-main-600 underline"
+        >
+          현장등록하러 가기
+        </Link>
+      </p>
+    );
   if (!data.registered)
     return (
       <p className="break-keep text-body2r text-gray-600">
@@ -293,23 +325,41 @@ const ParticipantLookup = ({
         ineligibleReason === 'GROUP_ALREADY_APPLIED',
     }),
   );
+  // 현장 신청은 현장 잔여석만 보인다(대기가 없다). 사전 신청에는 현장 좌석 줄을 보이지 않는다
+  const onsiteSeats = data.admissionSeats?.onsite;
   const seatInfo = (
     <>
-      {data.capacity && (
-        <p className="break-keep text-caption1r text-gray-600">
-          {getSeatsLabel(data.capacity)}
-          <br />
-          조회 시점의 참고값이며, 신청할 때 서버가 다시 판정합니다.
-        </p>
+      {onsite ? (
+        (onsiteSeats || data.capacity) && (
+          <p className="break-keep text-caption1r text-gray-600">
+            {onsiteSeats
+              ? getOnsiteSeatsLabel(onsiteSeats)
+              : `현장 잔여 ${data.capacity?.remaining.toLocaleString()}명`}
+            <br />
+            조회 시점의 참고값이며, 신청할 때 서버가 다시 판정합니다.
+          </p>
+        )
+      ) : (
+        <>
+          {data.capacity && (
+            <p className="break-keep text-caption1r text-gray-600">
+              {getSeatsLabel(data.capacity)}
+              <br />
+              조회 시점의 참고값이며, 신청할 때 서버가 다시 판정합니다.
+            </p>
+          )}
+          {data.channels
+            ?.filter((channel) => !channel.name.includes('현장'))
+            .map((channel) => (
+              <p
+                key={channel.name}
+                className="break-keep text-caption1r text-gray-600"
+              >
+                {channel.name}: {getSeatsLabel(channel.capacity)}
+              </p>
+            ))}
+        </>
       )}
-      {data.channels?.map((channel) => (
-        <p
-          key={channel.name}
-          className="break-keep text-caption1r text-gray-600"
-        >
-          {channel.name}: {getSeatsLabel(channel.capacity)}
-        </p>
-      ))}
     </>
   );
   if (program.policy?.guardianPolicy) {
@@ -374,6 +424,7 @@ const ParticipantLookup = ({
 const STATUS_CLASS: Record<ScheduleStatus, string> = {
   UPCOMING: 'bg-main-100 text-main-600',
   OPEN: 'bg-main-600 text-white',
+  ONSITE_OPEN: 'bg-main-600 text-white',
   CLOSED: 'bg-gray-100 text-gray-500',
   ENDED: 'bg-gray-100 text-gray-400',
   UNSET: 'bg-gray-100 text-gray-500',
@@ -382,9 +433,15 @@ const STATUS_CLASS: Record<ScheduleStatus, string> = {
 const ProgramApplyContainer = ({
   expoId,
   programType,
+  category,
+  programId,
 }: {
   expoId: string;
   programType: ProgramType;
+  /** 목록에서 고른 분류(삼성·구글 등). 있으면 그 분류의 회차만 보여 준다 */
+  category?: string;
+  /** 목록에서 고른 회차 하나. 있으면 그 회차만 보여 준다 */
+  programId?: string;
 }) => {
   const label = PROGRAM_LABEL[programType];
   const {
@@ -400,37 +457,81 @@ const ProgramApplyContainer = ({
     retry: false,
   });
   const queryClient = useQueryClient();
+  const router = useRouter();
   // 신청 기간이 끝난 회차는 모집 목록에서만 숨긴다. 같은 쿼리를 내 신청 조회가 쓰므로 데이터는 거르지 않는다
-  // 켜 둔 화면도 접수 시작·마감 시각에 버튼과 상태가 바뀐다
-  const now = useNow(
-    (allPrograms ?? []).flatMap(({ policy }) => [
-      new Date(policy?.applicationStartedAt ?? NaN).getTime(),
-      new Date(policy?.applicationEndedAt ?? NaN).getTime(),
-    ]),
-  );
+  // 켜 둔 화면도 사전·현장 접수 시작·마감 시각에 버튼과 상태가 바뀐다
+  const now = useNow(getScheduleBoundaries(allPrograms ?? [], [], null));
   const programs = useMemo(
     () =>
-      allPrograms?.filter(
-        ({ policy }) => !isProgramApplicationEnded(policy, now),
-      ),
-    [allPrograms, now],
+      allPrograms &&
+      filterByCategory(
+        allPrograms.filter(
+          ({ policy }) => !isProgramApplicationEnded(policy, now),
+        ),
+        programType === 'TRAINING' ? TRAINING_CATEGORIES : PROGRAM_CATEGORIES,
+        category,
+      ).filter((program) => !programId || String(program.id) === programId),
+    [allPrograms, now, programType, category, programId],
   );
   // 사전등록 대기 중인 일행이 있으면 "미등록" 대신 대기 안내를 보여 준다
   const {
-    waitlist,
+    waitlists,
     applications,
     participants,
     errorMessage,
     sessionIssue,
     retry,
   } = useMyApplications(expoId);
-  const groups = useMemo(() => groupPrograms(programs ?? []), [programs]);
+  // 내 확정 사전등록 회차와 시간이 겹치는 프로그램을 위로, 나머지는 아래로 둔다(숨기지 않는다).
+  // 확정 회차를 알 수 없으면 정렬·비활성을 하지 않는다
+  const hasConfirmedPreRegister = applications.some(
+    ({ type, status }) => type === 'PREREGISTER' && status === 'CONFIRMED',
+  );
+  const { data: preRegisterSessions } = useQuery({
+    queryKey: ['preRegisterSessions', expoId],
+    queryFn: () => getPublicPreregisterSessions(expoId),
+    enabled: hasConfirmedPreRegister,
+    retry: false,
+    meta: { silent: true },
+  });
+  // 확정·대기 중인 사전등록 회차. 이미 신청한 회차를 다시 추천하지 않는다
+  const appliedSessionIds = useMemo(
+    () =>
+      new Set(
+        applications
+          .filter(
+            ({ type, status }) =>
+              type === 'PREREGISTER' &&
+              (status === 'CONFIRMED' || status === 'WAITING'),
+          )
+          .map(({ sessionOrProgramId }) => sessionOrProgramId),
+      ),
+    [applications],
+  );
+  const sessionWindows = useMemo(
+    () => getConfirmedSessionWindows(applications, preRegisterSessions),
+    [applications, preRegisterSessions],
+  );
+  const groups = useMemo(
+    () =>
+      groupPrograms(programs ?? [])
+        .map((group) => ({
+          group,
+          matches: group.sessions.some((session) =>
+            matchesSessionTime(session, sessionWindows),
+          ),
+        }))
+        // 안정 정렬이라 같은 쪽끼리는 기존 순서를 지킨다
+        .sort((a, b) => Number(b.matches) - Number(a.matches))
+        .map(({ group }) => group),
+    [programs, sessionWindows],
+  );
   // 묶음별로 고른 회차와 신청서를 연 묶음. 회차를 바꾸면 신청서를 닫아 이전 회차의 선택·답변이 남지 않게 한다
   const [selectedByGroup, setSelectedByGroup] = useState<
     Record<string, number>
   >({});
   const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);
-  // 현장 신청 경로를 고른 묶음. 기본은 사전 신청이다
+  // 신청 경로를 직접 고른 묶음(true 현장, false 사전). 고르지 않으면 현장 접수 기간 중에는 현장이 기본이다
   const [onsiteGroups, setOnsiteGroups] = useState<Record<string, boolean>>({});
   // 둘 이상의 프로그램이 함께 쓰는 묶음
   const sharedGroups = useMemo(() => {
@@ -448,12 +549,24 @@ const ProgramApplyContainer = ({
   const [outcomes, setOutcomes] = useState<Record<number, ProgramApplyOutcome>>(
     {},
   );
+  // 행사가 시작되면 사전등록을 받지 않으므로 회차 사전등록으로 보내지 않는다
+  const { released: isFieldReleased } = useFieldRelease(expoId);
 
   return withLoading({
     isLoading,
     children: (
       <div className="mt-30 flex w-full max-w-[816px] flex-col gap-24">
-        <DetailHeader headerTitle={`${label} 신청`} />
+        <DetailHeader
+          headerTitle={`${label} 신청`}
+          // 인증 화면을 거치거나 링크로 바로 열면 이전 기록이 없거나 인증 화면이라 신청 목록으로 보낸다
+          onBack={() =>
+            router.push(
+              getExpoRoutes(expoId).applicationListTab(
+                programType === 'TRAINING' ? 'training' : 'program',
+              ),
+            )
+          }
+        />
         <p className="break-keep text-body2r text-gray-500">
           {label}마다 따로 신청합니다.
         </p>
@@ -483,21 +596,42 @@ const ProgramApplyContainer = ({
           const formId = getProgramFormId(program);
           const outcome = outcomes[program.id];
           const isOpen = openGroupKey === group.key;
-          // 라디오는 현장 정원이 있는 회차에서만 보이므로, 정원 없는 회차로 바꾸면 사전 신청으로 돌아간다
-          const onsite =
-            !!program.policy?.onsiteCapacity && !!onsiteGroups[group.key];
           const status = getProgramScheduleStatus(program, now);
+          // 현장 신청은 현장 접수 기간 중에만 고를 수 있다. 기간 중에는 현장이 기본이고,
+          // 사전 접수 기간이 끝났으면 사전 신청은 고를 수 없다
+          const onsiteOpen =
+            !program.policy?.closed &&
+            getOnsitePhase(program.policy, now) === 'OPEN';
+          const preOpen =
+            !!program.policy && isPreApplicationOpen(program.policy, now);
+          const onsite =
+            onsiteOpen && (!preOpen || onsiteGroups[group.key] !== false);
+          // 현장 신청은 사전등록 회차와 상관없는 경로라 맞추지 않는다
+          const isTimeMismatch =
+            !onsite && !matchesSessionTime(program, sessionWindows);
+          // 시간이 맞지 않으면 이 프로그램 시간과 겹치고 아직 신청하지 않은 접수 중 회차를 골라 사전등록을 안내한다
+          const addSession =
+            isTimeMismatch && !isFieldReleased
+              ? preRegisterSessions?.find(
+                  (session) =>
+                    getPreRegisterSessionState(session) === 'OPEN' &&
+                    matchesSessionTime(program, [session]) &&
+                    !appliedSessionIds.has(session.id),
+                )
+              : undefined;
           // 현장 신청은 사전 접수 기간과 따로 서버가 판정하므로 막지 않는다. 운영 마감은 경로와 상관없이 막는다
           const blockedLabel =
             program.policy?.closed || status === 'ENDED'
               ? '신청 마감'
-              : onsite
-                ? undefined
-                : status === 'UPCOMING' && program.policy
-                  ? `${formatFormPeriod(program.policy.applicationStartedAt)}부터 신청`
-                  : status === 'CLOSED'
-                    ? '사전 신청 마감'
-                    : undefined;
+              : isTimeMismatch
+                ? '회차 시간이 맞지 않음'
+                : onsite
+                  ? undefined
+                  : status === 'UPCOMING' && program.policy
+                    ? `${formatFormPeriod(program.policy.applicationStartedAt)}부터 신청`
+                    : status === 'CLOSED'
+                      ? '사전 신청 마감'
+                      : undefined;
           const notes = program.policy
             ? getProgramPolicyNotes(
                 program.policy,
@@ -515,18 +649,51 @@ const ProgramApplyContainer = ({
           return (
             <section
               key={group.key}
-              className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16"
+              className={`flex flex-col gap-20 rounded-sm border-1 border-solid p-24 mobile:p-16 ${isTimeMismatch ? 'relative overflow-hidden border-[#f5b5b8]' : 'border-gray-200'}`}
             >
               <div className="flex min-w-0 items-start justify-between gap-12">
-                <p className="min-w-0 break-words break-keep text-h3b text-black mobile:text-body1b">
+                <p
+                  className={`min-w-0 break-words break-keep text-h3b text-black mobile:text-body1b ${isTimeMismatch ? 'pr-48' : ''}`}
+                >
                   {program.title}
                 </p>
-                <span
-                  className={`flex-none rounded-full px-12 py-4 text-caption1b ${STATUS_CLASS[status]}`}
-                >
-                  {SCHEDULE_STATUS_LABEL[status]}
-                </span>
+                {isTimeMismatch ? (
+                  <span
+                    aria-hidden
+                    className="absolute -right-40 top-24 w-[150px] rotate-45 bg-error py-4 text-center text-caption1b text-white"
+                  >
+                    신청 불가
+                  </span>
+                ) : (
+                  <span
+                    className={`flex-none rounded-full px-12 py-4 text-caption1b ${STATUS_CLASS[status]}`}
+                  >
+                    {SCHEDULE_STATUS_LABEL[status]}
+                  </span>
+                )}
               </div>
+
+              {isTimeMismatch && (
+                <div
+                  role="status"
+                  className="flex items-center gap-12 break-keep rounded-sm bg-[#fdeced] px-16 py-12"
+                >
+                  <span
+                    aria-hidden
+                    className="flex h-28 w-28 flex-none items-center justify-center rounded-full bg-error text-body2b text-white"
+                  >
+                    ✕
+                  </span>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-body2b text-error">
+                      사전등록 회차와 시간이 맞지 않습니다.
+                    </p>
+                    <p className="text-caption1r text-gray-700">
+                      선생님이 사전등록한 회차와 다른 시간의 프로그램입니다.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {group.sessions.length > 1 && (
                 <fieldset className="flex flex-col gap-8">
@@ -579,23 +746,25 @@ const ProgramApplyContainer = ({
               )}
 
               <dl className="grid grid-cols-[88px_1fr] gap-x-16 gap-y-10 rounded-sm bg-gray-100 px-20 py-16 mobile:grid-cols-[72px_1fr] mobile:px-16">
-                {getProgramInfoRows(program).map(({ label: name, value }) => (
-                  <Fragment key={name}>
-                    <dt className="text-body2r text-gray-500">{name}</dt>
-                    <dd className="min-w-0 break-words break-keep text-body2b text-black">
-                      {value}
-                    </dd>
-                  </Fragment>
-                ))}
+                {getProgramInfoRows(program, now).map(
+                  ({ label: name, value }) => (
+                    <Fragment key={name}>
+                      <dt className="text-body2r text-gray-500">{name}</dt>
+                      <dd className="min-w-0 break-words break-keep text-body2b text-black">
+                        {value}
+                      </dd>
+                    </Fragment>
+                  ),
+                )}
               </dl>
 
-              {!!program.policy?.onsiteCapacity && (
+              {onsiteOpen && (
                 <fieldset className="flex flex-col gap-8">
                   <legend className="mb-8 text-body2b text-black">
                     신청 경로
                   </legend>
                   <div className="flex gap-8">
-                    {[false, true].map((isOnsite) => (
+                    {(preOpen ? [false, true] : [true]).map((isOnsite) => (
                       <label
                         key={String(isOnsite)}
                         className={`flex-1 cursor-pointer rounded-sm border-1 border-solid px-16 py-10 text-center text-body2b has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-main-300 ${onsite === isOnsite ? 'border-main-600 bg-main-100 text-main-600' : 'border-gray-200 text-gray-600'}`}
@@ -625,6 +794,29 @@ const ProgramApplyContainer = ({
                     </p>
                   )}
                 </fieldset>
+              )}
+
+              {isTimeMismatch && !isFieldReleased && (
+                <Link
+                  href={getExpoRoutes(expoId).applicationMy}
+                  className="flex h-[44px] items-center justify-center rounded-sm border-1 border-solid border-main-600 bg-white text-body2b text-main-600"
+                >
+                  사전등록한 회차로 이동하기 →
+                </Link>
+              )}
+              {addSession && (
+                <Link
+                  href={`${getExpoRoutes(expoId).applicationMy}&addSessionId=${addSession.id}`}
+                  className="text-center text-body2b text-main-600 underline"
+                >
+                  이 시간대 회차 추가 사전등록 · {addSession.title}
+                </Link>
+              )}
+              {isTimeMismatch && !isFieldReleased && (
+                <p className="rounded-sm bg-gray-100 px-16 py-12 text-caption1r text-gray-600">
+                  사전등록 시 선택한 회차와 동일한 시간의 프로그램만 신청할 수
+                  있습니다.
+                </p>
               )}
 
               {notes.length > 0 && (
@@ -667,13 +859,15 @@ const ProgramApplyContainer = ({
                   온라인 신청서가 연결되지 않았습니다.
                 </p>
               )}
-              <Button
-                type="button"
-                disabled={!formId || !!blockedLabel}
-                onClick={() => setOpenGroupKey(isOpen ? null : group.key)}
-              >
-                {blockedLabel ?? (isOpen ? '닫기' : '신청하기')}
-              </Button>
+              {!isTimeMismatch && (
+                <Button
+                  type="button"
+                  disabled={!formId || !!blockedLabel}
+                  onClick={() => setOpenGroupKey(isOpen ? null : group.key)}
+                >
+                  {blockedLabel ?? (isOpen ? '닫기' : '신청하기')}
+                </Button>
+              )}
               {outcome && (
                 <p
                   role="status"
@@ -696,8 +890,9 @@ const ProgramApplyContainer = ({
                   expoId={expoId}
                   programType={programType}
                   program={program}
-                  waiting={!!waitlist}
+                  waiting={waitlists.length > 0}
                   onsite={onsite}
+                  isFieldReleased={isFieldReleased}
                   onSelect={() =>
                     // 다른 참가자의 이전 결과 문구가 남지 않게 한다
                     setOutcomes((prev) => {

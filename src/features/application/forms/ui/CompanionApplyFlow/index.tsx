@@ -22,19 +22,24 @@ import {
   CompanionCandidate,
   buildBatchRequest,
   buildSteps,
+  findProblemParticipants,
   findReusedGuardian,
   isGuardian,
+  getRoleLabel,
   isLowGrade,
+  isOtherRole,
   moveStep,
   validateSelection,
+  withProblemParticipants,
 } from '../../model/companionSteps';
 import { ProgramApplyOutcome } from '../../model/programApply';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
 type Candidate = CompanionCandidate & { eligible: boolean };
 
-// 신청 가능한 참가자이거나, 이 회차에 이미 신청해 재사용할 보호자
-const isSelectable = (p: Candidate) => p.eligible || !!p.guardianApplied;
+// 학생·보호자가 될 수 있고, 신청 가능한 참가자이거나 이 회차에 이미 신청해 재사용할 보호자
+const isSelectable = (p: Candidate) =>
+  !isOtherRole(p) && (p.eligible || !!p.guardianApplied);
 
 /**
  * 동반 필수 프로그램 신청. 학생·보호자를 고르고 사람별 폼을 한 명씩 작성한 뒤 마지막에 한 번에 제출한다.
@@ -204,12 +209,32 @@ const CompanionApplyFlow = ({
         submitError.status === 409
       )
         refetch();
+      // 사유가 있는 거절은 어느 사람의 신청서를 고쳐야 하는지 함께 알려 준다
+      const problems =
+        submitError instanceof ApplicationSubmitError
+          ? findProblemParticipants(
+              submitError.code,
+              program.policy?.guardianPolicy,
+              steps,
+              Object.fromEntries(
+                steps.map((p) => [
+                  p.participantId,
+                  buildProgramApplyPayload(
+                    form,
+                    all[p.participantId] as DynamicFormValues,
+                  ).answers,
+                ]),
+              ),
+            )
+          : [];
       onResult({
         kind: 'FAILED',
-        message:
+        message: withProblemParticipants(
           submitError instanceof Error
             ? submitError.message
             : '신청에 실패했습니다',
+          problems,
+        ),
       });
     } finally {
       inFlight.current = false;
@@ -243,7 +268,7 @@ const CompanionApplyFlow = ({
               />
               {p.name}
               <span className="text-caption1r text-gray-500">
-                {isGuardian(p) ? '(보호자)' : '(학생)'}
+                ({getRoleLabel(p)})
               </span>
               {p.guardianApplied && (
                 <span className="text-caption1r text-main-600">
@@ -253,7 +278,9 @@ const CompanionApplyFlow = ({
               )}
               {!isSelectable(p) && (
                 <span className="text-caption1r text-gray-500">
-                  (신청할 수 없는 참가자)
+                  {isOtherRole(p)
+                    ? '(학생이나 보호자만 이 신청에 함께할 수 있습니다)'
+                    : '(신청할 수 없는 참가자)'}
                 </span>
               )}
             </label>

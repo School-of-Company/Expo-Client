@@ -2,16 +2,29 @@ import axios from 'axios';
 import { fromOffsetDateTime } from '@/features/registration/common/lib/dateTime';
 import clientInstance from '@/shared/libs/http/clientInstance';
 
+/**
+ * 대상별 정원 회차의 잔여석. 교사 쪽은 남았는지만 알리고 숫자는 주지 않는다.
+ * ownTeacherRemaining 은 참가자 세션으로 확인한 확정 교사 소유자에게만 채워진다
+ */
+export interface TargetSeats {
+  teacherAvailable: boolean;
+  nonTeacherRemaining: number;
+  nonTeacherMaxApplicants: number;
+  ownTeacherRemaining?: number | null;
+}
+
 /** 화면 안내용 값. 최종 정원 판정은 제출 시 서버가 다시 한다. */
 export interface PreRegisterCapacity {
   sessionId: number;
-  /** 남은 자리 */
-  remaining: number;
-  /** 확정으로 받는 1회 신청 최대 인원(대표자 포함) */
-  maxApplicants: number;
+  /** 남은 자리. 대상별 정원 회차는 합계에서 교사 숫자가 드러나지 않게 null 이고 targetSeats 를 준다 */
+  remaining: number | null;
+  /** 확정으로 받는 1회 신청 최대 인원(대표자 포함). 대상별 정원 회차는 null */
+  maxApplicants: number | null;
   /** 대기 도입 이후 서버가 주는 값. 구형 응답에는 없다. */
-  confirmed?: number;
+  confirmed?: number | null;
   waiting?: number;
+  /** 교사·예비교사 / 그 외를 따로 받는 회차(Application #173)에서만 온다. 대기를 받지 않고, 한쪽 좌석만 모자라도 일행 전체가 거절된다 */
+  targetSeats?: TargetSeats | null;
   /**
    * 대기로 받는 1회 신청 최대 인원(대표자 포함). 확정 자리가 모자라면 일행 전체가 대기로 접수된다.
    * 내려주지 않으면 0(대기 불가)으로 본다.

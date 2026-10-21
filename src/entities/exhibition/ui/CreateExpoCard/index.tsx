@@ -6,7 +6,7 @@ import { COLORS } from '@/shared/config';
 const CreateExpoCard = () => {
   return (
     <Link
-      href="/exhibition/create"
+      href="/admin/exhibition/create"
       className="flex h-[150px] items-center justify-center gap-12 rounded-sm border-1 border-dashed border-gray-300 bg-white p-18 duration-200 hover:border-main-600"
     >
       <Plus fill={COLORS.main600} />

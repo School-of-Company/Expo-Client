@@ -24,8 +24,8 @@ const matchesTrigger = (value: unknown, conditional: FieldConditional) => {
 };
 
 /**
- * `index` 문항이 보이는지 판정한다. 자기 조건이 맞고 부모도 보여야 보인다.
- * 부모가 없는 인덱스를 가리키거나 조건이 순환하면 숨긴다.
+ * `index` 문항이 보이는지 판정한다. 자기 조건이 맞고 부모도 보여야 보인다(연쇄 조건 Q1→Q2→Q3).
+ * 부모가 없는 인덱스를 가리키면(스펙 오류) Form 서버처럼 그 단계는 보이는 것으로 본다. 조건이 순환하면 숨긴다.
  */
 export const isFieldVisible = (
   fields: readonly ConditionalField[],
@@ -43,7 +43,7 @@ export const isFieldVisible = (
 
     const { parentIndex } = conditional;
     const parent = fields[parentIndex];
-    if (!parent) return false;
+    if (!parent) return true;
     if (!matchesTrigger(values[String(parent.id)], conditional)) return false;
     current = parentIndex;
   }

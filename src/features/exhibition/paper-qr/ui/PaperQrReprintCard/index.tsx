@@ -5,7 +5,10 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { Button, Input } from '@/shared/ui';
 import { revokeQrToken } from '../../api/qrTokensApi';
-import { PAPER_QR_CATEGORIES, PaperQrCategory } from '../../model/constants';
+import {
+  PAPER_QR_REPRINT_CATEGORIES,
+  PaperQrCategory,
+} from '../../model/constants';
 import { paperQrSummaryQueryKey } from '../../model/usePaperQrSummary';
 
 export const MAX_REPRINT_LOOKUP = 120;
@@ -87,7 +90,7 @@ const PaperQrReprintCard = ({
                 })
               }
             >
-              {PAPER_QR_CATEGORIES.map(({ value, label }) => (
+              {PAPER_QR_REPRINT_CATEGORIES.map(({ value, label }) => (
                 <option key={value} value={value}>
                   {label}
                 </option>

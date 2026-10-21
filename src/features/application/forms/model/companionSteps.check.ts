@@ -5,10 +5,14 @@ import assert from 'node:assert/strict';
 import {
   buildBatchRequest,
   buildSteps,
+  findProblemParticipants,
   findReusedGuardian,
+  getRoleLabel,
+  isOtherRole,
   isLowGrade,
   moveStep,
   validateSelection,
+  withProblemParticipants,
 } from './companionSteps.ts';
 
 const student = (id: number) => ({
@@ -86,4 +90,63 @@ assert.equal(moveStep(0, -1, 3), 0);
 assert.equal(moveStep(2, 1, 3), 2);
 assert.equal(moveStep(1, 1, 3), 2);
 
+// 역할 표시: 교사·예비교사·일반은 학생으로 보이지 않고 선택할 수 없다
+const other = (occupation: string | null) => ({ occupation });
+assert.equal(getRoleLabel(other('TEACHER')), '교사');
+assert.equal(getRoleLabel(other('PRE_SERVICE_TEACHER')), '예비교사');
+assert.equal(getRoleLabel(other('GENERAL')), '일반');
+assert.equal(getRoleLabel(other('PARENT')), '보호자');
+assert.equal(getRoleLabel(other('MIDDLE_SCHOOL_STUDENT')), '학생');
+assert.equal(getRoleLabel(other(null)), '학생');
+assert.equal(isOtherRole(other('TEACHER')), true);
+assert.equal(isOtherRole(other('ELEMENTARY_STUDENT')), false);
+assert.equal(isOtherRole(other(null)), false);
+
 console.log('companionSteps ok');
+
+// 거절 사유로 고쳐야 할 신청서를 가려 낸다
+const guarded = { ...policy, guardianSchoolValue: 'PARENT_KEY' };
+const answers = {
+  1: { '101': 'ELEM', '102': 'g2' },
+  2: { '101': 'ELEM', '102': 'zz' },
+  9: { '101': 'ELEM' },
+};
+assert.deepEqual(
+  findProblemParticipants('GUARDIAN_REQUIRED', guarded, [a, b, p], answers).map(
+    (x) => x.participantId,
+  ),
+  [1],
+);
+assert.deepEqual(
+  findProblemParticipants('GRADE_INVALID', guarded, [a, b, p], answers).map(
+    (x) => x.participantId,
+  ),
+  [2],
+);
+assert.deepEqual(
+  findProblemParticipants(
+    'SCHOOL_TYPE_MISMATCH',
+    guarded,
+    [a, b, p],
+    answers,
+  ).map((x) => x.participantId),
+  [9],
+);
+assert.deepEqual(
+  findProblemParticipants(
+    'COMPANION_LIMIT_REACHED',
+    guarded,
+    [a, b, p],
+    answers,
+  ),
+  [],
+);
+assert.deepEqual(
+  findProblemParticipants('GRADE_INVALID', null, [a], answers),
+  [],
+);
+assert.equal(
+  withProblemParticipants('학년을 확인해 주세요.', [b]),
+  '학년을 확인해 주세요. 확인할 신청서: s2(학생)',
+);
+assert.equal(withProblemParticipants('x', []), 'x');

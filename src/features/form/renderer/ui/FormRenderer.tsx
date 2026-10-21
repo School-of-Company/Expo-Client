@@ -4,8 +4,8 @@ import React from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { FormSchema } from '@/features/form/common/model/formSchema';
 import { useLeaveConfirm } from '@/shared/model';
-import { FormValues } from '../lib/visibilityEngine';
-import FieldRenderer from './FieldRenderer';
+import { FormValues, getVisibleFieldIds } from '../lib/visibilityEngine';
+import FieldRenderer, { LockedPhone, OccupationLock } from './FieldRenderer';
 
 interface FormRendererProps {
   schema: FormSchema;
@@ -14,6 +14,10 @@ interface FormRendererProps {
   renderFooter?: (methods: UseFormReturn<FormValues>) => React.ReactNode;
   /** 회차 잔여석 등 폼 정의 밖에서 오는 동행자 상한. */
   companionMaxCount?: number;
+  /** 유형별 오픈 시각 전에 고를 수 없는 직업을 막는다 */
+  occupationLock?: OccupationLock;
+  /** 휴대폰 인증한 번호를 전화번호 문항에 채우고 잠근다 */
+  lockedPhone?: LockedPhone;
 }
 
 export default function FormRenderer({
@@ -22,9 +26,16 @@ export default function FormRenderer({
   defaultValues = {},
   renderFooter,
   companionMaxCount,
+  occupationLock,
+  lockedPhone,
 }: FormRendererProps) {
   const methods = useForm<FormValues>({
-    defaultValues,
+    defaultValues: lockedPhone
+      ? {
+          ...defaultValues,
+          [lockedPhone.fieldId]: lockedPhone.value,
+        }
+      : defaultValues,
   });
 
   const {
@@ -37,6 +48,9 @@ export default function FormRenderer({
   } = methods;
 
   useLeaveConfirm(isDirty);
+
+  // 숨겨진 부모의 옛 값이 남아 있어도 자식이 뜨지 않도록 부모 연쇄까지 본다
+  const visibleIds = getVisibleFieldIds(schema.items, watch());
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-20">
@@ -60,6 +74,9 @@ export default function FormRenderer({
           watch={watch}
           setValue={setValue}
           companionMaxCount={companionMaxCount}
+          occupationLock={occupationLock}
+          lockedPhone={lockedPhone}
+          visible={visibleIds.has(item.id)}
         />
       ))}
 

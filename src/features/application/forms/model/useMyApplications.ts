@@ -7,9 +7,10 @@ import {
   OwnerApplicationType,
   addMyPreRegisterCompanions,
   cancelMyApplication,
+  addMyPreRegisterSession,
   cancelMyPreRegisterWaitlist,
   getMyApplications,
-  getMyPreRegisterWaitlist,
+  getMyPreRegisterWaitlists,
   getMyPromotionOffers,
   respondPromotionOffer,
 } from '../api/myApplications';
@@ -26,7 +27,7 @@ export const useMyApplications = (expoId: string) => {
   const waitlistKey = ['myPreRegisterWaitlist', expoId];
   const offersKey = ['myPromotionOffers', expoId];
 
-  const { data, error, refetch } = useQuery({
+  const { data, error, refetch, isLoading } = useQuery({
     queryKey,
     queryFn: () => getMyApplications(expoId),
     retry: false,
@@ -36,18 +37,19 @@ export const useMyApplications = (expoId: string) => {
 
   // 대기 일행은 User 에 없어 위 목록에 나오지 않으므로 따로 조회한다
   const {
-    data: waitlist,
+    data: waitlists,
     error: waitlistError,
     refetch: refetchWaitlist,
+    isLoading: isWaitlistLoading,
   } = useQuery({
     queryKey: waitlistKey,
-    queryFn: () => getMyPreRegisterWaitlist(expoId),
+    queryFn: () => getMyPreRegisterWaitlists(expoId),
     retry: false,
     meta: { silent: true },
   });
 
   // 서버 기능 스위치가 꺼져 있으면 실패할 수 있으므로 오류는 숨기고 제안 없음으로 둔다
-  const { data: offerData } = useQuery({
+  const { data: offerData, isLoading: isOffersLoading } = useQuery({
     queryKey: offersKey,
     queryFn: () => getMyPromotionOffers(expoId),
     retry: false,
@@ -84,8 +86,12 @@ export const useMyApplications = (expoId: string) => {
 
   const { mutate: cancelWaitlist, isPending: isCancellingWaitlist } =
     useMutation({
-      mutationFn: () =>
-        cancelMyPreRegisterWaitlist(expoId, waitlist?.csrfToken),
+      mutationFn: (sessionId: number) =>
+        cancelMyPreRegisterWaitlist(
+          expoId,
+          sessionId,
+          waitlists?.find((item) => item.sessionId === sessionId)?.csrfToken,
+        ),
       onSuccess: () => toast.success('대기 신청이 취소되었습니다.'),
       onError: (error: Error) => toast.error(error.message),
       onSettled: refresh,
@@ -108,6 +114,22 @@ export const useMyApplications = (expoId: string) => {
         ),
       onSettled: refresh,
     });
+
+  // 결과 안내는 화면이 한다. 실패해도 회차별 신청·대기가 바뀌었을 수 있어 다시 받는다
+  const { mutateAsync: addSession, isPending: isAddingSession } = useMutation({
+    mutationFn: (target: {
+      sessionId: number;
+      participantIds: number[];
+      idempotencyKey: string;
+    }) =>
+      addMyPreRegisterSession(
+        expoId,
+        { sessionId: target.sessionId, participantIds: target.participantIds },
+        target.idempotencyKey,
+        data?.csrfToken,
+      ),
+    onSettled: refresh,
+  });
 
   // 수락·거절 모두 성공·실패 뒤 다시 받는다. 실패(409)해도 서버 상태를 따른다
   const { mutate: respondOffer, isPending: isRespondingOffer } = useMutation({
@@ -132,13 +154,16 @@ export const useMyApplications = (expoId: string) => {
   });
 
   return {
+    // 최초 조회가 끝나기 전. 이때의 빈 목록은 신청 없음이 아니다
+    isLoading: isLoading || isWaitlistLoading || isOffersLoading,
     participants: data?.participants ?? [],
     applications: data?.applications ?? [],
+    qrParticipantIds: data?.qrParticipantIds ?? [],
     // required: 인증한 적 없음, expired: 만료. 취소 뒤 재조회가 401 이면 이쪽으로 드러난다
     sessionIssue: getSessionIssue(error) ?? getSessionIssue(waitlistError),
     errorMessage: visibleError(error),
     retry: () => Promise.all([refetch(), refetchWaitlist()]),
-    waitlist: waitlist ?? null,
+    waitlists: waitlists ?? [],
     waitlistErrorMessage: visibleError(waitlistError),
     // 응답 대기 중(PENDING)·응답 가능(OPEN) 제안만 카드로 보인다
     offers: (offerData?.offers ?? []).filter(
@@ -151,5 +176,7 @@ export const useMyApplications = (expoId: string) => {
     isCancellingWaitlist,
     addCompanions,
     isAddingCompanions,
+    addSession,
+    isAddingSession,
   };
 };

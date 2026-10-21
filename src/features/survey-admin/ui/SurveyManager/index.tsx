@@ -42,7 +42,7 @@ const SurveyManager = () => {
       '',
       '',
     ) as SurveyFormRequest;
-    // 수정하면 문항 id가 새로 발급돼 이미 쌓인 답변과의 연결이 끊긴다
+    // 응답이 있으면 서버가 문항 변경을 409(SURVEY_ALREADY_ANSWERED)로 거부하므로 저장 전에 알린다
     if (isEdit && survey.totalAnswers > 0) {
       setPending(data);
       return;
@@ -156,8 +156,9 @@ const SurveyManager = () => {
                 </button>
               </div>
               <p className="break-keep text-body2r text-gray-500">
-                이미 {survey?.totalAnswers}건의 응답이 있습니다. 수정하면 문항
-                id가 새로 발급돼 기존 답변과 연결이 끊깁니다.
+                이미 {survey?.totalAnswers}건의 응답이 있어 문항은 바꿀 수
+                없습니다. 제목·안내 문구·경품 추첨 설정만 수정할 수 있으며,
+                문항을 추가·삭제·변경했다면 저장되지 않습니다.
               </p>
             </div>
             <div className="flex items-center gap-12">

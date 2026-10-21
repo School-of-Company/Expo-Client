@@ -20,8 +20,8 @@ const APPLICATION_ERROR_MESSAGES: Record<number, string> = {
   401: '인증이 만료되었습니다. 다시 인증한 뒤 신청해주세요.',
   403: '이 신청을 할 권한이 없습니다. 다시 인증해주세요.',
   404: '신청서나 회차를 찾을 수 없습니다. 안내받은 링크를 다시 확인해주세요.',
-  // 서버는 정원 부족(일행 전체 거절)·중복 신청·마감을 같은 409 로 사유 없이 보낸다
-  409: '남은 자리가 부족하거나, 이미 신청했거나, 신청이 마감되어 접수되지 않았습니다. 일행은 나뉘지 않고 함께 거절됩니다. 내 신청을 확인한 뒤 다시 시도해주세요.',
+  // 사유 코드가 없는 409. 남은 자리가 충분해도 올 수 있어 특정 사유로 단정하지 않는다(사유 코드는 서버 문구가 우선)
+  409: '신청이 접수되지 않았습니다. 정원, 이미 한 신청, 접수 마감, 다른 요청과의 겹침 등이 원인일 수 있습니다. 일행은 나뉘지 않고 함께 거절됩니다. 내 신청을 확인한 뒤 다시 시도해주세요.',
   429: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
   502: '서버 응답에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
   503: '일시적으로 등록할 수 없습니다. 잠시 후 다시 시도해주세요.',
@@ -30,8 +30,21 @@ const APPLICATION_ERROR_MESSAGES: Record<number, string> = {
 // 서버 오류 코드로 상태 코드보다 구체적으로 안내한다
 const APPLICATION_ERROR_CODE_MESSAGES: Record<string, string> = {
   ...INELIGIBLE_REASON_LABEL,
+  // 보호자 동반 정책의 거절 사유(403·409). 참가자가 무엇을 고쳐야 하는지 알려 준다
+  GUARDIAN_REQUIRED: '초등 1~3학년은 보호자와 함께 신청해 주세요.',
+  GRADE_INVALID: '학년을 확인해 주세요.',
+  SCHOOL_TYPE_MISMATCH: '학교급 선택이 참가자 정보와 맞지 않습니다.',
+  COMPANION_LIMIT_REACHED: '일행은 최대 5명입니다.',
   WAITLIST_WITHDRAWN:
     '취소한 대기 신청입니다. 다시 신청하려면 처음부터 새로 신청해주세요.',
+};
+
+// 서버 문구가 더 구체적인 코드. 서버 문구(오픈 날짜 포함)가 없을 때만 쓴다
+const APPLICATION_ERROR_CODE_FALLBACKS: Record<string, string> = {
+  PHONE_IN_USE:
+    '이 번호로 이미 신청한 내역이 있습니다. 나의 신청 현황에서 확인해주세요.',
+  OCCUPATION_NOT_OPEN:
+    '교원·예비교사 외 유형은 아직 신청할 수 없습니다. 신청 가능 일정을 확인해주세요.',
 };
 
 /** 제출 실패. 화면이 인증 만료(401)·키 교체가 필요한 코드를 구분할 수 있게 상태와 코드를 남긴다. */
@@ -92,6 +105,7 @@ const submit = async (
         throw new ApplicationSubmitError(
           (code && APPLICATION_ERROR_CODE_MESSAGES[code]) ||
             specific ||
+            (code && APPLICATION_ERROR_CODE_FALLBACKS[code]) ||
             messages[status] ||
             serverText ||
             '폼 등록 실패',

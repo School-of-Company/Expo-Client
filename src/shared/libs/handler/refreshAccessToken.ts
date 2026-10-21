@@ -33,14 +33,21 @@ export async function refreshAccessToken(
       refreshTokenExpiresIn,
     } = response.data;
 
+    const accessTokenExpires = parseExpiresAt(accessTokenExpiresIn);
+    const refreshTokenExpires = parseExpiresAt(refreshTokenExpiresIn);
     setAuthCookies({
       accessToken,
       refreshToken: newRefreshToken,
-      accessTokenExpires: parseExpiresAt(accessTokenExpiresIn),
-      refreshTokenExpires: parseExpiresAt(refreshTokenExpiresIn),
+      accessTokenExpires,
+      refreshTokenExpires,
     });
 
-    return { accessToken, refreshToken: newRefreshToken };
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+      accessTokenExpires: accessTokenExpires?.toISOString(),
+      refreshTokenExpires: refreshTokenExpires?.toISOString(),
+    };
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) return null;
     throw new RefreshUnavailableError();

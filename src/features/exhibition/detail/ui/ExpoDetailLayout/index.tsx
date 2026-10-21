@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   ContentListText,
   ContentText,
@@ -31,6 +32,7 @@ const ExpoDetailLayout = ({
   };
   openModal: (type: string, content: string) => void;
 }) => {
+  const router = useRouter();
   const date = `${expoDetail?.startedDay} ~ ${expoDetail?.finishedDay}`;
 
   const safeSrc =
@@ -41,7 +43,12 @@ const ExpoDetailLayout = ({
   return (
     <div className="flex w-full flex-col space-y-48">
       <div className="relative">
-        <DetailHeader textCenter={true} headerTitle={expoDetail?.title} />
+        {/* 패널에서 상세로 돌아온 뒤에도 뒤로 가면 이전 패널이 아니라 관리자 메인으로 간다 */}
+        <DetailHeader
+          textCenter={true}
+          headerTitle={expoDetail?.title}
+          onBack={() => router.push('/admin')}
+        />
         <button
           type="button"
           onClick={() => openModal('share', '공유할 항목을 선택하세요.')}

@@ -1,25 +1,23 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { UseFormRegisterReturn, useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
 import {
   PHONE_NUMBER_PATTERN,
   SMS_CODE_PATTERN,
 } from '@/shared/config/validation';
-import { useTimer } from '@/shared/model';
 import { Button, Input } from '@/shared/ui';
+import { formatExpiresAt } from '../../lib/formatExpiresAt';
 import { getExpoId } from '../../lib/getExpoId';
 import { getRedirectPath } from '../../lib/getRedirectPath';
+import { normalizePhoneInput } from '../../lib/normalizePhoneInput';
 import { loadVerifiedPhone, saveVerifiedPhone } from '../../lib/verifiedPhone';
 import { useLogoutParticipantSession } from '../../model/useLogoutParticipantSession';
 import { useParticipantSession } from '../../model/useParticipantSession';
 import { useSendVerificationSms } from '../../model/useSendVerificationSms';
+import { useSmsCodeCountdown } from '../../model/useSmsCodeCountdown';
 import { useVerifySmsCode } from '../../model/useVerifySmsCode';
-
-// 서버 인증번호 유효시간(Notification authCodeTtlSeconds). 다시 보내도 늘어나지 않는다
-const SMS_CODE_EXPIRY_SECONDS = 300;
 
 interface PhoneVerificationFormValues {
   phoneNumber: string;
@@ -28,12 +26,6 @@ interface PhoneVerificationFormValues {
 
 const formatTimer = (timer: number) =>
   `${Math.floor(timer / 60)}:${String(timer % 60).padStart(2, '0')}`;
-
-const formatExpiresAt = (expiresAt: string) =>
-  new Date(`${expiresAt}Z`).toLocaleTimeString('ko-KR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 
 const VerificationFields = ({ expoId }: { expoId: string }) => {
   const router = useRouter();
@@ -49,23 +41,35 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
     trigger,
     getValues,
     clearErrors,
+    resetField,
     watch,
     formState: { errors },
   } = useForm<PhoneVerificationFormValues>();
 
-  const [isSmsSent, setIsSmsSent] = useState(false);
+  /** 인증번호를 보낸 번호. 번호를 고치면 지우고 다시 보내게 한다 */
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const [isSmsVerified, setIsSmsVerified] = useState(false);
-  const [timer, setTimer] = useState(0);
-
-  useTimer(timer, setTimer, setIsSmsSent, isSmsVerified);
+  const countdown = useSmsCodeCountdown();
+  const isSmsSent = sentTo !== null && !countdown.isExpired;
+  const isSmsExpired = sentTo !== null && countdown.isExpired;
+  const phoneNumber = watch('phoneNumber');
 
   const { mutate: sendSms, isPending: isSendingSms } = useSendVerificationSms(
     expoId,
-    () => {
-      setIsSmsSent(true);
-      setTimer(SMS_CODE_EXPIRY_SECONDS);
+    (sentPhoneNumber) => {
+      setSentTo(sentPhoneNumber);
+      countdown.start(sentPhoneNumber);
     },
   );
+
+  // 보낸 번호와 다르게 고치면 그 인증번호로는 확인할 수 없다. 재전송 제한은 서버(Gateway rateLimit.sms)가 지킨다
+  const { clear: clearCountdown } = countdown;
+  useEffect(() => {
+    if (sentTo === null || phoneNumber === sentTo) return;
+    setSentTo(null);
+    clearCountdown();
+    resetField('code');
+  }, [phoneNumber, sentTo, clearCountdown, resetField]);
 
   const { mutate: verifySmsCode, isPending: isVerifying } = useVerifySmsCode(
     expoId,
@@ -84,16 +88,8 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
     if (isValid) sendSms(getValues('phoneNumber'));
   };
 
-  // 설문은 번호로 응답자를 찾는데 세션 응답에는 번호가 없다. 번호를 모르면 되돌아오는 반복이 되므로 다시 인증받는다
-  const handleContinue = () => {
-    const phoneNumber = loadVerifiedPhone(expoId);
-    if (!phoneNumber && redirect.includes('userType=')) {
-      toast.info('번호 확인을 위해 다시 인증해 주세요.');
-      logoutSession();
-      return;
-    }
-    router.replace(getRedirectPath(redirect, phoneNumber));
-  };
+  const handleContinue = () =>
+    router.replace(getRedirectPath(redirect, loadVerifiedPhone(expoId)));
 
   const onSubmit = (data: PhoneVerificationFormValues) => {
     verifySmsCode(data);
@@ -102,17 +98,22 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
   // 버튼을 누르기 전까지는 검증 메시지를 띄우지 않고, 다시 입력하면 지운다
   const withDigitsOnly = (
     registration: UseFormRegisterReturn<keyof PhoneVerificationFormValues>,
+    normalize = (value: string) => value.replace(/[^0-9]/g, ''),
   ) => ({
     ...registration,
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+      e.target.value = normalize(e.target.value);
       clearErrors(registration.name);
       return registration.onChange(e);
     },
   });
 
   return (
-    <form className="space-y-[50px]" onSubmit={handleSubmit(onSubmit)}>
+    <form
+      method="POST"
+      className="space-y-[50px]"
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <div className="flex flex-col items-center gap-12 text-center">
         <p className="text-body1b text-main-600 mobile:text-body2b">
           프로그램 신청 및 QR 발급을 위한
@@ -169,28 +170,23 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
                   required: '연락처를 입력해주세요.',
                   pattern: PHONE_NUMBER_PATTERN,
                 }),
+                normalizePhoneInput,
               )}
               type="tel"
               inputMode="numeric"
-              maxLength={11}
               placeholder="연락처는 - 빼고 입력해주세요"
-              disabled={isSmsSent || isSmsVerified}
+              disabled={isSmsVerified}
               error={!!errors.phoneNumber}
             />
             <Button
               onClick={handleSendSms}
               width="120px"
-              disabled={
-                !watch('phoneNumber') ||
-                isSendingSms ||
-                isSmsSent ||
-                isSmsVerified
-              }
+              disabled={!phoneNumber || isSendingSms || isSmsVerified}
             >
               {isSmsVerified
                 ? '인증 완료'
-                : isSmsSent
-                  ? formatTimer(timer)
+                : sentTo !== null
+                  ? '다시 보내기'
                   : '인증 번호'}
             </Button>
           </div>
@@ -220,6 +216,16 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
           />
           {errors.code && (
             <p className="text-caption1r text-error">{errors.code.message}</p>
+          )}
+          {isSmsSent && !isSmsVerified && (
+            <p className="text-caption1r text-gray-500">
+              남은 시간 {formatTimer(countdown.remainingSeconds)}
+            </p>
+          )}
+          {isSmsExpired && !isSmsVerified && (
+            <p role="status" className="text-caption1r text-error">
+              인증 번호 유효시간이 지났습니다. 다시 보내주세요.
+            </p>
           )}
         </div>
       </div>

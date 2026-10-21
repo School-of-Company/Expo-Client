@@ -5,7 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useDeleteFormMutation } from '@/entities/form';
-import { FormEditor } from '@/features/form/common';
+import {
+  FormEditor,
+  getOccupationOpenAtError,
+  OccupationOpenAtField,
+  OccupationOpenAtValue,
+  toOccupationOpenAtRequest,
+  toOccupationOpenAtValue,
+} from '@/features/form/common';
 import {
   transformServerData,
   useEditFormMutation,
@@ -17,6 +24,7 @@ import { withLoading } from '@/shared/hocs';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { useExpoDetail } from '@/shared/queries';
 import { ApplicationType } from '@/shared/types/exhibition/type';
+import { FormValues } from '@/shared/types/form/create/type';
 import { Button } from '@/shared/ui';
 import { Header, ModalLayout } from '@/widgets/layout';
 
@@ -50,6 +58,27 @@ const EditForm = ({ id }: { id: string }) => {
   const remove = useDeleteFormMutation(id);
 
   const [confirming, setConfirming] = useState(false);
+  // 유형별 오픈은 일반 사전등록만 쓴다. 손대기 전에는 저장된 값을 보여 준다
+  const hasOccupationOpen =
+    mode === 'application' && type === 'STANDARD' && application === 'PRE';
+  const savedOccupationOpenAt =
+    data && 'occupationOpenAt' in data ? data.occupationOpenAt : null;
+  const [occupationEdit, setOccupationEdit] =
+    useState<OccupationOpenAtValue | null>(null);
+  const occupation =
+    occupationEdit ?? toOccupationOpenAtValue(savedOccupationOpenAt);
+  const occupationError = hasOccupationOpen
+    ? getOccupationOpenAtError(occupation, startDate || '', endDate || '')
+    : null;
+
+  const handleSubmit = (values: FormValues) => {
+    if (!hasOccupationOpen) return handleSubmitForm(values);
+    if (occupationError) return toast.error(occupationError);
+    handleSubmitForm(
+      values,
+      toOccupationOpenAtRequest(occupation, savedOccupationOpenAt),
+    );
+  };
   const audience = type === 'TRAINEE' ? '연수자' : '참가자';
   const kind = application === 'FIELD' ? '현장등록' : '사전등록';
 
@@ -103,12 +132,21 @@ const EditForm = ({ id }: { id: string }) => {
                 </Button>
               </div>
             )}
+            {hasOccupationOpen && data && (
+              <OccupationOpenAtField
+                value={occupation}
+                onChange={setOccupationEdit}
+                startDate={startDate || ''}
+                endDate={endDate || ''}
+                error={occupationError}
+              />
+            )}
             <FormEditor
               expoId={id}
               type={type}
               mode={mode}
               defaultValues={defaultValues}
-              onSubmit={handleSubmitForm}
+              onSubmit={handleSubmit}
               isLoading={isApplicationPending || isSurveyPending}
               isSuccess={isApplicationSuccess || isSurveySuccess}
             />

@@ -23,17 +23,11 @@ const isRefreshFailure = async (data: unknown) => {
 clientTokenInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const config = error.config;
-
     if (
       axios.isAxiosError(error) &&
       error.response?.status === 401 &&
       (await isRefreshFailure(error.response.data))
     ) {
-      if (config?.skipAuthRedirect) {
-        return Promise.reject(error);
-      }
-
       window.location.href = '/signin';
       // 이동하는 동안 호출부가 성공(undefined)으로 처리하지 않도록 끝나지 않는 Promise 로 둔다
       return new Promise(() => {});

@@ -87,7 +87,6 @@ export interface Companion {
 }
 
 export interface FormattedSurveyData {
-  phoneNumber: string;
   personalInformationStatus: boolean;
   answers: SurveyAnswers;
 }

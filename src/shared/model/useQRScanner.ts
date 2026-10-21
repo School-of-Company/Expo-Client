@@ -18,6 +18,7 @@ const isEditableTarget = (target: EventTarget | null) =>
 /**
  * USB 스캐너(키보드 HID + Enter) 입력을 QR 값으로 바꾼다.
  * 돌려주는 submitScan 은 직접 입력한 값을 같은 규칙(중복 무시·형식 검사)으로 처리한다.
+ * clearLastScan 은 요청이 실패했을 때 불러 같은 QR의 재스캔을 허용한다.
  * onInvalid 는 형식이 틀린 값을 화면에도 남기고 싶을 때 쓴다
  */
 export const useQRScanner = (
@@ -72,7 +73,11 @@ export const useQRScanner = (
       if (event.key.length !== 1 && event.key !== 'Enter') return;
       if (isEditableTarget(event.target)) return;
 
-      if (!isScanningRef.current) {
+      // 문자 없이 Enter만 온 것은 스캔이 아니다. 포커스된 버튼의 Enter 동작을 그대로 둔다
+      if (event.key === 'Enter' && bufferRef.current === '') return;
+
+      const wasScanning = isScanningRef.current;
+      if (!wasScanning) {
         isScanningRef.current = true;
         bufferRef.current = '';
       }
@@ -83,11 +88,19 @@ export const useQRScanner = (
           timeoutRef.current = null;
         }
 
+        // 스캔을 끝내는 Enter가 포커스된 버튼까지 누르지 않게 한다
+        event.preventDefault();
         handleQRScan(bufferRef.current);
 
         bufferRef.current = '';
         isScanningRef.current = false;
         return;
+      }
+
+      // 스캔 도중 들어온 문자(특히 공백)가 포커스된 버튼을 누르지 않게 한다.
+      // 첫 글자는 일반 타이핑과 구분할 수 없어 그대로 둔다
+      if (wasScanning && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
       }
 
       bufferRef.current += event.key;
@@ -106,5 +119,10 @@ export const useQRScanner = (
     };
   }, [handleQRScan]);
 
-  return { submitScan: handleQRScan };
+  // 요청이 실패한 스캔은 중복 기준에서 빼서 바로 다시 찍을 수 있게 한다
+  const clearLastScan = useCallback(() => {
+    lastScanRef.current = null;
+  }, []);
+
+  return { submitScan: handleQRScan, clearLastScan };
 };

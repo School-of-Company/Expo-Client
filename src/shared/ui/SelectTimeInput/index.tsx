@@ -9,6 +9,7 @@ interface SelectTimeInputProps {
   placeholder?: string;
   /** 스크롤 컨테이너 안에서 달력이 잘리지 않도록 body 로 띄울 때 사용 */
   portalId?: string;
+  disabled?: boolean;
 }
 
 interface CustomInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -17,7 +18,7 @@ interface CustomInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 const CustomTimeInput = forwardRef<HTMLInputElement, CustomInputProps>(
-  ({ value, onClick, placeholder }, ref) => {
+  ({ value, onClick, placeholder, disabled }, ref) => {
     const isEmpty = !value;
 
     return (
@@ -27,7 +28,8 @@ const CustomTimeInput = forwardRef<HTMLInputElement, CustomInputProps>(
         onClick={onClick}
         placeholder={placeholder}
         readOnly
-        className={`flex w-full rounded-sm border-1 border-solid border-gray-200 bg-transparent px-8 py-4 text-body2r outline-none duration-200 ${isEmpty ? 'text-center' : 'text-left'}`}
+        disabled={disabled}
+        className={`flex w-full rounded-sm border-1 border-solid border-gray-200 bg-transparent px-8 py-4 text-body2r outline-none duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${isEmpty ? 'text-center' : 'text-left'}`}
       />
     );
   },
@@ -40,6 +42,7 @@ const SelectTimeInput = ({
   onChange,
   placeholder = '시간을 선택해주세요',
   portalId,
+  disabled,
 }: SelectTimeInputProps) => {
   return (
     <div className="relative w-full">
@@ -55,6 +58,7 @@ const SelectTimeInput = ({
         customInput={<CustomTimeInput placeholder={placeholder} />}
         wrapperClassName="w-full"
         portalId={portalId}
+        disabled={disabled}
       />
     </div>
   );

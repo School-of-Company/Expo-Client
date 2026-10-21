@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 배포(cd.yml)와 같은 Node 버전으로 검사한다
+      # 운영 배포는 Vercel GitHub 연동이 develop push 를 받아 직접 빌드한다. 여기서는 PR 의 lint·빌드만 검사한다
       - name: Use Node.js 22.14.0
         uses: actions/setup-node@v4
         with:

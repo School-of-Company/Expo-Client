@@ -90,3 +90,38 @@ export function evaluateVisibility(
 
   return true;
 }
+
+/**
+ * 문항마다 보이는지 판정한다. 자기 조건이 맞고 조건이 가리키는 부모 문항도 보여야 보인다(연쇄 조건 Q1→Q2→Q3).
+ * 숨겨진 부모의 옛 값이 폼 상태에 남아 있어도 자식을 띄우지 않는다. 목록에 없는 부모는 자기 조건만 보고, 순환은 숨긴다
+ */
+export function getVisibleFieldIds(
+  items: readonly { id: string; logic?: FormLogic }[],
+  formValues: FormValues,
+): Set<string> {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const memo = new Map<string, boolean>();
+  const visiting = new Set<string>();
+
+  const isVisible = (id: string): boolean => {
+    const cached = memo.get(id);
+    if (cached !== undefined) return cached;
+    const item = byId.get(id);
+    if (!item) return true;
+    if (visiting.has(id)) return false;
+    visiting.add(id);
+    const parents = (item.logic?.visibility?.conditions ?? []).map(
+      (condition: Condition) => condition.fieldId,
+    );
+    const visible =
+      evaluateVisibility(item.logic, formValues) &&
+      parents.every((parentId) => isVisible(parentId));
+    visiting.delete(id);
+    memo.set(id, visible);
+    return visible;
+  };
+
+  return new Set(
+    items.filter((item) => isVisible(item.id)).map(({ id }) => id),
+  );
+}

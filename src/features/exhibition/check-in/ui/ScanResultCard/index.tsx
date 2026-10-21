@@ -42,13 +42,18 @@ const ScanResultCard = ({
       aria-live="polite"
       className={`flex h-full min-h-[240px] flex-col items-center justify-center gap-10 rounded-sm border-2 border-solid px-20 py-24 text-center ${
         isSuccess ? 'border-main-600' : 'border-error'
-      }`}
+      } ${result.isReEntry ? 'bg-main-100' : ''}`}
     >
       <p className={`text-h1m ${isSuccess ? 'text-main-600' : 'text-error'}`}>
         {result.title}
       </p>
       {result.detail && (
         <p className="break-keep text-body1r text-gray-700">{result.detail}</p>
+      )}
+      {result.hint && (
+        <p className="break-keep rounded-sm bg-gray-100 px-16 py-12 text-body2r text-gray-700">
+          {result.hint}
+        </p>
       )}
       <p className="text-caption1r text-gray-500">{result.at}</p>
     </div>

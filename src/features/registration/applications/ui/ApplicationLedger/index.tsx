@@ -276,6 +276,7 @@ const ApplicationLedger = () => {
             expoId={expoId}
             selectedRows={selectedRows}
             filter={filter}
+            sessions={sessions}
             filterCount={confirmedCount}
             filterStatusCounts={statusCounts}
             onClose={() => setIsExcelModalOpen(false)}

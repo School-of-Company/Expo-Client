@@ -50,7 +50,6 @@ export interface PublicSurveyResponseDto extends SurveyResponseDto {
 export type { SurveyAnswers };
 
 export interface SubmitSurveyAnswerRequestDto {
-  phoneNumber: string;
   personalInformationStatus: boolean;
   answers: SurveyAnswers;
 }

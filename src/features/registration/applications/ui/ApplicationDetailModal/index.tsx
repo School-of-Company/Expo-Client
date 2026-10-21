@@ -232,9 +232,13 @@ const ApplicationDetailModal = ({
               <Field
                 label="대기 순서"
                 value={
-                  waitlist.data?.position
-                    ? `${waitlist.data.position}번째 / 대기 ${waitlist.data.total}건`
-                    : '확인 중'
+                  waitlist.data
+                    ? waitlist.data.position
+                      ? `${waitlist.data.position}번째 / 대기 ${waitlist.data.total}건`
+                      : `순서를 찾지 못했습니다 / 대기 ${waitlist.data.total}건`
+                    : waitlist.isError
+                      ? '확인하지 못했습니다'
+                      : '확인 중'
                 }
               />
               <Field
@@ -259,8 +263,9 @@ const ApplicationDetailModal = ({
         {isCancellableStatus(row.status) && (
           <section className="space-y-[10px]">
             <p className="text-caption1r text-gray-400">
-              이미 입장한 참가자이거나 취소 기간이 끝났으면 서버가 취소를
-              거절합니다.
+              이 프로그램에 이미 출석한 신청은 서버가 취소를 거절합니다.
+              입장했거나 취소 기간이 끝났어도 출석 전이면 관리자는 취소할 수
+              있습니다.
             </p>
             <Button
               variant="white"

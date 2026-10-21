@@ -25,6 +25,9 @@ export interface ProgramGuardianPolicy {
   // 학교급 선택 문항 ID 와 초등학생 선택지의 jsonData 키
   schoolTypeQuestionId: number;
   elementarySchoolValue: string;
+  // 보호자가 학교급 문항에서 고르는 선택지의 jsonData 키. 초등 선택지와 달라야 한다.
+  // 이 필드가 생기기 전에 저장된 정책에는 없다
+  guardianSchoolValue?: string;
   // 초등학생 선택 시 표시되는 필수 학년 문항 ID
   gradeQuestionId: number;
   // 학년 선택지 jsonData 키 → 학년(1~6). 6개가 일대일로 대응해야 한다

@@ -26,7 +26,11 @@ export const useEditFormMutation = (
     isSuccess: isSurveySuccess,
   } = useEditSurveyForm(id, type, router);
 
-  const handleSubmitForm = (data: FormValues) => {
+  /** `occupationOpenAt` 은 일반 사전등록만 넘긴다. 생략하면 요청에서도 뺀다 */
+  const handleSubmitForm = (
+    data: FormValues,
+    occupationOpenAt?: string | null,
+  ) => {
     const formattedData = transformFormData(
       data,
       type,
@@ -34,6 +38,7 @@ export const useEditFormMutation = (
       apllication,
       startDate,
       endDate,
+      occupationOpenAt,
     );
     const submitFunction =
       mode === 'survey' ? editSurveyForm : editApplicationForm;

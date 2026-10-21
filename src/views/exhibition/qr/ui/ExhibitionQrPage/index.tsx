@@ -11,7 +11,6 @@ import {
   ExpoQrTab,
   getRegistrationRoutes,
 } from '@/shared/config';
-import { ApplicationType } from '@/shared/types/exhibition/type';
 import { DetailHeader } from '@/shared/ui';
 import { Header } from '@/widgets/layout';
 
@@ -47,9 +46,7 @@ const ExhibitionQrPage = ({
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const tab: ExpoQrTab = isTab(tabParam) ? tabParam : EXPO_QR_TABS.checkIn;
-  const userType = searchParams.get('userType');
-  const applicationType = (searchParams.get('applicationType') ||
-    'PRE') as ApplicationType;
+  const accessTarget = searchParams.get('target');
 
   // 탭과 QR 대상을 주소에 남겨 새로고침하거나 링크로 열어도 같은 화면이 나오게 한다
   const updateQuery = (next: Record<string, string>) => {
@@ -69,7 +66,9 @@ const ExhibitionQrPage = ({
               className="gap-12"
               headerTitle="QR"
               onBack={() =>
-                router.push(`/exhibition/detail/${encodeURIComponent(id)}`)
+                router.push(
+                  `/admin/exhibition/detail/${encodeURIComponent(id)}`,
+                )
               }
             />
             <SegmentTabs
@@ -82,14 +81,8 @@ const ExhibitionQrPage = ({
           {tab === EXPO_QR_TABS.access && (
             <AccessQrPanel
               id={id}
-              userType={userType}
-              applicationType={applicationType}
-              onSelect={(nextUserType, nextApplicationType) =>
-                updateQuery({
-                  userType: nextUserType,
-                  applicationType: nextApplicationType,
-                })
-              }
+              target={accessTarget}
+              onSelect={(target) => updateQuery({ target })}
             />
           )}
           {tab === EXPO_QR_TABS.checkIn && <QRScannerTable id={checkInId} />}

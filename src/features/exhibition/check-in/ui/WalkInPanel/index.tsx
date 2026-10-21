@@ -1,14 +1,13 @@
 'use client';
 
+import {
+  LEGACY_WALK_IN_CATEGORY_LABEL,
+  WALK_IN_CATEGORIES,
+} from '@/shared/config';
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { WalkInCategory } from '@/shared/types/exhibition/check-in/entry';
 import { Button } from '@/shared/ui';
 import { useRecordWalkIn, useWalkInCounts } from '../../model/useWalkIn';
-
-const CATEGORIES: { value: WalkInCategory; label: string }[] = [
-  { value: 'ADULT', label: '성인' },
-  { value: 'STUDENT', label: '어린이·학생' },
-];
 
 /** QR 없는 방문객을 개인정보 없이 구분별 인원수로만 센다 */
 const WalkInPanel = ({
@@ -25,6 +24,11 @@ const WalkInPanel = ({
 
   const countOf = (category: WalkInCategory) =>
     data?.counts?.find((item) => item.category === category)?.count ?? 0;
+
+  // 예전 구분(성인·어린이·학생)으로 쌓인 기록은 버튼 없이 안내만 한다. 합계에는 이미 들어 있다
+  const legacyCounts = (data?.counts ?? []).filter(
+    ({ category, count }) => category in LEGACY_WALK_IN_CATEGORY_LABEL && count,
+  );
 
   // 조회가 안 되면 기록도 안 되므로 버튼을 막는다
   const isUnavailable = isError && !data;
@@ -43,8 +47,8 @@ const WalkInPanel = ({
           오늘 합계 {data?.total ?? 0}명
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-16 mobile:grid-cols-1">
-        {CATEGORIES.map(({ value, label }) => (
+      <div className="grid grid-cols-4 gap-12 mobile:grid-cols-2 tablet:grid-cols-2">
+        {WALK_IN_CATEGORIES.map(({ value, label }) => (
           <div key={value} className="space-y-12 rounded-sm bg-gray-100 p-16">
             <div className="flex items-baseline justify-between gap-8">
               <p className="text-body2b text-gray-700">{label}</p>
@@ -72,6 +76,18 @@ const WalkInPanel = ({
           </div>
         ))}
       </div>
+      {legacyCounts.length > 0 && (
+        <p className="break-keep text-caption1r text-gray-500">
+          이전 구분 기록:{' '}
+          {legacyCounts
+            .map(
+              ({ category, count }) =>
+                `${LEGACY_WALK_IN_CATEGORY_LABEL[category]} ${count}명`,
+            )
+            .join(', ')}{' '}
+          (합계에 포함)
+        </p>
+      )}
       {isExitMode && !isUnavailable && (
         <p className="break-keep text-body2r text-main-600">
           퇴장 모드에서는 간편입장 +1을 쓸 수 없습니다. 입장 모드로 바꿔 주세요.

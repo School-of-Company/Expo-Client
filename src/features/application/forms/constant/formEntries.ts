@@ -24,7 +24,7 @@ export interface FormEntry {
   key: string;
   group: FormGroup;
   audience: string;
-  formType: 'application' | 'survey';
+  formType: 'application';
   userType: 'STANDARD' | 'TRAINEE';
   applicationType: ApplicationType;
 }
@@ -61,21 +61,5 @@ export const FORM_ENTRIES: FormEntry[] = [
     formType: 'application',
     userType: 'TRAINEE',
     applicationType: 'FIELD',
-  },
-  {
-    key: 'survey-standard',
-    group: 'SURVEY',
-    audience: '일반',
-    formType: 'survey',
-    userType: 'STANDARD',
-    applicationType: 'PRE',
-  },
-  {
-    key: 'survey-trainee',
-    group: 'SURVEY',
-    audience: '교원연수',
-    formType: 'survey',
-    userType: 'TRAINEE',
-    applicationType: 'PRE',
   },
 ];

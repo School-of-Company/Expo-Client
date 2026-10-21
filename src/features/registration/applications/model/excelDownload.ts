@@ -1,14 +1,18 @@
 import {
+  ReportApplicationDownloadRequest,
   ReportApplicationFilter,
-  ReportExcelDownloadRequest,
   ReportExcelScope,
   ReportExcelTemplate,
 } from '@/shared/types/registration/type';
+import { formatDateWithWeekday } from '../../common/lib/format';
 import {
-  ACTIVE_STATUS_FILTER,
+  LEDGER_SORT_OPTIONS,
+  LEDGER_STATUS_LABEL,
   LedgerFilter,
   LedgerRow,
+  OCCUPATION_LABEL,
   parseSessionKey,
+  toStatusList,
 } from '../../common/model/ledger';
 
 export const SELECTED_MAX_COUNT = 1000;
@@ -16,31 +20,51 @@ export const SELECTED_MAX_COUNT = 1000;
 // 리포트 서버가 현재 필터 전체 다운로드를 받는 최대 건수. 넘으면 413 으로 거절한다
 export const FILTER_MAX_COUNT = 10_000;
 
+/** PERSON 은 기존 사람 명단·수기 출석부, LEDGER 는 신청 1건 = 1행 원장 */
+export type ExcelTemplateGroup = 'PERSON' | 'LEDGER';
+
+export const EXCEL_TEMPLATE_GROUP_LABEL: Record<ExcelTemplateGroup, string> = {
+  LEDGER: '신청 원장',
+  PERSON: '사람 명단·수기 출석부',
+};
+
 export const EXCEL_TEMPLATE_OPTIONS: {
   value: ReportExcelTemplate;
+  group: ExcelTemplateGroup;
   label: string;
   description: string;
 }[] = [
   {
+    value: 'APPLICATION_LEDGER',
+    group: 'LEDGER',
+    label: '프로그램·연수 신청 원장',
+    description:
+      '신청 1건을 1행으로 출력합니다. 같은 사람의 취소·확정 신청이 각각 나오고 상태·상태 이력·신청일시(KST)·신청 당시 회차 운영일시를 함께 출력합니다.',
+  },
+  {
     value: 'STANDARD',
+    group: 'PERSON',
     label: '일반 참가자 명단',
     description:
       '대상 신청의 참가자를 사람 기준으로 중복 제거해 출력합니다. 고른 상태(확정·대기·취소)를 그대로 출력합니다.',
   },
   {
     value: 'TRAINEE',
+    group: 'PERSON',
     label: '연수자 명단',
     description:
       '연수 신청에 연결된 연수자를 사람 기준으로 중복 제거해 출력합니다. 고른 상태(확정·대기·취소)를 그대로 출력합니다.',
   },
   {
     value: 'PROGRAM',
+    group: 'PERSON',
     label: '일반 프로그램 명단',
     description:
       '일반 프로그램 1개 회차의 확정 신청만 출력합니다. 여러 회차를 합치지 않습니다.',
   },
   {
     value: 'ATTENDANCE',
+    group: 'PERSON',
     label: '개인 연수 출석부',
     description:
       '연수자 1명의 확정 연수 신청으로 만든 작성용 서식입니다. 실제 출석·이수 결과가 아닙니다.',
@@ -57,7 +81,7 @@ interface ExcelDownloadPlanParams {
 }
 
 export interface ExcelDownloadPlan {
-  request: ReportExcelDownloadRequest | null;
+  request: ReportApplicationDownloadRequest | null;
   /** 요청을 보낼 수 없는 이유. 하나라도 있으면 request 는 null */
   blockers: string[];
 }
@@ -76,7 +100,7 @@ const planSelected = (
   template: ReportExcelTemplate,
   rows: LedgerRow[],
   blockers: string[],
-): ReportExcelDownloadRequest | null => {
+): ReportApplicationDownloadRequest | null => {
   if (rows.length === 0) {
     blockers.push('다운로드할 신청을 선택해주세요.');
     return null;
@@ -151,7 +175,7 @@ const planFilter = (
   filter: LedgerFilter,
   filterCount: number | undefined,
   blockers: string[],
-): ReportExcelDownloadRequest | null => {
+): ReportApplicationDownloadRequest | null => {
   // 필터에는 연수자 조건이 없어 다른 연수자의 신청이 섞이면 서버가 거절한다
   if (template === 'ATTENDANCE') {
     blockers.push(ATTENDANCE_FILTER_BLOCKER);
@@ -165,35 +189,10 @@ const planFilter = (
     );
   }
 
-  // Report 필터에는 참가자 이름·번호와 직업 조건이 없다. 조용히 빼면 화면과 다른 대상이 나간다
-  if (filter.q.trim()) {
-    blockers.push(
-      '이름·번호 검색은 다운로드 필터에 없습니다. 검색어를 지우거나 신청을 선택해서 받아주세요.',
-    );
-  }
-  if (filter.occupation) {
-    blockers.push(
-      '직업 조건은 다운로드 필터에 없습니다. 직업을 해제하거나 신청을 선택해서 받아주세요.',
-    );
-  }
-
-  if (filter.eventDate) {
-    blockers.push(
-      '행사일 조건은 다운로드 필터에 없습니다. 행사일을 해제하거나 신청을 선택해서 받아주세요.',
-    );
-  }
-  if (filter.status === ACTIVE_STATUS_FILTER) {
-    blockers.push(
-      '확정+대기는 다운로드 필터에서 한 번에 고를 수 없습니다. 상태를 하나만 고르거나 신청을 선택해서 받아주세요.',
-    );
-  }
-
   const session = parseSessionKey(filter.session);
-  const status =
-    filter.status && filter.status !== ACTIVE_STATUS_FILTER
-      ? filter.status
-      : null;
+  const status = toStatusList(filter.status);
   const search = filter.search.trim();
+  const q = filter.q.trim();
 
   if (template === 'TRAINEE' && session?.programType === 'STANDARD') {
     blockers.push('연수자 명단은 연수 회차만 필터할 수 있습니다.');
@@ -216,23 +215,25 @@ const planFilter = (
     } else if (session.programType !== 'STANDARD') {
       blockers.push('연수 회차는 일반 프로그램 명단으로 받을 수 없습니다.');
     }
-    if (status !== 'CONFIRMED') {
+    if (status.length !== 1 || status[0] !== 'CONFIRMED') {
       blockers.push(
         '이 양식은 확정 상태만 받을 수 있습니다. 상태를 확정으로 골라주세요.',
       );
     }
   }
 
+  // 대장 화면의 조건을 빠짐없이 그대로 보낸다. 조건을 빼면 화면과 다른 대상이 나간다
   const reportFilter: ReportApplicationFilter = {
     ...(session ?? {}),
     // 회차를 고르지 않아도 연수자 명단은 연수 신청만 대상으로 한다
     ...(template === 'TRAINEE' && { programType: 'TRAINING' }),
-    status,
+    // 상태를 고르지 않으면 모든 상태(null). 생략하면 서버가 확정만 고른다
+    status: status.length > 0 ? status : null,
     ...(search && { search }),
-    // Report 는 신청일시 정렬만 받는다. 다른 정렬은 대상이 같고 순서만 달라 서버 기본값에 맡긴다
-    ...((filter.sort === 'CREATED_ASC' || filter.sort === 'CREATED_DESC') && {
-      sort: filter.sort,
-    }),
+    ...(q && { q }),
+    ...(filter.occupation && { occupation: filter.occupation }),
+    ...(filter.eventDate && { eventDate: filter.eventDate }),
+    sort: filter.sort,
   };
 
   return {
@@ -241,6 +242,32 @@ const planFilter = (
     filter: reportFilter,
     ...(template === 'PROGRAM' && session && { programId: session.programId }),
   };
+};
+
+/**
+ * 현재 필터 전체로 보낼 조건을 사람이 읽는 문구로. 화면 조건과 다운로드 조건이 같은지 모달에서 확인한다.
+ * 행사 운영일은 신청 당시 회차 운영 시작일이며 신청일이 아니다
+ */
+export const describeLedgerFilter = (
+  filter: LedgerFilter,
+  sessionLabel?: string,
+): string[] => {
+  const status = toStatusList(filter.status);
+  const search = filter.search.trim();
+  const q = filter.q.trim();
+  return [
+    `회차 ${filter.session ? (sessionLabel ?? filter.session) : '전체'}`,
+    `상태 ${status.length > 0 ? status.map((value) => LEDGER_STATUS_LABEL[value]).join('+') : '전체(확정·대기·취소)'}`,
+    ...(q ? [`이름·연락처 "${q}"`] : []),
+    ...(search ? [`제출 당시 제목 "${search}"`] : []),
+    ...(filter.occupation
+      ? [`직업 ${OCCUPATION_LABEL[filter.occupation]}`]
+      : []),
+    ...(filter.eventDate
+      ? [`행사 운영일(회차 시작일) ${formatDateWithWeekday(filter.eventDate)}`]
+      : []),
+    `정렬 ${LEDGER_SORT_OPTIONS.find(({ value }) => value === filter.sort)?.label ?? filter.sort}`,
+  ];
 };
 
 export const buildExcelDownloadPlan = ({

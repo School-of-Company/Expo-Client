@@ -41,6 +41,8 @@ export interface CreateFormRequestDto {
   applicationType: ApplicationType;
   startDate: string;
   endDate: string;
+  /** 생략하면 생성은 null, 수정은 기존 값 유지. null 이면 해제한다(Form #164) */
+  occupationOpenAt?: string | null;
   dynamicForm: DynamicFormItemRequest[];
 }
 
@@ -58,6 +60,11 @@ export interface FormResponseDto extends Omit<
   id: string;
   expoId: string;
   dynamicForm: DynamicFormItemResponse[];
+  /**
+   * 교원·예비교사 외 유형의 사전등록 시작 시각(ISO-8601 offset, Form #164). 전에는 교원·예비교사만 신청한다.
+   * null 이거나 구형 응답(없음)이면 제한하지 않는다
+   */
+  occupationOpenAt?: string | null;
 }
 
 /**

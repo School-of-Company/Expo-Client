@@ -52,6 +52,11 @@ export interface OwnerApplication {
 export interface OwnerApplicationsResponse {
   participants: OwnerParticipant[];
   applications: OwnerApplication[];
+  /**
+   * 개인 QR 을 조회할 수 있는 참가자 ID(Expo-Application-Server#250). 확정 사전등록 또는 사전등록 이력 없는
+   * 현장등록 참가자이며 신청이 없어도 들어간다. 출석 연동이 꺼졌거나 예전 서버면 비어 있거나 없다
+   */
+  qrParticipantIds?: number[];
 }
 
 export interface MyApplications extends OwnerApplicationsResponse {
@@ -98,6 +103,13 @@ export const getMyApplications = async (
   }
 };
 
+/**
+ * 같은 회차에 확정된 동행자가 남아 있으면 대표자 취소를 막는다(Application #257).
+ * 내 신청 조회의 cancellationBlockedReason 과 취소 409 code 가 같은 값이다
+ */
+export const COMPANIONS_ACTIVE_MESSAGE =
+  '동행자 신청을 먼저 취소해 주세요. 동행자를 모두 취소하면 대표자 신청도 취소할 수 있습니다.';
+
 export const cancelMyApplication = async (
   expoId: string,
   type: OwnerApplicationType,
@@ -111,7 +123,7 @@ export const cancelMyApplication = async (
       { headers: { 'X-CSRF-TOKEN': csrfToken } },
     );
   } catch (error) {
-    throw toError(
+    const apiError = toError(
       error,
       {
         ...COMMON_ERRORS,
@@ -121,6 +133,14 @@ export const cancelMyApplication = async (
       },
       '신청 취소에 실패했습니다.',
     );
+    // 화면이 오래되어 버튼이 열려 있었던 경우. 목록은 취소 시도 뒤 다시 받는다
+    if (apiError instanceof ApiError && apiError.code === 'COMPANIONS_ACTIVE')
+      throw new ApiError(
+        COMPANIONS_ACTIVE_MESSAGE,
+        apiError.status,
+        apiError.code,
+      );
+    throw apiError;
   }
 };
 
@@ -209,16 +229,39 @@ export const getMyPreRegisterWaitlist = async (
   }
 };
 
-/** 대기 일행 전체 취소. 일부만 취소할 수 없고, 취소한 대기는 같은 신청으로 되살릴 수 없다 */
+/**
+ * 회차별 대기 목록(최근 순, 없으면 빈 배열). 회차마다 따로 대기할 수 있다(Expo-Application-Server#198).
+ * 이 경로가 없는 서버(404)는 예전 단건 조회로 돌아간다
+ */
+export const getMyPreRegisterWaitlists = async (
+  expoId: string,
+): Promise<MyPreRegisterWaitlist[]> => {
+  try {
+    const { data, headers } = await clientInstance.get<MyPreRegisterWaitlist[]>(
+      `/application/expos/${expoId}/my-applications/preregister-waitlists`,
+    );
+    const csrfToken = headers['x-csrf-token'];
+    return data.map((waitlist) => ({ ...waitlist, csrfToken }));
+  } catch (error) {
+    if (getErrorStatus(error) === 404) {
+      const waitlist = await getMyPreRegisterWaitlist(expoId);
+      return waitlist ? [waitlist] : [];
+    }
+    throw toError(error, COMMON_ERRORS, '대기 내역을 불러오지 못했습니다.');
+  }
+};
+
+/** 그 회차의 대기 일행 전체 취소. 일부만 취소할 수 없고, 취소한 대기는 같은 신청으로 되살릴 수 없다 */
 export const cancelMyPreRegisterWaitlist = async (
   expoId: string,
+  sessionId: number,
   csrfToken?: string,
 ) => {
   try {
     await clientInstance.post(
       `/application/expos/${expoId}/my-applications/preregister-waitlist/cancellation`,
       undefined,
-      { headers: { 'X-CSRF-TOKEN': csrfToken } },
+      { headers: { 'X-CSRF-TOKEN': csrfToken }, params: { sessionId } },
     );
   } catch (error) {
     throw toError(
@@ -230,6 +273,57 @@ export const cancelMyPreRegisterWaitlist = async (
         409: '대기에서 확정으로 처리 중이라 지금은 취소할 수 없습니다. 잠시 후 다시 확인해주세요.',
       },
       '대기 취소에 실패했습니다.',
+    );
+  }
+};
+
+/** 다른 회차 추가 결과. 확정이면 참석자 ID, 대기면 회차 대기 순번이 온다 */
+export interface AddSessionResult {
+  status: 'CONFIRMED' | 'WAITING' | 'PROCESSING';
+  position?: number | null;
+  participantIds?: number[];
+}
+
+/**
+ * 이미 신청한 일행이 답변을 다시 쓰지 않고 다른 회차를 추가한다(Expo-Application-Server#199).
+ * 참석자는 일행 중에서 고르고 대표자는 빠져도 된다.
+ * 409 FORM_CHANGED 는 신청 뒤 사전등록 폼이 바뀌어 처음 신청부터 다시 해야 한다는 뜻이다
+ */
+export const addMyPreRegisterSession = async (
+  expoId: string,
+  body: { sessionId: number; participantIds: number[] },
+  idempotencyKey: string,
+  csrfToken?: string,
+): Promise<AddSessionResult> => {
+  try {
+    const { data } = await clientInstance.post<AddSessionResult>(
+      `/application/expos/${expoId}/my-applications/preregister-sessions`,
+      body,
+      {
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'Idempotency-Key': idempotencyKey,
+        },
+      },
+    );
+    return data;
+  } catch (error) {
+    const serverText = axios.isAxiosError(error)
+      ? toKoreanServerText(error.response?.data)
+      : undefined;
+    throw toError(
+      error,
+      {
+        ...COMMON_ERRORS,
+        400: serverText ?? '참석자를 다시 확인해주세요.',
+        403: '요청을 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.',
+        404: '신청한 일행이나 회차를 찾을 수 없습니다.',
+        409:
+          serverText ??
+          '이 회차는 지금 추가할 수 없습니다. 이미 신청했거나 시간이 겹치거나 접수가 끝났을 수 있습니다.',
+        503: '일시적으로 처리할 수 없습니다. 잠시 후 같은 내용으로 다시 시도해주세요.',
+      },
+      '회차를 추가하지 못했습니다.',
     );
   }
 };

@@ -96,6 +96,7 @@ export const transformFormData = (
   applicationType: ApplicationType,
   startDate: string,
   endDate: string,
+  occupationOpenAt?: string | null,
 ): CreateFormRequest => {
   const common = {
     title: data.title,
@@ -118,6 +119,8 @@ export const transformFormData = (
     applicationType,
     startDate,
     endDate,
+    // 일반 사전등록만 싣는다. 나머지 폼은 생략해 서버의 기존 값을 건드리지 않는다
+    ...(occupationOpenAt !== undefined && { occupationOpenAt }),
     dynamicForm: toFields(data),
   };
 };

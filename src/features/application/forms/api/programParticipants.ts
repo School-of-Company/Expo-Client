@@ -8,7 +8,8 @@ export type ProgramIneligibleReason =
   | 'OCCUPATION_NOT_ALLOWED'
   | 'PREREGISTRATION_NOT_CONFIRMED'
   | 'GROUP_ALREADY_APPLIED'
-  | 'TIME_CONFLICT';
+  | 'TIME_CONFLICT'
+  | 'SESSION_TIME_MISMATCH';
 
 export interface ProgramParticipant {
   participant: OwnerParticipant;
@@ -30,6 +31,24 @@ export interface ProgramCapacity {
   waitingRemaining: number;
 }
 
+// 접수 경로별 좌석(Expo-Application-Server ProgramAdmissionSeats). 두 잔여석은 더해 쓰지 않는다
+export interface ProgramAdmissionCapacity {
+  capacity: number;
+  confirmedCount: number;
+  remaining: number;
+}
+
+export interface ProgramAdmissionSeats {
+  preRegistration: ProgramAdmissionCapacity;
+  onsite: ProgramAdmissionCapacity;
+  unknownConfirmedCount: number;
+  // 사전 좌석이 없을 때 사전 대기를 받는 회차. 현장 접수는 대기가 없다
+  waitingEnabled: boolean;
+  // 현장 정원과 기간이 있는 회차. 지금 열려 있는지는 신청 때 서버가 판정한다
+  onsiteAdmissionEnabled: boolean;
+  offeredSeats: number;
+}
+
 export interface ProgramChannelCapacity {
   name: string;
   allowedOccupations: string[];
@@ -41,6 +60,7 @@ export interface ProgramParticipants {
   registered: boolean;
   participants: ProgramParticipant[];
   capacity?: ProgramCapacity | null;
+  admissionSeats?: ProgramAdmissionSeats | null;
   channels?: ProgramChannelCapacity[];
 }
 

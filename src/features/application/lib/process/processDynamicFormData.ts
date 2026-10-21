@@ -1,4 +1,5 @@
 import { SCHOOL_OCCUPATIONS } from '@/entities/form/constants/occupationData';
+import { isFieldVisible } from '@/shared/lib/form-conditional';
 import {
   Companion,
   DynamicFormItem,
@@ -14,6 +15,7 @@ const isCodeField = (form: DynamicFormItem) =>
 export const processDynamicFormData = (
   data: DynamicFormValues,
   dynamicFormItems: DynamicFormItem[],
+  isExcluded?: (form: DynamicFormItem) => boolean,
 ): Record<string, string | Companion[]> => {
   const occupationField = dynamicFormItems.find(
     (item) => item.dynamicFormType === 'OCCUPATION',
@@ -21,7 +23,14 @@ export const processDynamicFormData = (
   const occupation = occupationField && data[String(occupationField.id)];
 
   return dynamicFormItems.reduce<Record<string, string | Companion[]>>(
-    (acc, form) => {
+    (acc, form, index) => {
+      // 조건 판정은 parentIndex 가 가리키는 전체 목록 기준이라 제외 문항도 목록에 남긴 채 건너뛴다
+      if (isExcluded?.(form)) return acc;
+      // 조건으로 숨겨진 문항에 남은 옛 값은 보내지 않는다(연쇄 조건 포함). 키는 유지해 빈 값으로 보낸다
+      if (!isFieldVisible(dynamicFormItems, data, index)) {
+        acc[form.title] = form.formType === 'COMPANION' ? [] : '';
+        return acc;
+      }
       const raw = data[String(form.id)];
       if (form.formType === 'COMPANION') {
         acc[form.title] = processCompanions(raw);

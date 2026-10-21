@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useNow } from '@/features/application/forms/model/useNow';
 import { retryProgramChanges } from '@/shared/api';
 import { Trash } from '@/shared/assets/icons';
 import { getExpoRoutes } from '@/shared/config';
@@ -27,6 +28,11 @@ import {
   getProgramGroups,
   toProgramKey,
 } from '../../model/programFormLink';
+import {
+  getProgramStatusBoundaries,
+  getProgramStatusLines,
+  ProgramStatusTone,
+} from '../../model/programStatus';
 import ProgramForm from '../ProgramForm';
 import ScheduleSection from '../ScheduleSection';
 
@@ -46,6 +52,14 @@ interface ProgramSectionProps {
   /** 넘기면 그 종류의 회차만 표에 보인다. 묶음 번호와 양식은 전체 프로그램 기준이다 */
   type?: ProgramSessionType;
 }
+
+const STATUS_TONE_CLASS: Record<ProgramStatusTone, string> = {
+  open: 'text-main-600',
+  upcoming: 'text-gray-500',
+  closed: 'text-gray-400',
+  muted: 'text-gray-400',
+  warn: 'text-red-500',
+};
 
 /** 연수·일반 프로그램 ID 는 서로 겹칠 수 있어 표 행 키를 구분한다 */
 interface ProgramRow {
@@ -68,10 +82,20 @@ const ProgramSection = ({
   draftForm,
   type,
 }: ProgramSectionProps) => {
+  // 켜 둔 화면도 모집 시작·종료 시각에 상태가 바뀐다
+  const now = useNow(getProgramStatusBoundaries(programs));
   const [ownEditing, setOwnEditing] = useState<ProgramEditing>(null);
   const editing =
     controlledEditing === undefined ? ownEditing : controlledEditing;
   const setEditing = onEditingChange ?? setOwnEditing;
+  // 열 때의 객체를 그대로 쓰면 그 사이 바뀐 revision 으로 저장을 계속 시도해 409 가 반복된다.
+  // 입력 중인 폼 값은 ProgramForm 이 들고 있으므로 최신 목록의 같은 회차를 넘긴다
+  const latestEditing =
+    editing && editing !== 'new'
+      ? (programs.find(
+          (program) => toProgramKey(program) === toProgramKey(editing),
+        ) ?? editing)
+      : undefined;
   const groupIds = getProgramGroups(programs).map(({ groupId }) => groupId);
   const getGroupLabel = (program: ScheduleProgram) => {
     const index = groupIds.indexOf(getProgramGroupId(program) ?? '');
@@ -177,16 +201,12 @@ const ProgramSection = ({
       key: 'status',
       label: '상태',
       flex: 0.8,
-      render: ({ program }) => {
-        if (program.pendingRevision !== null)
-          return <p className="text-red-500">변경 처리 중</p>;
-        if (!program.policy) return <p className="text-gray-400">정책 없음</p>;
-        return program.policy.closed ? (
-          <p className="text-gray-400">마감</p>
-        ) : (
-          <p className="text-main-600">모집 중</p>
-        );
-      },
+      render: ({ program }) =>
+        getProgramStatusLines(program, now).map(({ label, tone }) => (
+          <p key={label} className={STATUS_TONE_CLASS[tone]}>
+            {label}
+          </p>
+        )),
     },
     {
       key: 'actions',
@@ -308,7 +328,7 @@ const ProgramSection = ({
             <ProgramForm
               key={editing === 'new' ? 'new' : toProgramKey(editing)}
               expoId={expoId}
-              program={editing === 'new' ? undefined : editing}
+              program={editing === 'new' ? undefined : latestEditing}
               programs={programs}
               initialForm={draftForm}
               onClose={() => setEditing(null)}

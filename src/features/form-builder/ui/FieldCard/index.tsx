@@ -199,7 +199,6 @@ const FieldCard = ({
           필수
           <ToggleButton
             value={item.requiredStatus}
-            disabled={!!item.otherJson?.conditional}
             onChange={(requiredStatus) => onChange({ ...item, requiredStatus })}
           />
         </label>

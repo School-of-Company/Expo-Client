@@ -2,8 +2,10 @@ import {
   OCCUPATION_LABEL,
   formatDefinitionSchedule,
 } from '@/features/registration/common/model/ledger';
+import { getOnsitePhase, time } from './applicationSchedule';
 import { formatFormPeriod } from './formPeriodStatus';
 import type {
+  ProgramAdmissionCapacity,
   ProgramCapacity,
   ProgramIneligibleReason,
 } from '../api/programParticipants';
@@ -57,15 +59,16 @@ const occupations = (list: ProgramOccupation[]) =>
 
 /**
  * 사용자 모집 목록에서 숨길 회차인지. 기준은 회차 운영 endedAt 이 아니라 policy.applicationEndedAt 이다.
- * applicationEndedAt 은 사전 접수 마감이라 현장 접수를 막지 않으므로, 현장 정원이 있는 회차는 남긴다
+ * applicationEndedAt 은 사전 접수 마감이라 현장 접수를 막지 않으므로, 현장 접수 기간이 아직 끝나지 않은 회차는 남긴다
  */
 export const isProgramApplicationEnded = (
   policy: ProgramPolicy | null | undefined,
   now: number,
-) =>
-  !!policy &&
-  policy.onsiteCapacity <= 0 &&
-  now >= new Date(policy.applicationEndedAt).getTime();
+) => {
+  if (!policy || now < time(policy.applicationEndedAt)) return false;
+  const phase = getOnsitePhase(policy, now);
+  return phase === 'NONE' || phase === 'AFTER';
+};
 
 export interface ProgramInfoRow {
   label: string;
@@ -78,6 +81,7 @@ export interface ProgramInfoRow {
  */
 export const getProgramInfoRows = (
   program: Pick<Program, 'startedAt' | 'endedAt' | 'place' | 'policy'>,
+  now: number,
 ): ProgramInfoRow[] => {
   const rows: ProgramInfoRow[] = [
     {
@@ -92,17 +96,22 @@ export const getProgramInfoRows = (
     policy.waitingCapacity > 0
       ? ` (대기 ${policy.waitingCapacity.toLocaleString()}명)`
       : '';
-  // 현장 정원이 있을 때만 사전·현장으로 나눠 보인다. 없으면 사전 정원은 총정원과 같다
-  const split =
-    policy.onsiteCapacity > 0
-      ? ` · 사전 ${policy.preRegistrationCapacity.toLocaleString()}명, 현장 ${policy.onsiteCapacity.toLocaleString()}명`
-      : '';
+  // 현장 접수 기간 중에만 사전·현장으로 나눠 보인다. 기간 전·후에는 현장을 드러내지 않고 사전 정원만 보인다.
+  // 현장 정원이 없으면 사전 정원은 총정원과 같다
+  const onsiteOpen = getOnsitePhase(policy, now) === 'OPEN';
+  const split = onsiteOpen
+    ? ` · 사전 ${policy.preRegistrationCapacity.toLocaleString()}명, 현장 ${policy.onsiteCapacity.toLocaleString()}명`
+    : '';
+  const capacity =
+    policy.onsiteCapacity > 0 && !onsiteOpen
+      ? policy.preRegistrationCapacity
+      : policy.capacity;
   return [
     ...rows,
     { label: '대상', value: occupations(policy.allowedOccupations) },
     {
       label: '정원',
-      value: `${policy.capacity.toLocaleString()}명${waiting}${split}`,
+      value: `${capacity.toLocaleString()}명${waiting}${split}`,
     },
     {
       label: '신청 기간',
@@ -111,17 +120,13 @@ export const getProgramInfoRows = (
   ];
 };
 
-/** 핵심 정보 밖의 보조 안내. 신청 마감과 같은 날짜는 되풀이하지 않는다 */
+/** 핵심 정보 밖의 보조 안내 */
 export const getProgramPolicyNotes = (
   policy: ProgramPolicy,
   /** 같은 묶음을 쓰는 다른 프로그램이 목록에 있으면 그 안내에 쓸 이름(프로그램·연수) */
   sharedGroupLabel?: string,
 ): string[] => {
   const notes: string[] = [];
-  if (policy.cancelEndedAt !== policy.applicationEndedAt)
-    notes.push(
-      `취소는 ${formatFormPeriod(policy.cancelEndedAt)}까지 할 수 있습니다.`,
-    );
   // 서버는 묶음을 지정하지 않은 프로그램에도 고유 묶음을 넣으므로, 묶음을 함께 쓰는 프로그램이 있을 때만 안내한다
   if (sharedGroupLabel)
     notes.push(
@@ -136,12 +141,32 @@ export const INELIGIBLE_REASON_LABEL: Record<ProgramIneligibleReason, string> =
     PREREGISTRATION_NOT_CONFIRMED: '사전등록이 확정되지 않았습니다',
     GROUP_ALREADY_APPLIED: '같은 묶음에 이미 신청했습니다',
     TIME_CONFLICT: '운영 시간이 겹치는 신청이 있습니다',
+    SESSION_TIME_MISMATCH: '사전등록한 회차 시간과 맞지 않는 프로그램입니다',
   };
 
-export const getIneligibleLabel = (reason?: string | null) =>
-  INELIGIBLE_REASON_LABEL[reason as ProgramIneligibleReason] ??
-  '신청할 수 없는 참가자';
+/**
+ * 신청 불가 사유 문구. 회차 시간 불일치는 프로그램 시작 시각을 알면 오전·오후 회차를 짚어 준다
+ * (일행 화면에서 사람마다 어느 회차 사전등록이 필요한지 알 수 있게)
+ */
+export const getIneligibleLabel = (
+  reason?: string | null,
+  programStartedAt?: string,
+) => {
+  if (reason === 'SESSION_TIME_MISMATCH' && programStartedAt) {
+    const hour = Number(programStartedAt.replace(' ', 'T').slice(11, 13));
+    if (!Number.isNaN(hour))
+      return `${hour < 12 ? '오전' : '오후'} 회차 사전등록이 필요해요`;
+  }
+  return (
+    INELIGIBLE_REASON_LABEL[reason as ProgramIneligibleReason] ??
+    '신청할 수 없는 참가자'
+  );
+};
 
 /** 회차의 현재 잔여석·대기 현황(참고값). 잔여·대기 인원·남은 대기석은 서로 다른 값이다. */
 export const getSeatsLabel = (c: ProgramCapacity): string =>
   `잔여 ${c.remaining.toLocaleString()}명 · 대기 ${c.waitingCount.toLocaleString()}명 (남은 대기석 ${c.waitingRemaining.toLocaleString()}명)`;
+
+/** 현장 신청의 잔여석. 현장 접수는 대기가 없어 대기 문구를 붙이지 않는다 */
+export const getOnsiteSeatsLabel = (onsite: ProgramAdmissionCapacity): string =>
+  `현장 잔여 ${onsite.remaining.toLocaleString()}명`;

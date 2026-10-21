@@ -25,6 +25,10 @@ interface PreregisterTableProps {
   /** 회차 ID → 표시 이름 */
   sessionLabel: (sessionId: number) => string;
   onRowClick: (row: PreregisterRow) => void;
+  selectedIds: Set<string>;
+  onToggle: (id: string) => void;
+  onTogglePage: () => void;
+  footerActions?: ReactNode;
   children: ReactNode;
 }
 
@@ -33,6 +37,10 @@ const PreregisterTable = ({
   totalCount,
   sessionLabel,
   onRowClick,
+  selectedIds,
+  onToggle,
+  onTogglePage,
+  footerActions,
   children,
 }: PreregisterTableProps) => {
   const columns: TableColumn<PreregisterRow>[] = [
@@ -112,6 +120,10 @@ const PreregisterTable = ({
       maxHeight="none"
       minWidth="900px"
       onRowClick={onRowClick}
+      selectedIds={selectedIds}
+      onToggleRow={onToggle}
+      onToggleAll={onTogglePage}
+      footerActions={footerActions}
     >
       {children}
     </RegistrationTable>

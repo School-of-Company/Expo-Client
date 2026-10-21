@@ -8,7 +8,7 @@ import { XMark } from '@/shared/assets/icons';
 import { getExpoRoutes, getRegistrationRoutes } from '@/shared/config';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import Button from '../Button';
-import SelectDateInput from '../SelectDateInput';
+import KstDateTimeInput from '../KstDateTimeInput';
 
 const CATEGORIES = {
   EXHIBITION: '박람회',
@@ -50,7 +50,10 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
   const needsDate =
     (actionType === 'formcreate' || actionType === 'edit') &&
     selectedCategory === CATEGORIES.FORM;
-  const isDateReady = !needsDate || (startDate && endDate);
+  // 시·분까지 고친 뒤 넘어가도록 기간은 '다음'을 눌러 확정한다
+  const [isDateConfirmed, setIsDateConfirmed] = useState(false);
+  const isDateInvalid = !!startDate && !!endDate && startDate >= endDate;
+  const isDateReady = !needsDate || isDateConfirmed;
 
   const handleCategorySelect = (category: string) => {
     if (category === CATEGORIES.EXHIBITION) {
@@ -96,11 +99,11 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
 
     if (actionType === 'edit' && selectedFormType) {
       router.push(
-        `/form/edit/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
+        `/admin/form/edit/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
       );
     } else if (actionType === 'formcreate' && selectedFormType) {
       router.push(
-        `/form/create/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
+        `/admin/form/create/${params}?type=${userType}&mode=${selectedFormType}&applicationType=${appType}&startDate=${startDate?.toISOString() || ''}&endDate=${endDate?.toISOString() || ''}`,
       );
     } else if (actionType === 'share' && selectedFormType) {
       const url = `${baseURL}/application/${params}?formType=${selectedFormType}&userType=${userType}&applicationType=${appType}`;
@@ -254,18 +257,31 @@ const FormTypeModal = ({ text, onClose, params, modalType }: Props) => {
         </div>
         <div className="flex items-center gap-12">
           {!isDateReady && (
-            <>
-              <SelectDateInput
-                placeholder="시작 날짜"
-                onChange={setStartDate}
-                value={startDate}
-              />
-              <SelectDateInput
-                placeholder="마감 날짜"
-                onChange={setEndDate}
-                value={endDate}
-              />
-            </>
+            <div className="flex w-full flex-col gap-12">
+              <div className="flex w-full items-center gap-12 mobile:flex-col">
+                <KstDateTimeInput
+                  label="신청 시작 일시"
+                  onChange={setStartDate}
+                  value={startDate}
+                />
+                <KstDateTimeInput
+                  label="신청 마감 일시"
+                  onChange={setEndDate}
+                  value={endDate}
+                />
+              </div>
+              {isDateInvalid && (
+                <p role="alert" className="text-caption1r text-error">
+                  마감 일시는 시작 일시보다 늦어야 합니다.
+                </p>
+              )}
+              <Button
+                disabled={!startDate || !endDate || isDateInvalid}
+                onClick={() => setIsDateConfirmed(true)}
+              >
+                다음
+              </Button>
+            </div>
           )}
 
           {isDateReady &&

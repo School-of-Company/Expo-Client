@@ -17,7 +17,7 @@ import {
   COMPANION_MAX_COUNT,
 } from '@/entities/form';
 import { FormItem } from '@/features/form/common/model/formSchema';
-import { evaluateVisibility, FormValues } from '../lib/visibilityEngine';
+import { FormValues } from '../lib/visibilityEngine';
 
 interface FieldRendererProps {
   item: FormItem;
@@ -27,6 +27,23 @@ interface FieldRendererProps {
   setValue: UseFormSetValue<FormValues>;
   /** 회차 잔여석 등 폼 정의 밖에서 오는 동행자 상한. 폼 정의 상한과 함께 더 작은 쪽을 쓴다. */
   companionMaxCount?: number;
+  /** 연쇄 조건까지 따진 표시 여부(`getVisibleFieldIds`). 숨기면 그리지 않아 검증에서도 빠진다 */
+  visible: boolean;
+  /** 지금 고를 수 있는 직업만 남긴다. `fieldId` 는 직업 문항, 동행자 구분에도 같이 쓴다 */
+  occupationLock?: OccupationLock;
+  /** 휴대폰 인증한 번호. `fieldId` 전화번호 문항에 채우고 고칠 수 없게 한다 */
+  lockedPhone?: LockedPhone;
+}
+
+export interface LockedPhone {
+  fieldId: string;
+  value: string;
+}
+
+export interface OccupationLock {
+  fieldId?: string;
+  allowed: string[];
+  notice: string;
 }
 
 export default function FieldRenderer({
@@ -36,16 +53,18 @@ export default function FieldRenderer({
   watch,
   setValue,
   companionMaxCount,
+  occupationLock,
+  lockedPhone,
+  visible,
 }: FieldRendererProps) {
-  const formValues = watch();
-
-  const isVisible = evaluateVisibility(item.logic, formValues);
-
-  if (!isVisible) {
+  if (!visible) {
     return null;
   }
 
-  switch (item.type) {
+  // 서버 폼의 전화번호 문항은 TEXT 로 그려진다. 인증한 번호로 잠글 때는 전화번호 칸으로 보여 준다
+  const type = lockedPhone?.fieldId === item.id ? 'PHONE' : item.type;
+
+  switch (type) {
     case 'TEXT':
       return (
         <div className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-18">
@@ -99,6 +118,9 @@ export default function FieldRenderer({
               register={register}
               setValue={setValue}
               watch={watch}
+              lockedValue={
+                lockedPhone?.fieldId === item.id ? lockedPhone.value : undefined
+              }
             />
           </div>
         </div>
@@ -154,6 +176,15 @@ export default function FieldRenderer({
               placeholder={item.config?.placeholder}
               register={register}
               setValue={setValue}
+              watch={watch}
+              {...(occupationLock?.fieldId === item.id && {
+                disabledValues: (item.options ?? [])
+                  .filter(
+                    (option) => !occupationLock.allowed.includes(option.value),
+                  )
+                  .map((option) => option.id),
+                disabledNotice: occupationLock.notice,
+              })}
             />
           </div>
         </div>
@@ -178,6 +209,8 @@ export default function FieldRenderer({
                     companionMaxCount,
                   )
             }
+            allowedOccupations={occupationLock?.allowed}
+            occupationNotice={occupationLock?.notice}
             control={control}
             register={register}
           />

@@ -26,6 +26,8 @@ export const usePreRegisterSessions = (expoId: string) =>
     queryKey: ['preRegisterSessions', expoId],
     queryFn: () => getPublicPreregisterSessions(expoId),
     retry: false,
+    // 실패한 조회는 화면이 다시 그려질 때마다 다시 보내지 않고 "다시 불러오기"로만 다시 받는다
+    retryOnMount: false,
     // 실패는 회차 선택 화면이 직접 안내한다
     meta: { silent: true },
   });
@@ -50,3 +52,12 @@ export const getPreRegisterSessionState = (
   const end = new Date(session.endedAt).getTime();
   return !Number.isNaN(end) && end < now.getTime() ? 'ENDED' : 'OPEN';
 };
+
+/** 교사 구분 신청자에게 보이는 회차 안내. 숫자 없이 신청 가능/마감만 말한다 */
+export const getTeacherSeatNotice = (targetSeats: {
+  teacherAvailable: boolean;
+}) => (targetSeats.teacherAvailable ? '신청 가능' : '마감');
+
+/** 내 신청·완료 화면용 교사 잔여석. 공개 capacity 와 같은 응답이라 같은 캐시 키를 쓰고 신청·취소 뒤 함께 갱신된다 */
+export const useOwnTeacherSeats = (expoId: string, sessionId: string) =>
+  usePreRegisterCapacity(expoId, sessionId);

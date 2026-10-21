@@ -13,6 +13,8 @@ export interface ExpoDetail {
   /** 새 사전등록 회차의 교사·예비교사 / 그 외 정원 기본값. null 이면 미설정 */
   preregisterTeacherCapacity?: number | null;
   preregisterNonTeacherCapacity?: number | null;
+  /** 참가자 휴대전화 본인 인증 필요 여부. 서버가 관리자 상세 응답에 넣기 전에는 없다(Expo-Client#745) */
+  participantPhoneVerificationRequired?: boolean;
 }
 
 // 상세 화면은 프로그램 목록 응답에서 일정 표시에 필요한 필드만 쓴다

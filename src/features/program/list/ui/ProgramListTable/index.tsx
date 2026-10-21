@@ -36,7 +36,7 @@ const ProgramListTable = ({ expoId }: { expoId: string }) => {
   const routeActions = {
     RouteActions: (programId: number) => {
       router.push(
-        `/program/${expoId}/detail/${programId}?navigation=${navigation}`,
+        `/admin/program/${expoId}/detail/${programId}?navigation=${navigation}`,
       );
     },
   };
