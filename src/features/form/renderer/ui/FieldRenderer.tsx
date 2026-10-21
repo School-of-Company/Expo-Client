@@ -31,6 +31,13 @@ interface FieldRendererProps {
   visible: boolean;
   /** 지금 고를 수 있는 직업만 남긴다. `fieldId` 는 직업 문항, 동행자 구분에도 같이 쓴다 */
   occupationLock?: OccupationLock;
+  /** 휴대폰 인증한 번호. `fieldId` 전화번호 문항에 채우고 고칠 수 없게 한다 */
+  lockedPhone?: LockedPhone;
+}
+
+export interface LockedPhone {
+  fieldId: string;
+  value: string;
 }
 
 export interface OccupationLock {
@@ -47,6 +54,7 @@ export default function FieldRenderer({
   setValue,
   companionMaxCount,
   occupationLock,
+  lockedPhone,
   visible,
 }: FieldRendererProps) {
   if (!visible) {
@@ -107,6 +115,9 @@ export default function FieldRenderer({
               register={register}
               setValue={setValue}
               watch={watch}
+              lockedValue={
+                lockedPhone?.fieldId === item.id ? lockedPhone.value : undefined
+              }
             />
           </div>
         </div>
