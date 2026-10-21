@@ -20,12 +20,17 @@ import {
   getPreregisterErrorMessage,
   INITIAL_PREREGISTER_FILTER,
   PreregisterFilter,
+  PreregisterRow,
   usePreregisterLedger,
 } from '../../../common/model/preregisterLedger';
 import { usePreregisterSummary } from '../../../common/model/preregisterSummary';
 import PreregisterDetailModal from '../PreregisterDetailModal';
 import PreregisterFilters from '../PreregisterFilters';
 import PreregisterTable from '../PreregisterTable';
+import RegistrationExcelModal from '../RegistrationExcelModal';
+
+const OUTLINE_ACTION =
+  'rounded-sm border-1 border-solid border-gray-200 bg-white px-16 py-6 text-body2r text-gray-500 duration-200 hover:border-main-600 hover:text-main-600';
 
 /** 접수 관리대장의 사전등록 탭. 이 탭의 조건은 프로그램·연수 탭과 섞이지 않는다 */
 const PreregisterLedger = () => {
@@ -39,6 +44,11 @@ const PreregisterLedger = () => {
     INITIAL_PREREGISTER_FILTER,
   );
   const [detailKey, setDetailKey] = useState<string | null>(null);
+  // 서버 페이지를 넘겨도 선택이 유지되도록 선택한 행 자체를 보관한다. 값은 접수대장 key 다
+  const [selected, setSelected] = useState<Map<string, PreregisterRow>>(
+    new Map(),
+  );
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
   const closeDetail = useCallback(() => setDetailKey(null), []);
 
   const {
@@ -47,6 +57,7 @@ const PreregisterLedger = () => {
     isLoading,
     isError,
     isFetching,
+    isPlaceholderData,
     dataUpdatedAt,
     refetch,
   } = usePreregisterLedger(expoId, filter, page - 1);
@@ -73,6 +84,30 @@ const PreregisterLedger = () => {
   const rows = useMemo(() => data?.rows ?? [], [data]);
   const totalCount = data?.totalElements ?? 0;
   const totalPage = Math.max(Math.ceil(totalCount / LEDGER_PAGE_SIZE), 1);
+  // 이전 필터 결과나 실패한 조회의 건수로 다운로드를 막지 않도록 현재 조건의 건수만 넘긴다
+  const filterCount =
+    data && !isPlaceholderData && !isError ? data.totalElements : undefined;
+  const selectedIds = useMemo(() => new Set(selected.keys()), [selected]);
+  const selectedRows = useMemo(() => Array.from(selected.values()), [selected]);
+
+  const handleToggle = (id: string) =>
+    setSelected((prev) => {
+      const next = new Map(prev);
+      const row = rows.find((item) => item.id === id);
+      if (next.has(id)) next.delete(id);
+      else if (row) next.set(id, row);
+      return next;
+    });
+
+  const handleTogglePage = () =>
+    setSelected((prev) => {
+      const next = new Map(prev);
+      const isAllSelected = rows.every(({ id }) => next.has(id));
+      rows.forEach((row) =>
+        isAllSelected ? next.delete(row.id) : next.set(row.id, row),
+      );
+      return next;
+    });
 
   const handleFilterChange = useCallback(
     (next: PreregisterFilter) => {
@@ -88,8 +123,8 @@ const PreregisterLedger = () => {
     children: (
       <div className="flex w-full flex-1 flex-col space-y-20 overflow-y-auto">
         <div className="space-y-8">
-          {/* 엑셀·그룹 메시지는 Report·Notification 이 사전등록 대상을 받으면 다시 붙인다 */}
-          <div className="flex justify-end">
+          {/* 그룹 메시지는 Notification 이 사전등록 대상을 받으면 다시 붙인다 */}
+          <div className="flex flex-wrap items-center justify-between gap-12">
             <RefreshStatus
               updatedAt={dataUpdatedAt}
               isFetching={isFetching}
@@ -97,6 +132,24 @@ const PreregisterLedger = () => {
               intervalMs={LEDGER_REFRESH_MS}
               hasError={isError && !!data}
             />
+            <div className="flex flex-wrap items-center gap-8">
+              {selected.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelected(new Map())}
+                  className="text-caption1r text-gray-400 underline"
+                >
+                  선택 해제
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsExcelModalOpen(true)}
+                className={OUTLINE_ACTION}
+              >
+                등록 원장 엑셀
+              </button>
+            </div>
           </div>
 
           {summary.data && (
@@ -133,6 +186,14 @@ const PreregisterLedger = () => {
             totalCount={totalCount}
             sessionLabel={sessionLabel}
             onRowClick={({ id }) => setDetailKey(id)}
+            selectedIds={selectedIds}
+            onToggle={handleToggle}
+            onTogglePage={handleTogglePage}
+            footerActions={
+              <p className="text-body2r text-gray-500">
+                선택 <span className="text-main-600">{selected.size}</span>
+              </p>
+            }
           >
             {totalPage > 1 && (
               <div className="flex justify-center">
@@ -148,6 +209,17 @@ const PreregisterLedger = () => {
             rowKey={detailKey}
             sessionLabel={sessionLabel}
             onClose={closeDetail}
+          />
+        )}
+
+        {isExcelModalOpen && (
+          <RegistrationExcelModal
+            expoId={expoId}
+            selectedRows={selectedRows}
+            filter={filter}
+            filterCount={filterCount}
+            sessionLabel={sessionLabel}
+            onClose={() => setIsExcelModalOpen(false)}
           />
         )}
       </div>
