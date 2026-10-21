@@ -649,18 +649,51 @@ const ProgramApplyContainer = ({
           return (
             <section
               key={group.key}
-              className={`flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-24 mobile:p-16 ${isTimeMismatch ? 'opacity-60' : ''}`}
+              className={`flex flex-col gap-20 rounded-sm border-1 border-solid p-24 mobile:p-16 ${isTimeMismatch ? 'relative overflow-hidden border-[#f5b5b8]' : 'border-gray-200'}`}
             >
               <div className="flex min-w-0 items-start justify-between gap-12">
-                <p className="min-w-0 break-words break-keep text-h3b text-black mobile:text-body1b">
+                <p
+                  className={`min-w-0 break-words break-keep text-h3b text-black mobile:text-body1b ${isTimeMismatch ? 'pr-48' : ''}`}
+                >
                   {program.title}
                 </p>
-                <span
-                  className={`flex-none rounded-full px-12 py-4 text-caption1b ${STATUS_CLASS[status]}`}
-                >
-                  {SCHEDULE_STATUS_LABEL[status]}
-                </span>
+                {isTimeMismatch ? (
+                  <span
+                    aria-hidden
+                    className="absolute -right-40 top-24 w-[150px] rotate-45 bg-error py-4 text-center text-caption1b text-white"
+                  >
+                    신청 불가
+                  </span>
+                ) : (
+                  <span
+                    className={`flex-none rounded-full px-12 py-4 text-caption1b ${STATUS_CLASS[status]}`}
+                  >
+                    {SCHEDULE_STATUS_LABEL[status]}
+                  </span>
+                )}
               </div>
+
+              {isTimeMismatch && (
+                <div
+                  role="status"
+                  className="flex items-center gap-12 break-keep rounded-sm bg-[#fdeced] px-16 py-12"
+                >
+                  <span
+                    aria-hidden
+                    className="flex h-28 w-28 flex-none items-center justify-center rounded-full bg-error text-body2b text-white"
+                  >
+                    ✕
+                  </span>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-body2b text-error">
+                      사전등록 회차와 시간이 맞지 않습니다.
+                    </p>
+                    <p className="text-caption1r text-gray-700">
+                      선생님이 사전등록한 회차와 다른 시간의 프로그램입니다.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {group.sessions.length > 1 && (
                 <fieldset className="flex flex-col gap-8">
@@ -763,23 +796,27 @@ const ProgramApplyContainer = ({
                 </fieldset>
               )}
 
-              {isTimeMismatch && (
-                <p
-                  role="status"
-                  className="break-keep text-caption1r text-gray-600"
+              {isTimeMismatch && !isFieldReleased && (
+                <Link
+                  href={getExpoRoutes(expoId).applicationMy}
+                  className="flex h-[44px] items-center justify-center rounded-sm border-1 border-solid border-main-600 bg-white text-body2b text-main-600"
                 >
-                  사전등록한 회차 시간과 맞지 않는 프로그램입니다.
-                  {!isFieldReleased &&
-                    ' 이 시간대 회차를 사전등록하면 신청할 수 있습니다.'}
-                </p>
+                  사전등록한 회차로 이동하기 →
+                </Link>
               )}
               {addSession && (
                 <Link
                   href={`${getExpoRoutes(expoId).applicationMy}&addSessionId=${addSession.id}`}
-                  className="flex h-[44px] items-center justify-center rounded-sm border-1 border-solid border-main-600 text-body2b text-main-600"
+                  className="text-center text-body2b text-main-600 underline"
                 >
-                  이 회차 사전등록 · {addSession.title}
+                  이 시간대 회차 추가 사전등록 · {addSession.title}
                 </Link>
+              )}
+              {isTimeMismatch && !isFieldReleased && (
+                <p className="rounded-sm bg-gray-100 px-16 py-12 text-caption1r text-gray-600">
+                  사전등록 시 선택한 회차와 동일한 시간의 프로그램만 신청할 수
+                  있습니다.
+                </p>
               )}
 
               {notes.length > 0 && (
@@ -822,13 +859,15 @@ const ProgramApplyContainer = ({
                   온라인 신청서가 연결되지 않았습니다.
                 </p>
               )}
-              <Button
-                type="button"
-                disabled={!formId || !!blockedLabel}
-                onClick={() => setOpenGroupKey(isOpen ? null : group.key)}
-              >
-                {blockedLabel ?? (isOpen ? '닫기' : '신청하기')}
-              </Button>
+              {!isTimeMismatch && (
+                <Button
+                  type="button"
+                  disabled={!formId || !!blockedLabel}
+                  onClick={() => setOpenGroupKey(isOpen ? null : group.key)}
+                >
+                  {blockedLabel ?? (isOpen ? '닫기' : '신청하기')}
+                </Button>
+              )}
               {outcome && (
                 <p
                   role="status"
