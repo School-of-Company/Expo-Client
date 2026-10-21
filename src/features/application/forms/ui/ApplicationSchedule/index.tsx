@@ -168,7 +168,6 @@ const ApplicationSchedule = ({
               ? '신청 기간을 불러오지 못했습니다.'
               : form
                 ? [
-                    form.informationText,
                     `신청 기간 ${period(form.startDate, form.endDate)}`,
                     occupationLock &&
                       `교원·예비교사는 ${formatFormPeriod(form.startDate)}부터, 그 외 유형은 ${formatFormPeriod(form.occupationOpenAt ?? '')}부터 신청할 수 있습니다.`,
