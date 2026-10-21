@@ -38,8 +38,16 @@ export const getExpoRoutes = (expoId: string) => {
     participants: `/admin/exhibition/participants/${id}?page=1&userType=STANDARD`,
     edit: `/admin/exhibition/edit/${id}`,
     qr,
-    accessQr: (userType: string, applicationType: string) =>
-      `${qr}?tab=${EXPO_QR_TABS.access}&userType=${encodeURIComponent(userType)}&applicationType=${encodeURIComponent(applicationType)}`,
+    // 예전 폼 유형 조합을 QR 대상으로 옮긴다. 일반 사전등록 QR 은 없어져 대상 없이 연다
+    accessQr: (userType: string, applicationType: string) => {
+      const target =
+        userType === 'TRAINEE'
+          ? 'trainee'
+          : applicationType === 'FIELD'
+            ? 'field'
+            : undefined;
+      return `${qr}?tab=${EXPO_QR_TABS.access}${target ? `&target=${target}` : ''}`;
+    },
     checkIn: `${qr}?tab=${EXPO_QR_TABS.checkIn}`,
     program: `/admin/program/${id}?navigation=standard`,
     // 회차 참가자·QR 출석 화면. 연수와 일반 프로그램 ID 는 겹칠 수 있어 종류를 함께 넘긴다
