@@ -20,7 +20,6 @@ import {
   SESSION_BLOCK_LABEL,
   getParticipantBlockReason,
   getSessionBlockReason,
-  hasOnlyStudents,
   isCurrentParticipant,
 } from '../../model/addSession';
 import type {
@@ -110,12 +109,8 @@ const AddSessionDialog = ({
   const isReturning = cancelled.some(({ participantId }) =>
     addableIds.includes(participantId),
   );
-  const onlyStudents = hasOnlyStudents(participants, addableIds);
   const canSubmit =
-    sessionId !== undefined &&
-    addableIds.length > 0 &&
-    !onlyStudents &&
-    !isSubmitting;
+    sessionId !== undefined && addableIds.length > 0 && !isSubmitting;
 
   const toggle = (participantId: number) =>
     setSelectedIds((prev) =>
@@ -275,14 +270,8 @@ const AddSessionDialog = ({
             </div>
           )}
           <p className="break-keep text-caption1r text-gray-500">
-            대표자는 이 회차에 참석하지 않아도 됩니다. 단, 학생만 참석할 수는
-            없고 학생이 아닌 참석자가 1명 이상 있어야 합니다.
+            대표자는 이 회차에 참석하지 않아도 됩니다.
           </p>
-          {onlyStudents && (
-            <p role="alert" className="break-keep text-body2r text-error">
-              학생이 아닌 참석자를 1명 이상 선택해 주세요.
-            </p>
-          )}
         </fieldset>
 
         {sessionIssue ? (

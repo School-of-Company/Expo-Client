@@ -1,29 +1,6 @@
 import { getPreRegisterSessionState } from './usePreRegister';
-import type { OwnerApplication, OwnerParticipant } from '../api/myApplications';
+import type { OwnerApplication } from '../api/myApplications';
 import type { PublicPreregisterSession } from '../api/preRegister';
-
-const STUDENT_OCCUPATIONS = new Set([
-  'KINDERGARTEN_STUDENT',
-  'ELEMENTARY_STUDENT',
-  'MIDDLE_SCHOOL_STUDENT',
-  'HIGH_SCHOOL_STUDENT',
-]);
-
-/** 학생만 남으면 서버가 400 으로 거절한다(Q1). 직업을 모르는 참석자는 학생으로 보지 않는다 */
-export const hasOnlyStudents = (
-  participants: Pick<OwnerParticipant, 'participantId' | 'occupation'>[],
-  selectedIds: number[],
-) => {
-  const selected = participants.filter(({ participantId }) =>
-    selectedIds.includes(participantId),
-  );
-  return (
-    selected.length > 0 &&
-    selected.every(
-      ({ occupation }) => occupation && STUDENT_OCCUPATIONS.has(occupation),
-    )
-  );
-};
 
 /**
  * 지금 일행인지. 사전등록·프로그램 신청 중 하나라도 현재 신청(applied)이 있어야 한다.
