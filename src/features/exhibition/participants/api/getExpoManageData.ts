@@ -25,11 +25,18 @@ export const getParticipantExpoManageData = async (
   page: number,
   date: string,
   sessionId?: number,
+  withoutSession = false,
 ): Promise<ParticipantResponse> => {
   try {
     const response = await clientTokenInstance.get(`/participant/${id}`, {
-      // sessionId가 있으면 서버가 date를 무시한다
-      params: { page: page - 1, size: 7, date, sessionId },
+      // sessionId가 있으면 서버가 date를 무시한다. withoutSession 은 date에 회차 없이 입장한 참가자(현장등록)만 고른다
+      params: {
+        page: page - 1,
+        size: 7,
+        date,
+        sessionId,
+        ...(withoutSession && { withoutSession: true }),
+      },
     });
     return response.data;
   } catch (error) {

@@ -5,7 +5,7 @@ import { useForm, UseFormReturn } from 'react-hook-form';
 import { FormSchema } from '@/features/form/common/model/formSchema';
 import { useLeaveConfirm } from '@/shared/model';
 import { FormValues, getVisibleFieldIds } from '../lib/visibilityEngine';
-import FieldRenderer, { OccupationLock } from './FieldRenderer';
+import FieldRenderer, { LockedPhone, OccupationLock } from './FieldRenderer';
 
 interface FormRendererProps {
   schema: FormSchema;
@@ -16,6 +16,8 @@ interface FormRendererProps {
   companionMaxCount?: number;
   /** 유형별 오픈 시각 전에 고를 수 없는 직업을 막는다 */
   occupationLock?: OccupationLock;
+  /** 휴대폰 인증한 번호를 전화번호 문항에 채우고 잠근다 */
+  lockedPhone?: LockedPhone;
 }
 
 export default function FormRenderer({
@@ -25,9 +27,15 @@ export default function FormRenderer({
   renderFooter,
   companionMaxCount,
   occupationLock,
+  lockedPhone,
 }: FormRendererProps) {
   const methods = useForm<FormValues>({
-    defaultValues,
+    defaultValues: lockedPhone
+      ? {
+          ...defaultValues,
+          [lockedPhone.fieldId]: lockedPhone.value,
+        }
+      : defaultValues,
   });
 
   const {
@@ -67,6 +75,7 @@ export default function FormRenderer({
           setValue={setValue}
           companionMaxCount={companionMaxCount}
           occupationLock={occupationLock}
+          lockedPhone={lockedPhone}
           visible={visibleIds.has(item.id)}
         />
       ))}

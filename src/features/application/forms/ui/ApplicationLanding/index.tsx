@@ -14,11 +14,18 @@ const formatDay = (day: string) => {
 
 interface Props {
   expo?: PublicExpoDetail;
+  /** 행사가 시작돼 사전등록 대신 현장등록을 받는 중 */
+  isFieldReleased?: boolean;
   onApply: () => void;
   onMy: () => void;
 }
 
-const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
+const ApplicationLanding = ({
+  expo,
+  isFieldReleased = false,
+  onApply,
+  onMy,
+}: Props) => {
   const rows = expo
     ? [
         [
@@ -33,7 +40,7 @@ const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
   const actions = [
     {
       title: '신청하기',
-      text: '사전등록·프로그램·교원연수 회차와 신청 기간을 확인하고, 접수 중인 항목을 바로 신청할 수 있습니다.',
+      text: `${isFieldReleased ? '현장등록' : '사전등록'}·프로그램·교원연수 회차와 신청 기간을 확인하고, 접수 중인 항목을 바로 신청할 수 있습니다.`,
       button: '신청 목록 보기',
       onClick: onApply,
       className: 'bg-main-600 text-white',
@@ -60,7 +67,7 @@ const ApplicationLanding = ({ expo, onApply, onMy }: Props) => {
         />
         <Logo className="relative h-[40px] w-auto" />
         <h1 className="relative break-keep text-[2rem] font-bold leading-tight text-main-600 mobile:text-h2b">
-          {expo?.title ?? '박람회'} 사전등록
+          {expo?.title ?? '박람회'} {isFieldReleased ? '현장등록' : '사전등록'}
         </h1>
       </header>
 

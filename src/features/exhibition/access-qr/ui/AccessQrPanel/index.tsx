@@ -2,36 +2,51 @@
 
 import { useRef } from 'react';
 import { toast } from 'react-toastify';
-import { ApplicationType } from '@/shared/types/exhibition/type';
+import { useStandardProgram } from '@/shared/queries/useStandardProgram';
 import { Button } from '@/shared/ui';
-import { getHeaderTitleByUserType } from '../../model/getHeaderTitleByUserType';
 import ExhibitionAccessQrContainer from '../ExhibitionAccessQrContainer';
 
-/** 폼 유형 모달에서 고를 수 있던 조합과 같다. 연수자는 사전 등록만 있다 */
-const ACCESS_QR_TARGETS: {
-  userType: string;
-  applicationType: ApplicationType;
-}[] = [
-  { userType: 'STANDARD', applicationType: 'PRE' },
-  { userType: 'STANDARD', applicationType: 'FIELD' },
-  { userType: 'TRAINEE', applicationType: 'PRE' },
-];
+interface AccessQrTarget {
+  key: string;
+  label: string;
+  path: string;
+}
 
 interface AccessQrPanelProps {
   id: string;
-  userType: string | null;
-  applicationType: ApplicationType;
-  onSelect: (userType: string, applicationType: ApplicationType) => void;
+  /** 고른 QR 대상의 key. 주소의 `target` 값이다 */
+  target: string | null;
+  onSelect: (target: string) => void;
 }
 
-/** 현장 신청 폼으로 가는 QR. 참가자에게 보여 주는 화면이라 전체 화면으로 띄울 수 있다 */
-const AccessQrPanel = ({
-  id,
-  userType,
-  applicationType,
-  onSelect,
-}: AccessQrPanelProps) => {
+/**
+ * 현장에 띄우는 신청 사이트 바로가기 QR. 참가자에게 보여 주는 화면이라 전체 화면으로 띄울 수 있다.
+ * 현장등록은 신청 목록으로 보내 인증을 거쳐 등록하게 하고, 현장 정원이 있는 프로그램은 그 프로그램 신청으로 바로 보낸다.
+ * 일반 사전등록 폼은 회차 없이 열면 거절되므로(400) 대상에 두지 않는다
+ */
+const AccessQrPanel = ({ id, target, onSelect }: AccessQrPanelProps) => {
   const qrRef = useRef<HTMLDivElement>(null);
+  const { data: programs, isError } = useStandardProgram(id);
+  const targets: AccessQrTarget[] = [
+    {
+      key: 'field',
+      label: '현장등록',
+      path: `/application/forms/${id}?view=list`,
+    },
+    {
+      key: 'trainee',
+      label: '사전 연수자',
+      path: `/application/${id}?formType=application&userType=TRAINEE&applicationType=PRE`,
+    },
+    ...(programs ?? [])
+      .filter(({ policy }) => (policy?.onsiteCapacity ?? 0) > 0)
+      .map((program) => ({
+        key: `program-${program.id}`,
+        label: program.title,
+        path: `/application/forms/${id}/program?programId=${program.id}`,
+      })),
+  ];
+  const selected = targets.find(({ key }) => key === target);
 
   const showFullscreen = () => {
     qrRef.current?.requestFullscreen().catch(() => {
@@ -50,48 +65,45 @@ const AccessQrPanel = ({
           aria-label="QR 대상"
           className="flex flex-col gap-8 mobile:flex-col tablet:flex-row"
         >
-          {ACCESS_QR_TARGETS.map((target) => {
-            const isSelected =
-              target.userType === userType &&
-              target.applicationType === applicationType;
+          {targets.map(({ key, label }) => {
+            const isSelected = key === selected?.key;
             return (
               <button
-                key={`${target.userType}-${target.applicationType}`}
+                key={key}
                 type="button"
                 role="radio"
                 aria-checked={isSelected}
-                onClick={() =>
-                  onSelect(target.userType, target.applicationType)
-                }
+                onClick={() => onSelect(key)}
                 className={`flex-1 rounded-sm border-1 border-solid px-16 py-14 text-left text-body2b ${
                   isSelected
                     ? 'border-main-600 bg-main-600 text-white'
                     : 'border-gray-200 text-gray-600'
                 }`}
               >
-                {getHeaderTitleByUserType(
-                  target.userType,
-                  target.applicationType,
-                )}
+                {key.startsWith('program-') ? `${label} 바로가기` : label}
               </button>
             );
           })}
         </div>
+        {isError && (
+          <p className="break-keep text-caption1r text-error">
+            프로그램을 불러오지 못해 프로그램 바로가기 QR을 표시할 수 없습니다.
+          </p>
+        )}
         <div className="mt-auto pt-8">
-          <Button onClick={showFullscreen} disabled={!userType}>
+          <Button onClick={showFullscreen} disabled={!selected}>
             전체 화면으로 띄우기
           </Button>
         </div>
       </section>
-      {userType ? (
+      {selected ? (
         <div
           ref={qrRef}
           className="flex min-h-[600px] flex-1 flex-col rounded-sm border-1 border-solid border-gray-200 bg-white py-40 tablet:min-h-[440px]"
         >
           <ExhibitionAccessQrContainer
-            id={id}
-            userType={userType}
-            applicationType={applicationType}
+            path={selected.path}
+            label={selected.label}
           />
         </div>
       ) : (

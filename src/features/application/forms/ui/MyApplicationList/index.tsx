@@ -21,6 +21,7 @@ import {
   OwnerApplicationType,
   OwnerParticipant,
 } from '../../api/myApplications';
+import { useFieldRelease } from '../../model/fieldRelease';
 import {
   SessionInfo,
   useApplicationSessions,
@@ -361,6 +362,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   const {
     participants,
     applications,
+    qrParticipantIds,
     sessionIssue,
     errorMessage,
     retry,
@@ -397,10 +399,14 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   const initialAddSessionId = Number.isInteger(addSessionIdParam)
     ? addSessionIdParam
     : undefined;
-  // 확정된 사전등록이 있어야 다른 회차를 추가할 수 있다
-  const canAddSession = applications.some(
-    ({ type, status }) => type === 'PREREGISTER' && status === 'CONFIRMED',
-  );
+  // 확정된 사전등록이 있어야 다른 회차를 추가할 수 있다. 행사가 시작되면 사전등록을 받지 않아 숨긴다
+  const field = useFieldRelease(expoId);
+  const canAddSession =
+    !field.isLoading &&
+    !field.released &&
+    applications.some(
+      ({ type, status }) => type === 'PREREGISTER' && status === 'CONFIRMED',
+    );
   const autoOpened = useRef(false);
   useEffect(() => {
     if (autoOpened.current || !initialAddSessionId || !canAddSession) return;
@@ -414,9 +420,12 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   );
 
   // 참가자별로 묶고 대표자를 먼저 둔다. 서버가 주는 참가자 순서와 신청 순서는 그대로 지킨다.
-  // 활성 신청이 없는 참가자는 목록에서 빠진다
+  // 활성 신청도 QR 도 없는 참가자는 목록에서 빠진다. 사전등록 없이 현장등록만 한 사람은 신청 없이 QR 만 있다
   const groups = Array.from(
-    new Set(visibleApplications.map((a) => a.participantId)),
+    new Set([
+      ...visibleApplications.map((a) => a.participantId),
+      ...qrParticipantIds,
+    ]),
   )
     .map((participantId) => ({
       participantId,
@@ -433,7 +442,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
 
   // 조회 실패를 신청 없음으로 보이지 않게 오류를 그대로 알린다
   if (
-    visibleApplications.length === 0 &&
+    groups.length === 0 &&
     waitlists.length === 0 &&
     offers.length === 0 &&
     !errorMessage &&
@@ -461,7 +470,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         )}
       </div>
       {/* 재신청은 문자를 다시 보내지 않아 QR 문자를 잃어버린 사람은 여기서 확인한다(Expo-User-Server#164) */}
-      {visibleApplications.length > 0 && (
+      {groups.length > 0 && (
         <p className="break-keep text-body2r text-gray-500">
           QR 문자를 받지 못하셨나요? 아래 신청의 &apos;QR 보기&apos;에서 QR을
           확인할 수 있습니다. 다시 신청해도 QR 문자는 다시 발송되지 않습니다.
@@ -543,6 +552,11 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
               onAddCompanion={setCompanionTarget}
             />
           );
+          const title = participant?.name ?? '참가자';
+          // 확정 신청 줄에 이미 QR 보기가 있으면 따로 두지 않는다
+          const showsEntryQr =
+            qrParticipantIds.includes(participantId) &&
+            !active.some(({ status }) => status === 'CONFIRMED');
           return (
             // 신청이 쌓여도 사람별로 접어 둔다
             <details
@@ -551,9 +565,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
               className="rounded-sm border-1 border-solid border-gray-200 bg-white px-18 py-6 [&[open]>summary]:border-b-1 [&[open]>summary]:border-solid [&[open]>summary]:border-gray-100"
             >
               <summary className="flex cursor-pointer list-none flex-wrap items-center gap-8 py-12 [&::-webkit-details-marker]:hidden">
-                <span className="text-body2b text-black">
-                  {participant?.name ?? '참가자'}
-                </span>
+                <span className="text-body2b text-black">{title}</span>
                 {participant && (
                   <span className="text-body2r text-gray-500">
                     {participant.representative ? '대표자' : '참여자'}
@@ -562,10 +574,24 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
                   </span>
                 )}
                 <span className="text-caption1b text-main-600">
-                  신청 {active.length}건
+                  {active.length > 0 ? `신청 ${active.length}건` : '현장등록'}
                 </span>
               </summary>
               <ul className="flex flex-col divide-y divide-solid divide-gray-100">
+                {showsEntryQr && (
+                  <li className="flex items-center justify-between gap-12 py-16 mobile:flex-col mobile:items-stretch">
+                    <p className="text-body2b text-black">입장 QR</p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setQrTarget({ participantId, title: `${title} · 입장` })
+                      }
+                      className="whitespace-nowrap rounded-sm bg-main-600 px-16 py-8 text-caption1b text-white"
+                    >
+                      QR 보기
+                    </button>
+                  </li>
+                )}
                 {active.map(renderRow)}
               </ul>
             </details>
@@ -590,7 +616,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         />
       )}
 
-      {isAddSessionOpen && (
+      {isAddSessionOpen && canAddSession && (
         <AddSessionDialog
           expoId={expoId}
           sessions={preRegisterSessions}

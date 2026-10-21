@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { usePreregisterSessions } from '@/features/registration/common';
 import { withLoading } from '@/shared/hocs';
 import { useExcelDownload } from '@/shared/model';
+import { useExpoDetail } from '@/shared/queries/useExpoDetail';
 import {
   participants,
   ParticipantResponse,
@@ -19,6 +20,21 @@ import { TableForm } from '@/shared/ui/Table';
 import { category, selectOptionCategories } from '../../model/category';
 import { useExpoManageQueries } from '../../model/useExpoData';
 import DateContainer from '../DateContainer';
+
+const FIELD_TAB_PREFIX = 'field-';
+
+/** 행사 기간의 날짜들(yyyy-MM-dd). startedDay·finishedDay 는 KST 날짜라 앞 10자리만 쓴다 */
+const getExpoDays = (startedDay: string, finishedDay: string) => {
+  const days: string[] = [];
+  const end = new Date(`${finishedDay.slice(0, 10)}T00:00:00Z`).getTime();
+  for (
+    let day = new Date(`${startedDay.slice(0, 10)}T00:00:00Z`);
+    day.getTime() <= end;
+    day.setUTCDate(day.getUTCDate() + 1)
+  )
+    days.push(day.toISOString().slice(0, 10));
+  return days;
+};
 
 const ParticipantTable = ({ id }: { id: string }) => {
   const router = useRouter();
@@ -33,13 +49,34 @@ const ParticipantTable = ({ id }: { id: string }) => {
   const { data: sessions = [], isLoading: sessionsLoading } =
     usePreregisterSessions(id);
 
-  // 탭은 사전등록 회차 이름이다. 입장자는 회차 ID로 조회하고, 날짜는 서버가 sessionId 가 있으면 무시한다
-  const [selectedSessionId, setSelectedSessionId] = useState<string>();
-  const selectedSession =
-    sessions.find((s) => String(s.id) === selectedSessionId) ?? sessions[0];
-  const selectedDate = selectedSession
-    ? format(parseISO(selectedSession.startedAt), 'yyyy-MM-dd')
+  // 현장등록 입장은 회차가 없어 행사 날짜별 탭으로 따로 본다(Expo-User-Server#190)
+  const { data: expo } = useExpoDetail(id);
+  const fieldDays = useMemo(
+    () => (expo ? getExpoDays(expo.startedDay, expo.finishedDay) : []),
+    [expo],
+  );
+
+  // 탭은 사전등록 회차 이름과 날짜별 현장등록이다. 회차 입장자는 회차 ID로 조회하고, 날짜는 서버가 sessionId 가 있으면 무시한다
+  const tabs = [
+    ...sessions.map((s) => ({ key: String(s.id), label: s.title })),
+    ...fieldDays.map((day) => ({
+      key: `${FIELD_TAB_PREFIX}${day}`,
+      label: `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))} 현장등록`,
+    })),
+  ];
+  const [selectedTabKey, setSelectedTabKey] = useState<string>();
+  const selectedTab = tabs.find(({ key }) => key === selectedTabKey) ?? tabs[0];
+  const selectedFieldDay = selectedTab?.key.startsWith(FIELD_TAB_PREFIX)
+    ? selectedTab.key.slice(FIELD_TAB_PREFIX.length)
     : undefined;
+  const selectedSession = selectedFieldDay
+    ? undefined
+    : sessions.find((s) => String(s.id) === selectedTab?.key);
+  const selectedDate =
+    selectedFieldDay ??
+    (selectedSession
+      ? format(parseISO(selectedSession.startedAt), 'yyyy-MM-dd')
+      : undefined);
   const [selectItem, setSelectItem] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const { mutate: downloadExcel, isPending: isExporting } = useExcelDownload();
@@ -52,6 +89,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
       selectedDate || '',
       Boolean(selectedDate),
       selectedSession?.id,
+      Boolean(selectedFieldDay),
     );
 
   const requestPrintCategories = useMemo(() => {
@@ -141,19 +179,18 @@ const ParticipantTable = ({ id }: { id: string }) => {
         {/* 연수자 목록은 날짜 구분 없이 행사 전체라 날짜 선택을 보여 주지 않는다 */}
         {!isTrainee && (
           <DateContainer
-            items={sessions.map((s) => ({
-              key: String(s.id),
-              label: s.title,
-            }))}
-            onSelect={setSelectedSessionId}
-            selectedKey={selectedSession ? String(selectedSession.id) : ''}
+            items={tabs}
+            onSelect={setSelectedTabKey}
+            selectedKey={selectedTab?.key ?? ''}
           />
         )}
         {!isTrainee && (
           <p className="text-caption1r text-gray-500">
-            {sessions.length === 0
-              ? '등록된 사전등록 회차가 없습니다. 신청 관리에서 회차를 먼저 추가해주세요.'
-              : '선택한 회차로 입장한 참가자입니다. 회차 기록이 없는 예전 입장분은 보이지 않습니다. 사전등록한 전체 신청자는 접수대장에서 확인할 수 있습니다.'}
+            {selectedFieldDay
+              ? '선택한 날짜에 회차 없이 입장한 현장등록 참가자입니다.'
+              : sessions.length === 0
+                ? '등록된 사전등록 회차가 없습니다. 신청 관리에서 회차를 먼저 추가해주세요.'
+                : '선택한 회차로 입장한 참가자입니다. 회차 기록이 없는 예전 입장분은 보이지 않습니다. 사전등록한 전체 신청자는 접수대장에서 확인할 수 있습니다.'}
           </p>
         )}
 
@@ -185,11 +222,11 @@ const ParticipantTable = ({ id }: { id: string }) => {
             data={filteredData as participants[]}
             maxHeight="414px"
             footerType="file"
-            // 이 목록은 사전등록 전체가 아니라 선택 회차로 입장한 참가자다. 검색은 현재 페이지에서만 거른다
+            // 이 목록은 사전등록 전체가 아니라 선택 회차·날짜로 입장한 참가자다. 검색은 현재 페이지에서만 거른다
             text={
               isSearching
                 ? '현재 페이지 검색 결과'
-                : `${selectedSession?.title ?? ''} 입장자 수`
+                : `${selectedTab?.label ?? ''} 입장자 수`
             }
             totalCount={isSearching ? undefined : attendeeCount}
             actions={standardExcelFile}

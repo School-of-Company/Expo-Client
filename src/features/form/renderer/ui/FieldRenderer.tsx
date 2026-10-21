@@ -31,6 +31,13 @@ interface FieldRendererProps {
   visible: boolean;
   /** 지금 고를 수 있는 직업만 남긴다. `fieldId` 는 직업 문항, 동행자 구분에도 같이 쓴다 */
   occupationLock?: OccupationLock;
+  /** 휴대폰 인증한 번호. `fieldId` 전화번호 문항에 채우고 고칠 수 없게 한다 */
+  lockedPhone?: LockedPhone;
+}
+
+export interface LockedPhone {
+  fieldId: string;
+  value: string;
 }
 
 export interface OccupationLock {
@@ -47,13 +54,17 @@ export default function FieldRenderer({
   setValue,
   companionMaxCount,
   occupationLock,
+  lockedPhone,
   visible,
 }: FieldRendererProps) {
   if (!visible) {
     return null;
   }
 
-  switch (item.type) {
+  // 서버 폼의 전화번호 문항은 TEXT 로 그려진다. 인증한 번호로 잠글 때는 전화번호 칸으로 보여 준다
+  const type = lockedPhone?.fieldId === item.id ? 'PHONE' : item.type;
+
+  switch (type) {
     case 'TEXT':
       return (
         <div className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-18">
@@ -107,6 +118,9 @@ export default function FieldRenderer({
               register={register}
               setValue={setValue}
               watch={watch}
+              lockedValue={
+                lockedPhone?.fieldId === item.id ? lockedPhone.value : undefined
+              }
             />
           </div>
         </div>

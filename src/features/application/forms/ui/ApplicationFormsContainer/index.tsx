@@ -63,11 +63,22 @@ const ApplicationFormsContainer = ({
   );
   const [selected, setSelected] = useState<FormGroup | null>(null);
 
-  // 사전등록 탭은 회차·프로그램 일정이라 신청서가 없어도 노출하고, 나머지는 폼이 하나라도 있는 그룹만 노출
+  // 사전등록 탭은 회차·프로그램 일정이라 신청서가 없어도 노출하고, 나머지는 폼이 하나라도 있는 그룹만 노출.
+  // 행사가 시작되면 현장등록을 기본 탭으로 앞에 두고, 사전등록 탭은 남은 프로그램·연수 일정만 보여 준다
   const groups = FORM_GROUPS.filter(
     (group) =>
       group.key === 'PRE' || forms.some((entry) => entry.group === group.key),
-  );
+  )
+    .map((group) =>
+      field.released && group.key === 'PRE'
+        ? { ...group, label: '프로그램·연수' }
+        : group,
+    )
+    .sort(
+      (a, b) =>
+        Number(field.released && b.key === 'FIELD') -
+        Number(field.released && a.key === 'FIELD'),
+    );
   const current =
     groups.find((group) => group.key === selected) ?? groups[0] ?? null;
   const currentForms = forms.filter((entry) => entry.group === current?.key);
@@ -108,6 +119,7 @@ const ApplicationFormsContainer = ({
         <div className="mx-auto flex w-full max-w-[816px] flex-1 flex-col">
           <ApplicationLanding
             expo={expo}
+            isFieldReleased={field.released}
             onApply={() => setView('list')}
             onMy={() => setView('my')}
           />

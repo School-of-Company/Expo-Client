@@ -18,6 +18,7 @@ import {
   SessionIssue,
   SessionNotice,
   getSessionIssue,
+  loadVerifiedPhone,
   useRequireParticipantSession,
 } from '@/features/phone-verification';
 import { formatDefinitionSchedule } from '@/features/registration/common/model/ledger';
@@ -114,6 +115,15 @@ const PreRegisterContainer = ({
   const occupationFieldId = questions.find(
     (question) => question.dynamicFormType === 'OCCUPATION',
   )?.id;
+  // 서버는 입력값 대신 인증한 번호로 저장하므로 그 번호를 채우고 잠근다
+  const [verifiedPhone] = useState(() => loadVerifiedPhone(expoId));
+  const phoneFieldId = questions.find(
+    (question) => question.dynamicFormType === 'PHONE_NUMBER',
+  )?.id;
+  const lockedPhone =
+    verificationRequired && verifiedPhone && phoneFieldId !== undefined
+      ? { fieldId: String(phoneFieldId), value: verifiedPhone }
+      : undefined;
   const backHref = `/application/forms/${expoId}`;
 
   // 구분 정원 회차의 409 는 사유 코드가 없다. 교원·예비교사와 그 외가 섞인 일행이면 한쪽 좌석 부족으로 안내한다
@@ -416,6 +426,7 @@ const PreRegisterContainer = ({
               schema={schema}
               onSubmit={onSubmit}
               companionMaxCount={companionLimit}
+              lockedPhone={lockedPhone}
               occupationLock={
                 occupationLock
                   ? {

@@ -52,6 +52,11 @@ export interface OwnerApplication {
 export interface OwnerApplicationsResponse {
   participants: OwnerParticipant[];
   applications: OwnerApplication[];
+  /**
+   * 개인 QR 을 조회할 수 있는 참가자 ID(Expo-Application-Server#250). 확정 사전등록 또는 사전등록 이력 없는
+   * 현장등록 참가자이며 신청이 없어도 들어간다. 출석 연동이 꺼졌거나 예전 서버면 비어 있거나 없다
+   */
+  qrParticipantIds?: number[];
 }
 
 export interface MyApplications extends OwnerApplicationsResponse {
