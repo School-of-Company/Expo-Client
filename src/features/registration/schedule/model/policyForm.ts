@@ -22,6 +22,8 @@ export interface GuardianPolicyForm {
   formVersion: string;
   schoolTypeQuestionId: string;
   elementarySchoolValue: string;
+  /** 보호자가 학교급 문항에서 고르는 선택지 키. 이전에 저장된 정책은 비어 있다 */
+  guardianSchoolValue: string;
   gradeQuestionId: string;
   /** 1~6학년 선택지의 jsonData 키. 인덱스 0 이 1학년 */
   gradeKeys: string[];
@@ -31,6 +33,7 @@ export const EMPTY_GUARDIAN_POLICY_FORM: GuardianPolicyForm = {
   formVersion: '',
   schoolTypeQuestionId: '',
   elementarySchoolValue: '',
+  guardianSchoolValue: '',
   gradeQuestionId: '',
   gradeKeys: ['', '', '', '', '', ''],
 };
@@ -121,6 +124,7 @@ const toGuardianPolicyForm = (
     formVersion: String(policy.formVersion ?? ''),
     schoolTypeQuestionId: String(policy.schoolTypeQuestionId ?? ''),
     elementarySchoolValue: policy.elementarySchoolValue ?? '',
+    guardianSchoolValue: policy.guardianSchoolValue ?? '',
     gradeQuestionId: String(policy.gradeQuestionId ?? ''),
     gradeKeys,
   };
@@ -130,6 +134,7 @@ const toGuardianPolicy = (form: GuardianPolicyForm): ProgramGuardianPolicy => ({
   formVersion: Number(form.formVersion),
   schoolTypeQuestionId: Number(form.schoolTypeQuestionId),
   elementarySchoolValue: form.elementarySchoolValue.trim(),
+  guardianSchoolValue: form.guardianSchoolValue.trim(),
   gradeQuestionId: Number(form.gradeQuestionId),
   gradeValues: Object.fromEntries(
     form.gradeKeys.map((key, index) => [key.trim(), index + 1]),
@@ -216,6 +221,21 @@ const getGuardianPolicyProblem = (policy: ProgramPolicy): string | null => {
 };
 
 /**
+ * 보호자 선택지 규칙. 모집 정책 저장 화면에서만 검사한다.
+ * 필드가 생기기 전에 저장된 정책도 일괄 마감 같은 부분 수정은 막지 않고 서버 판단에 맡긴다
+ */
+const getGuardianSchoolValueProblem = (
+  guardian: ProgramGuardianPolicy | null | undefined,
+): string | null => {
+  if (!guardian) return null;
+  const value = guardian.guardianSchoolValue?.trim();
+  if (!value) return '보호자 선택지의 키를 입력해주세요.';
+  if (value === guardian.elementarySchoolValue.trim())
+    return '보호자 선택지는 초등학생 선택지와 다른 키여야 합니다.';
+  return null;
+};
+
+/**
  * 서버 ProgramPolicyRequest.validate() 와 같은 규칙. 문제가 없으면 null.
  * 모집 시작 < 모집 종료, 취소 마감·대기 승급 마감 ≥ 모집 시작, 직업 1개 이상, 정원 합 일치
  */
@@ -292,7 +312,11 @@ export const validateProgramForm = (form: ProgramForm): string | null => {
     return '프로그램 폼을 다시 선택해주세요.';
   if (policy.groupId.trim() && !UUID_PATTERN.test(policy.groupId.trim()))
     return '프로그램 묶음을 다시 선택해주세요.';
-  return getPolicyProblem(toProgramPolicy(policy));
+  const programPolicy = toProgramPolicy(policy);
+  return (
+    getGuardianSchoolValueProblem(programPolicy.guardianPolicy) ??
+    getPolicyProblem(programPolicy)
+  );
 };
 
 /** validateProgramForm 을 통과한 정책만 넘긴다. 일시가 비어 있으면 throw 한다 */

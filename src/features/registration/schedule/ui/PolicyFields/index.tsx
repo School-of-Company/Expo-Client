@@ -297,6 +297,27 @@ const PolicyFields = ({
                 }
               />
             </Field>
+            <Field label="보호자 선택지 키">
+              <Input
+                value={guardian.guardianSchoolValue}
+                onChange={(e) =>
+                  patchGuardian({ guardianSchoolValue: e.target.value })
+                }
+              />
+              {!guardian.guardianSchoolValue.trim() && (
+                <p className="text-caption1r text-gray-500">
+                  보호자가 학교급 문항에서 고르는 선택지 키를 지정해 주세요.
+                  초등학생 선택지와 같은 키는 쓸 수 없습니다.
+                </p>
+              )}
+              {guardian.guardianSchoolValue.trim() &&
+                guardian.guardianSchoolValue.trim() ===
+                  guardian.elementarySchoolValue.trim() && (
+                  <p className="text-caption1r text-red-500">
+                    초등학생 선택지와 같은 키는 쓸 수 없습니다.
+                  </p>
+                )}
+            </Field>
             <Field label="학년 문항 ID">
               <Input
                 type="number"
