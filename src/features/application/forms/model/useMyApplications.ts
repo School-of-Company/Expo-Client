@@ -27,7 +27,7 @@ export const useMyApplications = (expoId: string) => {
   const waitlistKey = ['myPreRegisterWaitlist', expoId];
   const offersKey = ['myPromotionOffers', expoId];
 
-  const { data, error, refetch } = useQuery({
+  const { data, error, refetch, isLoading } = useQuery({
     queryKey,
     queryFn: () => getMyApplications(expoId),
     retry: false,
@@ -40,6 +40,7 @@ export const useMyApplications = (expoId: string) => {
     data: waitlists,
     error: waitlistError,
     refetch: refetchWaitlist,
+    isLoading: isWaitlistLoading,
   } = useQuery({
     queryKey: waitlistKey,
     queryFn: () => getMyPreRegisterWaitlists(expoId),
@@ -48,7 +49,7 @@ export const useMyApplications = (expoId: string) => {
   });
 
   // 서버 기능 스위치가 꺼져 있으면 실패할 수 있으므로 오류는 숨기고 제안 없음으로 둔다
-  const { data: offerData } = useQuery({
+  const { data: offerData, isLoading: isOffersLoading } = useQuery({
     queryKey: offersKey,
     queryFn: () => getMyPromotionOffers(expoId),
     retry: false,
@@ -153,6 +154,8 @@ export const useMyApplications = (expoId: string) => {
   });
 
   return {
+    // 최초 조회가 끝나기 전. 이때의 빈 목록은 신청 없음이 아니다
+    isLoading: isLoading || isWaitlistLoading || isOffersLoading,
     participants: data?.participants ?? [],
     applications: data?.applications ?? [],
     qrParticipantIds: data?.qrParticipantIds ?? [],
