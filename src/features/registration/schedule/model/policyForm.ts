@@ -236,11 +236,9 @@ export const getPolicyProblem = (policy: ProgramPolicy): string | null => {
     !(Date.parse(policy.onsiteStartedAt) < Date.parse(policy.onsiteEndedAt))
   )
     return '현장 접수 종료가 현장 접수 시작보다 늦어야 합니다.';
-  // 서버 자동 승급 규칙: 끄기와 종료 시각은 함께 못 쓰고, 종료 시각은 모집 시작 이상 최종 마감 이하다
-  if (policy.autoPromotionEndedAt) {
+  // 서버 자동 승급 규칙: 종료 시각은 모집 시작 이상 최종 마감 이하다. 끄면 종료 시각은 요청에서 빠지므로(toProgramPolicy) 검사하지 않는다
+  if (policy.autoPromotionEnabled !== false && policy.autoPromotionEndedAt) {
     const autoEndedAt = Date.parse(policy.autoPromotionEndedAt);
-    if (policy.autoPromotionEnabled === false)
-      return '자동 승급을 끄면 자동 승급 종료 시각은 쓸 수 없습니다.';
     if (
       autoEndedAt < startedAt ||
       autoEndedAt > Date.parse(policy.promotionEndedAt)
@@ -355,6 +353,8 @@ export const withPolicyPatch = (
 ): ScheduleProgramRequest => {
   if (!program.policy) throw new Error('모집 정책이 없는 프로그램입니다.');
   const policy: ProgramPolicy = { ...program.policy, ...patch };
+  // 서버는 끄기와 종료 시각을 함께 받지 않으므로 끄는 패치면 기존 종료 시각을 뺀다
+  if (policy.autoPromotionEnabled === false) delete policy.autoPromotionEndedAt;
   const problem = getPolicyProblem(policy);
   if (problem) throw new Error(problem);
 
