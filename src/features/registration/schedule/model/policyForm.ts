@@ -310,6 +310,9 @@ export const validateProgramForm = (form: ProgramForm): string | null => {
     return '프로그램 폼을 다시 선택해주세요.';
   if (policy.groupId.trim() && !UUID_PATTERN.test(policy.groupId.trim()))
     return '프로그램 묶음을 다시 선택해주세요.';
+  // toProgramPolicy 는 한쪽만 있는 현장 접수 값을 조용히 버리므로 변환 전 폼 값으로 짝을 검사한다
+  if (Boolean(policy.onsiteStartedAt) !== Boolean(policy.onsiteEndedAt))
+    return '현장 접수 시작·종료를 함께 설정해주세요.';
   const programPolicy = toProgramPolicy(policy);
   return (
     getGuardianSchoolValueProblem(programPolicy.guardianPolicy) ??
