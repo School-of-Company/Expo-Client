@@ -88,6 +88,14 @@ const ProgramSection = ({
   const editing =
     controlledEditing === undefined ? ownEditing : controlledEditing;
   const setEditing = onEditingChange ?? setOwnEditing;
+  // 열 때의 객체를 그대로 쓰면 그 사이 바뀐 revision 으로 저장을 계속 시도해 409 가 반복된다.
+  // 입력 중인 폼 값은 ProgramForm 이 들고 있으므로 최신 목록의 같은 회차를 넘긴다
+  const latestEditing =
+    editing && editing !== 'new'
+      ? (programs.find(
+          (program) => toProgramKey(program) === toProgramKey(editing),
+        ) ?? editing)
+      : undefined;
   const groupIds = getProgramGroups(programs).map(({ groupId }) => groupId);
   const getGroupLabel = (program: ScheduleProgram) => {
     const index = groupIds.indexOf(getProgramGroupId(program) ?? '');
@@ -320,7 +328,7 @@ const ProgramSection = ({
             <ProgramForm
               key={editing === 'new' ? 'new' : toProgramKey(editing)}
               expoId={expoId}
-              program={editing === 'new' ? undefined : editing}
+              program={editing === 'new' ? undefined : latestEditing}
               programs={programs}
               initialForm={draftForm}
               onClose={() => setEditing(null)}
