@@ -6,6 +6,8 @@ import {
   buildBatchRequest,
   buildSteps,
   findReusedGuardian,
+  getRoleLabel,
+  isOtherRole,
   isLowGrade,
   moveStep,
   validateSelection,
@@ -87,3 +89,15 @@ assert.equal(moveStep(2, 1, 3), 2);
 assert.equal(moveStep(1, 1, 3), 2);
 
 console.log('companionSteps ok');
+
+// 역할 표시: 교사·예비교사·일반은 학생으로 보이지 않고 선택할 수 없다
+const other = (occupation: string | null) => ({ occupation });
+assert.equal(getRoleLabel(other('TEACHER')), '교사');
+assert.equal(getRoleLabel(other('PRE_SERVICE_TEACHER')), '예비교사');
+assert.equal(getRoleLabel(other('GENERAL')), '일반');
+assert.equal(getRoleLabel(other('PARENT')), '보호자');
+assert.equal(getRoleLabel(other('MIDDLE_SCHOOL_STUDENT')), '학생');
+assert.equal(getRoleLabel(other(null)), '학생');
+assert.equal(isOtherRole(other('TEACHER')), true);
+assert.equal(isOtherRole(other('ELEMENTARY_STUDENT')), false);
+assert.equal(isOtherRole(other(null)), false);

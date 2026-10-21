@@ -11,6 +11,25 @@ export interface CompanionCandidate {
 export const isGuardian = (p: Pick<CompanionCandidate, 'occupation'>) =>
   p.occupation === 'PARENT';
 
+const OTHER_ROLE_LABEL: Record<string, string> = {
+  TEACHER: '교사',
+  PRE_SERVICE_TEACHER: '예비교사',
+  SCHOOL_STAFF: '교직원',
+  GENERAL: '일반',
+};
+
+/** 학생이나 보호자가 될 수 없는 직업(교사·예비교사·교직원·일반). 직업을 모르면 예전처럼 학생으로 본다 */
+export const isOtherRole = (p: Pick<CompanionCandidate, 'occupation'>) =>
+  !!p.occupation && p.occupation in OTHER_ROLE_LABEL;
+
+/** 선택 목록에 붙이는 역할 표시 */
+export const getRoleLabel = (p: Pick<CompanionCandidate, 'occupation'>) =>
+  isGuardian(p)
+    ? '보호자'
+    : p.occupation
+      ? (OTHER_ROLE_LABEL[p.occupation] ?? '학생')
+      : '학생';
+
 /**
  * 학생 본인이 입력한 학교급·학년 답변이 초등 1~3학년인지. 문항 ID·선택지 키는 정책이 정하며
  * 라벨로 추측하지 않는다. 안내용이며 최종 판정은 서버가 한다
