@@ -155,6 +155,7 @@ export const useMyApplications = (expoId: string) => {
   return {
     participants: data?.participants ?? [],
     applications: data?.applications ?? [],
+    qrParticipantIds: data?.qrParticipantIds ?? [],
     // required: 인증한 적 없음, expired: 만료. 취소 뒤 재조회가 401 이면 이쪽으로 드러난다
     sessionIssue: getSessionIssue(error) ?? getSessionIssue(waitlistError),
     errorMessage: visibleError(error),
