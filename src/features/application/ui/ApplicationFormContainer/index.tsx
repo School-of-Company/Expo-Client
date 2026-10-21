@@ -2,22 +2,36 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import { useFormQuery } from '@/entities/form';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
+import {
+  SessionIssue,
+  SessionNotice,
+  getSessionIssue,
+  loadVerifiedPhone,
+  useRequireParticipantSession,
+} from '@/features/phone-verification';
+import { getExpoRoutes } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { ApplicationType } from '@/shared/types/exhibition/type';
 import { DetailHeader, Button } from '@/shared/ui';
-import { postApplication } from '../../api/postApplication';
+import {
+  ApplicationSubmitError,
+  postApplication,
+} from '../../api/postApplication';
 import { useFieldRelease } from '../../forms/model/fieldRelease';
+import { useParticipantExpoDetail } from '../../forms/model/useParticipantExpoDetail';
 import { createSubmissionKeys } from '../../lib/createSubmissionKeys';
 import { getFormatter } from '../../lib/formatterService';
 import { findRegistrationAnswerError } from '../../lib/process/findRegistrationAnswerError';
+
+const ALREADY_PREREGISTERED_TODAY = 'ALREADY_PREREGISTERED_TODAY';
 
 const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
@@ -39,6 +53,39 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     !field.isLoading &&
     !field.isError &&
     !field.released;
+  // 일반 현장등록은 휴대폰 인증 뒤 제출한다(세션이 없으면 서버가 401 SESSION_REQUIRED). 설정을 못 받으면 인증 필요로 본다
+  const isStandardField =
+    userType === 'STANDARD' && applicationType === 'FIELD';
+  const { data: expo, isError: isExpoError } = useParticipantExpoDetail(params);
+  const verificationRequired = !isStandardField
+    ? false
+    : expo || isExpoError
+      ? expo?.participantPhoneVerificationRequired !== false
+      : undefined;
+  const { isVerified } = useRequireParticipantSession(
+    params,
+    verificationRequired,
+  );
+  // 서버는 입력값 대신 인증한 번호로 저장하므로 그 번호를 채우고 잠근다
+  const [verifiedPhone] = useState(() => loadVerifiedPhone(params));
+  const phoneFieldId = formList?.dynamicForm?.find(
+    (question) => question.dynamicFormType === 'PHONE_NUMBER',
+  )?.id;
+  const lockedPhone =
+    verificationRequired && verifiedPhone && phoneFieldId !== undefined
+      ? { fieldId: String(phoneFieldId), value: verifiedPhone }
+      : undefined;
+  const [sessionIssue, setSessionIssue] = useState<SessionIssue>();
+  // 그날 회차에 확정된 사전등록이 있는 번호는 현장등록 대신 받은 QR로 입장한다(Expo-Application-Server#261)
+  const [isPreregisteredToday, setIsPreregisteredToday] = useState(false);
+
+  // 행사가 시작되면 예전 일반 사전등록 폼 주소는 사전등록 종료 안내로 보낸다
+  const isClosedStandardPre =
+    userType === 'STANDARD' && applicationType === 'PRE' && field.released;
+  useEffect(() => {
+    if (isClosedStandardPre)
+      router.replace(`/application/forms/${params}/pre-register`);
+  }, [isClosedStandardPre, params, router]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   // 같은 내용의 재제출(연타·네트워크 재시도)은 같은 Idempotency-Key 로 보낸다
@@ -103,6 +150,11 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         `/application/success/${params}?userType=${userType}&formType=application`,
       );
     } catch (error) {
+      setSessionIssue(getSessionIssue(error));
+      setIsPreregisteredToday(
+        error instanceof ApplicationSubmitError &&
+          error.code === ALREADY_PREREGISTERED_TODAY,
+      );
       toast.error(
         error instanceof Error ? error.message : '폼 등록에 실패했습니다',
       );
@@ -149,17 +201,44 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
   }
 
   return withLoading({
-    isLoading: isLoading || (applicationType === 'FIELD' && field.isLoading),
+    isLoading:
+      isLoading ||
+      (applicationType === 'FIELD' && field.isLoading) ||
+      !isVerified ||
+      isClosedStandardPre,
     children: (
       <div className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
         <div className="mt-30">
           <DetailHeader headerTitle={formList?.title ?? ''} />
         </div>
 
+        {sessionIssue && <SessionNotice expoId={params} issue={sessionIssue} />}
+        {isPreregisteredToday && (
+          <div
+            role="alert"
+            className="flex flex-col gap-8 rounded-sm border-1 border-solid border-error bg-white p-24"
+          >
+            <p className="text-body2b text-error">
+              이미 사전등록하셨습니다. 받으신 QR로 입장해 주세요.
+            </p>
+            <p className="text-body2r text-gray-600">
+              오늘 회차에 확정된 사전등록이 있어 현장등록을 하지 않아도 됩니다.
+              QR을 다시 보려면 내 신청에서 확인해주세요.
+            </p>
+            <Link
+              href={getExpoRoutes(params).applicationMy}
+              className="self-start text-body2b text-main-600 underline"
+            >
+              내 신청·QR 보기
+            </Link>
+          </div>
+        )}
+
         {formSchema && (
           <FormRenderer
             schema={formSchema}
             onSubmit={onSubmit}
+            lockedPhone={lockedPhone}
             renderFooter={(methods) => (
               <div className="mt-48 flex flex-col gap-30">
                 <PrivacyConsent
