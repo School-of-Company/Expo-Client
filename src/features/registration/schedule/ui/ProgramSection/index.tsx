@@ -235,7 +235,7 @@ const ProgramSection = ({
                 });
               }}
             >
-              엑셀
+              신청명단 엑셀
             </button>
           )}
           <button
