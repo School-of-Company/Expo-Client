@@ -176,6 +176,7 @@ export default function FieldRenderer({
               placeholder={item.config?.placeholder}
               register={register}
               setValue={setValue}
+              watch={watch}
               {...(occupationLock?.fieldId === item.id && {
                 disabledValues: (item.options ?? [])
                   .filter(

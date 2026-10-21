@@ -140,6 +140,7 @@ const PublicSurveyContainer = ({ expoId }: { expoId: string }) => {
                     required
                     register={methods.register}
                     setValue={methods.setValue}
+                    watch={methods.watch}
                   />
                 </div>
                 {data?.lotteryEnabled && (
