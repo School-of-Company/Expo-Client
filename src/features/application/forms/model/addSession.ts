@@ -4,7 +4,7 @@ import type { PublicPreregisterSession } from '../api/preRegister';
 
 /**
  * 지금 일행인지. 사전등록·프로그램 신청 중 하나라도 현재 신청(applied)이 있어야 한다.
- * 모두 취소한 동행자는 다음 동행자 추가로 해제되기 전까지 일행 목록에 남지만 인원에서 빠진다(Expo-Application-Server#262)
+ * 모두 취소한 동행자는 다음 동행자 추가로 해제되기 전까지 응답에는 남지만 인원에서 빠지며, 회차 추가 대상에도 넣지 않는다(Expo-Application-Server#262)
  */
 export const isCurrentParticipant = (
   applications: Pick<OwnerApplication, 'participantId' | 'applied'>[],
