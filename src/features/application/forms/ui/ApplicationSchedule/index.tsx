@@ -47,6 +47,12 @@ const usePublicPrograms = (expoId: string, programType: ProgramType) =>
 const period = (start: string, end: string) =>
   `${formatFormPeriod(start)} ~ ${formatFormPeriod(end)}`;
 
+const PRE_REGISTER_GUIDE = [
+  '박람회 입장을 위해 사전등록이 필요합니다. 방문 날짜와 시간대를 선택해 신청해 주세요.',
+  '사전등록은 대표자 본인을 포함하여 최대 5명까지 가능합니다.',
+  '\n※ 교원·예비교사는 10.22.(목) 09:00부터, 그 외 방문객은 10.26.(월) 08:30부터 신청할 수 있습니다.',
+];
+
 const byStart = (a: { startedAt: string }, b: { startedAt: string }) =>
   a.startedAt.localeCompare(b.startedAt);
 
@@ -65,10 +71,13 @@ const STATUS_BADGE_CLASS = {
  */
 const ApplicationSchedule = ({
   expoId,
+  showGuide = false,
   showPreRegister = true,
   initialTab,
 }: {
   expoId: string;
+  /** 현재 박람회는 사전등록 설명을 고정 안내 문구로 대신한다 */
+  showGuide?: boolean;
   showPreRegister?: boolean;
   /** 주소의 `?tab=` 값. 신청 화면에서 뒤로 왔을 때 보던 탭을 연다 */
   initialTab?: string;
@@ -167,11 +176,14 @@ const ApplicationSchedule = ({
             formError
               ? '신청 기간을 불러오지 못했습니다.'
               : form
-                ? [
-                    `신청 기간 ${period(form.startDate, form.endDate)}`,
-                    occupationLock &&
-                      `교원·예비교사는 ${formatFormPeriod(form.startDate)}부터, 그 외 유형은 ${formatFormPeriod(form.occupationOpenAt ?? '')}부터 신청할 수 있습니다.`,
-                  ]
+                ? (showGuide
+                    ? PRE_REGISTER_GUIDE
+                    : [
+                        `신청 기간 ${period(form.startDate, form.endDate)}`,
+                        occupationLock &&
+                          `교원·예비교사는 ${formatFormPeriod(form.startDate)}부터, 그 외 유형은 ${formatFormPeriod(form.occupationOpenAt ?? '')}부터 신청할 수 있습니다.`,
+                      ]
+                  )
                     .filter(Boolean)
                     .join('\n')
                 : '신청 기간은 추후 안내합니다.'
