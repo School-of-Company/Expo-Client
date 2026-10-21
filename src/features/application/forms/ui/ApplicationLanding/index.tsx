@@ -3,13 +3,25 @@ import { PublicExpoDetail } from '../../model/useParticipantExpoDetail';
 
 const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토'];
 
-/** "2026년 10월 31일(토)" — startedDay 는 KST 날짜 문자열이라 앞 10자리만 쓴다 */
-const formatDay = (day: string) => {
+/** startedDay 는 KST 날짜 문자열이라 앞 10자리만 쓴다 */
+const parseDay = (day: string) => {
   const [year, month, date] = day.slice(0, 10).split('-').map(Number);
-  if (!year || !month || !date) return day;
+  if (!year || !month || !date) return null;
   const weekday =
     WEEKDAY[new Date(Date.UTC(year, month - 1, date)).getUTCDay()];
-  return `${year}년 ${month}월 ${date}일(${weekday})`;
+  return { year, month, date, weekday };
+};
+
+/** "2026.10.31.(토) ~ 11.1.(일)" — 끝나는 해가 같으면 연도를 생략한다 */
+const formatPeriod = (startedDay: string, finishedDay: string) => {
+  const start = parseDay(startedDay);
+  const end = parseDay(finishedDay);
+  if (!start || !end) return `${startedDay} ~ ${finishedDay}`;
+  const endText =
+    start.year === end.year
+      ? `${end.month}.${end.date}.(${end.weekday})`
+      : `${end.year}.${end.month}.${end.date}.(${end.weekday})`;
+  return `${start.year}.${start.month}.${start.date}.(${start.weekday}) ~ ${endText}`;
 };
 
 interface Props {
@@ -28,10 +40,7 @@ const ApplicationLanding = ({
 }: Props) => {
   const rows = expo
     ? [
-        [
-          '행사 기간',
-          `${formatDay(expo.startedDay)} ~ ${formatDay(expo.finishedDay)}`,
-        ],
+        ['행사 기간', formatPeriod(expo.startedDay, expo.finishedDay)],
         ['행사 장소', expo.location],
         ...(expo.description ? [['행사 소개', expo.description]] : []),
       ]
@@ -67,7 +76,7 @@ const ApplicationLanding = ({
         />
         <Logo className="relative h-[40px] w-auto" />
         <h1 className="relative break-keep text-[2rem] font-bold leading-tight text-main-600 mobile:text-h2b">
-          {expo?.title ?? '박람회'} {isFieldReleased ? '현장등록' : '사전등록'}
+          {expo?.title ?? '박람회'} 사전등록
         </h1>
       </header>
 
