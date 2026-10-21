@@ -22,11 +22,13 @@ import {
   CompanionCandidate,
   buildBatchRequest,
   buildSteps,
+  findProblemParticipants,
   findReusedGuardian,
   isGuardian,
   isLowGrade,
   moveStep,
   validateSelection,
+  withProblemParticipants,
 } from '../../model/companionSteps';
 import { ProgramApplyOutcome } from '../../model/programApply';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
@@ -204,12 +206,32 @@ const CompanionApplyFlow = ({
         submitError.status === 409
       )
         refetch();
+      // 사유가 있는 거절은 어느 사람의 신청서를 고쳐야 하는지 함께 알려 준다
+      const problems =
+        submitError instanceof ApplicationSubmitError
+          ? findProblemParticipants(
+              submitError.code,
+              program.policy?.guardianPolicy,
+              steps,
+              Object.fromEntries(
+                steps.map((p) => [
+                  p.participantId,
+                  buildProgramApplyPayload(
+                    form,
+                    all[p.participantId] as DynamicFormValues,
+                  ).answers,
+                ]),
+              ),
+            )
+          : [];
       onResult({
         kind: 'FAILED',
-        message:
+        message: withProblemParticipants(
           submitError instanceof Error
             ? submitError.message
             : '신청에 실패했습니다',
+          problems,
+        ),
       });
     } finally {
       inFlight.current = false;

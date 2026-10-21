@@ -30,6 +30,11 @@ const APPLICATION_ERROR_MESSAGES: Record<number, string> = {
 // 서버 오류 코드로 상태 코드보다 구체적으로 안내한다
 const APPLICATION_ERROR_CODE_MESSAGES: Record<string, string> = {
   ...INELIGIBLE_REASON_LABEL,
+  // 보호자 동반 정책의 거절 사유(403·409). 참가자가 무엇을 고쳐야 하는지 알려 준다
+  GUARDIAN_REQUIRED: '초등 1~3학년은 보호자와 함께 신청해 주세요.',
+  GRADE_INVALID: '학년을 확인해 주세요.',
+  SCHOOL_TYPE_MISMATCH: '학교급 선택이 참가자 정보와 맞지 않습니다.',
+  COMPANION_LIMIT_REACHED: '일행은 최대 5명입니다.',
   WAITLIST_WITHDRAWN:
     '취소한 대기 신청입니다. 다시 신청하려면 처음부터 새로 신청해주세요.',
 };

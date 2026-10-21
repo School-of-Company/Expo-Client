@@ -92,3 +92,53 @@ export const buildBatchRequest = (
       })),
   };
 };
+
+/**
+ * 서버가 보호자 동반 정책으로 일괄 신청을 거절했을 때 고쳐야 할 사람을 가려 낸다.
+ * 서버는 사유만 주므로 사람별 답변을 정책의 문항·선택지 키로 다시 판정한다. 가려 내지 못하면 빈 배열이다
+ */
+export const findProblemParticipants = (
+  reason: string | undefined,
+  policy: ProgramGuardianPolicy | null | undefined,
+  steps: CompanionCandidate[],
+  answersById: Record<number, unknown>,
+): CompanionCandidate[] => {
+  if (!policy) return [];
+  const answersOf = (p: CompanionCandidate) =>
+    (answersById[p.participantId] ?? {}) as Record<string, unknown>;
+  const schoolOf = (p: CompanionCandidate) =>
+    answersOf(p)[String(policy.schoolTypeQuestionId)];
+  const students = steps.filter((p) => !isGuardian(p));
+  switch (reason) {
+    case 'GUARDIAN_REQUIRED':
+      return students.filter((p) => isLowGrade(policy, answersOf(p)));
+    case 'GRADE_INVALID':
+      return students.filter((p) => {
+        if (schoolOf(p) !== policy.elementarySchoolValue) return false;
+        const grade = answersOf(p)[String(policy.gradeQuestionId)];
+        return (
+          typeof grade !== 'string' || policy.gradeValues[grade] === undefined
+        );
+      });
+    case 'SCHOOL_TYPE_MISMATCH':
+      // 보호자는 보호자 선택지를, 학생은 그 선택지가 아닌 값을 골라야 한다
+      return steps.filter((p) =>
+        isGuardian(p)
+          ? schoolOf(p) !== policy.guardianSchoolValue
+          : schoolOf(p) === policy.guardianSchoolValue,
+      );
+    default:
+      return [];
+  }
+};
+
+/** 사유 문구 뒤에 확인할 신청서 대상을 덧붙인다. 대상이 없으면 문구 그대로 */
+export const withProblemParticipants = (
+  message: string,
+  problems: CompanionCandidate[],
+) =>
+  problems.length === 0
+    ? message
+    : `${message} 확인할 신청서: ${problems
+        .map((p) => `${p.name}(${isGuardian(p) ? '보호자' : '학생'})`)
+        .join(', ')}`;
