@@ -1,13 +1,18 @@
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import { submitSurveyAnswer, useSurveyQuery } from '@/entities/survey';
 import { adaptDynamicFormToSchema } from '@/features/form/common/lib/formAdapter';
 import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/visibilityEngine';
 import { FormRenderer } from '@/features/form/renderer/ui';
+import {
+  formatExpiresAt,
+  useParticipantSession,
+  useRequireParticipantSession,
+} from '@/features/phone-verification';
 import { withLoading } from '@/shared/hocs';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button, DetailHeader } from '@/shared/ui';
@@ -17,26 +22,20 @@ import SurveySubmitted from '../SurveySubmitted';
 const isUserType = (value: string | null): value is 'STANDARD' | 'TRAINEE' =>
   value === 'STANDARD' || value === 'TRAINEE';
 
-/** 일반 참가자·교원연수자 만족도 조사. 응답자는 본인 인증 뒤 붙는 phoneNumber 쿼리로 확인한다. */
+/** 일반 참가자·교원연수자 만족도 조사. 응답자는 참가자 세션으로 서버가 정하므로 전화번호는 다루지 않는다. */
 const SurveyAnswerContainer = ({ expoId }: { expoId: string }) => {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
   const rawUserType = searchParams.get('userType');
   const userType = isUserType(rawUserType) ? rawUserType : 'STANDARD';
-  const phoneNumber = searchParams.get('phoneNumber');
 
-  // 서버가 전화번호로 응답자를 찾으므로, 번호 없이 들어오면 설문을 채우기 전에 본인 인증으로 보낸다
-  useEffect(() => {
-    if (!isUserType(rawUserType) || phoneNumber) return;
-    const redirect = `${pathname}?${searchParams.toString()}`;
-    router.replace(
-      `/phone-verification?expoId=${encodeURIComponent(expoId)}&redirect=${encodeURIComponent(redirect)}`,
-    );
-  }, [expoId, pathname, phoneNumber, rawUserType, router, searchParams]);
+  // 세션이 없으면 인증 화면으로 보내고, 인증 뒤 이 설문으로 돌아온다(주소에 번호를 싣지 않는다)
+  const { isVerified } = useRequireParticipantSession(expoId, true);
+  const { data: sessionState } = useParticipantSession(expoId);
+  const session = sessionState?.session;
 
+  // 이미 응답했는지 조회하는 API가 없다(Expo-Form-Server#203). 생기면 여기서 진입 시 안내하고, 그때까지는 제출 409 를 보여 준다
   const { data, isLoading, error } = useSurveyQuery(expoId, userType, {
-    enabled: isUserType(rawUserType) && !!phoneNumber,
+    enabled: isUserType(rawUserType) && isVerified,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -58,7 +57,7 @@ const SurveyAnswerContainer = ({ expoId }: { expoId: string }) => {
 
     setIsSubmitting(true);
     try {
-      const format = createSurveyFormatter(questions, phoneNumber);
+      const format = createSurveyFormatter(questions);
       await submitSurveyAnswer(
         expoId,
         userType,
@@ -94,12 +93,23 @@ const SurveyAnswerContainer = ({ expoId }: { expoId: string }) => {
   if (isSubmitted) return <SurveySubmitted />;
 
   return withLoading({
-    isLoading,
+    isLoading: isLoading || !isVerified,
     children: (
       <div className="flex w-full max-w-[816px] flex-1 flex-col gap-30 overflow-y-auto">
         <div className="mt-30">
           <DetailHeader headerTitle={data?.title ?? ''} />
         </div>
+
+        {session && (
+          <p
+            role="status"
+            className="break-keep rounded-sm bg-gray-100 px-16 py-12 text-body2r text-gray-700"
+          >
+            인증은 {formatExpiresAt(session.expiresAt)}까지 유지됩니다. 공용
+            기기라면 제출 후 화면 위의 &apos;로그아웃&apos;으로 인증을
+            해제해주세요.
+          </p>
+        )}
 
         {formSchema && (
           <FormRenderer

@@ -4,6 +4,7 @@ export const DEFAULT_REDIRECT_PATH = '/';
 /**
  * 인증 완료 후 이동할 경로에 인증된 전화번호를 쿼리로 붙인다(신청 폼이 읽는다).
  * 이미 있던 세션으로 넘어갈 때는 탭에 보관해 둔 번호가 있으면 붙인다. 서버는 세션 쿠키로 본인을 확인한다.
+ * 설문(`formType=survey`)은 세션으로 응답자를 정하므로 번호를 붙이지 않는다(주소창에 번호가 남지 않게).
  * 외부 도메인으로의 오픈 리다이렉트를 막기 위해 내부 경로(`/...`)만 허용한다.
  */
 export const getRedirectPath = (
@@ -15,7 +16,8 @@ export const getRedirectPath = (
   const path = isInternalPath ? redirect : DEFAULT_REDIRECT_PATH;
 
   const url = new URL(path, window.location.origin);
-  if (phoneNumber) url.searchParams.set('phoneNumber', phoneNumber);
+  if (phoneNumber && url.searchParams.get('formType') !== 'survey')
+    url.searchParams.set('phoneNumber', phoneNumber);
 
   return `${url.pathname}${url.search}`;
 };
