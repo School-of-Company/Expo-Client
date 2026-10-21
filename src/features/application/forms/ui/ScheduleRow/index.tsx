@@ -7,6 +7,7 @@ import {
 const STATUS_CLASS: Record<ScheduleStatus, string> = {
   UPCOMING: 'bg-main-100 text-main-600',
   OPEN: 'bg-main-600 text-white',
+  ONSITE_OPEN: 'bg-main-600 text-white',
   CLOSED: 'bg-gray-100 text-gray-500',
   ENDED: 'bg-gray-100 text-gray-400',
   UNSET: 'bg-gray-100 text-gray-500',

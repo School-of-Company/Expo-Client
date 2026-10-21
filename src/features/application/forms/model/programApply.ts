@@ -2,8 +2,10 @@ import {
   OCCUPATION_LABEL,
   formatDefinitionSchedule,
 } from '@/features/registration/common/model/ledger';
+import { getOnsitePhase, time } from './applicationSchedule';
 import { formatFormPeriod } from './formPeriodStatus';
 import type {
+  ProgramAdmissionCapacity,
   ProgramCapacity,
   ProgramIneligibleReason,
 } from '../api/programParticipants';
@@ -57,15 +59,16 @@ const occupations = (list: ProgramOccupation[]) =>
 
 /**
  * 사용자 모집 목록에서 숨길 회차인지. 기준은 회차 운영 endedAt 이 아니라 policy.applicationEndedAt 이다.
- * applicationEndedAt 은 사전 접수 마감이라 현장 접수를 막지 않으므로, 현장 정원이 있는 회차는 남긴다
+ * applicationEndedAt 은 사전 접수 마감이라 현장 접수를 막지 않으므로, 현장 접수 기간이 아직 끝나지 않은 회차는 남긴다
  */
 export const isProgramApplicationEnded = (
   policy: ProgramPolicy | null | undefined,
   now: number,
-) =>
-  !!policy &&
-  policy.onsiteCapacity <= 0 &&
-  now >= new Date(policy.applicationEndedAt).getTime();
+) => {
+  if (!policy || now < time(policy.applicationEndedAt)) return false;
+  const phase = getOnsitePhase(policy, now);
+  return phase === 'NONE' || phase === 'AFTER';
+};
 
 export interface ProgramInfoRow {
   label: string;
@@ -78,6 +81,7 @@ export interface ProgramInfoRow {
  */
 export const getProgramInfoRows = (
   program: Pick<Program, 'startedAt' | 'endedAt' | 'place' | 'policy'>,
+  now: number,
 ): ProgramInfoRow[] => {
   const rows: ProgramInfoRow[] = [
     {
@@ -92,17 +96,22 @@ export const getProgramInfoRows = (
     policy.waitingCapacity > 0
       ? ` (대기 ${policy.waitingCapacity.toLocaleString()}명)`
       : '';
-  // 현장 정원이 있을 때만 사전·현장으로 나눠 보인다. 없으면 사전 정원은 총정원과 같다
-  const split =
-    policy.onsiteCapacity > 0
-      ? ` · 사전 ${policy.preRegistrationCapacity.toLocaleString()}명, 현장 ${policy.onsiteCapacity.toLocaleString()}명`
-      : '';
+  // 현장 접수 기간 중에만 사전·현장으로 나눠 보인다. 기간 전·후에는 현장을 드러내지 않고 사전 정원만 보인다.
+  // 현장 정원이 없으면 사전 정원은 총정원과 같다
+  const onsiteOpen = getOnsitePhase(policy, now) === 'OPEN';
+  const split = onsiteOpen
+    ? ` · 사전 ${policy.preRegistrationCapacity.toLocaleString()}명, 현장 ${policy.onsiteCapacity.toLocaleString()}명`
+    : '';
+  const capacity =
+    policy.onsiteCapacity > 0 && !onsiteOpen
+      ? policy.preRegistrationCapacity
+      : policy.capacity;
   return [
     ...rows,
     { label: '대상', value: occupations(policy.allowedOccupations) },
     {
       label: '정원',
-      value: `${policy.capacity.toLocaleString()}명${waiting}${split}`,
+      value: `${capacity.toLocaleString()}명${waiting}${split}`,
     },
     {
       label: '신청 기간',
@@ -161,3 +170,7 @@ export const getIneligibleLabel = (
 /** 회차의 현재 잔여석·대기 현황(참고값). 잔여·대기 인원·남은 대기석은 서로 다른 값이다. */
 export const getSeatsLabel = (c: ProgramCapacity): string =>
   `잔여 ${c.remaining.toLocaleString()}명 · 대기 ${c.waitingCount.toLocaleString()}명 (남은 대기석 ${c.waitingRemaining.toLocaleString()}명)`;
+
+/** 현장 신청의 잔여석. 현장 접수는 대기가 없어 대기 문구를 붙이지 않는다 */
+export const getOnsiteSeatsLabel = (onsite: ProgramAdmissionCapacity): string =>
+  `현장 잔여 ${onsite.remaining.toLocaleString()}명`;

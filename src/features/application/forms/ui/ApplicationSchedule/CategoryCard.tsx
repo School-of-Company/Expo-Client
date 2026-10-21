@@ -4,6 +4,7 @@ import {
   SCHEDULE_STATUS_LABEL,
   ScheduleStatus,
   formatCapacity,
+  isApplicable,
 } from '../../model/applicationSchedule';
 import {
   getSessionLabel,
@@ -26,6 +27,7 @@ export interface CategorySession {
 const STATUS_CLASS: Record<ScheduleStatus, string> = {
   UPCOMING: 'text-gray-400',
   OPEN: 'text-main-600',
+  ONSITE_OPEN: 'text-main-600',
   CLOSED: 'text-gray-400',
   ENDED: 'text-gray-400',
   UNSET: 'text-gray-400',
@@ -50,8 +52,15 @@ const CategoryCard = ({
   /** 켜면 회차를 카드 안에 펼쳐 누른 회차로 바로 신청 화면에 보낸다 */
   selectable?: boolean;
 }) => {
-  const isOpen = sessions.some(({ status }) => status === 'OPEN');
-  const status: ScheduleStatus = isOpen ? 'OPEN' : sessions[0].status;
+  const isOpen = sessions.some(({ status }) => isApplicable(status));
+  // 사전 접수 중인 회차가 있으면 그것을, 현장 접수 중인 회차만 있으면 현장 접수 중을 카드에 보인다
+  const status: ScheduleStatus = sessions.some(
+    ({ status }) => status === 'OPEN',
+  )
+    ? 'OPEN'
+    : isOpen
+      ? 'ONSITE_OPEN'
+      : sessions[0].status;
   const place =
     sessions.find(({ place: value }) => value?.trim())?.place ?? group.place;
   const first = dateOf(sessions[0].startedAt);
@@ -75,7 +84,7 @@ const CategoryCard = ({
           className="mb-8 grid auto-rows-fr grid-cols-2 gap-8 mobile:grid-cols-1"
         >
           {sessions.map((session) => {
-            const open = session.status === 'OPEN';
+            const open = isApplicable(session.status);
             const topic = getSessionTopic(session.title, group.label);
             const className = `flex min-w-0 flex-1 flex-col gap-2 rounded-sm border-1 border-solid border-gray-200 bg-white px-12 py-12 text-left ${open ? 'hover:border-main-600 hover:bg-main-100' : 'opacity-60'}`;
             const content = (
