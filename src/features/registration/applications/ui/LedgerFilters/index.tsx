@@ -13,24 +13,15 @@ import {
   formatDefinitionSchedule,
   LEDGER_STATUS_LABEL,
   LedgerFilter,
+  LEDGER_SORT_OPTIONS,
   LedgerStatusFilter,
   OCCUPATION_LABEL,
   PROGRAM_TYPE_LABEL,
   Q_MAX_LENGTH,
   SEARCH_MAX_LENGTH,
+  SETTLED_STATUS_FILTER,
   toSessionKey,
 } from '../../../common/model/ledger';
-
-const SORT_OPTIONS: { value: AdminApplicationSort; label: string }[] = [
-  { value: 'CREATED_DESC', label: '최근 신청순' },
-  { value: 'CREATED_ASC', label: '오래된 신청순' },
-  { value: 'RECEIPT_ASC', label: '접수번호 오름차순' },
-  { value: 'RECEIPT_DESC', label: '접수번호 내림차순' },
-  { value: 'PROGRAM_ASC', label: '프로그램 가나다순' },
-  { value: 'PROGRAM_DESC', label: '프로그램 역순' },
-  { value: 'SESSION_ASC', label: '회차 일시 빠른순' },
-  { value: 'SESSION_DESC', label: '회차 일시 늦은순' },
-];
 
 interface LedgerFiltersProps {
   filter: LedgerFilter;
@@ -112,6 +103,7 @@ const LedgerFilters = ({
           options={[
             { value: '', label: '전체 상태' },
             { value: ACTIVE_STATUS_FILTER, label: '확정+대기' },
+            { value: SETTLED_STATUS_FILTER, label: '확정+취소' },
             ...Object.entries(LEDGER_STATUS_LABEL).map(([value, label]) => ({
               value,
               label,
@@ -148,7 +140,7 @@ const LedgerFilters = ({
           ariaLabel="정렬"
           value={filter.sort}
           onChange={(sort) => update({ sort: sort as AdminApplicationSort })}
-          options={SORT_OPTIONS}
+          options={LEDGER_SORT_OPTIONS}
         />
         <button
           type="button"

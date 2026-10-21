@@ -125,14 +125,32 @@ export const parseSessionKey = (
 /** 확정과 대기를 함께 보는 상태 필터. 서버에는 쉼표로 보낸다 */
 export const ACTIVE_STATUS_FILTER = 'CONFIRMED,WAITING';
 
+/** 확정과 취소 이력을 함께 보는 상태 필터. 같은 사람의 취소·재신청을 나란히 본다 */
+export const SETTLED_STATUS_FILTER = 'CONFIRMED,CANCELLED';
+
 export type LedgerStatusFilter =
   | AdminApplicationStatus
   | typeof ACTIVE_STATUS_FILTER
+  | typeof SETTLED_STATUS_FILTER
   | '';
 
 /** 상태 필터를 상태 목록으로. 비어 있으면 모든 상태 */
 export const toStatusList = (status: LedgerStatusFilter) =>
   status ? (status.split(',') as AdminApplicationStatus[]) : [];
+
+export const LEDGER_SORT_OPTIONS: {
+  value: AdminApplicationSort;
+  label: string;
+}[] = [
+  { value: 'CREATED_DESC', label: '최근 신청순' },
+  { value: 'CREATED_ASC', label: '오래된 신청순' },
+  { value: 'RECEIPT_ASC', label: '접수번호 오름차순' },
+  { value: 'RECEIPT_DESC', label: '접수번호 내림차순' },
+  { value: 'PROGRAM_ASC', label: '프로그램 가나다순' },
+  { value: 'PROGRAM_DESC', label: '프로그램 역순' },
+  { value: 'SESSION_ASC', label: '회차 일시 빠른순' },
+  { value: 'SESSION_DESC', label: '회차 일시 늦은순' },
+];
 
 /** 서버 필터와 1:1 로 대응하는 관리대장 필터 */
 export interface LedgerFilter {

@@ -10,17 +10,26 @@ import {
 } from '@/shared/types/registration/type';
 import { Button } from '@/shared/ui';
 import { useReportExcelDownload } from '../../../common';
-import { AdminApplicationStatus } from '../../../common/api/ledgerApi';
 import {
+  AdminApplicationStatus,
+  ProgramSessionDefinition,
+} from '../../../common/api/ledgerApi';
+import {
+  formatDefinitionSchedule,
   LEDGER_STATUS_LABEL,
   LedgerFilter,
   LedgerRow,
   parseSessionKey,
+  PROGRAM_TYPE_LABEL,
+  toSessionKey,
 } from '../../../common/model/ledger';
 import {
   ATTENDANCE_FILTER_BLOCKER,
   buildExcelDownloadPlan,
+  describeLedgerFilter,
+  EXCEL_TEMPLATE_GROUP_LABEL,
   EXCEL_TEMPLATE_OPTIONS,
+  ExcelTemplateGroup,
   getAllowedScopes,
 } from '../../model/excelDownload';
 
@@ -30,6 +39,8 @@ interface ExcelDownloadModalProps {
   expoId: string;
   selectedRows: LedgerRow[];
   filter: LedgerFilter;
+  /** 필터 조건 문구의 회차 이름 */
+  sessions: ProgramSessionDefinition[];
   /** 현재 필터 전체 건수와 상태 집계 (서버 기준). 조회가 끝나지 않았으면 건수는 비워 둔다 */
   filterCount?: number;
   filterStatusCounts: StatusCounts;
@@ -50,6 +61,8 @@ const countByStatus = (rows: LedgerRow[]): StatusCounts =>
     ]),
   );
 
+const TEMPLATE_GROUPS: ExcelTemplateGroup[] = ['LEDGER', 'PERSON'];
+
 const describeStatus = (counts: StatusCounts) =>
   STATUSES.map(
     (status) => `${LEDGER_STATUS_LABEL[status]} ${counts[status] ?? 0}`,
@@ -59,11 +72,13 @@ const ExcelDownloadModal = ({
   expoId,
   selectedRows,
   filter,
+  sessions,
   filterCount,
   filterStatusCounts,
   onClose,
 }: ExcelDownloadModalProps) => {
-  const [template, setTemplate] = useState<ReportExcelTemplate>('STANDARD');
+  const [template, setTemplate] =
+    useState<ReportExcelTemplate>('APPLICATION_LEDGER');
   const [scope, setScope] = useState<ReportExcelScope>(
     selectedRows.length > 0 ? 'SELECTED' : 'FILTER',
   );
@@ -95,6 +110,15 @@ const ExcelDownloadModal = ({
     setTemplate(value);
     if (!getAllowedScopes(value).includes(scope)) setScope('SELECTED');
   };
+
+  const session = sessions.find(
+    (item) => toSessionKey(item) === filter.session,
+  );
+  const filterConditions = describeLedgerFilter(
+    filter,
+    session &&
+      `[${PROGRAM_TYPE_LABEL[session.programType]}] ${session.title} · ${formatDefinitionSchedule(session.startedAt, session.endedAt)}`,
+  );
 
   const handleDownload = () => {
     if (!canDownload || !plan.request) return;
@@ -157,21 +181,31 @@ const ExcelDownloadModal = ({
 
         <div className="space-y-[10px]">
           <p className="text-h3b text-black">양식</p>
-          <div className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
-            {EXCEL_TEMPLATE_OPTIONS.map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => handleTemplateChange(value)}
-                className={`flex items-center gap-12 rounded-sm border-1 border-solid px-16 py-12 text-left duration-200 ${
-                  template === value ? 'border-main-600' : 'border-gray-200'
-                }`}
-              >
-                {template === value ? <CheckedBoxIcon /> : <CheckBoxIcon />}
-                <span className="text-body2r text-black">{label}</span>
-              </button>
-            ))}
-          </div>
+          {TEMPLATE_GROUPS.map((group) => (
+            <div key={group} className="space-y-8">
+              <p className="text-caption1b text-gray-500">
+                {EXCEL_TEMPLATE_GROUP_LABEL[group]}
+              </p>
+              <div className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
+                {EXCEL_TEMPLATE_OPTIONS.filter(
+                  (option) => option.group === group,
+                ).map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => handleTemplateChange(value)}
+                    aria-pressed={template === value}
+                    className={`flex items-center gap-12 rounded-sm border-1 border-solid px-16 py-12 text-left duration-200 ${
+                      template === value ? 'border-main-600' : 'border-gray-200'
+                    }`}
+                  >
+                    {template === value ? <CheckedBoxIcon /> : <CheckBoxIcon />}
+                    <span className="text-body2r text-black">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
           <p className="text-caption1r text-gray-500">
             {
               EXCEL_TEMPLATE_OPTIONS.find(({ value }) => value === template)
@@ -189,6 +223,7 @@ const ExcelDownloadModal = ({
                 type="button"
                 onClick={() => setScope(value)}
                 disabled={!allowedScopes.includes(value)}
+                aria-pressed={scope === value}
                 className={`flex items-center gap-12 rounded-sm border-1 border-solid px-16 py-12 text-left duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
                   scope === value ? 'border-main-600' : 'border-gray-200'
                 }`}
@@ -213,6 +248,11 @@ const ExcelDownloadModal = ({
               '. 같은 사람은 1번만 출력되어 행 수가 신청 건수보다 적을 수 있습니다'}
             .
           </p>
+          {scope === 'FILTER' && (
+            <p className="text-caption1r text-gray-500">
+              보내는 조건: {filterConditions.join(' · ')}
+            </p>
+          )}
           {!allowedScopes.includes('FILTER') && (
             <p className="text-caption1r text-gray-500">
               {ATTENDANCE_FILTER_BLOCKER}
