@@ -1,5 +1,6 @@
 import {
   LEGACY_OCCUPATION_LABEL,
+  OCCUPATION_OPTIONS,
   occupationRank,
 } from '../constants/occupationData';
 import type {
@@ -47,10 +48,16 @@ export const optionEntries = (item: DynamicFormItem) => {
     isAlwaysSelected: typeof option !== 'string' && option.isAlwaysSelected,
   }));
   if (item.dynamicFormType !== 'OCCUPATION') return entries;
-  // 직업은 저장 순서가 아니라 고정 순서로 보이고, 교직원 같은 예전 선택지는 새 신청에서 숨긴다
+  // 직업은 저장 순서·문구가 아니라 고정 순서·문구로 보이고, 교직원 같은 예전 선택지는 새 신청에서 숨긴다
   return entries
     .filter(({ key }) => !(key in LEGACY_OCCUPATION_LABEL))
-    .sort((a, b) => occupationRank(a.key) - occupationRank(b.key));
+    .sort((a, b) => occupationRank(a.key) - occupationRank(b.key))
+    .map((entry) => ({
+      ...entry,
+      label:
+        OCCUPATION_OPTIONS.find(({ key }) => key === entry.key)?.label ??
+        entry.label,
+    }));
 };
 
 export const alwaysSelectedKeys = (item: DynamicFormItem) =>

@@ -120,17 +120,13 @@ export const getProgramInfoRows = (
   ];
 };
 
-/** 핵심 정보 밖의 보조 안내. 신청 마감과 같은 날짜는 되풀이하지 않는다 */
+/** 핵심 정보 밖의 보조 안내 */
 export const getProgramPolicyNotes = (
   policy: ProgramPolicy,
   /** 같은 묶음을 쓰는 다른 프로그램이 목록에 있으면 그 안내에 쓸 이름(프로그램·연수) */
   sharedGroupLabel?: string,
 ): string[] => {
   const notes: string[] = [];
-  if (policy.cancelEndedAt !== policy.applicationEndedAt)
-    notes.push(
-      `취소는 ${formatFormPeriod(policy.cancelEndedAt)}까지 할 수 있습니다.`,
-    );
   // 서버는 묶음을 지정하지 않은 프로그램에도 고유 묶음을 넣으므로, 묶음을 함께 쓰는 프로그램이 있을 때만 안내한다
   if (sharedGroupLabel)
     notes.push(
