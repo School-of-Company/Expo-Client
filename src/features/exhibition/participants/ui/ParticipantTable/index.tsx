@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { usePreregisterSessions } from '@/features/registration/common';
 import { withLoading } from '@/shared/hocs';
@@ -17,6 +17,7 @@ import {
 import { SearchInput } from '@/shared/ui/SearchInput';
 import SelectUserType from '@/shared/ui/SelectUserType';
 import { TableForm } from '@/shared/ui/Table';
+import { clampPage } from '../../lib/clampPage';
 import { category, selectOptionCategories } from '../../model/category';
 import { useExpoManageQueries } from '../../model/useExpoData';
 import DateContainer from '../DateContainer';
@@ -139,6 +140,25 @@ const ParticipantTable = ({ id }: { id: string }) => {
     });
   }, [participantsData, searchQuery, isTrainee]);
 
+  const replacePage = (nextPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(nextPage));
+    router.replace(`?${params.toString()}`);
+  };
+
+  // 탭마다 입장자 수가 달라 page 를 이어 가면 범위를 벗어난 빈 목록이 나온다
+  const handleTabSelect = (key: string) => {
+    setSelectedTabKey(key);
+    if (page !== 1) replacePage(1);
+  };
+
+  // 그래도 범위를 벗어난 page(직접 입력한 URL 등)는 응답의 totalPage 로 마지막 페이지로 보정한다
+  const hasPageData = Boolean(expoData) && !isTrainee;
+  const safePage = clampPage(page, totalPage);
+  useEffect(() => {
+    if (hasPageData && page !== safePage) replacePage(safePage);
+  });
+
   const handleSlectUserChange = (newValue: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('userType', newValue);
@@ -180,7 +200,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
         {!isTrainee && (
           <DateContainer
             items={tabs}
-            onSelect={setSelectedTabKey}
+            onSelect={handleTabSelect}
             selectedKey={selectedTab?.key ?? ''}
           />
         )}
