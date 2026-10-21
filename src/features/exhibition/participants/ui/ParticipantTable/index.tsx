@@ -49,7 +49,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
   const { data: sessions = [], isLoading: sessionsLoading } =
     usePreregisterSessions(id);
 
-  // 현장등록 입장은 회차가 없어 행사 날짜별 탭으로 따로 본다(Expo-User-Server#190)
+  // 현장등록 입장은 회차가 없어 행사 날짜별 탭으로 따로 본다. 회차 시간 밖에 들어온 사전등록자도 여기에 나온다(Expo-User-Server#191)
   const { data: expo } = useExpoDetail(id);
   const fieldDays = useMemo(
     () => (expo ? getExpoDays(expo.startedDay, expo.finishedDay) : []),
@@ -187,7 +187,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
         {!isTrainee && (
           <p className="text-caption1r text-gray-500">
             {selectedFieldDay
-              ? '선택한 날짜에 회차 없이 입장한 현장등록 참가자입니다.'
+              ? '선택한 날짜에 회차 없이 입장한 참가자입니다. 현장등록 입장 외에 회차 시간 밖에 들어온 사전등록자도 포함되며, 같은 날 회차로도 입장했다면 그 회차 탭에도 나옵니다.'
               : sessions.length === 0
                 ? '등록된 사전등록 회차가 없습니다. 신청 관리에서 회차를 먼저 추가해주세요.'
                 : '선택한 회차로 입장한 참가자입니다. 회차 기록이 없는 예전 입장분은 보이지 않습니다. 사전등록한 전체 신청자는 접수대장에서 확인할 수 있습니다.'}
