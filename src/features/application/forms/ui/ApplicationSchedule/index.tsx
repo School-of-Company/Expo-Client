@@ -76,7 +76,7 @@ const ApplicationSchedule = ({
   initialTab,
 }: {
   expoId: string;
-  /** 현재 박람회에만 사전등록 안내 문구를 붙인다 */
+  /** 현재 박람회는 사전등록 설명을 고정 안내 문구로 대신한다 */
   showGuide?: boolean;
   showPreRegister?: boolean;
   /** 주소의 `?tab=` 값. 신청 화면에서 뒤로 왔을 때 보던 탭을 연다 */
@@ -176,12 +176,14 @@ const ApplicationSchedule = ({
             formError
               ? '신청 기간을 불러오지 못했습니다.'
               : form
-                ? [
-                    ...(showGuide ? PRE_REGISTER_GUIDE : []),
-                    `신청 기간 ${period(form.startDate, form.endDate)}`,
-                    occupationLock &&
-                      `교원·예비교사는 ${formatFormPeriod(form.startDate)}부터, 그 외 유형은 ${formatFormPeriod(form.occupationOpenAt ?? '')}부터 신청할 수 있습니다.`,
-                  ]
+                ? (showGuide
+                    ? PRE_REGISTER_GUIDE
+                    : [
+                        `신청 기간 ${period(form.startDate, form.endDate)}`,
+                        occupationLock &&
+                          `교원·예비교사는 ${formatFormPeriod(form.startDate)}부터, 그 외 유형은 ${formatFormPeriod(form.occupationOpenAt ?? '')}부터 신청할 수 있습니다.`,
+                      ]
+                  )
                     .filter(Boolean)
                     .join('\n')
                 : '신청 기간은 추후 안내합니다.'
