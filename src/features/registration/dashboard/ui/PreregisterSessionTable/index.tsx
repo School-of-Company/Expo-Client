@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
+import { toKstLocal } from '@/shared/libs/kstDateTime';
 import {
-  fromOffsetDateTime,
   PreregisterSession,
   RegistrationTable,
   TableColumn,
@@ -85,8 +85,8 @@ const PreregisterSessionTable = ({
           {session && (
             <p className="text-caption2r">
               {formatDefinitionSchedule(
-                fromOffsetDateTime(session.startedAt),
-                fromOffsetDateTime(session.endedAt),
+                toKstLocal(session.startedAt),
+                toKstLocal(session.endedAt),
               )}
             </p>
           )}

@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
+import { toKstLocal } from '@/shared/libs/kstDateTime';
 import { NavigationBar } from '@/shared/ui';
 import {
   RefreshStatus,
@@ -57,7 +58,8 @@ const PreregisterLedger = () => {
     () =>
       sessions.map((session) => ({
         value: String(session.id),
-        label: `${session.title} · ${formatDefinitionSchedule(session.startedAt, session.endedAt)}`,
+        // 회차 일시는 UTC 오프셋 ISO 라 한국 시각으로 바꿔 넘긴다
+        label: `${session.title} · ${formatDefinitionSchedule(toKstLocal(session.startedAt), toKstLocal(session.endedAt))}`,
       })),
     [sessions],
   );
