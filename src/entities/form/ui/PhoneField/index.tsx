@@ -17,6 +17,8 @@ interface PhoneFieldProps {
   setValue: UseFormSetValue<FieldValues>;
   watch: UseFormWatch<FieldValues>;
   warningMessage?: string | null;
+  /** 휴대폰 인증한 번호. 있으면 이 번호를 보여 주기만 하고 고칠 수 없다(서버는 인증한 번호로 저장한다) */
+  lockedValue?: string;
 }
 
 export default function PhoneField({
@@ -28,6 +30,7 @@ export default function PhoneField({
   setValue,
   watch,
   warningMessage,
+  lockedValue,
 }: PhoneFieldProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const phoneStatusFieldName = `${name}_status`;
@@ -60,6 +63,23 @@ export default function PhoneField({
       setValue(name, '', { shouldValidate: true });
     }
   }, [phoneNumberStatus, setValue, name]);
+
+  if (lockedValue)
+    return (
+      <div className="flex flex-col gap-8">
+        <input
+          type="text"
+          value={lockedValue}
+          readOnly
+          aria-label={label}
+          className="w-full bg-transparent text-body2r text-gray-600"
+        />
+        <hr className="border-gray-100" />
+        <p className="text-caption1r text-gray-500">
+          휴대폰 인증한 번호로 신청합니다. 번호를 바꾸려면 다시 인증해주세요.
+        </p>
+      </div>
+    );
 
   return (
     <div className="relative flex flex-col gap-20">
