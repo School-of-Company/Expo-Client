@@ -28,8 +28,6 @@ const ConditionalRuleEditor = ({ list, index, onChange }: Props) => {
     const { conditional: _, ...rest } = otherJson;
     onChange({
       ...item,
-      // 조건부 문항은 숨겨질 수 있어 필수로 둘 수 없다.
-      requiredStatus: next ? false : item.requiredStatus,
       otherJson: next ? { ...rest, conditional: next } : rest,
     });
   };
