@@ -559,7 +559,13 @@ const ProgramApplyContainer = ({
         <DetailHeader
           headerTitle={`${label} 신청`}
           // 인증 화면을 거치거나 링크로 바로 열면 이전 기록이 없거나 인증 화면이라 신청 목록으로 보낸다
-          onBack={() => router.push(getExpoRoutes(expoId).applicationList)}
+          onBack={() =>
+            router.push(
+              getExpoRoutes(expoId).applicationListTab(
+                programType === 'TRAINING' ? 'training' : 'program',
+              ),
+            )
+          }
         />
         <p className="break-keep text-body2r text-gray-500">
           {label}마다 따로 신청합니다.

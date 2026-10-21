@@ -124,7 +124,7 @@ const PreRegisterContainer = ({
     verificationRequired && verifiedPhone && phoneFieldId !== undefined
       ? { fieldId: String(phoneFieldId), value: verifiedPhone }
       : undefined;
-  const backHref = `/application/forms/${expoId}`;
+  const backHref = getExpoRoutes(expoId).applicationListTab('registration');
 
   // 구분 정원 회차의 409 는 사유 코드가 없다. 교원·예비교사와 그 외가 섞인 일행이면 한쪽 좌석 부족으로 안내한다
   const isTargetSeatShortage = (
@@ -258,7 +258,7 @@ const PreRegisterContainer = ({
           현장 등록하기
         </Link>
         <Link
-          href={`/application/forms/${expoId}`}
+          href={getExpoRoutes(expoId).applicationListTab('registration')}
           className="text-main-600 underline"
         >
           신청 폼 목록으로 돌아가기
