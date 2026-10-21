@@ -28,7 +28,10 @@ import { getProgramParticipants } from '../../api/programParticipants';
 import {
   SCHEDULE_STATUS_LABEL,
   ScheduleStatus,
+  getOnsitePhase,
   getProgramScheduleStatus,
+  getScheduleBoundaries,
+  isPreApplicationOpen,
 } from '../../model/applicationSchedule';
 import {
   PROGRAM_CATEGORIES,
@@ -43,6 +46,7 @@ import {
   REUSED_GUARDIAN_NOTE,
   getProgramFormId,
   getIneligibleLabel,
+  getOnsiteSeatsLabel,
   getSeatsLabel,
   getProgramPolicyNotes,
   getProgramInfoRows,
@@ -321,23 +325,41 @@ const ParticipantLookup = ({
         ineligibleReason === 'GROUP_ALREADY_APPLIED',
     }),
   );
+  // 현장 신청은 현장 잔여석만 보인다(대기가 없다). 사전 신청에는 현장 좌석 줄을 보이지 않는다
+  const onsiteSeats = data.admissionSeats?.onsite;
   const seatInfo = (
     <>
-      {data.capacity && (
-        <p className="break-keep text-caption1r text-gray-600">
-          {getSeatsLabel(data.capacity)}
-          <br />
-          조회 시점의 참고값이며, 신청할 때 서버가 다시 판정합니다.
-        </p>
+      {onsite ? (
+        (onsiteSeats || data.capacity) && (
+          <p className="break-keep text-caption1r text-gray-600">
+            {onsiteSeats
+              ? getOnsiteSeatsLabel(onsiteSeats)
+              : `현장 잔여 ${data.capacity?.remaining.toLocaleString()}명`}
+            <br />
+            조회 시점의 참고값이며, 신청할 때 서버가 다시 판정합니다.
+          </p>
+        )
+      ) : (
+        <>
+          {data.capacity && (
+            <p className="break-keep text-caption1r text-gray-600">
+              {getSeatsLabel(data.capacity)}
+              <br />
+              조회 시점의 참고값이며, 신청할 때 서버가 다시 판정합니다.
+            </p>
+          )}
+          {data.channels
+            ?.filter((channel) => !channel.name.includes('현장'))
+            .map((channel) => (
+              <p
+                key={channel.name}
+                className="break-keep text-caption1r text-gray-600"
+              >
+                {channel.name}: {getSeatsLabel(channel.capacity)}
+              </p>
+            ))}
+        </>
       )}
-      {data.channels?.map((channel) => (
-        <p
-          key={channel.name}
-          className="break-keep text-caption1r text-gray-600"
-        >
-          {channel.name}: {getSeatsLabel(channel.capacity)}
-        </p>
-      ))}
     </>
   );
   if (program.policy?.guardianPolicy) {
@@ -402,6 +424,7 @@ const ParticipantLookup = ({
 const STATUS_CLASS: Record<ScheduleStatus, string> = {
   UPCOMING: 'bg-main-100 text-main-600',
   OPEN: 'bg-main-600 text-white',
+  ONSITE_OPEN: 'bg-main-600 text-white',
   CLOSED: 'bg-gray-100 text-gray-500',
   ENDED: 'bg-gray-100 text-gray-400',
   UNSET: 'bg-gray-100 text-gray-500',
@@ -436,13 +459,8 @@ const ProgramApplyContainer = ({
   const queryClient = useQueryClient();
   const router = useRouter();
   // 신청 기간이 끝난 회차는 모집 목록에서만 숨긴다. 같은 쿼리를 내 신청 조회가 쓰므로 데이터는 거르지 않는다
-  // 켜 둔 화면도 접수 시작·마감 시각에 버튼과 상태가 바뀐다
-  const now = useNow(
-    (allPrograms ?? []).flatMap(({ policy }) => [
-      new Date(policy?.applicationStartedAt ?? NaN).getTime(),
-      new Date(policy?.applicationEndedAt ?? NaN).getTime(),
-    ]),
-  );
+  // 켜 둔 화면도 사전·현장 접수 시작·마감 시각에 버튼과 상태가 바뀐다
+  const now = useNow(getScheduleBoundaries(allPrograms ?? [], [], null));
   const programs = useMemo(
     () =>
       allPrograms &&
@@ -513,7 +531,7 @@ const ProgramApplyContainer = ({
     Record<string, number>
   >({});
   const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);
-  // 현장 신청 경로를 고른 묶음. 기본은 사전 신청이다
+  // 신청 경로를 직접 고른 묶음(true 현장, false 사전). 고르지 않으면 현장 접수 기간 중에는 현장이 기본이다
   const [onsiteGroups, setOnsiteGroups] = useState<Record<string, boolean>>({});
   // 둘 이상의 프로그램이 함께 쓰는 묶음
   const sharedGroups = useMemo(() => {
@@ -572,10 +590,16 @@ const ProgramApplyContainer = ({
           const formId = getProgramFormId(program);
           const outcome = outcomes[program.id];
           const isOpen = openGroupKey === group.key;
-          // 라디오는 현장 정원이 있는 회차에서만 보이므로, 정원 없는 회차로 바꾸면 사전 신청으로 돌아간다
-          const onsite =
-            !!program.policy?.onsiteCapacity && !!onsiteGroups[group.key];
           const status = getProgramScheduleStatus(program, now);
+          // 현장 신청은 현장 접수 기간 중에만 고를 수 있다. 기간 중에는 현장이 기본이고,
+          // 사전 접수 기간이 끝났으면 사전 신청은 고를 수 없다
+          const onsiteOpen =
+            !program.policy?.closed &&
+            getOnsitePhase(program.policy, now) === 'OPEN';
+          const preOpen =
+            !!program.policy && isPreApplicationOpen(program.policy, now);
+          const onsite =
+            onsiteOpen && (!preOpen || onsiteGroups[group.key] !== false);
           // 현장 신청은 사전등록 회차와 상관없는 경로라 맞추지 않는다
           const isTimeMismatch =
             !onsite && !matchesSessionTime(program, sessionWindows);
@@ -683,23 +707,25 @@ const ProgramApplyContainer = ({
               )}
 
               <dl className="grid grid-cols-[88px_1fr] gap-x-16 gap-y-10 rounded-sm bg-gray-100 px-20 py-16 mobile:grid-cols-[72px_1fr] mobile:px-16">
-                {getProgramInfoRows(program).map(({ label: name, value }) => (
-                  <Fragment key={name}>
-                    <dt className="text-body2r text-gray-500">{name}</dt>
-                    <dd className="min-w-0 break-words break-keep text-body2b text-black">
-                      {value}
-                    </dd>
-                  </Fragment>
-                ))}
+                {getProgramInfoRows(program, now).map(
+                  ({ label: name, value }) => (
+                    <Fragment key={name}>
+                      <dt className="text-body2r text-gray-500">{name}</dt>
+                      <dd className="min-w-0 break-words break-keep text-body2b text-black">
+                        {value}
+                      </dd>
+                    </Fragment>
+                  ),
+                )}
               </dl>
 
-              {!!program.policy?.onsiteCapacity && (
+              {onsiteOpen && (
                 <fieldset className="flex flex-col gap-8">
                   <legend className="mb-8 text-body2b text-black">
                     신청 경로
                   </legend>
                   <div className="flex gap-8">
-                    {[false, true].map((isOnsite) => (
+                    {(preOpen ? [false, true] : [true]).map((isOnsite) => (
                       <label
                         key={String(isOnsite)}
                         className={`flex-1 cursor-pointer rounded-sm border-1 border-solid px-16 py-10 text-center text-body2b has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-main-300 ${onsite === isOnsite ? 'border-main-600 bg-main-100 text-main-600' : 'border-gray-200 text-gray-600'}`}

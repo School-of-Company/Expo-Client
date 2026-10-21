@@ -4,7 +4,10 @@
 import assert from 'node:assert/strict';
 import {
   formatCapacity,
+  getOnsitePhase,
   getProgramCapacity,
+  getScheduleBoundaries,
+  time as parseTime,
   getPreRegisterScheduleStatus,
   getProgramScheduleStatus,
 } from './applicationSchedule.ts';
@@ -89,19 +92,22 @@ function time(value: string) {
 }
 
 // 정원: 설정 정원은 대상·프로그램 종류와 상관없이 신청 전에도 보인다(#748)
-assert.equal(getProgramCapacity({ policy }), policy.capacity);
+assert.equal(getProgramCapacity({ policy }, now), policy.capacity);
 assert.equal(
-  getProgramCapacity({
-    policy: {
-      ...policy,
-      allowedOccupations: ['TEACHER', 'PRE_SERVICE_TEACHER'],
+  getProgramCapacity(
+    {
+      policy: {
+        ...policy,
+        allowedOccupations: ['TEACHER', 'PRE_SERVICE_TEACHER'],
+      },
     },
-  }),
+    now,
+  ),
   policy.capacity,
 );
-assert.equal(getProgramCapacity({ policy: null }), undefined);
+assert.equal(getProgramCapacity({ policy: null }, now), undefined);
 assert.equal(
-  getProgramCapacity({ policy: { ...policy, capacity: 0 } }),
+  getProgramCapacity({ policy: { ...policy, capacity: 0 } }, now),
   undefined,
 );
 
@@ -112,3 +118,105 @@ assert.equal(formatCapacity([undefined, 30]), '회차당 정원 30명');
 assert.equal(formatCapacity([undefined]), null);
 
 console.log('applicationSchedule ok');
+
+// 현장 접수(#773): 골든벨 초등 — 사전 10/21~10/30, 현장 10/31 00:00~13:30(KST). 정원 사전 50 + 현장 50
+const onsitePolicy = {
+  ...policy,
+  capacity: 100,
+  preRegistrationCapacity: 50,
+  onsiteCapacity: 50,
+  applicationStartedAt: '2026-10-20T15:00:00Z',
+  applicationEndedAt: '2026-10-29T15:00:00Z',
+  onsiteStartedAt: '2026-10-30T15:00:00Z',
+  onsiteEndedAt: '2026-10-31T04:30:00Z',
+};
+// 프로그램 시각은 오프셋 없는 KST 다
+const golden = { policy: onsitePolicy, endedAt: '2026-10-31 14:30' };
+const at = (value: string) => time(value);
+
+assert.equal(
+  getOnsitePhase(onsitePolicy, at('2026-10-30T14:59:59Z')),
+  'BEFORE',
+);
+assert.equal(getOnsitePhase(onsitePolicy, at('2026-10-30T15:00:00Z')), 'OPEN');
+// 종료 시각 정각부터 현장 접수는 닫힌다
+assert.equal(getOnsitePhase(onsitePolicy, at('2026-10-31T04:30:00Z')), 'AFTER');
+assert.equal(
+  getOnsitePhase({ ...onsitePolicy, onsiteCapacity: 0 }, now),
+  'NONE',
+);
+assert.equal(
+  getOnsitePhase(
+    { ...onsitePolicy, onsiteStartedAt: null, onsiteEndedAt: null },
+    now,
+  ),
+  'NONE',
+);
+assert.equal(getOnsitePhase(null, now), 'NONE');
+
+// 10/30까지 사전 마감 뒤에는 접수 마감이고 현장 접수 중이 아니다
+assert.equal(
+  getProgramScheduleStatus(golden, at('2026-10-30T10:00:00Z')),
+  'CLOSED',
+);
+// 10/31 00:00(KST)부터 현장 접수 중
+assert.equal(
+  getProgramScheduleStatus(golden, at('2026-10-30T15:00:01Z')),
+  'ONSITE_OPEN',
+);
+// 사전 접수 중이면 접수 중이 우선이다
+assert.equal(
+  getProgramScheduleStatus(
+    {
+      ...golden,
+      policy: { ...onsitePolicy, applicationEndedAt: '2026-10-31T01:00:00Z' },
+    },
+    at('2026-10-30T15:00:01Z'),
+  ),
+  'OPEN',
+);
+// 현장 접수가 끝나면 마감, 운영 마감은 현장 접수도 막는다
+assert.equal(
+  getProgramScheduleStatus(golden, at('2026-10-31T04:30:00Z')),
+  'CLOSED',
+);
+assert.equal(
+  getProgramScheduleStatus(
+    { ...golden, policy: { ...onsitePolicy, closed: true } },
+    at('2026-10-30T15:00:01Z'),
+  ),
+  'CLOSED',
+);
+// 프로그램 endedAt(KST)이 지나야 종료다. 기기 시간대로 읽으면 이 단언이 시간대마다 달라진다
+assert.equal(
+  getProgramScheduleStatus(golden, at('2026-10-31T05:29:59Z')),
+  'CLOSED',
+);
+assert.equal(
+  getProgramScheduleStatus(golden, at('2026-10-31T05:30:01Z')),
+  'ENDED',
+);
+
+// 시각 파싱: 오프셋 없으면 KST, 있으면 그대로
+assert.equal(parseTime('2026-10-31 10:30'), Date.parse('2026-10-31T01:30:00Z'));
+assert.equal(parseTime('2026-10-31T10:30'), Date.parse('2026-10-31T01:30:00Z'));
+assert.equal(
+  parseTime('2026-10-31T10:30:00+09:00'),
+  Date.parse('2026-10-31T01:30:00Z'),
+);
+assert.equal(
+  parseTime('2026-10-31T01:30:00Z'),
+  Date.parse('2026-10-31T01:30:00Z'),
+);
+assert.ok(Number.isNaN(parseTime(null)));
+
+// 정원: 현장 접수 기간 밖에는 사전 정원만, 기간 중에는 총정원
+assert.equal(getProgramCapacity(golden, at('2026-10-30T10:00:00Z')), 50);
+assert.equal(getProgramCapacity(golden, at('2026-10-30T15:00:01Z')), 100);
+assert.equal(getProgramCapacity(golden, at('2026-10-31T05:00:00Z')), 50);
+
+// 켜 둔 화면이 현장 접수 시작·마감에 바뀌도록 경계에 넣는다
+const boundaries = getScheduleBoundaries([golden], [], null);
+assert.ok(boundaries.includes(at('2026-10-30T15:00:00Z')));
+assert.ok(boundaries.includes(at('2026-10-31T04:30:00Z')));
+assert.ok(boundaries.includes(at('2026-10-31T05:30:00Z')));

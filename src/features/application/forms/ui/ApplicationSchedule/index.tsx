@@ -53,6 +53,7 @@ const byStart = (a: { startedAt: string }, b: { startedAt: string }) =>
 const STATUS_BADGE_CLASS = {
   UPCOMING: 'bg-gray-100 text-gray-600',
   OPEN: 'bg-main-600 text-white',
+  ONSITE_OPEN: 'bg-main-600 text-white',
   CLOSED: 'bg-gray-100 text-gray-500',
   ENDED: 'bg-gray-100 text-gray-400',
   UNSET: 'bg-gray-100 text-gray-500',
@@ -112,7 +113,7 @@ const ApplicationSchedule = ({
     endedAt: program.endedAt,
     place: program.place,
     status: getProgramScheduleStatus(program, now),
-    capacity: getProgramCapacity(program),
+    capacity: getProgramCapacity(program, now),
   });
 
   const programGroups = useMemo(
