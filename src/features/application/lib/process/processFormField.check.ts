@@ -146,4 +146,54 @@ assert.deepEqual(
   { 지역: 'JEONNAM', '참여 동기': 'SNS', 메모: 'HELLO', 직업: '' },
 );
 
+// 부모를 바꿔 숨겨진 자식·손자(연쇄 조건)의 옛 값은 보내지 않고, 제외 문항은 목록 인덱스를 흔들지 않는다
+const conditionalItem = (
+  id: number,
+  parentIndex?: number,
+): DynamicFormItem => ({
+  id,
+  title: `Q${id}`,
+  formType: 'SENTENCE',
+  jsonData: {},
+  requiredStatus: false,
+  otherJson:
+    parentIndex === undefined
+      ? null
+      : { hasEtc: false, conditional: { parentIndex, triggerValue: '1' } },
+});
+const chain = [
+  conditionalItem(21),
+  conditionalItem(22, 0),
+  conditionalItem(23, 1),
+  {
+    ...companion,
+    id: 24,
+    otherJson: {
+      hasEtc: false,
+      maxSelection: 4,
+      conditional: { parentIndex: 0, triggerValue: '1' },
+    },
+  },
+];
+const stale = {
+  '21': '2',
+  '22': '1',
+  '23': 'grand',
+  '24': [{ name: 'a', occupation: 'GENERAL', region: 'GWANGJU' }],
+};
+assert.deepEqual(processDynamicFormData(stale, chain), {
+  Q21: '2',
+  Q22: '',
+  Q23: '',
+  동행자: [],
+});
+assert.equal(
+  processDynamicFormData({ ...stale, '21': '1' }, chain).Q23,
+  'GRAND',
+);
+assert.deepEqual(
+  processDynamicFormData({ '21': '1', '22': 'x' }, chain, (f) => f.id === 21),
+  { Q22: 'X', Q23: '', 동행자: [] },
+);
+
 console.log('processFormField.check: ok');
