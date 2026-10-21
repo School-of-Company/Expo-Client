@@ -15,6 +15,8 @@ const SuccessCheck = () => {
   const status = searchParams.get('status');
   const position = searchParams.get('position');
   const sessionId = searchParams.get('sessionId');
+  // 현장등록은 회차가 없어(전 회차) 시간대를 전제로 한 문구를 쓰지 않는다
+  const isField = searchParams.get('applicationType') === 'FIELD';
 
   const isWaiting = status === 'WAITING' || status === 'PROCESSING';
   const routes = getExpoRoutes(id);
@@ -66,7 +68,7 @@ const SuccessCheck = () => {
             }
             className="flex h-[50px] w-full items-center justify-center rounded-sm border border-main-600 text-body1b text-main-600"
           >
-            {userType === 'STANDARD' && formType === 'application'
+            {userType === 'STANDARD' && formType === 'application' && !isField
               ? '이 시간대 프로그램 신청하기'
               : '다른 프로그램 신청하기'}
           </Link>

@@ -147,7 +147,7 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         submissionKeys.current.keyFor(JSON.stringify(formattedData)),
       );
       router.push(
-        `/application/success/${params}?userType=${userType}&formType=application`,
+        `/application/success/${params}?userType=${userType}&formType=application&applicationType=${applicationType}`,
       );
     } catch (error) {
       setSessionIssue(getSessionIssue(error));
