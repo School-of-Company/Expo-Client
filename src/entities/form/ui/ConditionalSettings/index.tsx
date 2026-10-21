@@ -59,8 +59,6 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
       setParentId(null);
       setTriggerValue(null);
       updateOtherJson(null);
-    } else {
-      setValue(`questions.${currentIndex}.requiredStatus`, false);
     }
   };
 
@@ -183,7 +181,7 @@ const ConditionalSettings = ({ currentIndex, control, setValue }: Props) => {
             </>
           )}
           <p className="break-keep text-caption1r text-gray-500">
-            조건부 질문은 조건에 맞을 때만 보이므로 필수가 자동으로 꺼집니다.
+            조건부 질문의 필수는 이 질문이 보일 때만 적용됩니다.
           </p>
         </div>
       )}

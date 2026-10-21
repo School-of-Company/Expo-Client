@@ -164,3 +164,37 @@ assert.equal(
 );
 
 console.log('toSubmitPayload.check: ok');
+
+// 표시될 때만 필수인 조건부 문항(초등학생일 때 학년). 숨겨지면 검사·제출에서 빠지고, 이전 답변이 남아도 보내지 않는다
+const schoolType: DynamicFormItem = {
+  id: 10,
+  title: '학교급',
+  formType: 'DROPDOWN',
+  jsonData: { '1': '초등학생', '2': '중학생', '3': '보호자' },
+  requiredStatus: true,
+  otherJson: { hasEtc: false },
+};
+const grade: DynamicFormItem = {
+  id: 11,
+  title: '학년',
+  formType: 'DROPDOWN',
+  jsonData: { '1': '1학년', '2': '2학년' },
+  requiredStatus: true,
+  otherJson: {
+    hasEtc: false,
+    conditional: { parentIndex: 0, triggerValue: '1' },
+  },
+};
+const gradeForm = [schoolType, grade];
+assert.deepEqual(validateForm(gradeForm, { '10': '1', '11': '' }), {
+  '11': '선택해주세요',
+});
+assert.deepEqual(validateForm(gradeForm, { '10': '2', '11': '' }), {});
+assert.deepEqual(validateForm(gradeForm, { '10': '3', '11': '' }), {});
+assert.deepEqual(toSubmitPayload(gradeForm, { '10': '1', '11': '2' }), {
+  10: '1',
+  11: '2',
+});
+assert.deepEqual(toSubmitPayload(gradeForm, { '10': '2', '11': '2' }), {
+  10: '2',
+});
