@@ -10,6 +10,7 @@ import {
   formatFormPeriod,
   getFormPeriodStatus,
 } from '../../model/formPeriodStatus';
+import { useSurveyTab } from '../../model/surveyTab';
 import { useApplicationForms } from '../../model/useApplicationForms';
 import { useNow } from '../../model/useNow';
 import { useParticipantExpoDetail } from '../../model/useParticipantExpoDetail';
@@ -17,6 +18,7 @@ import ApplicationLanding from '../ApplicationLanding';
 import ApplicationSchedule from '../ApplicationSchedule';
 import MyApplicationList from '../MyApplicationList';
 import ScheduleRow from '../ScheduleRow';
+import SurveyGuide from '../SurveyGuide';
 
 const VIEWS = [
   { value: 'list', label: '신청 목록' },
@@ -41,7 +43,9 @@ const ApplicationFormsContainer = ({
   const field = useFieldRelease(expoId);
   // 처음 한 번만 로딩으로 막는다. 이미 보이는 화면의 조회가 다시 시작돼도 화면을 지웠다 다시 그리지 않는다
   // (없는 폼 조회를 다시 받는 동안 화면이 사라졌다 돌아오면 같은 조회가 끝없이 반복된다)
-  const isInitialLoading = isFormsLoading || field.isLoading;
+  const surveyTab = useSurveyTab(expoId);
+  const isInitialLoading =
+    isFormsLoading || field.isLoading || surveyTab.isLoading;
   const [hasLoaded, setHasLoaded] = useState(false);
   useEffect(() => {
     if (!isInitialLoading) setHasLoaded(true);
@@ -65,9 +69,11 @@ const ApplicationFormsContainer = ({
 
   // 사전등록 탭은 회차·프로그램 일정이라 신청서가 없어도 노출하고, 나머지는 폼이 하나라도 있는 그룹만 노출.
   // 행사가 시작되면 현장등록을 기본 탭으로 앞에 두고, 사전등록 탭은 남은 프로그램·연수 일정만 보여 준다
-  const groups = FORM_GROUPS.filter(
-    (group) =>
-      group.key === 'PRE' || forms.some((entry) => entry.group === group.key),
+  // 만족도 조사 탭은 폼이 아니라 행사 기간과 공통 공개 설문 여부로 노출한다
+  const groups = FORM_GROUPS.filter((group) =>
+    group.key === 'SURVEY'
+      ? surveyTab.visible
+      : group.key === 'PRE' || forms.some((entry) => entry.group === group.key),
   )
     .map((group) =>
       field.released && group.key === 'PRE'
@@ -85,12 +91,10 @@ const ApplicationFormsContainer = ({
   // 목록을 켜둔 채 신청 시작·마감 시각이 지나도 상태와 신청 링크를 바꾼다(#749)
   const now = useNow(
     currentForms.flatMap(({ form }) =>
-      'startDate' in form
-        ? [
-            new Date(form.startDate).getTime(),
-            new Date(form.endDate).getTime(),
-          ].filter(Number.isFinite)
-        : [],
+      [
+        new Date(form.startDate).getTime(),
+        new Date(form.endDate).getTime(),
+      ].filter(Number.isFinite),
     ),
   );
 
@@ -202,7 +206,13 @@ const ApplicationFormsContainer = ({
               </div>
             )}
 
-            {current.key === 'PRE' ? (
+            {current.key === 'SURVEY' ? (
+              <SurveyGuide
+                expoId={expoId}
+                isError={surveyTab.isError}
+                onRetry={() => surveyTab.refetch()}
+              />
+            ) : current.key === 'PRE' ? (
               <ApplicationSchedule
                 expoId={expoId}
                 showPreRegister={!field.released}
@@ -218,26 +228,18 @@ const ApplicationFormsContainer = ({
                     applicationType,
                     form,
                   }) => {
-                    // 설문에는 신청 기간이 없다
-                    const hasPeriod = 'startDate' in form;
-                    const status = hasPeriod
-                      ? getFormPeriodStatus(
-                          form.startDate,
-                          form.endDate,
-                          new Date(now),
-                        )
-                      : 'OPEN';
+                    const status = getFormPeriodStatus(
+                      form.startDate,
+                      form.endDate,
+                      new Date(now),
+                    );
 
                     return (
                       <ScheduleRow
                         key={key}
                         category={audience}
                         title={form.title}
-                        schedule={
-                          hasPeriod
-                            ? `신청 기간 ${formatFormPeriod(form.startDate)} ~ ${formatFormPeriod(form.endDate)}`
-                            : undefined
-                        }
+                        schedule={`신청 기간 ${formatFormPeriod(form.startDate)} ~ ${formatFormPeriod(form.endDate)}`}
                         place={null}
                         notes={
                           form.informationText ? [form.informationText] : []
@@ -246,10 +248,7 @@ const ApplicationFormsContainer = ({
                         action={
                           status === 'OPEN'
                             ? {
-                                label:
-                                  formType === 'survey'
-                                    ? '응답하기'
-                                    : `${current.label}하기`,
+                                label: `${current.label}하기`,
                                 href: `/application/${expoId}?formType=${formType}&userType=${userType}&applicationType=${applicationType}`,
                               }
                             : undefined

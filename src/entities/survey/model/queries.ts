@@ -71,10 +71,14 @@ export const useSubmitSurveyAnswerMutation = (
       submitSurveyAnswer(expoId, participationType, data),
   });
 
-export const usePublicSurveyQuery = (expoId: string) =>
+export const usePublicSurveyQuery = (
+  expoId: string,
+  { enabled = true }: { enabled?: boolean } = {},
+) =>
   useQuery({
     queryKey: surveyKeys.public(expoId),
     queryFn: () => getPublicSurvey(expoId),
+    enabled,
   });
 
 export const useSubmitPublicSurveyAnswerMutation = (expoId: string) =>
