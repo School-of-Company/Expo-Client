@@ -32,10 +32,13 @@ const isView = (value?: string): value is View =>
 
 const ApplicationFormsContainer = ({
   expoId,
+  isMainExpo,
   initialView,
   initialTab,
 }: {
   expoId: string;
+  /** 현재 박람회(MAIN_EXPO_ID)인지. 사전등록 탭에 안내 문구를 붙일지 정한다 */
+  isMainExpo?: boolean;
   /** `?view=my|list` 로 들어오면 그 탭을 바로 연다. 신청 완료 화면의 "내 신청·QR 보기"가 쓴다 */
   initialView?: string;
   /** `?tab=registration|program|training` 로 들어오면 신청 목록의 그 탭을 연다. 신청 화면에서 뒤로 올 때 보던 탭을 지키려고 쓴다 */
@@ -227,6 +230,7 @@ const ApplicationFormsContainer = ({
             ) : current.key === 'PRE' ? (
               <ApplicationSchedule
                 expoId={expoId}
+                showGuide={isMainExpo}
                 showPreRegister={!field.released}
                 initialTab={initialTab}
               />
