@@ -12,6 +12,7 @@ interface SelectDateInputProps {
   emptyCenter?: boolean;
   /** 스크롤 컨테이너 안에서 달력이 잘리지 않도록 body 로 띄울 때 사용 */
   portalId?: string;
+  disabled?: boolean;
 }
 
 interface CustomInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -22,7 +23,10 @@ interface CustomInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 const CustomInput = forwardRef<HTMLInputElement, CustomInputProps>(
-  ({ value, onClick, placeholder, className, emptyCenter = false }, ref) => {
+  (
+    { value, onClick, placeholder, className, emptyCenter = false, disabled },
+    ref,
+  ) => {
     const isEmpty = !value;
     const textAlignClass = emptyCenter && isEmpty ? 'text-center' : 'text-left';
 
@@ -33,7 +37,8 @@ const CustomInput = forwardRef<HTMLInputElement, CustomInputProps>(
         onClick={onClick}
         placeholder={placeholder}
         readOnly
-        className={`text-body4 flex w-full rounded-sm border-1 border-solid border-gray-200 bg-transparent outline-none duration-200 ${textAlignClass} ${className}`}
+        disabled={disabled}
+        className={`text-body4 flex w-full rounded-sm border-1 border-solid border-gray-200 bg-transparent outline-none duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${textAlignClass} ${className}`}
       />
     );
   },
@@ -48,6 +53,7 @@ const SelectDateInput = ({
   inputClassName = 'px-16 py-12',
   emptyCenter = false,
   portalId,
+  disabled,
 }: SelectDateInputProps) => {
   return (
     <div className="relative w-full">
@@ -66,6 +72,7 @@ const SelectDateInput = ({
         wrapperClassName="w-full"
         locale={ko}
         portalId={portalId}
+        disabled={disabled}
       />
     </div>
   );

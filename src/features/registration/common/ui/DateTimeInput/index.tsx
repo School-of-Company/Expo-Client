@@ -16,6 +16,8 @@ interface DateTimeInputProps {
   value: string | null;
   onChange: (value: string | null) => void;
   size?: 'default' | 'small';
+  /** 잠그면 값을 바꿀 수 없고 흐리게 보인다 */
+  disabled?: boolean;
 }
 
 /** shared 날짜·시간 입력을 묶은 일시 입력 */
@@ -23,6 +25,7 @@ const DateTimeInput = ({
   value,
   onChange,
   size = 'default',
+  disabled = false,
 }: DateTimeInputProps) => {
   const { date, time } = splitDateTime(value);
 
@@ -39,6 +42,7 @@ const DateTimeInput = ({
             size === 'small' ? 'h-[34px] px-8 text-body2r' : 'px-16 py-12'
           }
           portalId={DATE_PICKER_PORTAL_ID}
+          disabled={disabled}
         />
       </div>
       <div
@@ -51,6 +55,7 @@ const DateTimeInput = ({
           }
           placeholder="시간"
           portalId={DATE_PICKER_PORTAL_ID}
+          disabled={disabled}
         />
       </div>
     </div>

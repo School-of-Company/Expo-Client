@@ -1,5 +1,8 @@
 import axios from 'axios';
-import { toServerMessage } from '@/shared/libs/handler/serverMessage';
+import {
+  toServerCode,
+  toServerMessage,
+} from '@/shared/libs/handler/serverMessage';
 
 /** 서버 응답 상태와 오류 코드를 보존하는 오류. 재시도·화면 분기에서 상태나 코드로 판단할 수 있다 */
 export class ApiError extends Error {
@@ -21,7 +24,11 @@ export class ApiError extends Error {
 export const toApiError = (error: unknown, fallback: string): unknown => {
   if (!axios.isAxiosError(error) || !error.response) return error;
   const { status, data } = error.response;
-  return new ApiError(toServerMessage(status, data) ?? fallback, status);
+  return new ApiError(
+    toServerMessage(status, data) ?? fallback,
+    status,
+    toServerCode(data),
+  );
 };
 
 export const getErrorStatus = (error: unknown): number | undefined => {
