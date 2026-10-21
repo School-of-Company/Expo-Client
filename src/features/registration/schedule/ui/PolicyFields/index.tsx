@@ -183,13 +183,8 @@ const PolicyFields = ({
               <ToggleButton
                 value={value.autoPromotionEnabled}
                 onChange={(autoPromotionEnabled) =>
-                  onChange({
-                    autoPromotionEnabled,
-                    // 서버는 끄기와 종료 시각을 함께 받지 않는다
-                    ...(autoPromotionEnabled
-                      ? {}
-                      : { autoPromotionEndedAt: null }),
-                  })
+                  // 종료 시각은 지우지 않는다. 꺼져 있으면 검증·요청에서 빠지고, 다시 켜면 그대로 돌아온다
+                  onChange({ autoPromotionEnabled })
                 }
               />
             </div>
@@ -203,6 +198,11 @@ const PolicyFields = ({
                 }
               />
             </Field>
+          )}
+          {value.autoPromotionEnabled && !value.autoPromotionEndedAt && (
+            <p className="col-span-2 break-keep text-caption1r text-error mobile:col-span-1">
+              종료 시각이 비어 있어 대기 승급 마감까지 자동 승급합니다.
+            </p>
           )}
           <p className="col-span-2 break-keep text-caption1r text-gray-500 mobile:col-span-1">
             자동 승급이 멈춘 뒤부터 대기 승급 마감 전까지는 접수 관리대장에서
