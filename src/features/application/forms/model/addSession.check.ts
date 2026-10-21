@@ -6,6 +6,7 @@ import {
   getParticipantBlockReason,
   getSessionBlockReason,
   hasOnlyStudents,
+  isCurrentParticipant,
 } from './addSession';
 import type { OwnerApplication } from '../api/myApplications';
 import type { PublicPreregisterSession } from '../api/preRegister';
@@ -123,5 +124,27 @@ assert.equal(hasOnlyStudents(group, [1, 2]), false);
 // 직업을 모르는 참석자는 학생으로 보지 않는다
 assert.equal(hasOnlyStudents(group, [2, 4]), false);
 assert.equal(hasOnlyStudents(group, []), false);
+
+// 현재 신청(applied)이 하나라도 있어야 지금 일행이다(#775)
+const applied = (participantId: number, value: boolean) => ({
+  participantId,
+  applied: value,
+});
+const history = [
+  // 동행자 2: 사전등록을 모두 취소
+  applied(2, false),
+  applied(2, false),
+  // 동행자 3: 사전등록 하나만 취소하고 하나는 남음
+  applied(3, false),
+  applied(3, true),
+  // 동행자 4: 사전등록은 취소했지만 프로그램 신청이 남음
+  applied(4, false),
+  applied(4, true),
+];
+assert.equal(isCurrentParticipant(history, 2), false);
+assert.equal(isCurrentParticipant(history, 3), true);
+assert.equal(isCurrentParticipant(history, 4), true);
+// 신청 내역이 없는 참가자도 지금 일행이 아니다
+assert.equal(isCurrentParticipant(history, 5), false);
 
 console.log('ok');

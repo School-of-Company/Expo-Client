@@ -21,6 +21,7 @@ import {
   getParticipantBlockReason,
   getSessionBlockReason,
   hasOnlyStudents,
+  isCurrentParticipant,
 } from '../../model/addSession';
 import type {
   AddSessionResult,
@@ -77,8 +78,17 @@ const AddSessionDialog = ({
     (session) => session.id === initialSessionId && !blockOf(session),
   );
   const [sessionId, setSessionId] = useState<number | undefined>(initial?.id);
-  // 기본은 일행 전체
-  const [selectedIds, setSelectedIds] = useState<number[]>(participantIds);
+  // 모두 취소한 동행자는 내 신청 목록에서 숨기므로 기본 선택에서도 빼고 따로 보여 준다
+  const current = participants.filter(({ participantId }) =>
+    isCurrentParticipant(applications, participantId),
+  );
+  const cancelled = participants.filter(
+    ({ participantId }) => !isCurrentParticipant(applications, participantId),
+  );
+  // 기본은 지금 일행 전체
+  const [selectedIds, setSelectedIds] = useState<number[]>(() =>
+    current.map(({ participantId }) => participantId),
+  );
   const submissionKeys = useRef(createSubmissionKeys());
   const [errorMessage, setErrorMessage] = useState<string>();
   const [formChanged, setFormChanged] = useState(false);
@@ -96,6 +106,10 @@ const AddSessionDialog = ({
         )
       : null;
   const addableIds = selectedIds.filter((id) => !participantBlockOf(id));
+  // 취소했던 동행자가 돌아오면 다시 일행 인원에 든다
+  const isReturning = cancelled.some(({ participantId }) =>
+    addableIds.includes(participantId),
+  );
   const onlyStudents = hasOnlyStudents(participants, addableIds);
   const canSubmit =
     sessionId !== undefined &&
@@ -109,6 +123,40 @@ const AddSessionDialog = ({
         ? prev.filter((id) => id !== participantId)
         : [...prev, participantId],
     );
+
+  const renderParticipant = ({
+    participantId,
+    name,
+    occupation,
+    representative,
+  }: OwnerParticipant) => {
+    const block = participantBlockOf(participantId);
+    return (
+      <label
+        key={participantId}
+        className={`flex items-center gap-8 text-body2r ${
+          block ? 'cursor-not-allowed text-gray-400' : 'text-black'
+        }`}
+      >
+        <input
+          type="checkbox"
+          checked={!block && selectedIds.includes(participantId)}
+          disabled={!!block}
+          onChange={() => toggle(participantId)}
+        />
+        {name}
+        <span className="text-caption1r text-gray-500">
+          {representative ? '대표자' : '일행'}
+          {occupation && ` · ${OCCUPATION_LABEL[occupation] ?? occupation}`}
+        </span>
+        {block && (
+          <span className="text-caption1r">
+            ({PARTICIPANT_BLOCK_LABEL[block]})
+          </span>
+        )}
+      </label>
+    );
+  };
 
   const submit = async () => {
     if (sessionId === undefined || !canSubmit) return;
@@ -206,37 +254,25 @@ const AddSessionDialog = ({
         </fieldset>
 
         <fieldset className="flex flex-col gap-8">
-          <legend className="mb-8 text-body2b text-black">참석자 선택</legend>
-          {participants.map(
-            ({ participantId, name, occupation, representative }) => {
-              const block = participantBlockOf(participantId);
-              return (
-                <label
-                  key={participantId}
-                  className={`flex items-center gap-8 text-body2r ${
-                    block ? 'cursor-not-allowed text-gray-400' : 'text-black'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={!block && selectedIds.includes(participantId)}
-                    disabled={!!block}
-                    onChange={() => toggle(participantId)}
-                  />
-                  {name}
-                  <span className="text-caption1r text-gray-500">
-                    {representative ? '대표자' : '일행'}
-                    {occupation &&
-                      ` · ${OCCUPATION_LABEL[occupation] ?? occupation}`}
-                  </span>
-                  {block && (
-                    <span className="text-caption1r">
-                      ({PARTICIPANT_BLOCK_LABEL[block]})
-                    </span>
-                  )}
-                </label>
-              );
-            },
+          <legend className="mb-8 text-body2b text-black">
+            참석자 선택 · 일행 {current.length}명
+          </legend>
+          {current.map(renderParticipant)}
+          {cancelled.length > 0 && (
+            <div className="mt-8 flex flex-col gap-8 border-t-1 border-solid border-gray-100 pt-12">
+              <p className="text-caption1b text-gray-600">
+                신청을 모두 취소한 일행
+              </p>
+              {cancelled.map(renderParticipant)}
+              <p
+                role={isReturning ? 'status' : undefined}
+                className={`break-keep text-caption1r ${isReturning ? 'text-main-600' : 'text-gray-500'}`}
+              >
+                다시 참석하면 일행 인원에 다시 들어갑니다. 일행은 대표자를
+                포함해 5명까지이며, 넘거나 동행자 추가가 처리 중이면 회차를
+                추가할 수 없습니다.
+              </p>
+            </div>
           )}
           <p className="break-keep text-caption1r text-gray-500">
             대표자는 이 회차에 참석하지 않아도 됩니다. 단, 학생만 참석할 수는

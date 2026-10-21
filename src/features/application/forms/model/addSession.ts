@@ -25,6 +25,19 @@ export const hasOnlyStudents = (
   );
 };
 
+/**
+ * 지금 일행인지. 사전등록·프로그램 신청 중 하나라도 현재 신청(applied)이 있어야 한다.
+ * 모두 취소한 동행자는 다음 동행자 추가로 해제되기 전까지 일행 목록에 남지만 인원에서 빠진다(Expo-Application-Server#262)
+ */
+export const isCurrentParticipant = (
+  applications: Pick<OwnerApplication, 'participantId' | 'applied'>[],
+  participantId: number,
+) =>
+  applications.some(
+    (application) =>
+      application.participantId === participantId && application.applied,
+  );
+
 const toTime = (value: string) => new Date(value.replace(' ', 'T')).getTime();
 
 /** [시작, 끝) 기준으로 일부라도 겹치는지. 입장 허용 여유(leadMinutes)는 넣지 않는다 */
