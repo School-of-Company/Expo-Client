@@ -63,4 +63,18 @@ const patched = withPolicyPatch(
 assert.equal(patched.policy?.autoPromotionEnabled, false);
 assert.equal('autoPromotionEndedAt' in (patched.policy ?? {}), false);
 
+// 현장 접수 기간: 한쪽만 입력하면 막고, 둘 다 있거나 둘 다 없으면 통과한다
+const START = '2026-11-01T09:00';
+const END = '2026-11-01T18:00';
+const PAIR_MESSAGE = '현장 접수 시작·종료를 함께 설정해주세요.';
+const onsite = (a: string | null, b: string | null) =>
+  validateProgramForm(
+    program(policy({ onsiteStartedAt: a, onsiteEndedAt: b })),
+  );
+assert.equal(onsite(START, null), PAIR_MESSAGE);
+assert.equal(onsite(null, END), PAIR_MESSAGE);
+assert.equal(onsite(START, END), null);
+assert.equal(onsite(null, null), null);
+assert.notEqual(onsite(END, START), null);
+
 console.log('policyForm.check OK');
