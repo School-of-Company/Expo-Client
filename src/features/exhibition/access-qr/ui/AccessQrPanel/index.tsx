@@ -30,7 +30,7 @@ const AccessQrPanel = ({ id, target, onSelect }: AccessQrPanelProps) => {
   const targets: AccessQrTarget[] = [
     {
       key: 'field',
-      label: '현장등록',
+      label: '사전등록',
       path: `/application/forms/${id}?view=list`,
     },
     {
