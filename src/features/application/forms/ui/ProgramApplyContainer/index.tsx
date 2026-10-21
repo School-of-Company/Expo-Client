@@ -35,6 +35,7 @@ import {
   TRAINING_CATEGORIES,
   filterByCategory,
 } from '../../model/applicationSections';
+import { useFieldRelease } from '../../model/fieldRelease';
 import { formatFormPeriod } from '../../model/formPeriodStatus';
 import {
   OUTCOME_LABEL,
@@ -248,6 +249,7 @@ const ParticipantLookup = ({
   formId,
   waiting,
   onsite,
+  isFieldReleased,
   onSelect,
   onResult,
 }: {
@@ -257,6 +259,8 @@ const ParticipantLookup = ({
   formId: string;
   waiting: boolean;
   onsite: boolean;
+  /** 행사가 시작돼 사전등록 대신 현장등록을 받는 중. 등록 안내를 현장등록으로 바꾼다 */
+  isFieldReleased: boolean;
   onSelect: () => void;
   onResult: (outcome: ProgramApplyOutcome) => void;
 }) => {
@@ -276,6 +280,18 @@ const ParticipantLookup = ({
     );
   if (error) return <p className="text-body2r text-error">{error.message}</p>;
   if (!data) return null;
+  if (!data.registered && isFieldReleased)
+    return (
+      <p className="break-keep text-body2r text-gray-600">
+        현장등록을 마친 참가자만 신청할 수 있습니다.{' '}
+        <Link
+          href={`/application/${expoId}?formType=application&userType=STANDARD&applicationType=FIELD`}
+          className="text-main-600 underline"
+        >
+          현장등록하러 가기
+        </Link>
+      </p>
+    );
   if (!data.registered)
     return (
       <p className="break-keep text-body2r text-gray-600">
@@ -515,6 +531,8 @@ const ProgramApplyContainer = ({
   const [outcomes, setOutcomes] = useState<Record<number, ProgramApplyOutcome>>(
     {},
   );
+  // 행사가 시작되면 사전등록을 받지 않으므로 회차 사전등록으로 보내지 않는다
+  const { released: isFieldReleased } = useFieldRelease(expoId);
 
   return withLoading({
     isLoading,
@@ -562,14 +580,15 @@ const ProgramApplyContainer = ({
           const isTimeMismatch =
             !onsite && !matchesSessionTime(program, sessionWindows);
           // 시간이 맞지 않으면 이 프로그램 시간과 겹치고 아직 신청하지 않은 접수 중 회차를 골라 사전등록을 안내한다
-          const addSession = isTimeMismatch
-            ? preRegisterSessions?.find(
-                (session) =>
-                  getPreRegisterSessionState(session) === 'OPEN' &&
-                  matchesSessionTime(program, [session]) &&
-                  !appliedSessionIds.has(session.id),
-              )
-            : undefined;
+          const addSession =
+            isTimeMismatch && !isFieldReleased
+              ? preRegisterSessions?.find(
+                  (session) =>
+                    getPreRegisterSessionState(session) === 'OPEN' &&
+                    matchesSessionTime(program, [session]) &&
+                    !appliedSessionIds.has(session.id),
+                )
+              : undefined;
           // 현장 신청은 사전 접수 기간과 따로 서버가 판정하므로 막지 않는다. 운영 마감은 경로와 상관없이 막는다
           const blockedLabel =
             program.policy?.closed || status === 'ENDED'
@@ -717,8 +736,9 @@ const ProgramApplyContainer = ({
                   role="status"
                   className="break-keep text-caption1r text-gray-600"
                 >
-                  사전등록한 회차 시간과 맞지 않는 프로그램입니다. 이 시간대
-                  회차를 사전등록하면 신청할 수 있습니다.
+                  사전등록한 회차 시간과 맞지 않는 프로그램입니다.
+                  {!isFieldReleased &&
+                    ' 이 시간대 회차를 사전등록하면 신청할 수 있습니다.'}
                 </p>
               )}
               {addSession && (
@@ -801,6 +821,7 @@ const ProgramApplyContainer = ({
                   program={program}
                   waiting={waitlists.length > 0}
                   onsite={onsite}
+                  isFieldReleased={isFieldReleased}
                   onSelect={() =>
                     // 다른 참가자의 이전 결과 문구가 남지 않게 한다
                     setOutcomes((prev) => {
