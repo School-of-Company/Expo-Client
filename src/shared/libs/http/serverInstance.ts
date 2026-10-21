@@ -1,5 +1,6 @@
 import https from 'https';
 import axios from 'axios';
+import { logUpstreamFailure, markUpstreamStart } from './upstreamLog';
 
 // Gateway 주소는 서버에서만 쓴다. 배포 환경에 BASE_URL 이 생기기 전까지는 기존 값을 쓴다
 export const GATEWAY_URL =
@@ -14,4 +15,12 @@ export const serverInstance = axios.create({
   timeout: DEFAULT_TIMEOUT_MS,
   // 프록시 요청마다 TLS 핸드셰이크를 다시 하지 않도록 연결을 재사용한다
   httpsAgent: new https.Agent({ keepAlive: true, maxSockets: 50 }),
+});
+
+serverInstance.interceptors.request.use(markUpstreamStart);
+serverInstance.interceptors.response.use(undefined, (error) => {
+  if (axios.isAxiosError(error)) {
+    logUpstreamFailure(error, (config) => serverInstance.getUri(config));
+  }
+  return Promise.reject(error);
 });
