@@ -1,11 +1,11 @@
 'use client';
 
-import { format, parseISO } from 'date-fns';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { usePreregisterSessions } from '@/features/registration/common';
 import { withLoading } from '@/shared/hocs';
+import { toKstLocal } from '@/shared/libs/kstDateTime';
 import { useExcelDownload } from '@/shared/model';
 import { useExpoDetail } from '@/shared/queries/useExpoDetail';
 import {
@@ -75,7 +75,7 @@ const ParticipantTable = ({ id }: { id: string }) => {
   const selectedDate =
     selectedFieldDay ??
     (selectedSession
-      ? format(parseISO(selectedSession.startedAt), 'yyyy-MM-dd')
+      ? toKstLocal(selectedSession.startedAt).slice(0, 10)
       : undefined);
   const [selectItem, setSelectItem] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
