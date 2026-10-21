@@ -34,7 +34,6 @@ export default function FormRenderer({
       ? {
           ...defaultValues,
           [lockedPhone.fieldId]: lockedPhone.value,
-          [`${lockedPhone.fieldId}_status`]: 'true',
         }
       : defaultValues,
   });

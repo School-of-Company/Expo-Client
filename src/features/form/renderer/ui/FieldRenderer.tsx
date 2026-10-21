@@ -61,7 +61,10 @@ export default function FieldRenderer({
     return null;
   }
 
-  switch (item.type) {
+  // 서버 폼의 전화번호 문항은 TEXT 로 그려진다. 인증한 번호로 잠글 때는 전화번호 칸으로 보여 준다
+  const type = lockedPhone?.fieldId === item.id ? 'PHONE' : item.type;
+
+  switch (type) {
     case 'TEXT':
       return (
         <div className="flex flex-col gap-20 rounded-sm border-1 border-solid border-gray-200 p-18">
