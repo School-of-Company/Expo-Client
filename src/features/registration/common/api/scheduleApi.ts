@@ -1,4 +1,4 @@
-import { toApiError } from '@/shared/libs/http/apiError';
+import { ApiError, toApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import {
   Program,
@@ -51,6 +51,25 @@ export type ScheduleProgramRequest = StandardProgramRequest & {
   policy: ProgramPolicy | null;
 };
 
+/** 회차 변경 409 의 사유 코드별 문구. 코드가 없거나 모르면 서버가 준 문구를 그대로 쓴다 */
+const CONFLICT_REASON_MESSAGES: Record<string, string> = {
+  TIME_LOCKED_BY_HISTORY:
+    '신청 이력이 있어 시간은 바꿀 수 없습니다. 시간을 되돌린 뒤 다시 저장해주세요.',
+  BELOW_WAITING_COUNT:
+    '현재 대기 인원보다 대기 정원을 작게 줄일 수 없습니다. 대기 정원을 늘려 다시 저장해주세요.',
+};
+
+export const toScheduleSaveError = (error: unknown, fallback: string) => {
+  const apiError = toApiError(error, fallback);
+  const message =
+    apiError instanceof ApiError && apiError.status === 409 && apiError.code
+      ? CONFLICT_REASON_MESSAGES[apiError.code]
+      : undefined;
+  return message
+    ? new ApiError(message, 409, (apiError as ApiError).code)
+    : apiError;
+};
+
 const expoPath = (expoId: string) => `/expo/${encodeURIComponent(expoId)}`;
 
 const sessionPath = (expoId: string, sessionId: number) =>
@@ -87,7 +106,7 @@ export const postPreregisterSession = async (
   }
 };
 
-/** 신청 이력이 있는 회차는 마감·재개만 바꿀 수 있다 */
+/** 신청 이력이 있는 회차는 시간(시작·종료·취소 마감)을 바꿀 수 없고 정원·대기 정원 등은 바꿀 수 있다 */
 export const patchPreregisterSession = async (
   expoId: string,
   sessionId: number,
@@ -100,7 +119,7 @@ export const patchPreregisterSession = async (
       definition,
     });
   } catch (error) {
-    throw toApiError(error, '사전등록 회차를 수정하지 못했습니다.');
+    throw toScheduleSaveError(error, '사전등록 회차를 수정하지 못했습니다.');
   }
 };
 
@@ -200,7 +219,7 @@ export const patchScheduleProgram = async (
       { ...data, id: program.id, revision: program.revision },
     );
   } catch (error) {
-    throw toApiError(error, '프로그램을 수정하지 못했습니다.');
+    throw toScheduleSaveError(error, '프로그램을 수정하지 못했습니다.');
   }
 };
 
