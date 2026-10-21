@@ -3,12 +3,12 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { UseFormRegisterReturn, useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
 import {
   PHONE_NUMBER_PATTERN,
   SMS_CODE_PATTERN,
 } from '@/shared/config/validation';
 import { Button, Input } from '@/shared/ui';
+import { formatExpiresAt } from '../../lib/formatExpiresAt';
 import { getExpoId } from '../../lib/getExpoId';
 import { getRedirectPath } from '../../lib/getRedirectPath';
 import { normalizePhoneInput } from '../../lib/normalizePhoneInput';
@@ -26,12 +26,6 @@ interface PhoneVerificationFormValues {
 
 const formatTimer = (timer: number) =>
   `${Math.floor(timer / 60)}:${String(timer % 60).padStart(2, '0')}`;
-
-const formatExpiresAt = (expiresAt: string) =>
-  new Date(`${expiresAt}Z`).toLocaleTimeString('ko-KR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 
 const VerificationFields = ({ expoId }: { expoId: string }) => {
   const router = useRouter();
@@ -94,16 +88,8 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
     if (isValid) sendSms(getValues('phoneNumber'));
   };
 
-  // 설문은 번호로 응답자를 찾는데 세션 응답에는 번호가 없다. 번호를 모르면 되돌아오는 반복이 되므로 다시 인증받는다
-  const handleContinue = () => {
-    const phoneNumber = loadVerifiedPhone(expoId);
-    if (!phoneNumber && redirect.includes('userType=')) {
-      toast.info('번호 확인을 위해 다시 인증해 주세요.');
-      logoutSession();
-      return;
-    }
-    router.replace(getRedirectPath(redirect, phoneNumber));
-  };
+  const handleContinue = () =>
+    router.replace(getRedirectPath(redirect, loadVerifiedPhone(expoId)));
 
   const onSubmit = (data: PhoneVerificationFormValues) => {
     verifySmsCode(data);
