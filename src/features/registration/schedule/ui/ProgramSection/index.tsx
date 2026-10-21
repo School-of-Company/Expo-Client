@@ -211,7 +211,7 @@ const ProgramSection = ({
     {
       key: 'actions',
       label: '관리',
-      flex: 1.8,
+      flex: 2.6,
       render: ({ program }) => (
         <div className="flex items-center justify-center gap-12">
           <Link
@@ -238,6 +238,24 @@ const ProgramSection = ({
               신청명단 엑셀
             </button>
           )}
+          {/* 신청 명단과 달리 출석 서비스의 실제 입실 기록을 합친 파일이다. 회차 유형+ID 로 요청한다 */}
+          <button
+            type="button"
+            className="text-body2r text-main-600 disabled:opacity-40"
+            disabled={isExporting}
+            onClick={(e) => {
+              e.stopPropagation();
+              downloadExcel({
+                path: `/excel/expos/${encodeURIComponent(expoId)}/program-attendances`,
+                params: {
+                  programType: program.programType,
+                  programId: program.id,
+                },
+              });
+            }}
+          >
+            출석결과 엑셀
+          </button>
           <button
             type="button"
             className="text-body2r text-main-600 disabled:opacity-40"
