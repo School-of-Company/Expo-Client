@@ -360,6 +360,7 @@ const QrDialog = ({
 
 const MyApplicationList = ({ expoId }: { expoId: string }) => {
   const {
+    isLoading,
     participants,
     applications,
     qrParticipantIds,
@@ -438,6 +439,17 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
       (a, b) =>
         Number(b.participant?.representative ?? false) -
         Number(a.participant?.representative ?? false),
+    );
+
+  // 조회가 끝나기 전의 빈 목록을 신청 없음으로 보이지 않게 한다
+  if (isLoading)
+    return (
+      <p
+        role="status"
+        className="flex flex-1 items-center justify-center text-body1r text-gray-500 mobile:text-body2r"
+      >
+        신청 내역을 불러오는 중입니다...
+      </p>
     );
 
   // 조회 실패를 신청 없음으로 보이지 않게 오류를 그대로 알린다
