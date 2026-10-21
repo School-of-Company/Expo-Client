@@ -23,6 +23,7 @@ import {
   GROUP_MESSAGE_SELECTED_MAX,
   GROUP_MESSAGE_VARIABLES,
   getFilteredScopeBlocker,
+  getPreviewStatus,
   isFinalJobStatus,
   isGoneJobError,
   JOB_STATUS_LABEL,
@@ -128,10 +129,20 @@ const GroupMessageModal = ({
       : { scope: target, channel: 'KAKAO', templateId, fallbackToSms: true };
   }, [scope, selectedRows, filter, channel, body, templateId]);
   const hasContent = channel === 'SMS' ? body.trim() !== '' : !!template;
-  // 미리보기 뒤에 범위나 문구가 바뀌면 그 미리보기로는 보낼 수 없다
-  const isPreviewCurrent =
-    preview !== null &&
-    JSON.stringify(preview.source) === JSON.stringify(source);
+  // 유효 시간이 지나는 순간 다시 그리도록 시각을 상태로 둔다
+  const [now, setNow] = useState(() => Date.now());
+  const expiresAt = preview?.result.expiresAt;
+  useEffect(() => {
+    if (!expiresAt) return;
+    const timer = setTimeout(
+      () => setNow(Date.now()),
+      Math.max(Date.parse(expiresAt) - Date.now(), 0) + 100,
+    );
+    return () => clearTimeout(timer);
+  }, [expiresAt]);
+  // 미리보기 뒤에 범위나 문구가 바뀌거나 유효 시간이 지나면 그 미리보기로는 보낼 수 없다
+  const previewStatus = preview ? getPreviewStatus(preview, source, now) : null;
+  const isPreviewCurrent = previewStatus === 'CURRENT';
 
   const scopeBlocker =
     scope === 'SELECTED' && selectedRows.length === 0
@@ -152,8 +163,11 @@ const GroupMessageModal = ({
         result,
         executeKey: crypto.randomUUID(),
       });
+      setNow(Date.now());
       setNotice(null);
     },
+    // 실패하면 옛 미리보기를 지워 유효한 것처럼 남지 않게 한다
+    onError: () => setPreview(null),
   });
 
   const executeMutation = useMutation({
@@ -493,51 +507,80 @@ const GroupMessageModal = ({
 
             {preview && (
               <section className="space-y-[10px]">
-                <p className="text-h3b text-black">미리보기</p>
-                {!isPreviewCurrent && (
+                <div className="flex items-center justify-between gap-12">
+                  <p className="text-h3b text-black">미리보기</p>
+                  <button
+                    type="button"
+                    onClick={() => setPreview(null)}
+                    className="text-caption1r text-gray-500 hover:text-main-600"
+                  >
+                    미리보기 닫기
+                  </button>
+                </div>
+                <p className="text-caption1r text-gray-500">
+                  미리보기는 아직 발송 전입니다. 보내기를 눌러야 발송됩니다.
+                </p>
+                {previewStatus === 'CHANGED' && (
                   <p role="status" className="text-caption1r text-error">
                     미리보기 이후 대상이나 내용이 바뀌었습니다. 다시 미리보기를
                     만들어야 보낼 수 있습니다.
                   </p>
                 )}
-                <p className="text-body2r text-gray-500">
-                  신청 {preview.result.applicationCount}건 · 수신 번호{' '}
-                  <span className="text-main-600">
-                    {preview.result.recipientCount}
-                  </span>
-                  개 · 문자 {preview.result.messageCount}건 · 제외{' '}
-                  {preview.result.missingCount}건 (유효{' '}
-                  {formatDateTime(preview.result.expiresAt)}까지)
-                </p>
-                <ul className="max-h-[240px] space-y-8 overflow-y-auto rounded-sm border-1 border-solid border-gray-200 px-16 py-12">
-                  {preview.result.items
-                    .slice(0, PREVIEW_ITEM_LIMIT)
-                    .map((item) => (
-                      <li key={item.targetId} className="space-y-4 text-body2r">
-                        <p className="text-gray-500">
-                          {item.recipientMasked ?? '번호 없음'}
-                          {item.missingReason && (
-                            <span className="text-error">
-                              {' '}
-                              · 제외:{' '}
-                              {MISSING_REASON_LABEL[item.missingReason] ??
-                                item.missingReason}
-                            </span>
-                          )}
-                        </p>
-                        {item.content && (
-                          <p className="whitespace-pre-wrap text-black">
-                            {item.content}
-                          </p>
-                        )}
-                      </li>
-                    ))}
-                </ul>
-                {preview.result.items.length > PREVIEW_ITEM_LIMIT && (
-                  <p className="text-caption1r text-gray-400">
-                    앞 {PREVIEW_ITEM_LIMIT}건만 표시합니다.
+                {previewStatus === 'EXPIRED' && (
+                  <p role="status" className="text-caption1r text-error">
+                    미리보기 유효 시간이 지났습니다. 다시 미리보기를 만들어야
+                    보낼 수 있습니다.
                   </p>
                 )}
+                <div
+                  className={`space-y-[10px] ${
+                    isPreviewCurrent && !previewMutation.isPending
+                      ? ''
+                      : 'opacity-40'
+                  }`}
+                >
+                  <p className="text-body2r text-gray-500">
+                    신청 {preview.result.applicationCount}건 · 수신 번호{' '}
+                    <span className="text-main-600">
+                      {preview.result.recipientCount}
+                    </span>
+                    개 · 문자 {preview.result.messageCount}건 · 제외{' '}
+                    {preview.result.missingCount}건 (유효{' '}
+                    {formatDateTime(preview.result.expiresAt)}까지)
+                  </p>
+                  <ul className="max-h-[240px] space-y-8 overflow-y-auto rounded-sm border-1 border-solid border-gray-200 px-16 py-12">
+                    {preview.result.items
+                      .slice(0, PREVIEW_ITEM_LIMIT)
+                      .map((item) => (
+                        <li
+                          key={item.targetId}
+                          className="space-y-4 text-body2r"
+                        >
+                          <p className="text-gray-500">
+                            {item.recipientMasked ?? '번호 없음'}
+                            {item.missingReason && (
+                              <span className="text-error">
+                                {' '}
+                                · 제외:{' '}
+                                {MISSING_REASON_LABEL[item.missingReason] ??
+                                  item.missingReason}
+                              </span>
+                            )}
+                          </p>
+                          {item.content && (
+                            <p className="whitespace-pre-wrap text-black">
+                              {item.content}
+                            </p>
+                          )}
+                        </li>
+                      ))}
+                  </ul>
+                  {preview.result.items.length > PREVIEW_ITEM_LIMIT && (
+                    <p className="text-caption1r text-gray-400">
+                      앞 {PREVIEW_ITEM_LIMIT}건만 표시합니다.
+                    </p>
+                  )}
+                </div>
               </section>
             )}
 
@@ -584,12 +627,17 @@ const GroupMessageModal = ({
                   }
                   onClick={() => previewMutation.mutate()}
                 >
-                  {previewMutation.isPending ? '만드는 중...' : '미리보기'}
+                  {previewMutation.isPending
+                    ? '만드는 중...'
+                    : preview
+                      ? '다시 미리보기'
+                      : '미리보기'}
                 </Button>
                 <Button
                   disabled={
                     !isPreviewCurrent ||
-                    preview.result.recipientCount === 0 ||
+                    previewMutation.isPending ||
+                    preview?.result.recipientCount === 0 ||
                     executeMutation.isPending
                   }
                   onClick={handleSend}

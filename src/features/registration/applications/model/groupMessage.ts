@@ -43,6 +43,20 @@ const FINAL_JOB_STATUSES: GroupMessageJobStatus[] = [
 export const isFinalJobStatus = (status: GroupMessageJobStatus) =>
   FINAL_JOB_STATUSES.includes(status);
 
+export type PreviewStatus = 'CURRENT' | 'CHANGED' | 'EXPIRED';
+
+/** 미리보기로 보낼 수 있는지. 범위·문구가 바뀌었거나 유효 시간이 지나면 보낼 수 없다 */
+export const getPreviewStatus = (
+  preview: { source: GroupMessageSource; result: { expiresAt: string } },
+  source: GroupMessageSource,
+  now: number,
+): PreviewStatus =>
+  JSON.stringify(preview.source) !== JSON.stringify(source)
+    ? 'CHANGED'
+    : Date.parse(preview.result.expiresAt) <= now
+      ? 'EXPIRED'
+      : 'CURRENT';
+
 /** 서버가 필터 전체 발송에 쓸 수 없는 사람 조건. 있으면 선택 발송만 할 수 있다 */
 export const getFilteredScopeBlocker = (filter: LedgerFilter) =>
   filter.q.trim() || filter.occupation
