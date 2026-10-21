@@ -596,7 +596,15 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
                     <button
                       type="button"
                       onClick={() =>
-                        setQrTarget({ participantId, title: `${title} · 입장` })
+                        setQrTarget({
+                          participantId,
+                          title: `${title} · ${
+                            (participant?.occupation &&
+                              (OCCUPATION_LABEL[participant.occupation] ??
+                                participant.occupation)) ||
+                            '입장'
+                          }`,
+                        })
                       }
                       className="whitespace-nowrap rounded-sm bg-main-600 px-16 py-8 text-caption1b text-white"
                     >
