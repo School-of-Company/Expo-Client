@@ -14,7 +14,10 @@ import {
   ScheduleProgram,
   useScheduleMutation,
 } from '../../../common';
-import { PROGRAM_TYPE_LABEL } from '../../../common/model/ledger';
+import {
+  PROGRAM_TYPE_LABEL,
+  useLedgerSummary,
+} from '../../../common/model/ledger';
 import {
   EMPTY_PROGRAM_FORM,
   ProgramForm as ProgramFormValue,
@@ -28,6 +31,7 @@ import {
   saveProgramDraft,
   toProgramKey,
 } from '../../model/programFormLink';
+import { isProgramTimeLocked, TIME_LOCK_NOTICE } from '../../model/timeLock';
 import PolicyFields, { Field } from '../PolicyFields';
 import { FieldLabel } from '../ScheduleSection';
 
@@ -63,6 +67,10 @@ const ProgramForm = ({
     () =>
       initialForm ?? (program ? toProgramForm(program) : EMPTY_PROGRAM_FORM),
   );
+  // 집계를 못 읽으면 잠그지 않고 저장 409 의 사유 문구로 안내한다
+  const { data: summary } = useLedgerSummary(expoId);
+  const isTimeLocked =
+    !!program && isProgramTimeLocked(program, summary?.sessions);
   const programKey = program ? toProgramKey(program) : undefined;
   const { data: linkedForm } = useProgramFormQuery(
     form.hasPolicy ? form.policy.formId : '',
@@ -170,15 +178,23 @@ const ProgramForm = ({
         <Field label="시작">
           <DateTimeInput
             value={form.startedAt}
+            disabled={isTimeLocked}
             onChange={(startedAt) => update({ startedAt })}
           />
         </Field>
         <Field label="종료">
           <DateTimeInput
             value={form.endedAt}
+            disabled={isTimeLocked}
             onChange={(endedAt) => update({ endedAt })}
           />
         </Field>
+        {isTimeLocked && (
+          <p className="col-span-2 text-caption1r text-gray-500 mobile:col-span-1">
+            {TIME_LOCK_NOTICE} 정원·대기 정원·신청 기간·보호자 정책 등은 바꿀 수
+            있습니다.
+          </p>
+        )}
       </div>
       <div className="flex items-center justify-between gap-16">
         <div className="space-y-6">

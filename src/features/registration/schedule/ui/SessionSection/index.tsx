@@ -18,6 +18,10 @@ import {
   toOptionalCount,
   totalCapacity,
 } from '../../model/sessionForm';
+import {
+  isPreregisterTimeLocked,
+  TIME_LOCK_NOTICE,
+} from '../../model/timeLock';
 import ScheduleSection from '../ScheduleSection';
 import SessionCreateForm from '../SessionCreateForm';
 
@@ -68,6 +72,10 @@ const SessionSection = ({
     summary?.sessions.map((item) => [item.sessionId, item]),
   );
 
+  const isTimeLocked = (id: number) =>
+    isPreregisterTimeLocked(summaryBySession.get(id));
+  const hasLockedSession = rows.some(({ id }) => isTimeLocked(id));
+
   const columns: TableColumn<SessionRow>[] = [
     {
       key: 'id',
@@ -103,6 +111,7 @@ const SessionSection = ({
         <DateTimeInput
           size="small"
           value={form.startedAt}
+          disabled={isTimeLocked(id)}
           onChange={(startedAt) => onChange(id, { startedAt })}
         />
       ),
@@ -115,6 +124,7 @@ const SessionSection = ({
         <DateTimeInput
           size="small"
           value={form.endedAt}
+          disabled={isTimeLocked(id)}
           onChange={(endedAt) => onChange(id, { endedAt })}
         />
       ),
@@ -225,6 +235,7 @@ const SessionSection = ({
         <DateTimeInput
           size="small"
           value={form.cancelEndedAt}
+          disabled={isTimeLocked(id)}
           onChange={(cancelEndedAt) => onChange(id, { cancelEndedAt })}
         />
       ),
@@ -273,6 +284,12 @@ const SessionSection = ({
 
   return (
     <ScheduleSection title="사전등록 회차">
+      {hasLockedSession && (
+        <p className="text-caption1r text-gray-500">
+          {TIME_LOCK_NOTICE} 시작·종료·취소 마감이 흐리게 표시된 회차도
+          정원·대기 정원·장소·마감은 바꿀 수 있습니다.
+        </p>
+      )}
       <RegistrationTable
         columns={columns}
         rows={rows}
