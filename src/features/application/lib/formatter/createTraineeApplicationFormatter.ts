@@ -36,17 +36,17 @@ export const createTraineeApplicationFormatter = (
       ? (resolveFieldValue(data, traineeIdField) as string | undefined)
       : undefined;
 
-    const filteredFormItems = dynamicFormItems.filter(
-      (item) =>
-        !isTrainingProgramQuestion(item.title) &&
-        item.dynamicFormType !== 'NAME' &&
-        item.dynamicFormType !== 'PHONE_NUMBER' &&
-        item.dynamicFormType !== 'TRAINING_ID',
-    );
-
     return {
       informationJson: JSON.stringify(
-        processDynamicFormData(data, filteredFormItems),
+        processDynamicFormData(
+          data,
+          dynamicFormItems,
+          (item) =>
+            isTrainingProgramQuestion(item.title) ||
+            item.dynamicFormType === 'NAME' ||
+            item.dynamicFormType === 'PHONE_NUMBER' ||
+            item.dynamicFormType === 'TRAINING_ID',
+        ),
       ),
       ...(data.privacyConsent !== undefined && {
         personalInformationStatus: data.privacyConsent,
