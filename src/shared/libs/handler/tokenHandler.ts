@@ -72,6 +72,9 @@ export async function tokenHandleRequest(
       let newTokens: Awaited<ReturnType<typeof performTokenRefresh>>;
       try {
         newTokens = await performTokenRefresh(refreshToken);
+        // 다른 요청이 이미 이 refresh token 을 써서 실패했을 수 있다. 쿠키를 지우기 전에 한 번 더 본다.
+        // 그 요청의 결과는 잠시 캐시에 남아 있어 두 번째에는 받아 온다
+        if (!newTokens) newTokens = await performTokenRefresh(refreshToken);
       } catch (refreshError) {
         if (!(refreshError instanceof RefreshUnavailableError))
           throw refreshError;
@@ -98,8 +101,9 @@ export async function tokenHandleRequest(
       } catch (err) {
         const axiosErr = err as AxiosError;
         const status = axiosErr.response?.status;
-        // 첫 시도와 같이 처리해야 파일 다운로드의 스트림 오류 본문도 문구로 풀린다
-        if (status && status !== 401) {
+        // 첫 시도와 같이 처리해야 파일 다운로드의 스트림 오류 본문도 문구로 풀린다.
+        // 응답이 없는 timeout·네트워크 오류도 여기서 풀어, 방금 받은 새 토큰 쿠키를 지우지 않는다
+        if (status !== 401) {
           return handleError(err);
         }
         discardBody(axiosErr);

@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'crypto';
 import { redis } from '@/shared/libs/redis/redis';
+import { setAuthCookies } from '../cookie/setAuthCookies';
 import {
   REFRESH_TIMEOUT_MS,
   RefreshUnavailableError,
@@ -21,12 +22,37 @@ const RELEASE_SCRIPT = `if redis.call("get", KEYS[1]) == ARGV[1] then return red
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const readResult = async (key: string): Promise<RefreshTokenResult | null> => {
-  const [accessToken, refreshToken] = await redis.hmget(
-    key,
-    'accessToken',
-    'refreshToken',
-  );
-  return accessToken && refreshToken ? { accessToken, refreshToken } : null;
+  const [accessToken, refreshToken, accessTokenExpires, refreshTokenExpires] =
+    await redis.hmget(
+      key,
+      'accessToken',
+      'refreshToken',
+      'accessTokenExpires',
+      'refreshTokenExpires',
+    );
+  if (!accessToken || !refreshToken) return null;
+  return {
+    accessToken,
+    refreshToken,
+    ...(accessTokenExpires && { accessTokenExpires }),
+    ...(refreshTokenExpires && { refreshTokenExpires }),
+  };
+};
+
+// 다른 요청이 받아 둔 결과를 쓸 때도 이 응답에 새 토큰 쿠키를 싣는다.
+// 싣지 않으면 이 요청이 가진 이전 refresh token 이 쿠키에 남아 다음 재발급이 실패한다
+const applyCookies = (result: RefreshTokenResult): RefreshTokenResult => {
+  const { accessTokenExpires, refreshTokenExpires, ...tokens } = result;
+  setAuthCookies({
+    ...tokens,
+    accessTokenExpires: accessTokenExpires
+      ? new Date(accessTokenExpires)
+      : undefined,
+    refreshTokenExpires: refreshTokenExpires
+      ? new Date(refreshTokenExpires)
+      : undefined,
+  });
+  return result;
 };
 
 // 다른 요청이 재발급 중이면 결과를 기다린다. 락이 사라졌는데 결과가 없으면 재발급이 실패한 것이라 재시도하게 한다
@@ -38,10 +64,10 @@ const waitForResult = async (
   try {
     while (Date.now() - start < WAIT_MS) {
       const result = await readResult(resultKey);
-      if (result) return result;
+      if (result) return applyCookies(result);
       if (!(await redis.exists(lockKey))) {
         const last = await readResult(resultKey);
-        if (last) return last;
+        if (last) return applyCookies(last);
         break;
       }
       await sleep(POLL_INTERVAL_MS);
@@ -68,7 +94,7 @@ export async function performTokenRefresh(
   let acquired: boolean;
   try {
     const cached = await readResult(resultKey);
-    if (cached) return cached;
+    if (cached) return applyCookies(cached);
     acquired =
       (await redis.set(lockKey, owner, 'PX', LOCK_TTL_MS, 'NX')) === 'OK';
   } catch {
@@ -83,7 +109,12 @@ export async function performTokenRefresh(
     if (result) {
       await redis
         .multi()
-        .hset(resultKey, result)
+        .hset(
+          resultKey,
+          Object.fromEntries(
+            Object.entries(result).filter(([, value]) => value !== undefined),
+          ),
+        )
         .expire(resultKey, RESULT_TTL_SEC)
         .exec()
         .catch(() => undefined);
