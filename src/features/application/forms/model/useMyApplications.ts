@@ -7,6 +7,7 @@ import {
   OwnerApplicationType,
   addMyPreRegisterCompanions,
   cancelMyApplication,
+  cancelMyFieldRegistration,
   addMyPreRegisterSession,
   cancelMyPreRegisterWaitlist,
   getMyApplications,
@@ -80,6 +81,20 @@ export const useMyApplications = (expoId: string) => {
         data?.csrfToken,
       ),
     onSuccess: () => toast.success('신청이 취소되었습니다.'),
+    onError: (error: Error) => toast.error(error.message),
+    onSettled: refresh,
+  });
+
+  // 현장 입장 등록 취소. 실패해도 첫 입장·재등록으로 상태가 바뀌었을 수 있어 다시 받는다
+  const { mutate: cancelField, isPending: isCancellingField } = useMutation({
+    mutationFn: (target: { registrationId: string; generation: number }) =>
+      cancelMyFieldRegistration(
+        expoId,
+        target.registrationId,
+        target.generation,
+        data?.csrfToken,
+      ),
+    onSuccess: () => toast.success('현장등록이 취소되었습니다.'),
     onError: (error: Error) => toast.error(error.message),
     onSettled: refresh,
   });
@@ -159,6 +174,7 @@ export const useMyApplications = (expoId: string) => {
     participants: data?.participants ?? [],
     applications: data?.applications ?? [],
     qrParticipantIds: data?.qrParticipantIds ?? [],
+    fieldRegistrations: data?.fieldRegistrations ?? [],
     // required: 인증한 적 없음, expired: 만료. 취소 뒤 재조회가 401 이면 이쪽으로 드러난다
     sessionIssue: getSessionIssue(error) ?? getSessionIssue(waitlistError),
     errorMessage: visibleError(error),
@@ -172,6 +188,8 @@ export const useMyApplications = (expoId: string) => {
     respondOffer,
     isRespondingOffer,
     cancel,
+    cancelField,
+    isCancellingField,
     cancelWaitlist,
     isCancellingWaitlist,
     addCompanions,
