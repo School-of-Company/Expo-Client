@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Plus, ArrowDown } from '@/shared/assets/icons';
 import { COLORS } from '@/shared/config';
+
+// 고정 헤더에 가려지지 않으려면 메뉴 위쪽이 이 값(px)보다 아래에 있어야 한다
+const HEADER_SAFE_TOP = 80;
 
 interface SplitButtonProps<T extends string> {
   onDefaultClick: () => void;
@@ -21,6 +24,19 @@ const SplitButton = <T extends string>({
 }: SplitButtonProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  // 기본은 버튼 위로 연다. 위쪽이 화면 밖이나 고정 헤더에 가려지면 아래로 연다
+  const [placement, setPlacement] = useState<'up' | 'down'>('up');
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      setPlacement('up');
+      return;
+    }
+    const menuTop = menuRef.current?.getBoundingClientRect().top;
+    if (menuTop !== undefined && menuTop < HEADER_SAFE_TOP)
+      setPlacement('down');
+  }, [isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -71,7 +87,12 @@ const SplitButton = <T extends string>({
       </div>
 
       {isOpen && (
-        <div className="absolute bottom-full left-0 z-10 mb-4 w-full min-w-[160px] rounded-sm border-1 border-solid border-gray-200 bg-white shadow-lg">
+        <div
+          ref={menuRef}
+          className={`absolute left-0 z-10 w-full min-w-[160px] rounded-sm border-1 border-solid border-gray-200 bg-white shadow-lg ${
+            placement === 'up' ? 'bottom-full mb-4' : 'top-full mt-4'
+          }`}
+        >
           {specialFieldOptions.map((option) => {
             const isDisabled = disabledOptions.has(option.value);
             return (
