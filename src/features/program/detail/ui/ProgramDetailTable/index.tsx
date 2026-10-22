@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import {
   programRosterRequest,
@@ -10,12 +10,20 @@ import {
 import { withLoading } from '@/shared/hocs';
 import { useExcelDownload, useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
+import { ProgramScanResponse } from '@/shared/types/program/detail/type';
 import { Button } from '@/shared/ui';
 import { TableForm } from '@/shared/ui/Table';
 import { programCategories } from '../../model/category';
+import {
+  ProgramScanResult,
+  programScanFailure,
+  programScanSuccess,
+} from '../../model/programScanResult';
 import { useProgramDetailQueries } from '../../model/useProgramDetailData';
 import { useStandardAttendance } from '../../model/useStandardAttendance';
 import { useTrainingAttendance } from '../../model/useTrainingAttendance';
+import ProgramScanPanel from '../ProgramScanPanel';
+import ProgramScanResultCard from '../ProgramScanResultCard';
 
 const ProgramDetailTable = ({
   expoId,
@@ -25,8 +33,10 @@ const ProgramDetailTable = ({
   programId: string;
 }) => {
   const searchParams = useSearchParams();
-  const { mutate: standardAttendance } = useStandardAttendance();
-  const { mutate: trainingAttendance } = useTrainingAttendance();
+  const { mutate: standardAttendance, isPending: isStandardPending } =
+    useStandardAttendance();
+  const { mutate: trainingAttendance, isPending: isTrainingPending } =
+    useTrainingAttendance();
   const { mutate: downloadExcel, isPending: isExcelExporting } =
     useExcelDownload();
   const { mutate: downloadReport, isPending: isReportExporting } =
@@ -38,8 +48,31 @@ const ProgramDetailTable = ({
     navigation,
   );
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
-  useQRScanner(setScannedQR);
+  const [lastResult, setLastResult] = useState<ProgramScanResult | null>(null);
+  const handleInvalidQr = useCallback(
+    (message: string) =>
+      setLastResult(programScanFailure(new Error(message), '읽을 수 없는 QR')),
+    [],
+  );
+  const { submitScan, clearLastScan } = useQRScanner(
+    setScannedQR,
+    handleInvalidQr,
+  );
+  // 토스트는 mutation의 onError가 띄우고, 결과 카드에는 같은 문구를 남긴다
+  const scanCallbacks = {
+    onSuccess: (response: ProgramScanResponse) =>
+      setLastResult(programScanSuccess(response)),
+    onError: (error: Error) => {
+      clearLastScan();
+      setLastResult(programScanFailure(error));
+    },
+  };
   const programDetailData = programDetailQueries.data || [];
+
+  const rejectFormat = (message: string) => {
+    toast.error(message);
+    setLastResult(programScanFailure(new Error(message), '읽을 수 없는 QR'));
+  };
 
   const handleAttendance = ({
     participantId,
@@ -48,12 +81,14 @@ const ProgramDetailTable = ({
     token,
   }: QrScanData) => {
     if (token) {
-      toast.warn('종이 QR은 박람회 입장에만 사용할 수 있습니다.');
+      const message = '종이 QR은 박람회 입장에만 사용할 수 있습니다.';
+      toast.warn(message);
+      setLastResult(programScanFailure(new Error(message), '읽을 수 없는 QR'));
       return;
     }
     if (navigation === 'standard') {
       if (!participantId) {
-        toast.error('참가자 QR 형식이 올바르지 않습니다.');
+        rejectFormat('참가자 QR 형식이 올바르지 않습니다.');
         return;
       }
       // 출석 서버는 program-attendance.require-code가 기본 false라 code 없는 예전 QR도 participantId만으로 받는다.
@@ -62,17 +97,21 @@ const ProgramDetailTable = ({
         code
           ? { expoId, programId, participantId, code }
           : { expoId, programId, participantId },
+        scanCallbacks,
       );
     } else {
       if (participantId && code) {
-        trainingAttendance({ expoId, programId, participantId, code });
+        trainingAttendance(
+          { expoId, programId, participantId, code },
+          scanCallbacks,
+        );
         return;
       }
       if (!traineeId) {
-        toast.error('연수자 QR 형식이 올바르지 않습니다.');
+        rejectFormat('연수자 QR 형식이 올바르지 않습니다.');
         return;
       }
-      trainingAttendance({ expoId, programId, traineeId });
+      trainingAttendance({ expoId, programId, traineeId }, scanCallbacks);
     }
   };
 
@@ -126,6 +165,13 @@ const ProgramDetailTable = ({
             {isExporting ? '받는 중...' : '출석결과 엑셀'}
           </Button>
         </div>
+        <section className="grid grid-cols-2 gap-24 mobile:grid-cols-1">
+          <ProgramScanPanel onScan={submitScan} />
+          <ProgramScanResultCard
+            result={lastResult}
+            isProcessing={isStandardPending || isTrainingPending}
+          />
+        </section>
         <TableForm
           categories={programCategories}
           data={programDetailData}

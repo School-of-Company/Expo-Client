@@ -10,7 +10,6 @@ export const useTrainingAttendance = () => {
     mutationFn: (data: PatchTrainingProgramData) =>
       patchTrainingAttendance(data),
     onSuccess: (_, variables) => {
-      toast.success('프로그램 스캔 완료되었습니다.');
       queryClient.invalidateQueries({
         queryKey: ['trainingProgramDetail', variables.programId],
       });
