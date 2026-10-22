@@ -25,7 +25,13 @@ import { useInvalidateEntrySummary } from '../../model/useEntrySummary';
 import { useExitUserMutation } from '../../model/useExitUserMutation';
 import { usePaperQrAttendanceMutation } from '../../model/usePaperQrAttendanceMutation';
 import { usePatchAttendUserMutation } from '../../model/usePatchAttendUserMutation';
-import { toAttendUserRowKey, userQrPrint } from '../../model/userQrPrint';
+import {
+  ATTENDEE_TYPE_LABEL,
+  AttendeeType,
+  getAttendeeType,
+  toAttendUserRowKey,
+  userQrPrint,
+} from '../../model/userQrPrint';
 import { useScannerSettings } from '../../model/useScannerSettings';
 import CameraScanner from '../CameraScanner';
 import EntrySummaryPanel from '../EntrySummaryPanel';
@@ -39,6 +45,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
   const [userData, setUserData] = useState<AttendUserResponse[]>([]);
   const [paperQrCount, setPaperQrCount] = useState(0);
+  const [typeFilter, setTypeFilter] = useState<AttendeeType | 'ALL'>('ALL');
   // 스캐너 이름과 모드는 새로고침해도 유지되도록 박람회별로 저장한다
   const { scannerName, setScannerName, mode, setMode } = useScannerSettings(id);
   const { mutateAsync: attendUser } = usePatchAttendUserMutation(
@@ -183,10 +190,15 @@ const QRScannerTable = ({ id }: { id: string }) => {
   }, [scannedQR]);
 
   // 표에는 참가자 목록과 같은 규칙으로 가린 번호만 보여 준다(번호 없으면 '-')
-  const maskedUserData = userData.map((user) => ({
-    ...user,
-    phoneNumber: maskParticipantPhone(user.phoneNumber),
-  }));
+  const maskedUserData = userData
+    .filter(
+      (user) => typeFilter === 'ALL' || getAttendeeType(user) === typeFilter,
+    )
+    .map((user) => ({
+      ...user,
+      phoneNumber: maskParticipantPhone(user.phoneNumber),
+      attendeeType: ATTENDEE_TYPE_LABEL[getAttendeeType(user)],
+    }));
 
   const userQrPrintActions = {
     PrintBadge: (selectItem: string) => userQrPrint(userData, selectItem),
@@ -263,6 +275,30 @@ const QRScannerTable = ({ id }: { id: string }) => {
           이 화면에서 종이 QR로 입장 처리한 인원 {paperQrCount}명
         </p>
       )}
+      <div className="flex flex-wrap items-center gap-8">
+        {(['ALL', 'TEACHER', 'GENERAL', 'TRAINEE'] as const).map((value) => {
+          const count =
+            value === 'ALL'
+              ? userData.length
+              : userData.filter((user) => getAttendeeType(user) === value)
+                  .length;
+          return (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={typeFilter === value}
+              onClick={() => setTypeFilter(value)}
+              className={`rounded-full border-1 border-solid px-16 py-6 text-caption1b ${
+                typeFilter === value
+                  ? 'border-main-600 bg-main-600 text-white'
+                  : 'border-gray-200 text-gray-500'
+              }`}
+            >
+              {value === 'ALL' ? '전체' : ATTENDEE_TYPE_LABEL[value]} {count}
+            </button>
+          );
+        })}
+      </div>
       <TableForm
         categories={CHECK_IN_PRINT_CATEGORIES}
         data={maskedUserData}

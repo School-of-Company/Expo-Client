@@ -29,10 +29,15 @@ const toQrImageSrc = (qrCode: string): string | null => {
   return null;
 };
 
+// 인쇄 창이 작게 열려도 명찰이 한 화면을 채우도록 QR 을 크게 그린다
+const BADGE_QR_SIZE = 260;
+
 export const printBadge = (selectedData: {
   name: string;
   // Swagger는 string이지만 예시가 객체라 객체로 와도 JSON 문자열로 바꿔 그린다
   qrCode: unknown;
+  // QR 아래 이름 옆에 보여 줄 참가자 유형(교사·일반 등)
+  typeLabel?: string;
   isTemporary: boolean;
 }) => {
   const printWindow = window.open('', '_blank');
@@ -64,9 +69,13 @@ export const printBadge = (selectedData: {
               width: 100%;
             }
             .badge h1 {
-              font-size: 24px;
-              margin-bottom: 10px;
+              font-size: 32px;
+              margin: 16px 0 6px;
               font-weight: bold;
+            }
+            .badge .type {
+              font-size: 22px;
+              color: #333;
             }
             .badge p {
               margin: 5px 0;
@@ -74,7 +83,6 @@ export const printBadge = (selectedData: {
               color: #555;
             }
             .qr-container {
-              margin-top: 20px;
               display: flex;
               justify-content: center;
             }
@@ -90,9 +98,10 @@ export const printBadge = (selectedData: {
         </head>
         <body>
           <div class="badge">
-            <h1 id="badge-name"></h1>
             ${selectedData.isTemporary ? `<p style="font-size:14px;">(임시 QR)</p>` : ''}
             <div class="qr-container" id="badge-qr"></div>
+            <h1 id="badge-name"></h1>
+            <p class="type" id="badge-type"></p>
           </div>
           <script>
             window.onload = function() {
@@ -110,17 +119,24 @@ export const printBadge = (selectedData: {
   const nameElement = doc.getElementById('badge-name');
   if (nameElement) nameElement.textContent = selectedData.name;
 
+  const typeElement = doc.getElementById('badge-type');
+  if (typeElement) {
+    if (selectedData.typeLabel)
+      typeElement.textContent = selectedData.typeLabel;
+    else typeElement.remove();
+  }
+
   const qrContainer = doc.getElementById('badge-qr');
   if (qrContainer) {
     if (qrImageSrc) {
       const image = doc.createElement('img');
       image.src = qrImageSrc;
       image.alt = 'QR Code';
-      image.width = 100;
-      image.height = 100;
+      image.width = BADGE_QR_SIZE;
+      image.height = BADGE_QR_SIZE;
       qrContainer.appendChild(image);
     } else {
-      qrContainer.innerHTML = renderQRCodeSVG(qrValue);
+      qrContainer.innerHTML = renderQRCodeSVG(qrValue, BADGE_QR_SIZE);
     }
   }
 

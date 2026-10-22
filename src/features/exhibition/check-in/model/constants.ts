@@ -3,6 +3,6 @@ export const CHECK_IN_PRINT_CATEGORIES = [
   '이름',
   '연락처',
   '개인정보 상태',
-  '참가자 상태',
+  '유형',
   '명찰 출력',
 ];

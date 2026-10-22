@@ -76,6 +76,8 @@ const TableItem = <
         return data['personalInformationStatus' as keyof T];
       case '참가자 상태':
         return data['participationType' as keyof T];
+      case '유형':
+        return data['attendeeType' as keyof T];
       case '명찰 출력':
         return data['badge' as keyof T] != null;
       case '박람회이름':
