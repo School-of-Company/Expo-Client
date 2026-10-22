@@ -11,6 +11,8 @@ const MAPPING_LABEL: Record<keyof KakaoVariableMapping, string> = {
   sessionName: '회차 일시',
   location: '장소',
   status: '신청 상태',
+  applicationUrl: '내 신청 QR 페이지 링크',
+  applicationSummary: '신청 내역',
 };
 
 const KakaoTemplatePanel = ({ template }: { template: KakaoTemplate }) => {
@@ -20,18 +22,26 @@ const KakaoTemplatePanel = ({ template }: { template: KakaoTemplate }) => {
       string | undefined,
     ][]
   ).filter(([, placeholder]) => placeholder);
+  // 모든 수신자에게 같은 값으로 들어가는 변수
+  const fixed = Object.entries(template.fixedVariables ?? {});
 
   return (
     <div className="space-y-12 rounded-sm border-1 border-solid border-gray-200 px-16 py-12">
       <p className="whitespace-pre-wrap text-body2r text-black">
         {template.content}
       </p>
-      {mappings.length > 0 && (
+      {(mappings.length > 0 || fixed.length > 0) && (
         <dl className="space-y-4 text-caption1r text-gray-500">
           {mappings.map(([key, placeholder]) => (
             <div key={key} className="flex gap-8">
               <dt className="font-mono">{placeholder}</dt>
               <dd>← {MAPPING_LABEL[key]}</dd>
+            </div>
+          ))}
+          {fixed.map(([placeholder, value]) => (
+            <div key={placeholder} className="flex gap-8">
+              <dt className="font-mono">{placeholder}</dt>
+              <dd className="break-all">← 고정값 {value}</dd>
             </div>
           ))}
         </dl>
