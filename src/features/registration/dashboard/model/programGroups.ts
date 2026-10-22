@@ -93,11 +93,21 @@ export const groupSessionsByProgram = (
     .map(({ startedAt: _startedAt, titles: _titles, ...group }) => group);
 };
 
-/** 모집 상태별 회차 수. 정책이 없는 회차는 열림·마감을 알 수 없어 모집 설정 필요로 따로 센다 */
+/** 모집 상태별 회차 수. 정책이 없는 회차는 열림·마감을 알 수 없어 모집 설정 필요로 따로 센다. 모집 시작 전 회차는 모집 중이 아니라 접수 전으로 센다 */
 export const countSessionsByRecruitment = (
   sessions: ProgramSessionDefinition[],
-) => ({
-  open: sessions.filter(({ policy }) => policy && !policy.closed).length,
-  closed: sessions.filter(({ policy }) => policy?.closed).length,
-  unset: sessions.filter(({ policy }) => !policy).length,
-});
+  now = Date.now(),
+) => {
+  const notClosed = sessions.filter(({ policy }) => policy && !policy.closed);
+  const upcoming = notClosed.filter(
+    ({ policy }) =>
+      policy?.applicationStartedAt &&
+      now < new Date(policy.applicationStartedAt).getTime(),
+  ).length;
+  return {
+    open: notClosed.length - upcoming,
+    upcoming,
+    closed: sessions.filter(({ policy }) => policy?.closed).length,
+    unset: sessions.filter(({ policy }) => !policy).length,
+  };
+};
