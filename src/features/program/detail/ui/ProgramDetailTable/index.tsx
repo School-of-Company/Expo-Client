@@ -10,6 +10,7 @@ import {
 import { withLoading } from '@/shared/hocs';
 import { useExcelDownload, useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
+import { Button } from '@/shared/ui';
 import { TableForm } from '@/shared/ui/Table';
 import { programCategories } from '../../model/category';
 import { useProgramDetailQueries } from '../../model/useProgramDetailData';
@@ -95,11 +96,36 @@ const ProgramDetailTable = ({
   const filteActions =
     navigation === 'standard' ? StandardProgramActions : TraineeProgramActions;
 
+  // 신청 명단과 달리 출석 서비스의 실제 입실 기록을 합친 파일이다. 회차 유형+ID 로 요청한다
+  const downloadAttendanceResult = () =>
+    downloadExcel({
+      path: `/excel/expos/${encodeURIComponent(expoId)}/program-attendances`,
+      params: {
+        programType: navigation === 'standard' ? 'STANDARD' : 'TRAINING',
+        programId,
+      },
+    });
+
   return withLoading({
     isLoading,
     children: (
       <div className="flex w-full max-w-[1200px] flex-1 flex-col space-y-46 overflow-y-auto">
         <p className="text-center text-h2b text-black">프로그램</p>
+        <div className="flex items-center justify-between gap-16 mobile:flex-col mobile:items-stretch">
+          <p className="break-keep text-body2r text-gray-500">
+            {navigation === 'standard'
+              ? '아래 Excel은 이 회차의 확정 신청 명단입니다. 실제 입실 기록은 출석결과 엑셀로 받습니다.'
+              : '아래 Excel은 회차별이 아니라 행사 전체 연수자와 신청 강연 명단입니다. 이 회차의 실제 입실 기록은 출석결과 엑셀로 받습니다.'}
+          </p>
+          <Button
+            variant="white"
+            width="180px"
+            disabled={isExporting}
+            onClick={downloadAttendanceResult}
+          >
+            {isExporting ? '받는 중...' : '출석결과 엑셀'}
+          </Button>
+        </div>
         <TableForm
           categories={programCategories}
           data={programDetailData}
