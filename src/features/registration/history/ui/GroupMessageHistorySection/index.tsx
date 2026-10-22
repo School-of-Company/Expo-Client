@@ -37,10 +37,13 @@ const COLUMNS: TableColumn<MessageHistoryRow>[] = [
     key: 'target',
     label: '대상',
     flex: 1.4,
-    render: ({ targetScope: { applicationCount, programTypes } }) => {
-      const programs = programTypes
-        .map((type) => PROGRAM_TYPE_LABEL[type] ?? type)
-        .join('·');
+    render: ({ targetScope: { applicationCount, programTypes, source } }) => {
+      const programs =
+        source === 'PREREGISTRATION'
+          ? '사전등록'
+          : programTypes
+              .map((type) => PROGRAM_TYPE_LABEL[type] ?? type)
+              .join('·');
       const count =
         applicationCount === null ? '신청 수 미기록' : `${applicationCount}건`;
       return programs ? `${programs} ${count}` : count;

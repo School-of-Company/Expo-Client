@@ -92,9 +92,14 @@ export interface GroupMessageConfig {
 }
 
 export interface GroupMessagePreviewItem {
+  /** 프로그램 대상은 신청 UUID, 사전등록 대상은 원장 key(APPLICATION:·RESERVATION:) */
   targetId: string;
-  applicationId: string;
-  participantId: number | null;
+  /** 사전등록 대상은 신청 UUID 가 없어 생략되거나 null 이다 */
+  applicationId?: string | null;
+  /** 사전등록 예약 행은 참가자가 없어 생략되거나 null 이다 */
+  participantId?: number | null;
+  /** 사전등록 대상의 원장 key. 프로그램 대상은 없다 */
+  ledgerKey?: string;
   recipientMasked: string | null;
   content: string | null;
   missingReason: string | null;
@@ -152,9 +157,14 @@ export type GroupMessageItemStatus =
   | 'UNKNOWN';
 
 export interface GroupMessageJobItem {
+  /** 프로그램 대상은 신청 UUID, 사전등록 대상은 원장 key(APPLICATION:·RESERVATION:) */
   targetId: string;
-  applicationId: string;
-  participantId: number | null;
+  /** 사전등록 대상은 신청 UUID 가 없어 생략되거나 null 이다 */
+  applicationId?: string | null;
+  /** 사전등록 예약 행은 참가자가 없어 생략되거나 null 이다 */
+  participantId?: number | null;
+  /** 사전등록 대상의 원장 key. 프로그램 대상은 없다 */
+  ledgerKey?: string;
   recipientMasked: string | null;
   status: GroupMessageItemStatus;
   providerCode: string | null;
