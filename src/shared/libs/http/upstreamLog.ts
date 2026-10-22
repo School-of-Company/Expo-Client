@@ -1,6 +1,7 @@
 import https from 'https';
 import { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { isRetried } from './retryUpstream';
+import { upstreamAlert } from './upstreamAlert';
 import type { Socket } from 'net';
 
 const START_KEY = '__startedAt';
@@ -8,7 +9,7 @@ const START_KEY = '__startedAt';
 type TimedConfig = InternalAxiosRequestConfig & { [START_KEY]?: number };
 
 // 쿼리에는 전화번호 같은 개인정보가 실릴 수 있어 경로까지만 남긴다
-const toLoggableUrl = (uri: string) => {
+export const toLoggableUrl = (uri: string) => {
   try {
     const { origin, pathname } = new URL(uri);
     return `${origin}${pathname}`;
@@ -125,6 +126,9 @@ export const logUpstreamFailure = (
       timeoutMs: config?.timeout,
       // true 면 네트워크 오류로 다시 보낸 두 번째 시도의 실패다. 첫 시도 로그와 짝으로 복구 여부를 가른다
       retried: isRetried(config),
+      // 같은 인스턴스의 실패를 묶고, 출구 IP 로 서버·학교망 방화벽 기록과 맞춰 본다 (조회 전이면 비어 있다)
+      instance: upstreamAlert.instanceId,
+      egressIp: upstreamAlert.getEgressIp(),
       code: error.code,
       message: error.message,
       // true 면 keepAlive 로 재사용한 연결로 나간 요청이다. 중간 장비가 조용히 끊은 연결이면 응답 없이 timeout 이 난다
