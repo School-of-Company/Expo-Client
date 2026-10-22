@@ -39,12 +39,20 @@ export class TracedHttpsAgent extends https.Agent {
     ...args: Parameters<https.Agent['createConnection']>
   ): Socket {
     const socket = super.createConnection(...args) as TracedSocket;
+    const createdAt = Date.now();
     const events: string[] = [];
     socket[EVENTS_KEY] = events;
-    // 배포 환경에서 어느 시점에 주소·포트가 잡히는지 알 수 있게 이벤트마다 저장을 시도하고 이름을 남긴다
+    // 소켓이 만들어진 뒤 단계마다 걸린 시간을 남겨, 연결이 DNS 조회·TCP 연결·TLS 중 어디서 멈췄는지 가린다
+    const mark = (name: string) =>
+      events.push(`${name}+${Date.now() - createdAt}ms`);
+    socket.once('lookup', (err: Error | null, address: string) => {
+      mark(err ? `lookup-error(${err.message})` : `lookup(${address})`);
+    });
+    socket.once('close', () => mark('close'));
+    // 배포 환경에서 어느 시점에 주소·포트가 잡히는지 알 수 있게 이벤트마다 저장을 시도한다
     (['connect', 'secureConnect'] as const).forEach((event) => {
       socket.once(event, () => {
-        events.push(event);
+        mark(event);
         if (!socket.localPort && !socket.remotePort) return;
         socket[ENDPOINTS_KEY] = {
           localAddress: socket.localAddress,
