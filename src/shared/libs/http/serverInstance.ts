@@ -52,20 +52,23 @@ serverInstance.interceptors.response.use(
           url: error.config ? toLoggableUrl(getUri(error.config)) : undefined,
           code: error.code,
         };
-        // 알림이 먼저 나가야 인스턴스를 내리기 전에 출구 IP 를 전달할 수 있다
-        await upstreamAlert.recordFailure(failure);
         // 응답 없이 연결 단계에서 시간만 지난 실패만 센다. ECONNREFUSED 처럼 바로 거절되면 서버까지는 닿은 것이라
         // 인스턴스 문제가 아니고, 서버가 내려간 동안 모든 인스턴스를 내리게 된다
         const recycling =
           connected === false &&
           CONNECT_STALL_CODES.has(error.code ?? '') &&
-          instanceRecycle.recordConnectFailure({
+          instanceRecycle.recordConnectFailure();
+        // 알림이 먼저 나가야 인스턴스를 내리기 전에 출구 IP 를 전달할 수 있다
+        await upstreamAlert.recordFailure(failure, { recycling });
+        if (recycling) {
+          // 곧 내려갈 인스턴스에서 다시 보내 봐야 같은 이유로 실패하므로, 504 를 바로 돌려준다
+          if (error.config) markRetried(error.config);
+          instanceRecycle.recycle({
             ...failure,
             instance: upstreamAlert.instanceId,
             egressIp: upstreamAlert.getEgressIp(),
           });
-        // 곧 내려갈 인스턴스에서 다시 보내 봐야 같은 이유로 실패하므로, 504 를 바로 돌려준다
-        if (recycling && error.config) markRetried(error.config);
+        }
       }
     }
     return Promise.reject(error);

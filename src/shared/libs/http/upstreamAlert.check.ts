@@ -123,6 +123,22 @@ async function main() {
     assert.ok(logs.some(([label]) => label === '[gateway-alert-failure]'));
   }
 
+  // 불량 인스턴스로 판정해 내릴 때는 횟수·재알림 간격과 상관없이 바로 알린다
+  {
+    const { alert, calls } = setup();
+    for (let i = 0; i < 3; i += 1) await alert.recordFailure(failure);
+    assert.equal(webhookCalls(calls).length, 1);
+    await alert.recordFailure(failure, { recycling: true });
+    const sent = webhookCalls(calls);
+    assert.equal(sent.length, 2);
+    assert.match(JSON.parse(sent[1].body ?? '{}').text, /불량 인스턴스 종료/);
+  }
+  {
+    const { alert, calls } = setup();
+    await alert.recordFailure(failure, { recycling: true });
+    assert.equal(webhookCalls(calls).length, 1);
+  }
+
   console.log('upstreamAlert check: ok');
 }
 
