@@ -49,6 +49,26 @@ export interface OwnerApplication {
   companionAddBlockedReason?: string;
 }
 
+/**
+ * 참가자 × 방문일 단위의 현장 입장 등록(Expo-Application-Server#310). 프로그램·연수 신청과 따로 취소한다.
+ * 취소 가능 여부와 차단 사유는 서버가 첫 입장 이력으로 판단한 값만 쓴다
+ */
+export interface OwnerFieldRegistration {
+  registrationId: string;
+  participantId: number;
+  // 방문일(KST) yyyy-MM-dd
+  visitDate: string;
+  // 취소 요청에 그대로 싣는다. 다른 화면에서 재등록되면 바뀌어 409 FIELD_GENERATION_CHANGED 가 온다
+  generation: number;
+  status: 'ACTIVE' | 'CANCELLED';
+  registeredAt: string;
+  cancelledAt: string | null;
+  cancelledBy: number | null;
+  cancellable: boolean;
+  // 취소 가능하면 빈 문자열
+  cancellationBlockedReason: string;
+}
+
 export interface OwnerApplicationsResponse {
   participants: OwnerParticipant[];
   applications: OwnerApplication[];
@@ -57,6 +77,8 @@ export interface OwnerApplicationsResponse {
    * 현장등록 참가자이며 신청이 없어도 들어간다. 출석 연동이 꺼졌거나 예전 서버면 비어 있거나 없다
    */
   qrParticipantIds?: number[];
+  // 서버 배포 전 응답에는 없다
+  fieldRegistrations?: OwnerFieldRegistration[];
 }
 
 export interface MyApplications extends OwnerApplicationsResponse {
@@ -140,6 +162,58 @@ export const cancelMyApplication = async (
         apiError.status,
         apiError.code,
       );
+    throw apiError;
+  }
+};
+
+const FIELD_CANCEL_CODE_MESSAGES: Record<string, string> = {
+  FIELD_GENERATION_CHANGED:
+    '현장등록 내역이 바뀌었습니다. 새로고침 후 다시 확인해주세요.',
+  FIELD_NOT_FOUND: '취소할 현장등록을 찾을 수 없습니다.',
+  ENTERED: '해당 방문일에 이미 입장해 현장등록을 취소할 수 없습니다.',
+  ATTENDED: '프로그램에 출석해 현장등록을 취소할 수 없습니다.',
+  ACTIVE_PROGRAMS:
+    '신청한 프로그램·연수를 먼저 취소해야 현장등록을 취소할 수 있습니다.',
+  COMPANIONS_ACTIVE:
+    '동행자의 현장등록을 먼저 취소해 주세요. 동행자를 모두 취소하면 대표자도 취소할 수 있습니다.',
+  CANCELLATION_IN_PROGRESS: '취소를 처리하고 있습니다. 잠시 후 확인해주세요.',
+  APPLICATION_STATE_CHANGED: '신청 상태가 바뀌었습니다. 새로고침해주세요.',
+};
+
+/**
+ * 현장등록 취소(방문일 단위). 프로그램·연수 신청 취소와 구분된다.
+ * 409 사유는 코드로 가르고, 이미 취소된 등록을 다시 취소해도 서버는 성공으로 처리한다
+ */
+export const cancelMyFieldRegistration = async (
+  expoId: string,
+  registrationId: string,
+  generation: number,
+  csrfToken?: string,
+) => {
+  try {
+    await clientInstance.post(
+      `/application/expos/${expoId}/my-applications/FIELD/${registrationId}/cancellation`,
+      undefined,
+      { headers: { 'X-CSRF-TOKEN': csrfToken }, params: { generation } },
+    );
+  } catch (error) {
+    const apiError = toError(
+      error,
+      {
+        ...COMMON_ERRORS,
+        403: '요청을 확인하지 못했습니다. 새로고침 후 다시 시도해주세요.',
+        404: '취소할 현장등록을 찾을 수 없습니다.',
+        409: '취소할 수 없는 현장등록입니다. 새로고침 후 다시 확인해주세요.',
+        503: '지금은 현장등록을 취소할 수 없습니다. 잠시 후 다시 시도해주세요.',
+      },
+      '현장등록 취소에 실패했습니다.',
+    );
+    const message =
+      apiError instanceof ApiError && apiError.code
+        ? FIELD_CANCEL_CODE_MESSAGES[apiError.code]
+        : undefined;
+    if (apiError instanceof ApiError && message)
+      throw new ApiError(message, apiError.status, apiError.code);
     throw apiError;
   }
 };
