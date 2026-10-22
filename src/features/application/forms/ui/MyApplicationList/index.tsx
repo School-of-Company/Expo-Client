@@ -84,8 +84,6 @@ interface CancelTarget {
   title: string;
   // 어느 참가자의 어느 회차인지 확인 문구
   session: string;
-  // 학생 신청에 연결된 보호자가 있을 때의 안내(마지막 연결 학생이면 보호자도 함께 취소된다)
-  guardianNote?: string;
 }
 
 const SESSION_STATE_NOTE: Partial<Record<SessionInfo['state'], string>> = {
@@ -184,7 +182,6 @@ const ApplicationRow = ({
                   applicationId,
                   title,
                   session: sessionLabel,
-                  guardianNote: getGuardianCancelNote(application, participant),
                 })
               }
               className="whitespace-nowrap rounded-sm border-1 border-solid border-error px-16 py-8 text-caption1b text-error"
@@ -665,14 +662,6 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
               </>
             )}
           </p>
-          {cancelTarget.guardianNote && (
-            <p
-              role="alert"
-              className="break-keep text-center text-body2b text-error"
-            >
-              {cancelTarget.guardianNote}
-            </p>
-          )}
           <div className="flex w-full gap-8">
             <button
               type="button"
