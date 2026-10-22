@@ -5,7 +5,12 @@ import { useApplicationPageViews } from '../../model/applicationPageViews';
 interface MonitoringCardsProps {
   expoId: string;
   /** 모집 상태별 회차 수. 회차를 불러오지 못하면 null */
-  sessionCounts: { open: number; closed: number; unset: number } | null;
+  sessionCounts: {
+    open: number;
+    upcoming: number;
+    closed: number;
+    unset: number;
+  } | null;
 }
 
 /** 신청화면 접속량과 지금 열린 회차·QR. 요약 카드와 한 grid 에 이어 놓도록 카드만 돌려준다 */
@@ -26,7 +31,7 @@ const MonitoringCards = ({ expoId, sessionCounts }: MonitoringCardsProps) => {
         unit="개"
         sub={
           sessionCounts
-            ? `마감 ${formatCount(sessionCounts.closed)}개 · 모집 설정 필요 ${formatCount(sessionCounts.unset)}개`
+            ? `접수 전 ${formatCount(sessionCounts.upcoming)}개 · 마감 ${formatCount(sessionCounts.closed)}개 · 모집 설정 필요 ${formatCount(sessionCounts.unset)}개`
             : '회차를 불러오지 못했습니다.'
         }
         emphasis
