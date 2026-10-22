@@ -1,4 +1,6 @@
+import https from 'https';
 import { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import type { Socket } from 'net';
 
 const START_KEY = '__startedAt';
 
@@ -12,6 +14,56 @@ const toLoggableUrl = (uri: string) => {
   } catch {
     return uri.split('?')[0];
   }
+};
+
+const ENDPOINTS_KEY = '__endpoints';
+
+type Endpoints = Pick<
+  SocketLike,
+  'localAddress' | 'localPort' | 'remoteAddress' | 'remotePort'
+>;
+
+type TracedSocket = Socket & { [ENDPOINTS_KEY]?: Endpoints };
+
+/**
+ * 타임아웃으로 소켓이 destroy 되면 localPort·remotePort 가 비어 서버 tcpdump 와 맞춰 볼 수 없다.
+ * 연결이 맺어진 시점의 주소·포트를 소켓에 저장해 두고 실패 로그에서 읽는다
+ */
+export class TracedHttpsAgent extends https.Agent {
+  createConnection(
+    ...args: Parameters<https.Agent['createConnection']>
+  ): Socket {
+    const socket = super.createConnection(...args) as TracedSocket;
+    socket.once('connect', () => {
+      socket[ENDPOINTS_KEY] = {
+        localAddress: socket.localAddress,
+        localPort: socket.localPort,
+        remoteAddress: socket.remoteAddress,
+        remotePort: socket.remotePort,
+      };
+    });
+    return socket;
+  }
+}
+
+type SocketLike = {
+  localAddress?: string;
+  localPort?: number;
+  remoteAddress?: string;
+  remotePort?: number;
+  bytesWritten?: number;
+  bytesRead?: number;
+  connecting?: boolean;
+  destroyed?: boolean;
+};
+
+type RequestLike = { reusedSocket?: boolean; socket?: SocketLike | null };
+
+type SystemErrorLike = {
+  errno?: number | string;
+  syscall?: string;
+  address?: string;
+  port?: number;
 };
 
 export const markUpstreamStart = (config: InternalAxiosRequestConfig) => {
@@ -31,6 +83,13 @@ export const logUpstreamFailure = (
   if (status !== undefined && status < 500) return;
 
   const config = error.config as TimedConfig | undefined;
+  const request = error.request as RequestLike | undefined;
+  const socket = request?.socket;
+  const endpoints = (socket as TracedSocket | null | undefined)?.[
+    ENDPOINTS_KEY
+  ];
+  const sysError = ((error.cause as SystemErrorLike | undefined) ??
+    (error as unknown as SystemErrorLike)) as SystemErrorLike;
   const startedAt = config?.[START_KEY];
   console.error(
     '[gateway-upstream-failure]',
@@ -44,8 +103,22 @@ export const logUpstreamFailure = (
       code: error.code,
       message: error.message,
       // true 면 keepAlive 로 재사용한 연결로 나간 요청이다. 중간 장비가 조용히 끊은 연결이면 응답 없이 timeout 이 난다
-      reusedSocket: (error.request as { reusedSocket?: boolean } | undefined)
-        ?.reusedSocket,
+      reusedSocket: request?.reusedSocket,
+      // 주소·포트는 연결 시점에 저장해 둔 값을 우선 쓴다 (destroy 후에는 소켓에서 비어 나온다)
+      socket: socket && {
+        localAddress: endpoints?.localAddress ?? socket.localAddress,
+        localPort: endpoints?.localPort ?? socket.localPort,
+        remoteAddress: endpoints?.remoteAddress ?? socket.remoteAddress,
+        remotePort: endpoints?.remotePort ?? socket.remotePort,
+        bytesWritten: socket.bytesWritten,
+        bytesRead: socket.bytesRead,
+        connecting: socket.connecting,
+        destroyed: socket.destroyed,
+      },
+      errno: sysError.errno,
+      syscall: sysError.syscall,
+      address: sysError.address,
+      port: sysError.port,
     }),
   );
 };
