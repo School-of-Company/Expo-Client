@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { withLoading } from '@/shared/hocs';
 import { toKstLocal } from '@/shared/libs/kstDateTime';
 import { NavigationBar } from '@/shared/ui';
+import SmallButton from '@/shared/ui/SmallButton';
 import {
   RefreshStatus,
   SectionError,
@@ -24,6 +25,12 @@ import {
   usePreregisterLedger,
 } from '../../../common/model/preregisterLedger';
 import { usePreregisterSummary } from '../../../common/model/preregisterSummary';
+import {
+  GroupMessageTarget,
+  PREREGISTER_GROUP_MESSAGE_MAX,
+  toPreregisterGroupMessageFilter,
+} from '../../model/groupMessage';
+import GroupMessageModal from '../GroupMessageModal';
 import PreregisterDetailModal from '../PreregisterDetailModal';
 import PreregisterFilters from '../PreregisterFilters';
 import PreregisterTable from '../PreregisterTable';
@@ -49,6 +56,7 @@ const PreregisterLedger = () => {
     new Map(),
   );
   const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const closeDetail = useCallback(() => setDetailKey(null), []);
 
   const {
@@ -89,6 +97,19 @@ const PreregisterLedger = () => {
     data && !isPlaceholderData && !isError ? data.totalElements : undefined;
   const selectedIds = useMemo(() => new Set(selected.keys()), [selected]);
   const selectedRows = useMemo(() => Array.from(selected.values()), [selected]);
+  const messageTarget = useMemo<GroupMessageTarget>(
+    () => ({
+      tab: 'PREREGISTER',
+      selectedIds: selectedRows.map(({ id }) => id),
+      filter: toPreregisterGroupMessageFilter(filter),
+      filterCount: totalCount,
+      filterBlocker:
+        totalCount > PREREGISTER_GROUP_MESSAGE_MAX
+          ? `현재 필터 전체는 최대 ${PREREGISTER_GROUP_MESSAGE_MAX}건까지 보낼 수 있습니다. 조건을 좁혀 주세요.`
+          : null,
+    }),
+    [selectedRows, filter, totalCount],
+  );
 
   const handleToggle = (id: string) =>
     setSelected((prev) => {
@@ -123,7 +144,6 @@ const PreregisterLedger = () => {
     children: (
       <div className="flex w-full flex-1 flex-col space-y-20 overflow-y-auto">
         <div className="space-y-8">
-          {/* 그룹 메시지는 Notification 이 사전등록 대상을 받으면 다시 붙인다 */}
           <div className="flex flex-wrap items-center justify-between gap-12">
             <RefreshStatus
               updatedAt={dataUpdatedAt}
@@ -142,6 +162,10 @@ const PreregisterLedger = () => {
                   선택 해제
                 </button>
               )}
+              <SmallButton
+                text={`그룹 메시지 (${selected.size} 선택)`}
+                onClick={() => setIsMessageModalOpen(true)}
+              />
               <button
                 type="button"
                 onClick={() => setIsExcelModalOpen(true)}
@@ -209,6 +233,14 @@ const PreregisterLedger = () => {
             rowKey={detailKey}
             sessionLabel={sessionLabel}
             onClose={closeDetail}
+          />
+        )}
+
+        {isMessageModalOpen && (
+          <GroupMessageModal
+            expoId={expoId}
+            target={messageTarget}
+            onClose={() => setIsMessageModalOpen(false)}
           />
         )}
 

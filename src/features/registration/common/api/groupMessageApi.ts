@@ -5,6 +5,7 @@ import {
   AdminApplicationStatus,
   ProgramSessionType,
 } from './ledgerApi';
+import { AdminPreregisterStatus } from './preregisterLedgerApi';
 
 // Expo-Application-Server AdminGroupMessageController (docs/admin-group-messaging.md)
 
@@ -23,9 +24,22 @@ export interface GroupMessageFilter {
   sort: AdminApplicationSort;
 }
 
+/**
+ * 사전등록 접수대장과 같은 필터(Expo-Application-Server#304). 서버는 page=0, size=20 기본값만 받으므로
+ * 보내지 않는다. 빈 q 는 400 이다
+ */
+export interface PreregisterGroupMessageFilter {
+  sessionId?: number;
+  status?: AdminPreregisterStatus[];
+  /** 대표자·참가자 이름·번호 */
+  q?: string;
+}
+
 export type GroupMessageScope =
   | { kind: 'SELECTED'; applicationIds: string[] }
-  | { kind: 'FILTERED'; filter: GroupMessageFilter };
+  | { kind: 'FILTERED'; filter: GroupMessageFilter }
+  | { kind: 'SELECTED'; keys: string[] }
+  | { kind: 'FILTERED'; preregistrationFilter: PreregisterGroupMessageFilter };
 
 export type GroupMessageChannel = 'SMS' | 'KAKAO';
 
@@ -75,12 +89,19 @@ export interface GroupMessageConfig {
     >
   >;
   smsFallbackDefault: boolean;
+  /** 지원하는 대상 계약. 사전등록 대상은 PREREGISTRATION_GROUP_MESSAGE_V1 이 있어야 한다 */
+  targetContracts?: string[];
 }
 
 export interface GroupMessagePreviewItem {
+  /** 프로그램 대상은 신청 UUID, 사전등록 대상은 원장 key(APPLICATION:·RESERVATION:) */
   targetId: string;
-  applicationId: string;
-  participantId: number | null;
+  /** 사전등록 대상은 신청 UUID 가 없어 생략되거나 null 이다 */
+  applicationId?: string | null;
+  /** 사전등록 예약 행은 참가자가 없어 생략되거나 null 이다 */
+  participantId?: number | null;
+  /** 사전등록 대상의 원장 key. 프로그램 대상은 없다 */
+  ledgerKey?: string;
   recipientMasked: string | null;
   content: string | null;
   missingReason: string | null;
@@ -138,9 +159,14 @@ export type GroupMessageItemStatus =
   | 'UNKNOWN';
 
 export interface GroupMessageJobItem {
+  /** 프로그램 대상은 신청 UUID, 사전등록 대상은 원장 key(APPLICATION:·RESERVATION:) */
   targetId: string;
-  applicationId: string;
-  participantId: number | null;
+  /** 사전등록 대상은 신청 UUID 가 없어 생략되거나 null 이다 */
+  applicationId?: string | null;
+  /** 사전등록 예약 행은 참가자가 없어 생략되거나 null 이다 */
+  participantId?: number | null;
+  /** 사전등록 대상의 원장 key. 프로그램 대상은 없다 */
+  ledgerKey?: string;
   recipientMasked: string | null;
   status: GroupMessageItemStatus;
   providerCode: string | null;
