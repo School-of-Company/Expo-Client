@@ -23,7 +23,12 @@ type Endpoints = Pick<
   'localAddress' | 'localPort' | 'remoteAddress' | 'remotePort'
 >;
 
-type TracedSocket = Socket & { [ENDPOINTS_KEY]?: Endpoints };
+const EVENTS_KEY = '__events';
+
+type TracedSocket = Socket & {
+  [ENDPOINTS_KEY]?: Endpoints;
+  [EVENTS_KEY]?: string[];
+};
 
 /**
  * 타임아웃으로 소켓이 destroy 되면 localPort·remotePort 가 비어 서버 tcpdump 와 맞춰 볼 수 없다.
@@ -34,13 +39,20 @@ export class TracedHttpsAgent extends https.Agent {
     ...args: Parameters<https.Agent['createConnection']>
   ): Socket {
     const socket = super.createConnection(...args) as TracedSocket;
-    socket.once('connect', () => {
-      socket[ENDPOINTS_KEY] = {
-        localAddress: socket.localAddress,
-        localPort: socket.localPort,
-        remoteAddress: socket.remoteAddress,
-        remotePort: socket.remotePort,
-      };
+    const events: string[] = [];
+    socket[EVENTS_KEY] = events;
+    // 배포 환경에서 어느 시점에 주소·포트가 잡히는지 알 수 있게 이벤트마다 저장을 시도하고 이름을 남긴다
+    (['connect', 'secureConnect'] as const).forEach((event) => {
+      socket.once(event, () => {
+        events.push(event);
+        if (!socket.localPort && !socket.remotePort) return;
+        socket[ENDPOINTS_KEY] = {
+          localAddress: socket.localAddress,
+          localPort: socket.localPort,
+          remoteAddress: socket.remoteAddress,
+          remotePort: socket.remotePort,
+        };
+      });
     });
     return socket;
   }
@@ -57,7 +69,10 @@ type SocketLike = {
   destroyed?: boolean;
 };
 
-type RequestLike = { reusedSocket?: boolean; socket?: SocketLike | null };
+type RequestLike = {
+  reusedSocket?: boolean;
+  socket?: SocketLike | null;
+};
 
 type SystemErrorLike = {
   errno?: number | string;
@@ -85,9 +100,8 @@ export const logUpstreamFailure = (
   const config = error.config as TimedConfig | undefined;
   const request = error.request as RequestLike | undefined;
   const socket = request?.socket;
-  const endpoints = (socket as TracedSocket | null | undefined)?.[
-    ENDPOINTS_KEY
-  ];
+  const tracedSocket = socket as TracedSocket | null | undefined;
+  const endpoints = tracedSocket?.[ENDPOINTS_KEY];
   const sysError = ((error.cause as SystemErrorLike | undefined) ??
     (error as unknown as SystemErrorLike)) as SystemErrorLike;
   const startedAt = config?.[START_KEY];
@@ -114,6 +128,12 @@ export const logUpstreamFailure = (
         bytesRead: socket.bytesRead,
         connecting: socket.connecting,
         destroyed: socket.destroyed,
+      },
+      // 주소·포트가 비면 원인을 가리는 진단 값. events 가 비면 TracedHttpsAgent 의 연결 경로를 타지 않았거나 연결 이벤트가 오지 않은 것이다
+      trace: {
+        events: tracedSocket?.[EVENTS_KEY],
+        stored: Boolean(endpoints),
+        node: process.version,
       },
       errno: sysError.errno,
       syscall: sysError.syscall,
