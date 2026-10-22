@@ -1,9 +1,11 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 import { retryOnNetworkError } from './retryUpstream';
+import { upstreamAlert } from './upstreamAlert';
 import {
   TracedHttpsAgent,
   logUpstreamFailure,
   markUpstreamStart,
+  toLoggableUrl,
 } from './upstreamLog';
 
 // Gateway 주소는 서버에서만 쓴다. 배포 환경에 BASE_URL 이 생기기 전까지는 기존 값을 쓴다
@@ -21,11 +23,30 @@ export const serverInstance = axios.create({
   httpsAgent: new TracedHttpsAgent({ keepAlive: true, maxSockets: 50 }),
 });
 
-serverInstance.interceptors.request.use(markUpstreamStart);
-serverInstance.interceptors.response.use(undefined, (error) => {
-  if (axios.isAxiosError(error)) {
-    logUpstreamFailure(error, (config) => serverInstance.getUri(config));
-  }
-  return Promise.reject(error);
+serverInstance.interceptors.request.use((config) => {
+  upstreamAlert.prefetchEgressIp();
+  return markUpstreamStart(config);
 });
+serverInstance.interceptors.response.use(
+  (response) => {
+    upstreamAlert.recordSuccess();
+    return response;
+  },
+  async (error) => {
+    if (axios.isAxiosError(error)) {
+      const getUri = (config: InternalAxiosRequestConfig) =>
+        serverInstance.getUri(config);
+      logUpstreamFailure(error, getUri);
+      // 응답 없이 끊긴 실패만 센다. 서버가 응답한 5xx 는 연결 문제가 아니다
+      if (!error.response) {
+        await upstreamAlert.recordFailure({
+          method: error.config?.method?.toUpperCase(),
+          url: error.config ? toLoggableUrl(getUri(error.config)) : undefined,
+          code: error.code,
+        });
+      }
+    }
+    return Promise.reject(error);
+  },
+);
 retryOnNetworkError(serverInstance, DEFAULT_TIMEOUT_MS);
