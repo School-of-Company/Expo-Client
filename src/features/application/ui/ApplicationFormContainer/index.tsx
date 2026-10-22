@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useMemo, useRef, useEffect } from 'react';
@@ -36,6 +37,7 @@ const ALREADY_PREREGISTERED_TODAY = 'ALREADY_PREREGISTERED_TODAY';
 const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const userType = searchParams.get('userType') as 'STANDARD' | 'TRAINEE';
   const applicationType = (searchParams.get('applicationType') ||
     'PRE') as ApplicationType;
@@ -145,6 +147,10 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         applicationType,
         formattedData,
         submissionKeys.current.keyFor(JSON.stringify(formattedData)),
+      );
+      // 내 신청·대기 현황이 신청 전 결과(최대 1분 캐시)를 보여 주지 않게 한다
+      ['myApplications', 'myPreRegisterWaitlist', 'participantQr'].forEach(
+        (key) => queryClient.invalidateQueries({ queryKey: [key, params] }),
       );
       router.push(
         `/application/success/${params}?userType=${userType}&formType=application&applicationType=${applicationType}`,
