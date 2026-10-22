@@ -30,6 +30,8 @@ export const GROUP_MESSAGE_VARIABLES = [
   '{일시}',
   '{장소}',
   '{상태}',
+  '{URL}',
+  '{신청내역}',
 ];
 
 export const JOB_STATUS_LABEL: Record<GroupMessageJobStatus, string> = {

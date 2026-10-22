@@ -10,7 +10,6 @@ export const useStandardAttendance = () => {
     mutationFn: (data: PatchStandardProgramData) =>
       patchStandardAttendance(data),
     onSuccess: (_, variables) => {
-      toast.success('프로그램 스캔 완료되었습니다.');
       queryClient.invalidateQueries({
         queryKey: ['standardProgramDetail', variables.programId],
       });

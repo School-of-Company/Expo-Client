@@ -20,6 +20,8 @@ const SMS_VARIABLE: Record<
   sessionName: '{일시}',
   location: '{장소}',
   status: '{상태}',
+  applicationUrl: '{URL}',
+  applicationSummary: '{신청내역}',
 };
 
 const EXPO_NAME_PLACEHOLDER = '#{행사명}';
@@ -30,7 +32,7 @@ const replaceAll = (text: string, from: string, to: string) =>
 // 행사명은 고정하지 않고 선택한 박람회 제목을 쓴다. 제목이 없으면 머리말에서 뺀다.
 // 제목이 이미 '['로 시작하면(예: [QA 전용] …) 괄호를 겹치지 않는다
 const toSmsBody = (
-  { content, variableMapping }: KakaoTemplate,
+  { content, variableMapping, fixedVariables }: KakaoTemplate,
   expoTitle: string,
 ) => {
   const title = expoTitle.trim();
@@ -46,6 +48,10 @@ const toSmsBody = (
   ).forEach(([key, placeholder]) => {
     if (key === 'expoName' || !placeholder || !SMS_VARIABLE[key]) return;
     body = replaceAll(body, placeholder, SMS_VARIABLE[key]);
+  });
+  // 고정 변수는 문자 변수가 아니라 값 그대로 넣는다
+  Object.entries(fixedVariables ?? {}).forEach(([placeholder, value]) => {
+    body = replaceAll(body, placeholder, value);
   });
   return body.trimStart();
 };
