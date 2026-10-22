@@ -15,6 +15,7 @@ import { formatDefinitionSchedule } from '@/features/registration/common/model/l
 import { getPublicStandardProgram, getTrainingProgram } from '@/shared/api';
 import { getExpoRoutes } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
+import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { getProgramSessionCsrfHeaders } from '@/shared/libs/http/programSessionCsrf';
 import { DynamicFormValues } from '@/shared/types/application/type';
 import { Button, DetailHeader } from '@/shared/ui';
@@ -448,6 +449,7 @@ const ProgramApplyContainer = ({
     data: allPrograms,
     isLoading,
     error,
+    refetch,
   } = useQuery<Program[]>({
     queryKey: ['applyPrograms', programType, expoId],
     queryFn: () =>
@@ -458,6 +460,12 @@ const ProgramApplyContainer = ({
   });
   const queryClient = useQueryClient();
   const router = useRouter();
+  // 목록 조회의 401·403은 참가자의 로그인 문제가 아니므로 서버 문구를 그대로 보이지 않는다
+  const programsError =
+    error &&
+    (getErrorStatus(error) === 401 || getErrorStatus(error) === 403
+      ? `${label} 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.`
+      : error.message);
   // 신청 기간이 끝난 회차는 모집 목록에서만 숨긴다. 같은 쿼리를 내 신청 조회가 쓰므로 데이터는 거르지 않는다
   // 켜 둔 화면도 사전·현장 접수 시작·마감 시각에 버튼과 상태가 바뀐다
   const now = useNow(getScheduleBoundaries(allPrograms ?? [], [], null));
@@ -570,7 +578,18 @@ const ProgramApplyContainer = ({
         <p className="break-keep text-body2r text-gray-500">
           {label}마다 따로 신청합니다.
         </p>
-        {error && <p className="text-body2r text-error">{error.message}</p>}
+        {programsError && (
+          <div role="alert" className="flex flex-col gap-8">
+            <p className="text-body2r text-error">{programsError}</p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="self-start rounded-sm border-1 border-solid border-main-600 px-16 py-8 text-caption1b text-main-600"
+            >
+              다시 시도
+            </button>
+          </div>
+        )}
         {sessionIssue && <SessionNotice expoId={expoId} issue={sessionIssue} />}
         {errorMessage && (
           <div role="alert" className="flex flex-col gap-8">
