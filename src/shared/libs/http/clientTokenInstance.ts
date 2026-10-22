@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logProxyFailure } from './proxyFailureLog';
 
 const clientTokenInstance = axios.create({
   baseURL: '/api/server/token',
@@ -33,7 +34,7 @@ clientTokenInstance.interceptors.response.use(
       return new Promise(() => {});
     }
 
-    return Promise.reject(error);
+    return logProxyFailure(error);
   },
 );
 
