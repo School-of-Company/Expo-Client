@@ -3,7 +3,10 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { useReportExcelDownload } from '@/features/registration/common';
+import {
+  programRosterRequest,
+  useReportExcelDownload,
+} from '@/features/registration/common';
 import { withLoading } from '@/shared/hocs';
 import { useExcelDownload, useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
@@ -81,22 +84,11 @@ const ProgramDetailTable = ({
   const TraineeProgramActions = {
     exportExcel: () => downloadExcel({ path: `/excel/${expoId}` }),
   };
-  // 예전 엑셀 경로(/excel/program)는 예전 프로그램 신청만 읽어 회차 신청(골든벨 등)이 빠진다.
-  // 신청 관리와 같은 확정 다운로드로 받아 폼 답변·신청 경로·신청 시각을 함께 담는다(Expo-Report-Server#77)
   const StandardProgramActions = {
     exportExcel: () =>
       downloadReport({
         expoId,
-        request: {
-          template: 'PROGRAM',
-          scope: 'FILTER',
-          programId: Number(programId),
-          filter: {
-            programType: 'STANDARD',
-            programId: Number(programId),
-            status: ['CONFIRMED'],
-          },
-        },
+        request: programRosterRequest(Number(programId)),
       }),
   };
 

@@ -20,8 +20,11 @@ export interface AdminMessageHistoryItem {
   occurredAt: string;
   targetScope: {
     kind: string;
+    /** 사전등록 대상이면 PREREGISTRATION. 프로그램 대상은 생략되거나 PROGRAM 일 수 있다 */
+    source?: string;
     /** 이력 기록 전에 만든 작업은 null */
     applicationCount: number | null;
+    /** 사전등록 대상은 빈 배열 */
     programTypes: ProgramSessionType[];
   };
   counts: {

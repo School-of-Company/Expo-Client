@@ -8,6 +8,21 @@ export const toAttendUserRowKey = ({
   id,
 }: AttendUserResponse) => `${participationType}-${id}`;
 
+export type AttendeeType = 'TEACHER' | 'GENERAL' | 'TRAINEE';
+
+export const ATTENDEE_TYPE_LABEL: Record<AttendeeType, string> = {
+  TEACHER: '교사',
+  GENERAL: '일반',
+  TRAINEE: '연수자',
+};
+
+// 서버는 교사도 STANDARD 로 주지만 명찰(badge)은 연수자 전원과 교사에게만 준다
+export const getAttendeeType = ({
+  participationType,
+  badge,
+}: Pick<AttendUserResponse, 'participationType' | 'badge'>): AttendeeType =>
+  participationType === 'TRAINEE' ? 'TRAINEE' : badge ? 'TEACHER' : 'GENERAL';
+
 export const userQrPrint = (data: AttendUserResponse[], selectItem: string) => {
   const selectedData = data.find(
     (item) => toAttendUserRowKey(item) === selectItem,
@@ -24,6 +39,7 @@ export const userQrPrint = (data: AttendUserResponse[], selectItem: string) => {
     // 소속이 있으면 "광주초 홍길동", 없으면 이름만
     name: badge.school ? `${badge.school} ${badge.name}` : badge.name,
     qrCode: badge.qrCode,
+    typeLabel: ATTENDEE_TYPE_LABEL[getAttendeeType(selectedData)],
     isTemporary: false,
   });
 };

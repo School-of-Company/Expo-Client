@@ -22,3 +22,16 @@ export const useReportExcelDownload = (onSuccess: () => void) =>
       toast.error(error.message);
     },
   });
+
+/**
+ * 일반 프로그램 회차 명단 요청. 예전 GET /excel/program 은 회차 신청의 폼 답변·신청 경로·신청 시각 열이 없어,
+ * 일정 표·프로그램 상세 어디서 받아도 같은 파일이 나오도록 이 확정 신청 다운로드 하나만 쓴다(Expo-Report-Server#77)
+ */
+export const programRosterRequest = (
+  programId: number,
+): ReportExcelDownloadRequest => ({
+  template: 'PROGRAM',
+  scope: 'FILTER',
+  programId,
+  filter: { programType: 'STANDARD', programId, status: ['CONFIRMED'] },
+});

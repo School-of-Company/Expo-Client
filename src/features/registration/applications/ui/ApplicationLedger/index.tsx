@@ -26,6 +26,11 @@ import {
   useLedgerSummary,
 } from '../../../common/model/ledger';
 import {
+  getFilteredScopeBlocker,
+  GroupMessageTarget,
+  toGroupMessageFilter,
+} from '../../model/groupMessage';
+import {
   buildCapacityMap,
   getExpoDays,
   toLedgerViewRows,
@@ -95,6 +100,16 @@ const ApplicationLedger = () => {
   const totalPage = Math.max(Math.ceil(totalCount / LEDGER_PAGE_SIZE), 1);
   const selectedIds = useMemo(() => new Set(selected.keys()), [selected]);
   const selectedRows = useMemo(() => Array.from(selected.values()), [selected]);
+  const messageTarget = useMemo<GroupMessageTarget>(
+    () => ({
+      tab: 'PROGRAM',
+      selectedIds: selectedRows.map(({ id }) => id),
+      filter: toGroupMessageFilter(filter),
+      filterCount: totalCount,
+      filterBlocker: getFilteredScopeBlocker(filter),
+    }),
+    [selectedRows, filter, totalCount],
+  );
 
   const handleFilterChange = useCallback(
     (next: LedgerFilter) => {
@@ -264,9 +279,7 @@ const ApplicationLedger = () => {
         {isMessageModalOpen && (
           <GroupMessageModal
             expoId={expoId}
-            selectedRows={selectedRows}
-            filter={filter}
-            filterCount={totalCount}
+            target={messageTarget}
             onClose={() => setIsMessageModalOpen(false)}
           />
         )}
