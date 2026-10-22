@@ -43,6 +43,9 @@ export const logUpstreamFailure = (
       timeoutMs: config?.timeout,
       code: error.code,
       message: error.message,
+      // true 면 keepAlive 로 재사용한 연결로 나간 요청이다. 중간 장비가 조용히 끊은 연결이면 응답 없이 timeout 이 난다
+      reusedSocket: (error.request as { reusedSocket?: boolean } | undefined)
+        ?.reusedSocket,
     }),
   );
 };
