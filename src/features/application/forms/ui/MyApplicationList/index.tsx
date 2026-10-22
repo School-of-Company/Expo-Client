@@ -30,7 +30,6 @@ import { useMyApplications } from '../../model/useMyApplications';
 import { usePreRegisterSessions } from '../../model/usePreRegister';
 import AddCompanionDialog, { AddCompanionTarget } from '../AddCompanionDialog';
 import AddSessionDialog from '../AddSessionDialog';
-import OwnTeacherSeats from '../OwnTeacherSeats';
 import PreRegisterWaitlist from '../PreRegisterWaitlist';
 import PromotionOffer from '../PromotionOffer';
 
@@ -101,9 +100,7 @@ const ApplicationRow = ({
   onShowQr,
   onAddCompanion,
   session,
-  expoId,
 }: {
-  expoId: string;
   application: OwnerApplication;
   participant?: OwnerParticipant;
   session: SessionInfo;
@@ -224,12 +221,6 @@ const ApplicationRow = ({
           <p className="break-words break-keep text-caption1r text-gray-500">
             장소: {session.place}
           </p>
-        )}
-        {type === 'PREREGISTER' && status === 'CONFIRMED' && (
-          <OwnTeacherSeats
-            expoId={expoId}
-            sessionId={String(application.sessionOrProgramId)}
-          />
         )}
         {showsBlockedReason && (
           <p id={reasonId} className="break-keep text-caption1r text-gray-500">
@@ -555,7 +546,6 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
           const renderRow = (application: OwnerApplication) => (
             <ApplicationRow
               key={`${application.type}-${application.applicationId}`}
-              expoId={expoId}
               application={application}
               participant={participant}
               session={getSession(application)}
