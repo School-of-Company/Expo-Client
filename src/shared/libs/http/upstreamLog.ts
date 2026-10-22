@@ -1,5 +1,6 @@
 import https from 'https';
 import { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { isRetried } from './retryUpstream';
 import type { Socket } from 'net';
 
 const START_KEY = '__startedAt';
@@ -122,6 +123,8 @@ export const logUpstreamFailure = (
       status: status ?? null,
       elapsedMs: startedAt ? Date.now() - startedAt : undefined,
       timeoutMs: config?.timeout,
+      // true 면 네트워크 오류로 다시 보낸 두 번째 시도의 실패다. 첫 시도 로그와 짝으로 복구 여부를 가른다
+      retried: isRetried(config),
       code: error.code,
       message: error.message,
       // true 면 keepAlive 로 재사용한 연결로 나간 요청이다. 중간 장비가 조용히 끊은 연결이면 응답 없이 timeout 이 난다

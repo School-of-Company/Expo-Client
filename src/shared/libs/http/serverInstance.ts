@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { retryOnNetworkError } from './retryUpstream';
 import {
   TracedHttpsAgent,
   logUpstreamFailure,
@@ -9,8 +10,8 @@ import {
 export const GATEWAY_URL =
   process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
 
-// 일반 요청은 10초, 엑셀처럼 서버가 파일을 만드는 요청은 더 오래 기다린다
-export const DEFAULT_TIMEOUT_MS = 10_000;
+// 일반 요청은 5초(GET 은 네트워크 오류면 한 번 더 보낸다), 엑셀처럼 서버가 파일을 만드는 요청은 더 오래 기다린다
+export const DEFAULT_TIMEOUT_MS = 5_000;
 export const FILE_DOWNLOAD_TIMEOUT_MS = 60_000;
 
 export const serverInstance = axios.create({
@@ -27,3 +28,4 @@ serverInstance.interceptors.response.use(undefined, (error) => {
   }
   return Promise.reject(error);
 });
+retryOnNetworkError(serverInstance, DEFAULT_TIMEOUT_MS);
