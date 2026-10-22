@@ -17,21 +17,20 @@ import {
   postGroupMessagePreview,
   postGroupMessageRetry,
 } from '../../../common/api/groupMessageApi';
-import { LedgerFilter, LedgerRow } from '../../../common/model/ledger';
 import {
   GROUP_MESSAGE_MAX_LENGTH,
   GROUP_MESSAGE_SELECTED_MAX,
   GROUP_MESSAGE_VARIABLES,
-  getFilteredScopeBlocker,
   getPreviewStatus,
   isFinalJobStatus,
   isGoneJobError,
   JOB_STATUS_LABEL,
   loadLastGroupMessageJob,
   saveLastGroupMessageJob,
-  toGroupMessageFilter,
+  toGroupMessageScope,
   useGroupMessageConfig,
   useGroupMessageJob,
+  GroupMessageTarget,
 } from '../../model/groupMessage';
 import { getMessageTemplates } from '../../model/messageTemplates';
 import GroupMessageJobItems from '../GroupMessageJobItems';
@@ -41,9 +40,7 @@ type Scope = 'SELECTED' | 'FILTERED';
 
 interface GroupMessageModalProps {
   expoId: string;
-  selectedRows: LedgerRow[];
-  filter: LedgerFilter;
-  filterCount: number;
+  target: GroupMessageTarget;
   onClose: () => void;
 }
 
@@ -67,14 +64,13 @@ const errorMessage = (error: unknown) =>
 
 const GroupMessageModal = ({
   expoId,
-  selectedRows,
-  filter,
-  filterCount,
+  target,
   onClose,
 }: GroupMessageModalProps) => {
+  const { tab, selectedIds, filterCount, filterBlocker } = target;
   const queryClient = useQueryClient();
   const [scope, setScope] = useState<Scope>(
-    selectedRows.length > 0 ? 'SELECTED' : 'FILTERED',
+    selectedIds.length > 0 ? 'SELECTED' : 'FILTERED',
   );
   const [channel, setChannel] = useState<GroupMessageChannel>('SMS');
   const [body, setBody] = useState('');
@@ -85,7 +81,7 @@ const GroupMessageModal = ({
     result: GroupMessagePreview;
     executeKey: string;
   } | null>(null);
-  const [last, setLast] = useState(() => loadLastGroupMessageJob(expoId));
+  const [last, setLast] = useState(() => loadLastGroupMessageJob(expoId, tab));
   const jobId = last?.jobId ?? null;
   const [notice, setNotice] = useState<string | null>(null);
   // 재시도는 같은 키로 다시 보내야 중복 발송이 없다. 성공하면 바꾼다
@@ -119,15 +115,17 @@ const GroupMessageModal = ({
   }, [smsEnabled, kakaoEnabled]);
 
   const source = useMemo<GroupMessageSource>(() => {
-    const target: GroupMessageSource['scope'] =
-      scope === 'SELECTED'
-        ? { kind: 'SELECTED', applicationIds: selectedRows.map(({ id }) => id) }
-        : { kind: 'FILTERED', filter: toGroupMessageFilter(filter) };
+    const messageScope = toGroupMessageScope(target, scope);
     // 카카오는 서버가 알림톡과 문자를 함께 보낸다. fallbackToSms 는 서버가 무시한다
     return channel === 'SMS'
-      ? { scope: target, channel: 'SMS', body, fallbackToSms: false }
-      : { scope: target, channel: 'KAKAO', templateId, fallbackToSms: true };
-  }, [scope, selectedRows, filter, channel, body, templateId]);
+      ? { scope: messageScope, channel: 'SMS', body, fallbackToSms: false }
+      : {
+          scope: messageScope,
+          channel: 'KAKAO',
+          templateId,
+          fallbackToSms: true,
+        };
+  }, [scope, target, channel, body, templateId]);
   const hasContent = channel === 'SMS' ? body.trim() !== '' : !!template;
   // 유효 시간이 지나는 순간 다시 그리도록 시각을 상태로 둔다
   const [now, setNow] = useState(() => Date.now());
@@ -145,14 +143,14 @@ const GroupMessageModal = ({
   const isPreviewCurrent = previewStatus === 'CURRENT';
 
   const scopeBlocker =
-    scope === 'SELECTED' && selectedRows.length === 0
+    scope === 'SELECTED' && selectedIds.length === 0
       ? '보낼 신청을 선택해주세요.'
-      : scope === 'SELECTED' && selectedRows.length > GROUP_MESSAGE_SELECTED_MAX
+      : scope === 'SELECTED' && selectedIds.length > GROUP_MESSAGE_SELECTED_MAX
         ? `선택 신청은 최대 ${GROUP_MESSAGE_SELECTED_MAX}건까지 보낼 수 있습니다.`
         : scope === 'FILTERED' && filterCount === 0
           ? '현재 필터에 맞는 신청이 없습니다.'
           : scope === 'FILTERED'
-            ? getFilteredScopeBlocker(filter)
+            ? filterBlocker
             : null;
 
   const previewMutation = useMutation({
@@ -183,7 +181,7 @@ const GroupMessageModal = ({
         source: preview!.source,
         targetFingerprint: preview!.result.targetFingerprint,
       };
-      saveLastGroupMessageJob(expoId, next);
+      saveLastGroupMessageJob(expoId, tab, next);
       setLast(next);
     },
     onError: (error) => {
@@ -227,7 +225,7 @@ const GroupMessageModal = ({
   // 보관한 대상이 오래돼 재시도가 거절되면 처음부터 대상을 다시 확인하게 한다
   const retryStale = getErrorStatus(retryMutation.error) === 409;
   const resetJob = () => {
-    saveLastGroupMessageJob(expoId, null);
+    saveLastGroupMessageJob(expoId, tab, null);
     retryMutation.reset();
     setLast(null);
   };
@@ -333,7 +331,7 @@ const GroupMessageModal = ({
               <div className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
                 {(
                   [
-                    ['SELECTED', '선택한 신청', selectedRows.length],
+                    ['SELECTED', '선택한 신청', selectedIds.length],
                     ['FILTERED', '현재 필터 전체', filterCount],
                   ] as const
                 ).map(([value, label, count]) => (

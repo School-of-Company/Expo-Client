@@ -5,13 +5,17 @@ import {
   getGroupMessageJob,
   GroupMessageFilter,
   GroupMessageJobStatus,
+  GroupMessageScope,
   GroupMessageSource,
+  PreregisterGroupMessageFilter,
 } from '../../common/api/groupMessageApi';
+import { AdminPreregisterStatus } from '../../common/api/preregisterLedgerApi';
 import {
   LedgerFilter,
   parseSessionKey,
   toStatusList,
 } from '../../common/model/ledger';
+import { PreregisterFilter } from '../../common/model/preregisterLedger';
 
 export const GROUP_MESSAGE_MAX_LENGTH = 1000;
 export const GROUP_MESSAGE_SELECTED_MAX = 1000;
@@ -78,6 +82,48 @@ export const toGroupMessageFilter = (
   };
 };
 
+export type GroupMessageTab = 'PROGRAM' | 'PREREGISTER';
+
+/** 모달이 받는 대상. 탭마다 선택 단위(신청 ID / 대장 key)와 필터 모양이 다르다 */
+export type GroupMessageTarget = {
+  /** 선택한 행 수. 선택 범위의 건수로 보여 준다 */
+  selectedIds: string[];
+  /** 현재 필터 전체 건수 */
+  filterCount: number;
+  /** 필터 전체로 보낼 수 없는 조건이 있으면 사유 */
+  filterBlocker: string | null;
+} & (
+  | { tab: 'PROGRAM'; filter: GroupMessageFilter }
+  | { tab: 'PREREGISTER'; filter: PreregisterGroupMessageFilter }
+);
+
+export const toGroupMessageScope = (
+  target: GroupMessageTarget,
+  kind: 'SELECTED' | 'FILTERED',
+): GroupMessageScope => {
+  if (kind === 'FILTERED') {
+    return { kind, filter: target.filter } as GroupMessageScope;
+  }
+  return target.tab === 'PROGRAM'
+    ? { kind, applicationIds: target.selectedIds }
+    : { kind, keys: target.selectedIds };
+};
+
+/** 사전등록 필터 전체 범위. 빈 조건은 서버가 400 으로 거절하므로 값이 있는 것만 보낸다 */
+export const toPreregisterGroupMessageFilter = (
+  filter: PreregisterFilter,
+): PreregisterGroupMessageFilter => {
+  const sessionId = Number(filter.session);
+  const q = filter.q.trim();
+  return {
+    ...(filter.session !== '' && Number.isInteger(sessionId) && { sessionId }),
+    ...(filter.status && {
+      status: filter.status.split(',') as AdminPreregisterStatus[],
+    }),
+    ...(q && { q }),
+  };
+};
+
 export const useGroupMessageConfig = (expoId: string) =>
   useQuery({
     queryKey: ['groupMessageConfig', expoId],
@@ -112,13 +158,18 @@ export interface LastGroupMessageJob {
   targetFingerprint: string;
 }
 
-const lastJobKey = (expoId: string) => `groupMessageLastJob:${expoId}`;
+// 프로그램 탭의 기존 키는 그대로 두고, 사전등록 탭은 따로 보관해 서로의 작업을 이어 보지 않게 한다
+const lastJobKey = (expoId: string, tab: GroupMessageTab) =>
+  tab === 'PROGRAM'
+    ? `groupMessageLastJob:${expoId}`
+    : `groupMessageLastJob:preregister:${expoId}`;
 
 export const loadLastGroupMessageJob = (
   expoId: string,
+  tab: GroupMessageTab,
 ): LastGroupMessageJob | null => {
   try {
-    const raw = sessionStorage.getItem(lastJobKey(expoId));
+    const raw = sessionStorage.getItem(lastJobKey(expoId, tab));
     return raw ? (JSON.parse(raw) as LastGroupMessageJob) : null;
   } catch {
     return null;
@@ -127,11 +178,13 @@ export const loadLastGroupMessageJob = (
 
 export const saveLastGroupMessageJob = (
   expoId: string,
+  tab: GroupMessageTab,
   last: LastGroupMessageJob | null,
 ) => {
   try {
-    if (last) sessionStorage.setItem(lastJobKey(expoId), JSON.stringify(last));
-    else sessionStorage.removeItem(lastJobKey(expoId));
+    const key = lastJobKey(expoId, tab);
+    if (last) sessionStorage.setItem(key, JSON.stringify(last));
+    else sessionStorage.removeItem(key);
   } catch {
     // 스토리지를 못 쓰면 이번 모달 안에서만 추적한다
   }

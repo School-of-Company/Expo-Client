@@ -5,6 +5,7 @@ import {
   AdminApplicationStatus,
   ProgramSessionType,
 } from './ledgerApi';
+import { AdminPreregisterStatus } from './preregisterLedgerApi';
 
 // Expo-Application-Server AdminGroupMessageController (docs/admin-group-messaging.md)
 
@@ -23,9 +24,22 @@ export interface GroupMessageFilter {
   sort: AdminApplicationSort;
 }
 
+/**
+ * 사전등록 접수대장과 같은 필터. 서버 계약은 Expo-Application-Server#304 에서 확정하며,
+ * 확정 전이라 선택은 대장 행 key, 필터는 목록 조회 조건 이름을 그대로 쓴다
+ */
+export interface PreregisterGroupMessageFilter {
+  sessionId?: number;
+  status?: AdminPreregisterStatus[];
+  /** 대표자·참가자 이름·번호 */
+  q?: string;
+}
+
 export type GroupMessageScope =
   | { kind: 'SELECTED'; applicationIds: string[] }
-  | { kind: 'FILTERED'; filter: GroupMessageFilter };
+  | { kind: 'FILTERED'; filter: GroupMessageFilter }
+  | { kind: 'SELECTED'; keys: string[] }
+  | { kind: 'FILTERED'; filter: PreregisterGroupMessageFilter };
 
 export type GroupMessageChannel = 'SMS' | 'KAKAO';
 
