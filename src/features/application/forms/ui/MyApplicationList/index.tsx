@@ -59,20 +59,6 @@ const BLOCKED_REASON_LABEL: Record<string, string> = {
   COMPANIONS_ACTIVE: COMPANIONS_ACTIVE_MESSAGE,
 };
 
-// 서버가 학생·보호자 연결 정보를 주지 않으므로 학생 신청에만 일반 안내를 한다.
-// 마지막 연결 학생을 취소하면 서버가 보호자 신청도 함께 취소하고, 다른 학생이 있으면 보호자는 유지한다
-const GUARDIAN_CANCEL_NOTE =
-  '보호자와 함께 신청한 마지막 학생이면 보호자의 신청도 함께 취소됩니다. 같은 보호자에 연결된 다른 학생이 있으면 보호자는 유지됩니다.';
-
-const getGuardianCancelNote = (
-  application: OwnerApplication,
-  participant?: OwnerParticipant,
-) =>
-  application.type !== 'PREREGISTER' &&
-  participant?.occupation === 'ELEMENTARY_STUDENT'
-    ? GUARDIAN_CANCEL_NOTE
-    : undefined;
-
 interface QrTarget {
   participantId: number;
   title: string;
