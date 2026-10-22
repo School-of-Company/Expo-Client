@@ -16,6 +16,11 @@ type RetriedConfig = InternalAxiosRequestConfig & { [RETRIED_KEY]?: boolean };
 export const isRetried = (config?: InternalAxiosRequestConfig) =>
   Boolean((config as RetriedConfig | undefined)?.[RETRIED_KEY]);
 
+/** 다시 보내지 않게 표시한다 */
+export const markRetried = (config: InternalAxiosRequestConfig) => {
+  (config as RetriedConfig)[RETRIED_KEY] = true;
+};
+
 /**
  * 한 번 더 보낼 오류인지. GET 만 다시 보낸다(쓰기 요청은 서버가 처리했는지 알 수 없다).
  * 기본 timeout 이 아닌 요청(엑셀 다운로드는 서버가 파일을 만드는 중이라 다시 보내면 생성이 두 번 돈다)은 제외한다

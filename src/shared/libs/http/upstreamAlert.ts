@@ -92,10 +92,15 @@ export const createUpstreamAlert = ({
     return lookup;
   };
 
-  const sendAlert = async (failure: UpstreamFailureInfo) => {
+  const sendAlert = async (
+    failure: UpstreamFailureInfo,
+    recycling: boolean,
+  ) => {
     if (!webhookUrl) return;
     const text = [
-      `[Expo-Client] Gateway 연결 실패 ${consecutiveFailures}회 연속`,
+      recycling
+        ? `[Expo-Client] 불량 인스턴스 종료: Gateway 연결 실패 ${consecutiveFailures}회 연속 (연결 성공 이력 없음)`
+        : `[Expo-Client] Gateway 연결 실패 ${consecutiveFailures}회 연속`,
       `시각(KST): ${toKst(now())}`,
       `출구 IP: ${egressIp ?? '조회 실패'}`,
       `인스턴스: ${instanceId} (시작 ${toKst(startedAt)})`,
@@ -133,14 +138,23 @@ export const createUpstreamAlert = ({
     recordSuccess: () => {
       consecutiveFailures = 0;
     },
-    /** 응답 없이 끊긴 실패만 넘긴다. 서버가 응답한 5xx 는 연결 문제가 아니다 */
-    recordFailure: async (failure: UpstreamFailureInfo) => {
+    /**
+     * 응답 없이 끊긴 실패만 넘긴다. 서버가 응답한 5xx 는 연결 문제가 아니다.
+     * `recycling` 이면 이 인스턴스가 곧 내려가므로 횟수·재알림 간격과 상관없이 바로 알린다
+     */
+    recordFailure: async (
+      failure: UpstreamFailureInfo,
+      { recycling = false }: { recycling?: boolean } = {},
+    ) => {
       consecutiveFailures += 1;
-      if (consecutiveFailures < threshold) return;
-      if (lastAlertAt !== undefined && now() - lastAlertAt < cooldownMs) return;
+      if (!recycling) {
+        if (consecutiveFailures < threshold) return;
+        if (lastAlertAt !== undefined && now() - lastAlertAt < cooldownMs)
+          return;
+      }
       lastAlertAt = now();
       await lookupEgressIp();
-      await sendAlert(failure);
+      await sendAlert(failure, recycling);
     },
   };
 };

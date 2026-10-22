@@ -27,6 +27,9 @@ type Endpoints = Pick<
 
 const EVENTS_KEY = '__events';
 
+// 정상 연결은 수십 ms 안에 맺어진다. 첫 SYN 이 유실돼도 1초 뒤 재전송으로 맺어지므로 그보다 넉넉히 둔다
+export const CONNECT_TIMEOUT_MS = 2_000;
+
 type TracedSocket = Socket & {
   [ENDPOINTS_KEY]?: Endpoints;
   [EVENTS_KEY]?: string[];
@@ -51,6 +54,18 @@ export class TracedHttpsAgent extends https.Agent {
       mark(err ? `lookup-error(${err.message})` : `lookup(${address})`);
     });
     socket.once('close', () => mark('close'));
+    // 504 가 나는 인스턴스는 SYN-ACK 가 오지 않아 요청 timeout 까지 붙잡힌다.
+    // TCP 연결 단계만 짧게 끊어 빨리 실패시키고, 재시도 대상(ETIMEDOUT)으로 넘긴다
+    const connectTimer = setTimeout(() => {
+      socket.destroy(
+        Object.assign(
+          new Error(`connect timeout of ${CONNECT_TIMEOUT_MS}ms exceeded`),
+          { code: 'ETIMEDOUT' },
+        ),
+      );
+    }, CONNECT_TIMEOUT_MS);
+    socket.once('connect', () => clearTimeout(connectTimer));
+    socket.once('close', () => clearTimeout(connectTimer));
     // 배포 환경에서 어느 시점에 주소·포트가 잡히는지 알 수 있게 이벤트마다 저장을 시도한다
     (['connect', 'secureConnect'] as const).forEach((event) => {
       socket.once(event, () => {
@@ -89,6 +104,20 @@ type SystemErrorLike = {
   syscall?: string;
   address?: string;
   port?: number;
+};
+
+/**
+ * 실패한 요청의 소켓이 TCP 연결까지 갔는지. 연결 이벤트를 기록하지 못한 소켓(에이전트 대기 등)은 알 수 없어 undefined 다.
+ * keepAlive 로 재사용한 소켓은 처음 만들 때의 connect 가 남아 있어 true 다
+ */
+export const reachedTcpConnect = (error: AxiosError): boolean | undefined => {
+  const socket = (error.request as RequestLike | undefined)?.socket as
+    | TracedSocket
+    | null
+    | undefined;
+  const events = socket?.[EVENTS_KEY];
+  if (!events) return undefined;
+  return events.some((event) => event.startsWith('connect'));
 };
 
 export const markUpstreamStart = (config: InternalAxiosRequestConfig) => {
