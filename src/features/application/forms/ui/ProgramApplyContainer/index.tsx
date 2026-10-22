@@ -586,7 +586,8 @@ const ProgramApplyContainer = ({
         )}
         {programs?.length === 0 && (
           <p className="text-body2r text-gray-500">
-            신청할 수 있는 {label}이 없습니다.
+            신청할 수 있는{' '}
+            {programType === 'TRAINING' ? '연수가' : '프로그램이'} 없습니다.
           </p>
         )}
         {groups.map((group) => {
