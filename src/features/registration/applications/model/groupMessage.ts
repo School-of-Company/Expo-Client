@@ -19,6 +19,9 @@ import { PreregisterFilter } from '../../common/model/preregisterLedger';
 
 export const GROUP_MESSAGE_MAX_LENGTH = 1000;
 export const GROUP_MESSAGE_SELECTED_MAX = 1000;
+/** 사전등록 선택 key 와 필터 전체 행 수 상한 */
+export const PREREGISTER_GROUP_MESSAGE_MAX = 5000;
+export const PREREGISTER_TARGET_CONTRACT = 'PREREGISTRATION_GROUP_MESSAGE_V1';
 
 /** 서버가 신청 시점 스냅샷으로 채우는 변수. 값이 없으면 미리보기에 TEMPLATE_DATA_MISSING 으로 표시된다 */
 export const GROUP_MESSAGE_VARIABLES = [
@@ -102,7 +105,9 @@ export const toGroupMessageScope = (
   kind: 'SELECTED' | 'FILTERED',
 ): GroupMessageScope => {
   if (kind === 'FILTERED') {
-    return { kind, filter: target.filter } as GroupMessageScope;
+    return target.tab === 'PROGRAM'
+      ? { kind, filter: target.filter }
+      : { kind, preregistrationFilter: target.filter };
   }
   return target.tab === 'PROGRAM'
     ? { kind, applicationIds: target.selectedIds }

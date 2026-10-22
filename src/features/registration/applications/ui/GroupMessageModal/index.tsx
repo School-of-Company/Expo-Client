@@ -20,6 +20,8 @@ import {
 import {
   GROUP_MESSAGE_MAX_LENGTH,
   GROUP_MESSAGE_SELECTED_MAX,
+  PREREGISTER_GROUP_MESSAGE_MAX,
+  PREREGISTER_TARGET_CONTRACT,
   GROUP_MESSAGE_VARIABLES,
   getPreviewStatus,
   isFinalJobStatus,
@@ -94,7 +96,13 @@ const GroupMessageModal = ({
   // 닫기 버튼과 같이 Escape 로도 닫는다. 보내기 버튼은 기본 포커스로 두지 않는다
   const dialogRef = useModalDialog({ onClose });
 
-  const channels = config.data?.enabled ? config.data.channels : {};
+  // 사전등록 대상은 Notification 이 계약을 선언해야 보낼 수 있다. 없으면 서버도 503 으로 닫는다
+  const isTargetSupported =
+    tab === 'PROGRAM' ||
+    config.data?.targetContracts?.includes(PREREGISTER_TARGET_CONTRACT) ===
+      true;
+  const channels =
+    config.data?.enabled && isTargetSupported ? config.data.channels : {};
   const smsEnabled = channels.SMS?.enabled === true;
   const kakaoEnabled = channels.KAKAO?.enabled === true;
   const kakaoTemplates = useMemo(
@@ -142,11 +150,15 @@ const GroupMessageModal = ({
   const previewStatus = preview ? getPreviewStatus(preview, source, now) : null;
   const isPreviewCurrent = previewStatus === 'CURRENT';
 
+  const selectedMax =
+    tab === 'PROGRAM'
+      ? GROUP_MESSAGE_SELECTED_MAX
+      : PREREGISTER_GROUP_MESSAGE_MAX;
   const scopeBlocker =
     scope === 'SELECTED' && selectedIds.length === 0
       ? '보낼 신청을 선택해주세요.'
-      : scope === 'SELECTED' && selectedIds.length > GROUP_MESSAGE_SELECTED_MAX
-        ? `선택 신청은 최대 ${GROUP_MESSAGE_SELECTED_MAX}건까지 보낼 수 있습니다.`
+      : scope === 'SELECTED' && selectedIds.length > selectedMax
+        ? `선택 신청은 최대 ${selectedMax}건까지 보낼 수 있습니다.`
         : scope === 'FILTERED' && filterCount === 0
           ? '현재 필터에 맞는 신청이 없습니다.'
           : scope === 'FILTERED'
@@ -279,6 +291,14 @@ const GroupMessageModal = ({
           message="문자 발송 설정을 불러오지 못했습니다."
           onRetry={() => config.refetch()}
         />
+      );
+    }
+    if (config.data?.enabled && !isTargetSupported) {
+      return (
+        <p role="status" className="text-body2r text-gray-500">
+          알림 서버가 아직 사전등록 대상 발송을 지원하지 않습니다. 지원 배포 후
+          다시 시도해주세요.
+        </p>
       );
     }
     return (

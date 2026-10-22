@@ -27,6 +27,7 @@ import {
 import { usePreregisterSummary } from '../../../common/model/preregisterSummary';
 import {
   GroupMessageTarget,
+  PREREGISTER_GROUP_MESSAGE_MAX,
   toPreregisterGroupMessageFilter,
 } from '../../model/groupMessage';
 import GroupMessageModal from '../GroupMessageModal';
@@ -102,7 +103,10 @@ const PreregisterLedger = () => {
       selectedIds: selectedRows.map(({ id }) => id),
       filter: toPreregisterGroupMessageFilter(filter),
       filterCount: totalCount,
-      filterBlocker: null,
+      filterBlocker:
+        totalCount > PREREGISTER_GROUP_MESSAGE_MAX
+          ? `현재 필터 전체는 최대 ${PREREGISTER_GROUP_MESSAGE_MAX}건까지 보낼 수 있습니다. 조건을 좁혀 주세요.`
+          : null,
     }),
     [selectedRows, filter, totalCount],
   );

@@ -25,8 +25,8 @@ export interface GroupMessageFilter {
 }
 
 /**
- * 사전등록 접수대장과 같은 필터. 서버 계약은 Expo-Application-Server#304 에서 확정하며,
- * 확정 전이라 선택은 대장 행 key, 필터는 목록 조회 조건 이름을 그대로 쓴다
+ * 사전등록 접수대장과 같은 필터(Expo-Application-Server#304). 서버는 page=0, size=20 기본값만 받으므로
+ * 보내지 않는다. 빈 q 는 400 이다
  */
 export interface PreregisterGroupMessageFilter {
   sessionId?: number;
@@ -39,7 +39,7 @@ export type GroupMessageScope =
   | { kind: 'SELECTED'; applicationIds: string[] }
   | { kind: 'FILTERED'; filter: GroupMessageFilter }
   | { kind: 'SELECTED'; keys: string[] }
-  | { kind: 'FILTERED'; filter: PreregisterGroupMessageFilter };
+  | { kind: 'FILTERED'; preregistrationFilter: PreregisterGroupMessageFilter };
 
 export type GroupMessageChannel = 'SMS' | 'KAKAO';
 
@@ -89,6 +89,8 @@ export interface GroupMessageConfig {
     >
   >;
   smsFallbackDefault: boolean;
+  /** 지원하는 대상 계약. 사전등록 대상은 PREREGISTRATION_GROUP_MESSAGE_V1 이 있어야 한다 */
+  targetContracts?: string[];
 }
 
 export interface GroupMessagePreviewItem {
