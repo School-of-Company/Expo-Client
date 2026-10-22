@@ -19,6 +19,7 @@ import {
   getParticipantQr,
   OwnerApplication,
   OwnerApplicationType,
+  OwnerFieldRegistration,
   OwnerParticipant,
 } from '../../api/myApplications';
 import { useFieldRelease } from '../../model/fieldRelease';
@@ -57,6 +58,24 @@ const BLOCKED_REASON_LABEL: Record<string, string> = {
   ACTIVE_PROGRAMS:
     '이 참가자가 신청한 프로그램을 먼저 취소해야 사전등록을 취소할 수 있습니다.',
   COMPANIONS_ACTIVE: COMPANIONS_ACTIVE_MESSAGE,
+  REGISTRATION_IN_PROGRESS:
+    '현장등록을 처리하고 있습니다. 잠시 후 확인해주세요.',
+};
+
+// 현장등록은 방문일 첫 입장 전까지만 취소할 수 있다. 같은 코드도 프로그램 취소와 문구가 다르다
+const FIELD_BLOCKED_REASON_LABEL: Record<string, string> = {
+  ...BLOCKED_REASON_LABEL,
+  ENTERED: '해당 방문일에 이미 입장해 현장등록을 취소할 수 없습니다.',
+  ACTIVE_PROGRAMS:
+    '신청한 프로그램·연수를 먼저 취소해야 현장등록을 취소할 수 있습니다.',
+  COMPANIONS_ACTIVE:
+    '동행자의 현장등록을 먼저 취소해 주세요. 동행자를 모두 취소하면 대표자도 취소할 수 있습니다.',
+};
+
+// yyyy-MM-dd 를 날짜 표시로. 형식이 다르면 받은 값을 그대로 보인다
+const formatVisitDate = (visitDate: string) => {
+  const [year, month, day] = visitDate.split('-').map(Number);
+  return year && month && day ? `${year}.${month}.${day}` : visitDate;
 };
 
 // 서버가 학생·보호자 연결 정보를 주지 않으므로 학생 신청에만 일반 안내를 한다.
@@ -76,6 +95,13 @@ const getGuardianCancelNote = (
 interface QrTarget {
   participantId: number;
   title: string;
+}
+
+interface FieldCancelTarget {
+  registrationId: string;
+  generation: number;
+  title: string;
+  visitDate: string;
 }
 
 interface CancelTarget {
@@ -246,6 +272,61 @@ const ApplicationRow = ({
   );
 };
 
+const FieldRegistrationRow = ({
+  registration,
+  title,
+  isCancelling,
+  onCancel,
+}: {
+  registration: OwnerFieldRegistration;
+  title: string;
+  isCancelling: boolean;
+  onCancel: (target: FieldCancelTarget) => void;
+}) => {
+  const { registrationId, generation, visitDate, cancellable } = registration;
+  const reasonId = `cancel-blocked-FIELD-${registrationId}`;
+  const blockedReason =
+    FIELD_BLOCKED_REASON_LABEL[registration.cancellationBlockedReason] ??
+    (registration.cancellationBlockedReason ||
+      '지금은 취소할 수 없습니다. 운영 측에 문의해주세요.');
+
+  return (
+    <li className="flex items-center justify-between gap-12 py-16 mobile:flex-col mobile:items-stretch">
+      <div className="flex flex-wrap items-center gap-8">
+        <p className="text-body2b text-black">현장등록</p>
+        <p className="text-caption1r text-gray-500">
+          방문일 {formatVisitDate(visitDate)}
+        </p>
+      </div>
+      {cancellable ? (
+        <button
+          type="button"
+          disabled={isCancelling}
+          onClick={() =>
+            onCancel({ registrationId, generation, title, visitDate })
+          }
+          className="whitespace-nowrap rounded-sm border-1 border-solid border-error px-16 py-8 text-caption1b text-error disabled:opacity-50"
+        >
+          현장등록 취소
+        </button>
+      ) : (
+        <button
+          type="button"
+          aria-disabled
+          aria-describedby={reasonId}
+          onClick={() => toast.info(blockedReason)}
+          className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 px-16 py-8 text-caption1b text-gray-400"
+        >
+          현장등록 취소
+          <span id={reasonId} className="sr-only">
+            {blockedReason}
+          </span>
+        </button>
+      )}
+    </li>
+  );
+};
+
 const Dialog = ({
   label,
   onClose,
@@ -364,12 +445,15 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     participants,
     applications,
     qrParticipantIds,
+    fieldRegistrations,
     sessionIssue,
     errorMessage,
     retry,
     waitlists,
     waitlistErrorMessage,
     cancel,
+    cancelField,
+    isCancellingField,
     cancelWaitlist,
     isCancellingWaitlist,
     offers,
@@ -386,6 +470,8 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
   );
   const [qrTarget, setQrTarget] = useState<QrTarget | null>(null);
   const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null);
+  const [fieldCancelTarget, setFieldCancelTarget] =
+    useState<FieldCancelTarget | null>(null);
   // 대기 취소를 확인받을 회차. 회차마다 따로 대기할 수 있다
   const [waitlistCancelSessionId, setWaitlistCancelSessionId] = useState<
     number | null
@@ -420,11 +506,17 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
     (a) => a.status !== 'CANCELLED',
   );
 
+  // 취소된 현장등록은 숨긴다. 같은 참가자의 다른 방문일·사전등록은 그대로 둔다
+  const activeFieldRegistrations = fieldRegistrations.filter(
+    (f) => f.status !== 'CANCELLED',
+  );
+
   // 참가자별로 묶고 대표자를 먼저 둔다. 서버가 주는 참가자 순서와 신청 순서는 그대로 지킨다.
   // 활성 신청도 QR 도 없는 참가자는 목록에서 빠진다. 사전등록 없이 현장등록만 한 사람은 신청 없이 QR 만 있다
   const groups = Array.from(
     new Set([
       ...visibleApplications.map((a) => a.participantId),
+      ...activeFieldRegistrations.map((f) => f.participantId),
       ...qrParticipantIds,
     ]),
   )
@@ -433,6 +525,9 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
       participant: participants.find((p) => p.participantId === participantId),
       active: visibleApplications.filter(
         (a) => a.participantId === participantId,
+      ),
+      fields: activeFieldRegistrations.filter(
+        (f) => f.participantId === participantId,
       ),
     }))
     .sort(
@@ -551,7 +646,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         ))}
 
       {!sessionIssue &&
-        groups.map(({ participantId, participant, active }, index) => {
+        groups.map(({ participantId, participant, active, fields }, index) => {
           const renderRow = (application: OwnerApplication) => (
             <ApplicationRow
               key={`${application.type}-${application.applicationId}`}
@@ -587,6 +682,7 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
                 )}
                 <span className="text-caption1b text-main-600">
                   {active.length > 0 ? `신청 ${active.length}건` : '현장등록'}
+                  {active.length > 0 && fields.length > 0 && ' · 현장등록'}
                 </span>
               </summary>
               <ul className="flex flex-col divide-y divide-solid divide-gray-100">
@@ -612,6 +708,15 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
                     </button>
                   </li>
                 )}
+                {fields.map((registration) => (
+                  <FieldRegistrationRow
+                    key={registration.registrationId}
+                    registration={registration}
+                    title={title}
+                    isCancelling={isCancellingField}
+                    onCancel={setFieldCancelTarget}
+                  />
+                ))}
                 {active.map(renderRow)}
               </ul>
             </details>
@@ -690,6 +795,42 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
               className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white"
             >
               신청 취소
+            </button>
+          </div>
+        </Dialog>
+      )}
+
+      {fieldCancelTarget && (
+        <Dialog
+          label="현장등록 취소 확인"
+          onClose={() => setFieldCancelTarget(null)}
+        >
+          <p className="text-h3b text-black">현장등록을 취소할까요?</p>
+          <p className="break-keep text-center text-body2r text-gray-500">
+            {fieldCancelTarget.title}
+            <br />
+            방문일 {formatVisitDate(fieldCancelTarget.visitDate)}의 입장 등록만
+            취소됩니다. 다른 방문일 등록과 사전등록은 그대로이며, 입장 전에는
+            다시 등록할 수 있습니다.
+          </p>
+          <div className="flex w-full gap-8">
+            <button
+              type="button"
+              onClick={() => setFieldCancelTarget(null)}
+              className="flex-1 rounded-sm bg-gray-100 px-24 py-14 text-body2b text-gray-700"
+            >
+              닫기
+            </button>
+            <button
+              type="button"
+              disabled={isCancellingField}
+              onClick={() => {
+                cancelField(fieldCancelTarget);
+                setFieldCancelTarget(null);
+              }}
+              className="flex-1 rounded-sm bg-error px-24 py-14 text-body2b text-white disabled:opacity-50"
+            >
+              현장등록 취소
             </button>
           </div>
         </Dialog>
