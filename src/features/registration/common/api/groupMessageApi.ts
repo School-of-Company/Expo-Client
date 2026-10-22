@@ -70,6 +70,9 @@ export interface KakaoVariableMapping {
   sessionName?: string;
   location?: string;
   status?: string;
+  // 받는 사람별 QR 페이지 링크와 신청 내역(여러 줄)
+  applicationUrl?: string;
+  applicationSummary?: string;
 }
 
 export interface KakaoTemplate {
@@ -77,6 +80,8 @@ export interface KakaoTemplate {
   name: string;
   content: string;
   variableMapping: KakaoVariableMapping;
+  // 모든 수신자에게 같은 값으로 채우는 자리표시자 → 고정값. 구버전 응답에는 없다
+  fixedVariables?: Record<string, string>;
   variables: string[];
 }
 
