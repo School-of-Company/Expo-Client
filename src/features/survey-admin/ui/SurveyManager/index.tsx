@@ -6,7 +6,9 @@ import { transformFormData } from '@/features/form/common/model/formUtils';
 import { transformServerData } from '@/features/form/edit';
 import { useRegistrationExpo } from '@/features/registration/common';
 import { XMark } from '@/shared/assets/icons';
+import { normalizeExpoId } from '@/shared/config';
 import { withLoading } from '@/shared/hocs';
+import { useExcelDownload } from '@/shared/model';
 import { FormValues, SurveyFormRequest } from '@/shared/types/form/create/type';
 import { Button } from '@/shared/ui';
 import { ModalLayout } from '@/widgets/layout';
@@ -32,6 +34,7 @@ const SurveyManager = () => {
   const isEdit = !!survey;
   const save = useSaveSurvey(expoId);
   const remove = useDeleteSurvey(expoId);
+  const { mutate: downloadExcel, isPending: isExporting } = useExcelDownload();
 
   const handleSubmit = (values: FormValues) => {
     const data = transformFormData(
@@ -84,7 +87,20 @@ const SurveyManager = () => {
             );
           })}
         </div>
-        <div className="flex items-center gap-16">
+        <div className="flex flex-wrap items-center gap-16">
+          {/* 공개 설문은 참가 유형과 무관한 행사 공통 1개라 탭·설문 유무와 상관없이 받는다. 설문이 없으면 서버가 404 문구를 준다 */}
+          <Button
+            variant="white"
+            width="120px"
+            onClick={() =>
+              downloadExcel({
+                path: `/excel/public-surveys/${normalizeExpoId(expoId)}`,
+              })
+            }
+            disabled={isExporting || !normalizeExpoId(expoId)}
+          >
+            {isExporting ? '받는 중...' : '설문 응답 엑셀'}
+          </Button>
           {isEdit && (
             <>
               <p className="whitespace-nowrap text-body2r text-gray-600">
