@@ -35,14 +35,15 @@ const APPLICATION_ERROR_CODE_MESSAGES: Record<string, string> = {
   GRADE_INVALID: '학년을 확인해 주세요.',
   SCHOOL_TYPE_MISMATCH: '학교급 선택이 참가자 정보와 맞지 않습니다.',
   COMPANION_LIMIT_REACHED: '일행은 최대 5명입니다.',
+  // 이미 사전등록한 번호는 새로 신청하지 않고 내 신청에서 회차를 더한다. 서버 문구보다 이 안내를 우선한다
+  PHONE_IN_USE:
+    '회차를 추가하고 싶으시면 내 신청 탭에서 다른 회차 추가를 눌러주세요.',
   WAITLIST_WITHDRAWN:
     '취소한 대기 신청입니다. 다시 신청하려면 처음부터 새로 신청해주세요.',
 };
 
 // 서버 문구가 더 구체적인 코드. 서버 문구(오픈 날짜 포함)가 없을 때만 쓴다
 const APPLICATION_ERROR_CODE_FALLBACKS: Record<string, string> = {
-  PHONE_IN_USE:
-    '이 번호로 이미 신청한 내역이 있습니다. 나의 신청 현황에서 확인해주세요.',
   OCCUPATION_NOT_OPEN:
     '교원·예비교사 외 유형은 아직 신청할 수 없습니다. 신청 가능 일정을 확인해주세요.',
 };
