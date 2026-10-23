@@ -13,6 +13,7 @@ import {
   PROGRAM_TYPE_LABEL,
 } from '@/features/registration/common/model/ledger';
 import { downloadQrImage } from '@/shared/libs/downloadQrImage';
+import { getErrorStatus } from '@/shared/libs/http/apiError';
 import { useModalDialog } from '@/shared/model';
 import {
   COMPANIONS_ACTIVE_MESSAGE,
@@ -350,6 +351,8 @@ const QrDialog = ({
     meta: { silent: true },
   });
   const sessionIssue = getSessionIssue(error);
+  // 404 는 다시 불러와도 같은 결과라 재시도를 두지 않는다. 네트워크·서버 오류만 다시 시도할 수 있다
+  const retryable = getErrorStatus(error) !== 404;
 
   return (
     <Dialog label={`${target.title} 입장 QR`} onClose={onClose}>
@@ -368,13 +371,15 @@ const QrDialog = ({
               <p role="alert" className="break-keep text-body2r text-error">
                 {error.message}
               </p>
-              <button
-                type="button"
-                onClick={() => refetch()}
-                className="w-full rounded-sm border-1 border-solid border-main-600 px-24 py-14 text-body2b text-main-600"
-              >
-                다시 시도
-              </button>
+              {retryable && (
+                <button
+                  type="button"
+                  onClick={() => refetch()}
+                  className="w-full rounded-sm border-1 border-solid border-main-600 px-24 py-14 text-body2b text-main-600"
+                >
+                  다시 시도
+                </button>
+              )}
             </>
           )}
         </div>
