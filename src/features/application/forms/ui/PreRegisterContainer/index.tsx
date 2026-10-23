@@ -92,7 +92,7 @@ const PreRegisterContainer = ({
   const field = useFieldRelease(expoId);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionIssue, setSessionIssue] = useState<SessionIssue>();
-  // 같은 번호의 활성 신청이 있어 접수되지 않았을 때 나의 신청 현황으로 안내한다
+  // 같은 번호의 활성 신청이 있어 접수되지 않았을 때 다른 회차 추가와 나의 신청 현황으로 안내한다
   const [isPhoneInUse, setIsPhoneInUse] = useState(false);
   // 같은 내용을 다시 보내면(연타·네트워크 재시도·오류 뒤 재제출) 같은 키로 보낸다
   const submissionKeys = useRef(createSubmissionKeys());
@@ -291,16 +291,25 @@ const PreRegisterContainer = ({
           >
             <p className="text-body2b text-error">이미 신청한 번호입니다</p>
             <p className="text-body2r text-gray-600">
-              이 번호로 접수된 신청이 있어 다시 신청할 수 없습니다. 신청 내역이
-              맞는지, 취소 후 다시 신청해야 하는지 나의 신청 현황에서
-              확인해주세요.
+              이 번호로 접수된 신청이 있어 새로 신청할 수 없습니다. 이 회차를
+              더하려면 나의 신청 현황의 &apos;다른 회차 추가&apos;로
+              신청해주세요. 신청 내역이 맞는지, 취소 후 다시 신청해야 하는지도
+              나의 신청 현황에서 확인할 수 있습니다.
             </p>
-            <Link
-              href={getExpoRoutes(expoId).applicationMy}
-              className="self-start text-body2b text-main-600 underline"
-            >
-              나의 신청 현황 보기
-            </Link>
+            <div className="flex flex-wrap gap-16">
+              <Link
+                href={`${getExpoRoutes(expoId).applicationMy}&addSessionId=${encodeURIComponent(sessionId)}`}
+                className="text-body2b text-main-600 underline"
+              >
+                이 회차를 다른 회차로 추가하기
+              </Link>
+              <Link
+                href={getExpoRoutes(expoId).applicationMy}
+                className="text-body2b text-gray-600 underline"
+              >
+                나의 신청 현황 보기
+              </Link>
+            </div>
           </div>
         )}
         <div className="flex flex-col gap-8 border-b-1 border-solid border-gray-200 pb-24">
