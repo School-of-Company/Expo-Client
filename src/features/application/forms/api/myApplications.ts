@@ -402,6 +402,10 @@ export const addMyPreRegisterSession = async (
   }
 };
 
+// QR 조회의 404 는 취소·소유 불일치·등록 없음 등이라 방문일 전 제한으로 읽히지 않게 QR 전용 문구를 쓴다
+const PARTICIPANT_QR_NOT_FOUND_MESSAGE =
+  'QR을 확인할 수 없습니다. 신청 상태를 확인해주세요.';
+
 // 대표자가 소유한 확정 참가자의 입장 QR 값. 현장 체크인 스캐너는 { participantId, code } 를 읽는다
 export const getParticipantQr = async (
   expoId: string,
@@ -413,7 +417,11 @@ export const getParticipantQr = async (
     );
     return data;
   } catch (error) {
-    throw toError(error, COMMON_ERRORS, 'QR 을 불러오지 못했습니다.');
+    throw toError(
+      error,
+      { ...COMMON_ERRORS, 404: PARTICIPANT_QR_NOT_FOUND_MESSAGE },
+      'QR 을 불러오지 못했습니다.',
+    );
   }
 };
 
