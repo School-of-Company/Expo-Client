@@ -18,6 +18,7 @@ import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import {
   PARTICIPANT_BLOCK_LABEL,
   SESSION_BLOCK_LABEL,
+  getCancelledCompanions,
   getParticipantBlockReason,
   getSessionBlockReason,
   isCurrentParticipant,
@@ -70,20 +71,25 @@ const AddSessionDialog = ({
   onClose: () => void;
 }) => {
   const dialogRef = useModalDialog({ onClose });
-  // 모두 취소한 동행자는 내 신청 목록에서 숨기므로 회차 추가 대상에서도 뺀다.
-  // 회차 활성화 판정·기본 선택·선택 인원·제출 대상이 모두 이 집합을 쓴다
+  // 지금 일행만 기본 선택한다. 모두 취소한 동행자는 따로 묶어 다시 고를 수 있게 한다
   const current = participants.filter(({ participantId }) =>
     isCurrentParticipant(applications, participantId),
   );
-  const participantIds = current.map(({ participantId }) => participantId);
+  const cancelled = getCancelledCompanions(participants, applications);
+  const currentIds = current.map(({ participantId }) => participantId);
+  // 회차 활성화 판정·제출 대상은 취소한 동행자까지 포함한다
+  const participantIds = [
+    ...currentIds,
+    ...cancelled.map(({ participantId }) => participantId),
+  ];
   const blockOf = (session: PublicPreregisterSession) =>
     getSessionBlockReason(session, sessions, applications, participantIds);
   const initial = sessions.find(
     (session) => session.id === initialSessionId && !blockOf(session),
   );
   const [sessionId, setSessionId] = useState<number | undefined>(initial?.id);
-  // 기본은 지금 일행 전체
-  const [selectedIds, setSelectedIds] = useState<number[]>(participantIds);
+  // 기본은 지금 일행 전체(취소한 동행자는 뺀다)
+  const [selectedIds, setSelectedIds] = useState<number[]>(currentIds);
   const submissionKeys = useRef(createSubmissionKeys());
   const [errorMessage, setErrorMessage] = useState<string>();
   const [formChanged, setFormChanged] = useState(false);
@@ -100,7 +106,7 @@ const AddSessionDialog = ({
           participantId,
         )
       : null;
-  // 취소로 일행에서 빠진 사람의 오래된 선택 ID가 남아 있어도 보내지 않는다
+  // 일행이 아닌 사람의 오래된 선택 ID가 남아 있어도 보내지 않는다
   const addableIds = selectedIds.filter(
     (id) => participantIds.includes(id) && !participantBlockOf(id),
   );
@@ -248,6 +254,16 @@ const AddSessionDialog = ({
             참석자 선택 · 일행 {current.length}명
           </legend>
           {current.map(renderParticipant)}
+          {cancelled.length > 0 && (
+            <>
+              <p className="mt-8 text-caption1b text-gray-700">취소한 동행자</p>
+              {cancelled.map(renderParticipant)}
+              <p className="break-keep text-caption1r text-gray-500">
+                다시 신청하면 기존 QR을 그대로 씁니다. 일행 인원 제한은 서버가
+                확인합니다.
+              </p>
+            </>
+          )}
           <p className="break-keep text-caption1r text-gray-500">
             대표자는 이 회차에 참석하지 않아도 됩니다.
           </p>

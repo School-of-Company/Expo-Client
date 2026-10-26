@@ -20,13 +20,24 @@ import { useModalDialog } from '@/shared/model';
 import { Companion } from '@/shared/types/application/type';
 import { createSubmissionKeys } from '../../../lib/createSubmissionKeys';
 import { processCompanions } from '../../../lib/process/processFormField';
-import { AddCompanionsResult } from '../../api/myApplications';
+import {
+  AddCompanionsResult,
+  AddSessionResult,
+  OwnerApplication,
+  OwnerParticipant,
+} from '../../api/myApplications';
+import {
+  getCancelledCompanions,
+  matchCancelledCompanion,
+} from '../../model/addSession';
 import { useOccupationLock } from '../../model/occupationOpen';
 
 export interface AddCompanionTarget {
   applicationId: string;
   /** "홍길동 · 사전등록" */
   title: string;
+  /** 이 신청의 사전등록 회차 */
+  sessionId: number;
   /** 회차 이름과 일정 */
   session: string;
   /** 지금 더 추가할 수 있는 동행자 수(서버 remainingCompanionSlots) */
@@ -52,22 +63,33 @@ const RESULT_MESSAGE: Record<
 const AddCompanionDialog = ({
   target,
   isSubmitting,
+  applications,
+  participants,
   onSubmit,
+  onAddSession,
   onClose,
   expoId,
 }: {
   expoId: string;
   target: AddCompanionTarget;
   isSubmitting: boolean;
+  applications: OwnerApplication[];
+  participants: OwnerParticipant[];
   onSubmit: (body: {
     applicationId: string;
     companions: Companion[];
     idempotencyKey: string;
   }) => Promise<AddCompanionsResult>;
+  /** 취소한 동행자를 이 회차에 다시 신청한다 */
+  onAddSession: (body: {
+    sessionId: number;
+    participantIds: number[];
+    idempotencyKey: string;
+  }) => Promise<AddSessionResult>;
   onClose: () => void;
 }) => {
   const dialogRef = useModalDialog({ onClose });
-  const { control, register, handleSubmit } = useForm<FieldValues>({
+  const { control, register, handleSubmit, setValue } = useForm<FieldValues>({
     defaultValues: { companions: [] },
   });
   // 같은 내용을 다시 보내면(연타·네트워크 오류 뒤 재시도) 같은 키로 보내 서버가 이어서 처리하게 한다
@@ -83,10 +105,37 @@ const AddCompanionDialog = ({
   });
   const occupationLock = useOccupationLock(preForm.data?.occupationOpenAt);
 
+  // 다시 신청을 확인받는 중인 취소한 동행자와, 이어서 새로 추가할 동행자
+  const [revive, setRevive] = useState<{
+    cancelled: OwnerParticipant[];
+    rest: Companion[];
+  }>();
+
+  const finish = (message: string, ok: boolean) => {
+    if (ok) toast.success(message);
+    else toast.info(message);
+  };
+
   const submit = handleSubmit(async (values) => {
     const companions = processCompanions(values.companions);
     setErrorMessage(undefined);
     setSessionIssue(undefined);
+    // 취소한 동행자와 이름·구분이 같으면 새로 만들지 않고 회차 추가로 다시 신청한다
+    const cancelledPool = getCancelledCompanions(participants, applications);
+    const matched: OwnerParticipant[] = [];
+    const rest: Companion[] = [];
+    companions.forEach((companion) => {
+      const found = matchCancelledCompanion(
+        cancelledPool.filter((c) => !matched.includes(c)),
+        companion,
+      );
+      if (found) matched.push(found);
+      else rest.push(companion);
+    });
+    if (matched.length > 0) {
+      setRevive({ cancelled: matched, rest });
+      return;
+    }
     try {
       const result = await onSubmit({
         applicationId: target.applicationId,
@@ -96,14 +145,54 @@ const AddCompanionDialog = ({
         ),
       });
       const message = RESULT_MESSAGE[result.status](result, companions.length);
-      if (result.status === 'CONFIRMED') toast.success(message);
-      else toast.info(message);
+      finish(message, result.status === 'CONFIRMED');
       onClose();
     } catch (error) {
       setSessionIssue(getSessionIssue(error));
       setErrorMessage((error as Error).message);
     }
   });
+
+  // 한 번에 두 요청을 보내 일부만 성공하는 일이 없도록 취소한 동행자를 먼저 다시 신청하고, 새 동행자는 따로 보낸다
+  const confirmRevive = async () => {
+    if (!revive) return;
+    setErrorMessage(undefined);
+    setSessionIssue(undefined);
+    const participantIds = revive.cancelled
+      .map(({ participantId }) => participantId)
+      .sort((a, b) => a - b);
+    try {
+      const result = await onAddSession({
+        sessionId: target.sessionId,
+        participantIds,
+        idempotencyKey: submissionKeys.current.keyFor(
+          JSON.stringify({ sessionId: target.sessionId, participantIds }),
+        ),
+      });
+      finish(
+        result.status === 'CONFIRMED'
+          ? '취소한 동행자를 다시 신청했습니다. 기존 QR을 그대로 씁니다.'
+          : result.status === 'WAITING'
+            ? '자리가 모자라 대기로 접수되었습니다. 자리가 나면 확정됩니다.'
+            : '다시 신청을 처리하고 있습니다. 잠시 후 신청 현황을 다시 확인해주세요.',
+        result.status === 'CONFIRMED',
+      );
+      if (revive.rest.length === 0) {
+        onClose();
+        return;
+      }
+      // 다시 신청한 동행자는 입력에서 빼고 나머지는 새 동행자로 이어서 추가하게 한다
+      setValue('companions', revive.rest);
+      setRevive(undefined);
+      setErrorMessage(
+        '취소한 동행자를 다시 신청했습니다. 나머지 동행자는 "추가하기"를 눌러 이어서 추가해주세요.',
+      );
+    } catch (error) {
+      setRevive(undefined);
+      setSessionIssue(getSessionIssue(error));
+      setErrorMessage((error as Error).message);
+    }
+  };
 
   return (
     <div
@@ -161,6 +250,44 @@ const AddCompanionDialog = ({
             접수될 수 있습니다.
           </p>
 
+          {revive && (
+            <div
+              role="alertdialog"
+              aria-label="취소한 동행자 다시 신청"
+              className="flex flex-col gap-8 rounded-sm bg-gray-100 p-16"
+            >
+              <p className="break-keep text-body2b text-black">
+                취소한 동행자입니다. 다시 신청하시겠어요?
+              </p>
+              <p className="break-keep text-body2r text-gray-700">
+                {revive.cancelled.map(({ name }) => name).join(', ')}
+              </p>
+              {revive.rest.length > 0 && (
+                <p className="break-keep text-caption1r text-gray-500">
+                  새 동행자는 다시 신청한 뒤에 따로 추가합니다.
+                </p>
+              )}
+              <div className="flex gap-8">
+                <button
+                  type="button"
+                  onClick={() => setRevive(undefined)}
+                  disabled={isSubmitting}
+                  className="flex-1 rounded-sm bg-white px-16 py-10 text-body2b text-gray-700"
+                >
+                  아니요
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmRevive}
+                  disabled={isSubmitting}
+                  className="flex-1 rounded-sm bg-main-600 px-16 py-10 text-body2b text-white disabled:bg-main-300"
+                >
+                  다시 신청
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex w-full gap-8">
             <button
               type="button"
@@ -171,7 +298,7 @@ const AddCompanionDialog = ({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !!revive}
               className="flex-1 rounded-sm bg-main-600 px-24 py-14 text-body2b text-white disabled:bg-main-300"
             >
               {isSubmitting ? '추가 중...' : '추가하기'}
