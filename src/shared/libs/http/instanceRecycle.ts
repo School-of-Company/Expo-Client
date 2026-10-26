@@ -58,5 +58,7 @@ export const createInstanceRecycle = ({
 };
 
 export const instanceRecycle = createInstanceRecycle({
-  enabled: process.env.VERCEL === '1',
+  // 새 인스턴스도 같은 출구 IP로 바로 실패하는 장애에서는 오히려 연결 장애를 키우므로, 환경변수로 켤 때만 동작한다
+  enabled:
+    process.env.VERCEL === '1' && process.env.GATEWAY_INSTANCE_RECYCLE === '1',
 });
