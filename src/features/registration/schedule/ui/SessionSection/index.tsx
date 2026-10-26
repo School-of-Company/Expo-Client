@@ -20,7 +20,7 @@ import {
 } from '../../model/sessionForm';
 import {
   isPreregisterTimeLocked,
-  TIME_LOCK_NOTICE,
+  PREREGISTER_TIME_LOCK_NOTICE,
 } from '../../model/timeLock';
 import ScheduleSection from '../ScheduleSection';
 import SessionCreateForm from '../SessionCreateForm';
@@ -124,7 +124,6 @@ const SessionSection = ({
         <DateTimeInput
           size="small"
           value={form.endedAt}
-          disabled={isTimeLocked(id)}
           onChange={(endedAt) => onChange(id, { endedAt })}
         />
       ),
@@ -286,7 +285,7 @@ const SessionSection = ({
     <ScheduleSection title="사전등록 회차">
       {hasLockedSession && (
         <p className="text-caption1r text-gray-500">
-          {TIME_LOCK_NOTICE} 시작·종료·취소 마감이 흐리게 표시된 회차도
+          {PREREGISTER_TIME_LOCK_NOTICE} 시작·취소 마감이 흐리게 표시된 회차도
           정원·대기 정원·장소·마감은 바꿀 수 있습니다.
         </p>
       )}

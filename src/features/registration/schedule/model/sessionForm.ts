@@ -91,6 +91,24 @@ export const validateSessionForm = (form: SessionForm): string | null => {
   return null;
 };
 
+/**
+ * 신청 이력이 있는 회차는 종료만 같은 날짜 안에서 줄일 수 있다. 연장·날짜 이동은 서버가 거절한다.
+ * 비교 기준은 편집 중인 값이 아니라 서버에서 읽은 원래 종료다. 문제가 없으면 null
+ */
+export const validateShortenedEnd = (
+  session: PreregisterSession,
+  form: SessionForm,
+): string | null => {
+  const original = fromOffsetDateTime(session.endedAt);
+  if (!original || !form.endedAt || !form.startedAt) return null;
+  if (form.endedAt === original) return null;
+  if (form.endedAt.slice(0, 10) !== original.slice(0, 10))
+    return '신청 이력이 있어 종료 날짜는 바꿀 수 없습니다.';
+  if (form.endedAt > original)
+    return '신청 이력이 있어 종료 시간은 줄이는 것만 가능합니다.';
+  return null;
+};
+
 export const toSessionDefinition = (
   form: SessionForm,
 ): PreregisterSessionDefinition => ({
