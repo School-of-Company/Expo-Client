@@ -21,13 +21,16 @@ import {
   useSchedulePrograms,
   useScheduleMutation,
 } from '../../../common';
+import { usePreregisterSummary } from '../../../common/model/preregisterSummary';
 import { ProgramForm } from '../../model/policyForm';
 import {
   SessionForm,
   toSessionDefinition,
   toSessionForm,
   validateSessionForm,
+  validateShortenedEnd,
 } from '../../model/sessionForm';
+import { isPreregisterTimeLocked } from '../../model/timeLock';
 import { useProgramDraftRestore } from '../../model/useProgramDraftRestore';
 import ProgramFormList from '../ProgramFormList';
 import ProgramSection, {
@@ -67,6 +70,11 @@ const ScheduleManager = () => {
   const sessionsQuery = usePreregisterSessions(expoId);
   const programsQuery = useSchedulePrograms(expoId);
   const invalidate = useInvalidateSchedule(expoId);
+  // 잠긴 회차는 종료 단축만 검증한다. 집계를 못 읽으면 서버 409 사유로 안내한다
+  const { data: summary } = usePreregisterSummary(expoId);
+  const summaryBySession = new Map(
+    summary?.sessions.map((item) => [item.sessionId, item]),
+  );
 
   // 서버 값과 별개로 고친 회차만 보관한다
   const [edits, setEdits] = useState<Map<number, SessionForm>>(new Map());
@@ -163,7 +171,12 @@ const ScheduleManager = () => {
     if (!sessions) return;
     const targets = sessions.filter(({ id }) => edits.has(id));
     for (const session of targets) {
-      const error = validateSessionForm(edits.get(session.id)!);
+      const form = edits.get(session.id)!;
+      const error =
+        validateSessionForm(form) ??
+        (isPreregisterTimeLocked(summaryBySession.get(session.id))
+          ? validateShortenedEnd(session, form)
+          : null);
       if (error) {
         toast.error(`${session.title}: ${error}`);
         return;
