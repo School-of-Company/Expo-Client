@@ -3,9 +3,11 @@
  */
 import assert from 'node:assert/strict';
 import {
+  getCancelledCompanions,
   getParticipantBlockReason,
   getSessionBlockReason,
   isCurrentParticipant,
+  matchCancelledCompanion,
 } from './addSession';
 import type { OwnerApplication } from '../api/myApplications';
 import type { PublicPreregisterSession } from '../api/preRegister';
@@ -128,5 +130,57 @@ assert.equal(isCurrentParticipant(history, 3), true);
 assert.equal(isCurrentParticipant(history, 4), true);
 // 신청 내역이 없는 참가자도 지금 일행이 아니다
 assert.equal(isCurrentParticipant(history, 5), false);
+
+// 모두 취소한 동행자만 "취소한 동행자"다. 대표자·현재 일행·신청 내역 없는 참가자는 아니다
+const people = [
+  {
+    participantId: 1,
+    name: '대표',
+    occupation: 'TEACHER' as const,
+    representative: true,
+  },
+  {
+    participantId: 2,
+    name: '김취소',
+    occupation: 'ELEMENTARY_STUDENT' as const,
+    representative: false,
+  },
+  {
+    participantId: 3,
+    name: '이현재',
+    occupation: 'ELEMENTARY_STUDENT' as const,
+    representative: false,
+  },
+  {
+    participantId: 9,
+    name: '박무신청',
+    occupation: null,
+    representative: false,
+  },
+];
+const cancelledList = getCancelledCompanions(people, [
+  applied(1, true),
+  applied(2, false),
+  applied(3, false),
+  applied(3, true),
+]);
+assert.deepEqual(
+  cancelledList.map(({ participantId }) => participantId),
+  [2],
+);
+// 이름+구분이 같을 때만 같은 사람으로 본다
+const found = (name: string, occupation: string) =>
+  matchCancelledCompanion(cancelledList, { name, occupation })?.participantId;
+assert.equal(found('김취소', 'ELEMENTARY_STUDENT'), 2);
+assert.equal(found(' 김취소 ', 'ELEMENTARY_STUDENT'), 2);
+assert.equal(found('김취소', 'MIDDLE_SCHOOL_STUDENT'), undefined);
+assert.equal(found('다른사람', 'ELEMENTARY_STUDENT'), undefined);
+// 대표자 일행이 신청한 회차도 취소한 동행자(2)를 넣을 수 있으면 막지 않는다
+const withCancelled = [
+  app('CONFIRMED', 1, 'PREREGISTER', 1),
+  app('CANCELLED', 1, 'PREREGISTER', 2),
+];
+assert.equal(reason(morning, withCancelled, [1]), 'APPLIED');
+assert.equal(reason(morning, withCancelled, [1, 2]), null);
 
 console.log('ok');
