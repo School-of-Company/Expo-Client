@@ -4,6 +4,7 @@ import React from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { FormSchema } from '@/features/form/common/model/formSchema';
 import { useLeaveConfirm } from '@/shared/model';
+import { collectErrorMessages } from '../lib/collectErrorMessages';
 import { FormValues, getVisibleFieldIds } from '../lib/visibilityEngine';
 import FieldRenderer, { LockedPhone, OccupationLock } from './FieldRenderer';
 
@@ -51,6 +52,7 @@ export default function FormRenderer({
 
   // 숨겨진 부모의 옛 값이 남아 있어도 자식이 뜨지 않도록 부모 연쇄까지 본다
   const visibleIds = getVisibleFieldIds(schema.items, watch());
+  const errorMessages = collectErrorMessages(errors);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-20">
@@ -80,13 +82,13 @@ export default function FormRenderer({
         />
       ))}
 
-      {Object.keys(errors).length > 0 && (
+      {errorMessages.length > 0 && (
         <div className="bg-error-50 rounded-sm p-16">
           <p className="text-body2b text-error">입력 내용을 확인해주세요</p>
           <ul className="mt-8 list-disc pl-20">
-            {Object.entries(errors).map(([key, error]) => (
-              <li key={key} className="text-caption1r text-error">
-                {error?.message as string}
+            {errorMessages.map((message) => (
+              <li key={message} className="text-caption1r text-error">
+                {message}
               </li>
             ))}
           </ul>
