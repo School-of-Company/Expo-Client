@@ -174,6 +174,7 @@ const ApplicationRow = ({
                 onAddCompanion({
                   applicationId,
                   title,
+                  sessionId: application.sessionOrProgramId,
                   session: sessionLabel,
                   remaining: remainingCompanionSlots,
                 })
@@ -713,8 +714,11 @@ const MyApplicationList = ({ expoId }: { expoId: string }) => {
         <AddCompanionDialog
           expoId={expoId}
           target={companionTarget}
-          isSubmitting={isAddingCompanions}
+          isSubmitting={isAddingCompanions || isAddingSession}
+          applications={applications}
+          participants={participants}
           onSubmit={addCompanions}
+          onAddSession={addSession}
           onClose={() => setCompanionTarget(null)}
         />
       )}

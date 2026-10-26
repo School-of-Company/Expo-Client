@@ -49,7 +49,9 @@ const ApplicationLanding = ({
   const actions = [
     {
       title: '신청하기',
-      text: `${isFieldReleased ? '현장등록' : '사전등록'}·프로그램·교원연수 회차와 신청 기간을 확인하고, 접수 중인 항목을 바로 신청할 수 있습니다.`,
+      text: isFieldReleased
+        ? '현장등록·프로그램·교원연수 회차와 신청 기간을 확인하고, 접수 중인 항목을 바로 신청할 수 있습니다.'
+        : '먼저 사전등록을 하고, 확정된 뒤에 프로그램·교원연수를 신청합니다. 회차와 신청 기간을 확인하고 접수 중인 항목을 신청할 수 있습니다.',
       button: '신청 목록 보기',
       onClick: onApply,
       className: 'bg-main-600 text-white',

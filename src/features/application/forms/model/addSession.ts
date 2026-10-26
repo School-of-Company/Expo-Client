@@ -1,10 +1,10 @@
 import { getPreRegisterSessionState } from './usePreRegister';
-import type { OwnerApplication } from '../api/myApplications';
+import type { OwnerApplication, OwnerParticipant } from '../api/myApplications';
 import type { PublicPreregisterSession } from '../api/preRegister';
 
 /**
  * 지금 일행인지. 사전등록·프로그램 신청 중 하나라도 현재 신청(applied)이 있어야 한다.
- * 모두 취소한 동행자는 다음 동행자 추가로 해제되기 전까지 응답에는 남지만 인원에서 빠지며, 회차 추가 대상에도 넣지 않는다(Expo-Application-Server#262)
+ * 모두 취소한 동행자는 다음 동행자 추가로 해제되기 전까지 응답에는 남지만 인원에서 빠진다(Expo-Application-Server#262)
  */
 export const isCurrentParticipant = (
   applications: Pick<OwnerApplication, 'participantId' | 'applied'>[],
@@ -13,6 +13,38 @@ export const isCurrentParticipant = (
   applications.some(
     (application) =>
       application.participantId === participantId && application.applied,
+  );
+
+/**
+ * 모든 신청을 취소한 동행자. 서버는 회차 추가에서 이들을 다시 현재 인원에 넣는다(Expo-Application-Server#262).
+ * 신청 내역이 하나도 없는 참가자는 취소한 것이 아니므로 뺀다
+ */
+export const getCancelledCompanions = <
+  P extends Pick<OwnerParticipant, 'participantId' | 'representative'>,
+>(
+  participants: P[],
+  applications: Pick<OwnerApplication, 'participantId' | 'applied'>[],
+) =>
+  participants.filter(
+    ({ participantId, representative }) =>
+      !representative &&
+      applications.some(
+        (application) => application.participantId === participantId,
+      ) &&
+      !isCurrentParticipant(applications, participantId),
+  );
+
+/** 입력한 동행자와 이름·구분이 같은 취소한 동행자. 같은 이름이라도 구분이 다르면 새 동행자다 */
+export const matchCancelledCompanion = <
+  P extends Pick<OwnerParticipant, 'name' | 'occupation'>,
+>(
+  cancelled: P[],
+  companion: { name: string; occupation: string },
+) =>
+  cancelled.find(
+    ({ name, occupation }) =>
+      name.trim() === companion.name.trim() &&
+      occupation === companion.occupation,
   );
 
 const toTime = (value: string) => new Date(value.replace(' ', 'T')).getTime();

@@ -27,7 +27,12 @@ import { getOccupationLock } from '../../model/occupationOpen';
 import { useNow } from '../../model/useNow';
 import { usePreRegisterSessions } from '../../model/usePreRegister';
 import CategoryCard, { CategorySession } from './CategoryCard';
-import { SectionFrame, SectionTabs } from './SectionFrame';
+import {
+  ApplicationSteps,
+  PreRegisterRequired,
+  SectionFrame,
+  SectionTabs,
+} from './SectionFrame';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
 const usePublicPrograms = (expoId: string, programType: ProgramType) =>
@@ -140,10 +145,18 @@ const ApplicationSchedule = ({
   const navItems = useMemo(
     () => [
       ...(showPreRegister
-        ? [{ id: 'section-registration', label: '사전등록' }]
+        ? [{ id: 'section-registration', label: '사전등록', step: '1단계' }]
         : []),
-      { id: 'section-program', label: '프로그램 신청' },
-      { id: 'section-training', label: '교원연수 신청' },
+      {
+        id: 'section-program',
+        label: '프로그램 신청',
+        ...(showPreRegister && { step: '2단계' }),
+      },
+      {
+        id: 'section-training',
+        label: '교원연수 신청',
+        ...(showPreRegister && { step: '2단계' }),
+      },
     ],
     [showPreRegister],
   );
@@ -166,6 +179,7 @@ const ApplicationSchedule = ({
 
   return (
     <div className="flex flex-col gap-20">
+      {showPreRegister && <ApplicationSteps />}
       <SectionTabs items={navItems} active={active} onChange={changeTab} />
 
       {showPreRegister && active === 'section-registration' && (
@@ -258,51 +272,65 @@ const ApplicationSchedule = ({
       )}
 
       {active === 'section-program' && (
-        <SectionFrame
-          id="section-program"
-          title="프로그램 신청"
-          description="사전등록이 확정된 참가자가 신청합니다. 기조강연, AI·SW 골든벨, 전시체험 투어 등 모든 회차를 바로 확인하고 선택할 수 있습니다."
-          error={standard.error}
-          onRetry={() => standard.refetch()}
-          isLoading={standard.isLoading}
-          isEmpty={standard.data?.length === 0}
-        >
-          <ul className="flex flex-col gap-16">
-            {programGroups.map((group) => (
-              <CategoryCard
-                key={group.key}
-                group={group}
-                sessions={group.sessions.map(toCategorySession)}
-                applyHref={`/application/forms/${expoId}/program`}
-                selectable
-              />
-            ))}
-          </ul>
-        </SectionFrame>
+        <>
+          {showPreRegister && (
+            <PreRegisterRequired
+              onGoRegistration={() => changeTab('section-registration')}
+            />
+          )}
+          <SectionFrame
+            id="section-program"
+            title="프로그램 신청"
+            description="사전등록이 확정된 참가자가 신청합니다. 기조강연, AI·SW 골든벨, 전시체험 투어 등 모든 회차를 바로 확인하고 선택할 수 있습니다."
+            error={standard.error}
+            onRetry={() => standard.refetch()}
+            isLoading={standard.isLoading}
+            isEmpty={standard.data?.length === 0}
+          >
+            <ul className="flex flex-col gap-16">
+              {programGroups.map((group) => (
+                <CategoryCard
+                  key={group.key}
+                  group={group}
+                  sessions={group.sessions.map(toCategorySession)}
+                  applyHref={`/application/forms/${expoId}/program`}
+                  selectable
+                />
+              ))}
+            </ul>
+          </SectionFrame>
+        </>
       )}
 
       {active === 'section-training' && (
-        <SectionFrame
-          id="section-training"
-          title="교원연수 신청"
-          description="교사·예비교사가 신청합니다. 삼성 → 구글 → 애플 순서로 모든 연수 회차를 바로 확인하고 선택할 수 있습니다."
-          error={training.error}
-          onRetry={() => training.refetch()}
-          isLoading={training.isLoading}
-          isEmpty={training.data?.length === 0}
-        >
-          <ul className="flex flex-col gap-16">
-            {trainingGroups.map((group) => (
-              <CategoryCard
-                key={group.key}
-                group={group}
-                sessions={group.sessions.map(toCategorySession)}
-                applyHref={`/application/forms/${expoId}/training`}
-                selectable
-              />
-            ))}
-          </ul>
-        </SectionFrame>
+        <>
+          {showPreRegister && (
+            <PreRegisterRequired
+              onGoRegistration={() => changeTab('section-registration')}
+            />
+          )}
+          <SectionFrame
+            id="section-training"
+            title="교원연수 신청"
+            description="교사·예비교사가 신청합니다. 삼성 → 구글 → 애플 순서로 모든 연수 회차를 바로 확인하고 선택할 수 있습니다."
+            error={training.error}
+            onRetry={() => training.refetch()}
+            isLoading={training.isLoading}
+            isEmpty={training.data?.length === 0}
+          >
+            <ul className="flex flex-col gap-16">
+              {trainingGroups.map((group) => (
+                <CategoryCard
+                  key={group.key}
+                  group={group}
+                  sessions={group.sessions.map(toCategorySession)}
+                  applyHref={`/application/forms/${expoId}/training`}
+                  selectable
+                />
+              ))}
+            </ul>
+          </SectionFrame>
+        </>
       )}
     </div>
   );

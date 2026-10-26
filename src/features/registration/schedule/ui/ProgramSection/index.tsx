@@ -20,10 +20,12 @@ import {
   useScheduleMutation,
 } from '../../../common';
 import { ProgramSessionType } from '../../../common/api/ledgerApi';
+import { useLedgerSummary } from '../../../common/model/ledger';
 import {
   formatDefinitionSchedule,
   PROGRAM_TYPE_LABEL,
 } from '../../../common/model/ledger';
+import { getApplicantCounts } from '../../model/applicantCounts';
 import { ProgramForm as ProgramFormValue } from '../../model/policyForm';
 import {
   getProgramGroupId,
@@ -86,6 +88,8 @@ const ProgramSection = ({
 }: ProgramSectionProps) => {
   // 켜 둔 화면도 모집 시작·종료 시각에 상태가 바뀐다
   const now = useNow(getProgramStatusBoundaries(programs));
+  // 현재 신청 인원은 신청 요약에서 받는다. 못 받으면 인원 자리에 '-' 를 보인다
+  const { data: summary } = useLedgerSummary(expoId);
   const [ownEditing, setOwnEditing] = useState<ProgramEditing>(null);
   const editing =
     controlledEditing === undefined ? ownEditing : controlledEditing;
@@ -181,8 +185,8 @@ const ProgramSection = ({
     },
     {
       key: 'capacity',
-      label: '정원 / 대기',
-      flex: 0.7,
+      label: '신청 현황',
+      flex: 0.9,
       render: ({ program }) => {
         if (!program.policy) return '-';
         const {
@@ -191,10 +195,15 @@ const ProgramSection = ({
           preRegistrationCapacity,
           onsiteCapacity,
         } = program.policy;
-        const total = `${capacity ?? '-'} / ${waitingCapacity ?? 0}`;
+        const counts = getApplicantCounts(program, summary);
         return (
           <>
-            <p>{total}</p>
+            <p>
+              확정 {counts?.confirmed ?? '-'} / {capacity ?? '-'}
+            </p>
+            <p>
+              대기 {counts?.waiting ?? '-'} / {waitingCapacity ?? 0}
+            </p>
             <p className="text-caption2r">
               사전 {preRegistrationCapacity ?? '-'} · 현장{' '}
               {onsiteCapacity ?? '-'}
