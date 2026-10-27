@@ -4,8 +4,20 @@ export const BADGE_PRINT_HTML = `
         <head>
           <title>Badge</title>
           <style>
+            @font-face {
+              font-family: 'GMarketSans';
+              src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+              font-weight: 500;
+              font-display: swap;
+            }
+            @font-face {
+              font-family: 'GMarketSans';
+              src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff');
+              font-weight: 700;
+              font-display: swap;
+            }
             body {
-              font-family: 'Arial', sans-serif;
+              font-family: 'GMarketSans', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
               display: flex;
               justify-content: center;
               align-items: center;
@@ -22,7 +34,8 @@ export const BADGE_PRINT_HTML = `
               margin: 0 0 40px;
               font-size: 28px;
               line-height: 1.4;
-              color: #333;
+              font-weight: 500;
+              color: #000;
               white-space: pre-line;
               word-break: keep-all;
               overflow-wrap: anywhere;
@@ -31,7 +44,7 @@ export const BADGE_PRINT_HTML = `
               margin: 0;
               font-size: 64px;
               line-height: 1.2;
-              font-weight: bold;
+              font-weight: 700;
               overflow-wrap: anywhere;
             }
             @media print {
@@ -50,9 +63,49 @@ export const BADGE_PRINT_HTML = `
             <h1 class="badge-name" id="badge-name"></h1>
           </div>
           <script>
+            // 긴 글자는 먼저 자연스럽게 줄바꿈하고, 그래도 영역에 안 들어가면 글자 크기를 줄인다
+            function fitBadge() {
+              var badge = document.querySelector('.badge');
+              var school = document.getElementById('badge-school');
+              var name = document.getElementById('badge-name');
+              var maxWidth = badge.clientWidth - 40;
+
+              // 이름은 한 줄을 우선하고, 최소 크기까지 줄여도 넘치면 줄바꿈을 허용한다
+              var nameSize = 64;
+              name.style.whiteSpace = 'nowrap';
+              while (name.scrollWidth > maxWidth && nameSize > 28) {
+                nameSize -= 2;
+                name.style.fontSize = nameSize + 'px';
+              }
+              if (name.scrollWidth > maxWidth) name.style.whiteSpace = 'normal';
+
+              // 전체가 화면 높이를 넘으면 소속과 이름을 함께 줄인다
+              var schoolSize = 28;
+              while (badge.offsetHeight > window.innerHeight && (schoolSize > 14 || nameSize > 28)) {
+                if (school && schoolSize > 14) {
+                  schoolSize -= 1;
+                  school.style.fontSize = schoolSize + 'px';
+                }
+                if (nameSize > 28) {
+                  nameSize -= 2;
+                  name.style.fontSize = nameSize + 'px';
+                }
+              }
+            }
             window.onload = function() {
-              window.print();
-              window.close();
+              var go = function() {
+                fitBadge();
+                window.print();
+                window.close();
+              };
+              // 폰트가 늦거나 막혀도 3초 뒤에는 대체 폰트로 인쇄한다
+              Promise.race([
+                Promise.all([
+                  document.fonts.load('500 1em GMarketSans'),
+                  document.fonts.load('700 1em GMarketSans'),
+                ]),
+                new Promise(function(resolve) { setTimeout(resolve, 3000); }),
+              ]).then(go, go);
             };
           </script>
         </body>
