@@ -6,11 +6,13 @@ import { useEffect } from 'react';
 import { formatDefinitionSchedule } from '@/features/registration/common/model/ledger';
 import { getExpoRoutes } from '@/shared/config';
 import { Loading } from '@/shared/ui';
+import { useLiveSeats } from '../../model/useLiveSeats';
 import {
   getPreRegisterSessionState,
   PRE_REGISTER_SESSION_STATE_LABEL,
   usePreRegisterSessions,
 } from '../../model/usePreRegister';
+import { LiveSeatsNote, SeatSummary } from '../LiveSeats';
 
 const Notice = ({ title, children }: { title: string; children: string }) => (
   <div className="flex flex-col gap-8 rounded-sm border-1 border-solid border-main-300 bg-main-100 p-24">
@@ -31,6 +33,7 @@ const PreRegisterSessionSelect = ({ expoId }: { expoId: string }) => {
     refetch,
     isFetching,
   } = usePreRegisterSessions(expoId);
+  const { data: seats, isError: seatsFailed } = useLiveSeats(expoId);
   const basePath = `/application/forms/${expoId}/pre-register`;
   const backHref = getExpoRoutes(expoId).applicationListTab('registration');
 
@@ -85,10 +88,12 @@ const PreRegisterSessionSelect = ({ expoId }: { expoId: string }) => {
           </Notice>
         ) : (
           <p className="text-body2r text-gray-500">
-            신청할 회차를 골라 주세요. 남은 자리는 회차를 고른 뒤 확인할 수
-            있습니다.
+            신청할 회차를 골라 주세요.{' '}
+            {seats?.preRegister.status !== 'ok' &&
+              '남은 자리는 회차를 고른 뒤 확인할 수 있습니다.'}
           </p>
         )}
+        <LiveSeatsNote fetchedAt={seats?.fetchedAt} failed={seatsFailed} />
         <ul className="flex flex-col gap-12">
           {sessions.map((session) => {
             const state = getPreRegisterSessionState(session);
@@ -113,6 +118,7 @@ const PreRegisterSessionSelect = ({ expoId }: { expoId: string }) => {
                     장소: {session.place}
                   </p>
                 )}
+                <SeatSummary group={seats?.preRegister} id={session.id} />
               </>
             );
             return (

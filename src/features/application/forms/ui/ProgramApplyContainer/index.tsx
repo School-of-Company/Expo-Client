@@ -58,10 +58,12 @@ import {
   getConfirmedSessionWindows,
   matchesSessionTime,
 } from '../../model/sessionTimeMatch';
+import { useLiveSeats } from '../../model/useLiveSeats';
 import { useMyApplications } from '../../model/useMyApplications';
 import { useNow } from '../../model/useNow';
 import { getPreRegisterSessionState } from '../../model/usePreRegister';
 import CompanionApplyFlow from '../CompanionApplyFlow';
+import { LiveSeatsNote, SeatSummary } from '../LiveSeats';
 import type { Program, ProgramType } from '@/shared/types/program/list/type';
 
 const PROGRAM_LABEL: Record<ProgramType, string> = {
@@ -458,6 +460,7 @@ const ProgramApplyContainer = ({
         : getPublicStandardProgram(expoId),
     retry: false,
   });
+  const { data: seats, isError: seatsFailed } = useLiveSeats(expoId);
   const queryClient = useQueryClient();
   const router = useRouter();
   // 목록 조회의 401·403은 참가자의 로그인 문제가 아니므로 서버 문구를 그대로 보이지 않는다
@@ -578,6 +581,7 @@ const ProgramApplyContainer = ({
         <p className="break-keep text-body2r text-gray-500">
           {label}마다 따로 신청합니다.
         </p>
+        <LiveSeatsNote fetchedAt={seats?.fetchedAt} failed={seatsFailed} />
         {programsError && (
           <div role="alert" className="flex flex-col gap-8">
             <p className="text-body2r text-error">{programsError}</p>
@@ -777,6 +781,10 @@ const ProgramApplyContainer = ({
                   ),
                 )}
               </dl>
+              <SeatSummary
+                group={seats?.programs[programType]}
+                id={program.id}
+              />
 
               {onsiteOpen && (
                 <fieldset className="flex flex-col gap-8">

@@ -18,8 +18,6 @@ export type AttendUserQrRequest =
 export interface AttendUserBadge {
   name: string;
   school: string | null;
-  // 입구 스캔이 읽는 QR 값(JSON 문자열). 그대로 QR로 그린다
-  qrCode: string;
 }
 
 // 최초 입장과 재입장. 서버 필드 이름은 Expo-Attendance-Server#148 에서 확정 전이라 없을 수 있다(없으면 최초 입장으로 본다)
