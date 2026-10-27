@@ -27,16 +27,18 @@ import {
   postApplication,
 } from '../../api/postApplication';
 import { useFieldRelease } from '../../forms/model/fieldRelease';
-import { useFieldVisitParty } from '../../forms/model/useFieldVisits';
+import {
+  useFieldVisitParty,
+  useRegisterFieldVisits,
+} from '../../forms/model/useFieldVisits';
 import { useParticipantExpoDetail } from '../../forms/model/useParticipantExpoDetail';
 import FieldVisitRegistration from '../../forms/ui/FieldVisitRegistration';
 import { createSubmissionKeys } from '../../lib/createSubmissionKeys';
 import { getFormatter } from '../../lib/formatterService';
+import { buildFirstFieldVisit } from '../../lib/process/buildFirstFieldVisit';
 import { findRegistrationAnswerError } from '../../lib/process/findRegistrationAnswerError';
 
 const ALREADY_PREREGISTERED_TODAY = 'ALREADY_PREREGISTERED_TODAY';
-// 방문일 원장이 켜진 서버는 번호 단위 현장등록을 막고 기존 참가자 선택 화면을 요구한다
-const FIELD_VISIT_SELECTION_REQUIRED = 'FIELD_VISIT_SELECTION_REQUIRED';
 
 const ApplicationFormContainer = ({ params }: { params: string }) => {
   const searchParams = useSearchParams();
@@ -87,10 +89,17 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
     params,
     isStandardField && verificationRequired === true && isVerified,
   );
-  const [selectionRequired, setSelectionRequired] = useState(false);
-  const showFieldVisits =
-    !!fieldParty.party &&
-    (fieldParty.party.participants.length > 0 || selectionRequired);
+  // 처음 조회된 결과로 화면을 정한다. 작성 중 재조회로 입력 폼이 기존 일행 화면으로 바뀌어 입력이 사라지지 않게 한다
+  const [hasExistingParty, setHasExistingParty] = useState<boolean>();
+  if (fieldParty.party && hasExistingParty === undefined) {
+    setHasExistingParty(fieldParty.party.participants.length > 0);
+  }
+  const showFieldVisits = !!fieldParty.party && hasExistingParty === true;
+  // 일행이 0명이면 대표자·동행자를 방문일 API 로 최초등록한다. 구 FIELD API 는 호출하지 않는다
+  const isFirstFieldVisit = !!fieldParty.party && hasExistingParty === false;
+  const { mutateAsync: registerFieldVisits } = useRegisterFieldVisits(params);
+  // 신규 참가자 참조값은 같은 내용의 재시도에서 유지하고, 성공 뒤에만 비운다
+  const references = useRef<string[]>([]);
   // 그날 회차에 확정된 사전등록이 있는 번호는 현장등록 대신 받은 QR로 입장한다(Expo-Application-Server#261)
   const [isPreregisteredToday, setIsPreregisteredToday] = useState(false);
 
@@ -137,6 +146,37 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
 
       const formatter = getFormatter(userType, allQuestions, applicationType);
 
+      if (isFirstFieldVisit) {
+        const first = buildFirstFieldVisit(
+          dynamicFormValues,
+          allQuestions,
+          () => crypto.randomUUID(),
+          references.current,
+        );
+        if ('error' in first) {
+          toast.error(first.error);
+          return;
+        }
+        const body = {
+          participantIds: [],
+          newParticipants: first.newParticipants,
+        };
+        await registerFieldVisits({
+          body,
+          idempotencyKey: submissionKeys.current.keyFor(JSON.stringify(body)),
+          csrfToken: fieldParty.party?.csrfToken,
+        });
+        references.current = [];
+        submissionKeys.current.reset();
+        ['myApplications', 'myPreRegisterWaitlist', 'participantQr'].forEach(
+          (key) => queryClient.invalidateQueries({ queryKey: [key, params] }),
+        );
+        router.push(
+          `/application/success/${params}?userType=${userType}&formType=application&applicationType=${applicationType}`,
+        );
+        return;
+      }
+
       const formattedData = formatter({
         ...dynamicFormValues,
         privacyConsent,
@@ -169,15 +209,6 @@ const ApplicationFormContainer = ({ params }: { params: string }) => {
         `/application/success/${params}?userType=${userType}&formType=application&applicationType=${applicationType}`,
       );
     } catch (error) {
-      if (
-        error instanceof ApplicationSubmitError &&
-        error.code === FIELD_VISIT_SELECTION_REQUIRED
-      ) {
-        setSelectionRequired(true);
-        fieldParty.refetch();
-        toast.info('기존 참가자를 확인한 뒤 오늘 현장등록을 진행해주세요.');
-        return;
-      }
       setSessionIssue(getSessionIssue(error));
       setIsPreregisteredToday(
         error instanceof ApplicationSubmitError &&
