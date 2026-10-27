@@ -29,9 +29,19 @@ export class GiftPickupError extends ApiError {
   }
 }
 
-const toGiftError = (error: unknown, fallback: string): Error => {
+// 참가자가 로그인 없이 부르는 수령 확인 경로의 401. 로그인 안내가 아니라 확인할 수 없다는 안내로 바꾼다
+const PUBLIC_UNAVAILABLE =
+  '지금은 수령 확인을 할 수 없습니다. 운영진에게 문의해 주세요.';
+
+const toGiftError = (
+  error: unknown,
+  fallback: string,
+  { isPublic = false }: { isPublic?: boolean } = {},
+): Error => {
   const base = toFormError(error, fallback);
   if (!(base instanceof ApiError)) return base;
+  if (isPublic && base.status === 401)
+    return new GiftPickupError(PUBLIC_UNAVAILABLE, 401, base.code);
   const data = axios.isAxiosError(error) ? error.response?.data : undefined;
   const num = (value: unknown) =>
     typeof value === 'number' && value >= 0 ? value : undefined;
@@ -53,7 +63,9 @@ export const getGiftPickupStatus = async (expoId: string, token: string) => {
     );
     return data;
   } catch (error) {
-    throw toGiftError(error, '수령 상태를 확인하지 못했습니다.');
+    throw toGiftError(error, '수령 상태를 확인하지 못했습니다.', {
+      isPublic: true,
+    });
   }
 };
 
@@ -70,7 +82,9 @@ export const confirmGiftPickup = async (
     );
     return data;
   } catch (error) {
-    throw toGiftError(error, '수령을 확인하지 못했습니다.');
+    throw toGiftError(error, '수령을 확인하지 못했습니다.', {
+      isPublic: true,
+    });
   }
 };
 
