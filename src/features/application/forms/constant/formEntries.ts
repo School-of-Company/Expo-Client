@@ -1,6 +1,6 @@
 import { ApplicationType } from '@/shared/types/exhibition/type';
 
-export type FormGroup = 'PRE' | 'FIELD' | 'SURVEY';
+export type FormGroup = 'PRE' | 'FIELD';
 
 export const FORM_GROUPS: {
   key: FormGroup;
@@ -13,10 +13,6 @@ export const FORM_GROUPS: {
   {
     key: 'FIELD',
     label: '현장등록',
-  },
-  {
-    key: 'SURVEY',
-    label: '만족도 조사',
   },
 ];
 
