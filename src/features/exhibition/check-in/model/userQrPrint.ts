@@ -35,11 +35,6 @@ export const userQrPrint = (data: AttendUserResponse[], selectItem: string) => {
     return;
   }
 
-  printBadge({
-    // 소속이 있으면 "광주초 홍길동", 없으면 이름만
-    name: badge.school ? `${badge.school} ${badge.name}` : badge.name,
-    qrCode: badge.qrCode,
-    typeLabel: ATTENDEE_TYPE_LABEL[getAttendeeType(selectedData)],
-    isTemporary: false,
-  });
+  // 명찰에는 소속과 이름만 찍는다. QR 은 넣지 않는다
+  printBadge({ school: badge.school, name: badge.name });
 };

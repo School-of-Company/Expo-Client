@@ -83,7 +83,7 @@ const TableFooter = <Id extends string | number>({
             출력
           </p>
           <SmallButton
-            text="QR출력"
+            text="명찰 출력"
             onClick={() => handleActionClick('PrintBadge')}
           />
         </div>
