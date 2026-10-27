@@ -2,8 +2,10 @@
 
 import { useRef } from 'react';
 import { toast } from 'react-toastify';
+import { usePublicSurveyQuery } from '@/entities/survey';
 import { useStandardProgram } from '@/shared/queries/useStandardProgram';
 import { Button } from '@/shared/ui';
+import { getSurveyQrStatus } from '../../lib/getSurveyQrStatus';
 import ExhibitionAccessQrContainer from '../ExhibitionAccessQrContainer';
 
 interface AccessQrTarget {
@@ -22,11 +24,15 @@ interface AccessQrPanelProps {
 /**
  * 현장에 띄우는 신청 사이트 바로가기 QR. 참가자에게 보여 주는 화면이라 전체 화면으로 띄울 수 있다.
  * 현장등록은 신청 목록으로 보내 인증을 거쳐 등록하게 하고, 현장 정원이 있는 프로그램은 그 프로그램 신청으로 바로 보낸다.
+ * 만족도 조사는 공개 설문이 있을 때만 QR 을 띄운다.
  * 일반 사전등록 폼은 회차 없이 열면 거절되므로(400) 대상에 두지 않는다
  */
 const AccessQrPanel = ({ id, target, onSelect }: AccessQrPanelProps) => {
   const qrRef = useRef<HTMLDivElement>(null);
   const { data: programs, isError } = useStandardProgram(id);
+  const surveyQuery = usePublicSurveyQuery(id, {
+    enabled: target === 'survey',
+  });
   const targets: AccessQrTarget[] = [
     {
       key: 'field',
@@ -38,6 +44,7 @@ const AccessQrPanel = ({ id, target, onSelect }: AccessQrPanelProps) => {
       label: '사전 연수자',
       path: `/application/${id}?formType=application&userType=TRAINEE&applicationType=PRE`,
     },
+    { key: 'survey', label: '만족도 조사', path: `/survey/${id}` },
     ...(programs ?? [])
       .filter(({ policy }) => (policy?.onsiteCapacity ?? 0) > 0)
       .map((program) => ({
@@ -47,6 +54,15 @@ const AccessQrPanel = ({ id, target, onSelect }: AccessQrPanelProps) => {
       })),
   ];
   const selected = targets.find(({ key }) => key === target);
+  const surveyStatus =
+    selected?.key === 'survey' ? getSurveyQrStatus(surveyQuery) : 'ready';
+  const surveyNotice = {
+    loading: '만족도 조사를 확인하는 중입니다.',
+    none: '등록된 만족도 조사가 없어 QR을 표시할 수 없습니다. 만족도 조사를 먼저 만들어 주세요.',
+    error:
+      '만족도 조사를 불러오지 못해 QR을 표시할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+    ready: null,
+  }[surveyStatus];
 
   const showFullscreen = () => {
     qrRef.current?.requestFullscreen().catch(() => {
@@ -91,12 +107,23 @@ const AccessQrPanel = ({ id, target, onSelect }: AccessQrPanelProps) => {
           </p>
         )}
         <div className="mt-auto pt-8">
-          <Button onClick={showFullscreen} disabled={!selected}>
+          <Button
+            onClick={showFullscreen}
+            disabled={!selected || surveyStatus !== 'ready'}
+          >
             전체 화면으로 띄우기
           </Button>
         </div>
       </section>
-      {selected ? (
+      {surveyNotice ? (
+        <div className="flex min-h-[600px] flex-1 items-center justify-center rounded-sm bg-gray-100 p-24 tablet:min-h-[300px]">
+          <p
+            className={`break-keep text-center text-body1b ${surveyStatus === 'error' ? 'text-error' : 'text-gray-400'}`}
+          >
+            {surveyNotice}
+          </p>
+        </div>
+      ) : selected ? (
         <div
           ref={qrRef}
           className="flex min-h-[600px] flex-1 flex-col rounded-sm border-1 border-solid border-gray-200 bg-white py-40 tablet:min-h-[440px]"
