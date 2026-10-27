@@ -21,6 +21,7 @@ import {
   successResult,
 } from '../../model/scanResult';
 import { toExitRequest } from '../../model/toExitRequest';
+import { useCheckInEntries } from '../../model/useCheckInEntries';
 import { useInvalidateEntrySummary } from '../../model/useEntrySummary';
 import { useExitUserMutation } from '../../model/useExitUserMutation';
 import { usePaperQrAttendanceMutation } from '../../model/usePaperQrAttendanceMutation';
@@ -43,8 +44,13 @@ import WalkInPanel from '../WalkInPanel';
 
 const QRScannerTable = ({ id }: { id: string }) => {
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
-  const [userData, setUserData] = useState<AttendUserResponse[]>([]);
-  const [paperQrCount, setPaperQrCount] = useState(0);
+  // 나갔다 들어와도 오늘 입장 기록이 남도록 박람회별로 저장한다
+  const {
+    entries: userData,
+    paperQrCount,
+    addEntry,
+    addPaperQr,
+  } = useCheckInEntries(id);
   const [typeFilter, setTypeFilter] = useState<AttendeeType | 'ALL'>('ALL');
   // 스캐너 이름과 모드는 새로고침해도 유지되도록 박람회별로 저장한다
   const { scannerName, setScannerName, mode, setMode } = useScannerSettings(id);
@@ -132,7 +138,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
         setLastResult(reEntryResult('종이 QR', firstEnteredTime));
         return;
       }
-      setPaperQrCount((prev) => prev + 1);
+      addPaperQr();
       setLastResult(successResult('입장 완료', '종이 QR'));
       return;
     }
@@ -164,11 +170,11 @@ const QRScannerTable = ({ id }: { id: string }) => {
         newUser.badge ? `${newUser.name} · 명찰 출력 대상` : newUser.name,
       ),
     );
-    setUserData((prev) =>
-      prev.some((user) => toAttendUserRowKey(user) === rowKey)
-        ? prev
-        : [...prev, newUser],
-    );
+    // 연락처는 저장하기 전에 가린다. 표와 저장소 모두 가려진 값만 갖는다
+    addEntry({
+      ...newUser,
+      phoneNumber: maskParticipantPhone(newUser.phoneNumber),
+    });
   };
 
   useEffect(() => {
@@ -196,7 +202,6 @@ const QRScannerTable = ({ id }: { id: string }) => {
     )
     .map((user) => ({
       ...user,
-      phoneNumber: maskParticipantPhone(user.phoneNumber),
       attendeeType: ATTENDEE_TYPE_LABEL[getAttendeeType(user)],
     }));
 
