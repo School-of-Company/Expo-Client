@@ -23,6 +23,7 @@ export const BADGE_PRINT_HTML = `
               font-size: 28px;
               line-height: 1.4;
               color: #333;
+              white-space: pre-line;
               word-break: keep-all;
               overflow-wrap: anywhere;
             }
