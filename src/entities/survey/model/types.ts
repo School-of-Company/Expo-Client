@@ -65,6 +65,23 @@ export interface SubmitPublicSurveyAnswerRequestDto {
 // 서버는 당첨 여부만 준다. 몇 번째 응답인지(drawNumber)는 Expo-Form-Server#148 에서 뺐다
 export interface PublicSurveyAnswerResponseDto {
   won: boolean;
+  /**
+   * 이 응답의 기념품 수령 확인 토큰(Expo-Form-Server#239). 제출에 성공한 응답에만 오고 서버에는 해시만 있어 다시 받을 수 없다.
+   * 구버전 서버 응답에는 없다
+   */
+  giftToken?: string;
+}
+
+/** 수령 상태. 토큰을 잃으면 알 수 없으므로 미수령이나 완료를 가정하지 않는다 */
+export interface GiftPickupStatusDto {
+  claimed: boolean;
+  claimedAt: string | null;
+  /** 박람회에 직원 PIN이 설정돼 있는지. 없으면 확인할 수 없다 */
+  pinConfigured: boolean;
+}
+
+export interface GiftPinStatusDto {
+  configured: boolean;
 }
 
 export interface SurveyLotteryResponseDto {
