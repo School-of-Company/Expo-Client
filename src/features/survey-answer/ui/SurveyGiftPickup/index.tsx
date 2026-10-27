@@ -183,30 +183,40 @@ const SurveyGiftPickup = ({
   /** 서버가 이 토큰을 모른다고 하면(다른 박람회·없는 토큰) 저장해 둔 토큰을 버리게 알린다 */
   onTokenInvalid: () => void;
 }) => {
-  const { data, error, isLoading, refetch } = useGiftPickupStatusQuery(
-    expoId,
-    token,
-  );
+  const { data, error, isLoading, isFetching, refetch } =
+    useGiftPickupStatusQuery(expoId, token);
   const [isPinOpen, setIsPinOpen] = useState(false);
   const tokenInvalid =
     error instanceof GiftPickupError &&
     error.code === 'GIFT_PICKUP_TOKEN_INVALID';
 
+  // 기념품 수령 안내는 제출자 전원에게 보인다. 수령 상태를 못 받았거나 아직 받는 중이어도 먼저 보여
+  // 참가자가 무엇을 해야 하는지 알게 한다(완료된 뒤에만 안내를 거둔다)
+  const notice = (
+    <p className="break-keep text-center text-body1b text-black">
+      {GIFT_NOTICE}
+    </p>
+  );
+
   if (isLoading) {
     return (
-      <p role="status" className="text-body2r text-gray-500">
-        기념품 수령 상태를 확인하는 중입니다...
-      </p>
+      <div className="flex w-full max-w-[420px] flex-col items-center gap-12 rounded-sm border-1 border-solid border-gray-200 p-24">
+        {notice}
+        <p role="status" className="text-caption1r text-gray-500">
+          수령 상태를 확인하는 중입니다...
+        </p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <div
-        role="alert"
-        className="flex w-full max-w-[420px] flex-col items-center gap-12 rounded-sm border-1 border-solid border-gray-200 p-20"
-      >
-        <p className="break-keep text-center text-body2r text-gray-600">
+      <div className="flex w-full max-w-[420px] flex-col items-center gap-12 rounded-sm border-1 border-solid border-gray-200 p-24">
+        {notice}
+        <p
+          role="alert"
+          className="break-keep text-center text-caption1r text-red-500"
+        >
           {error.message}
         </p>
         {tokenInvalid ? (
@@ -214,8 +224,13 @@ const SurveyGiftPickup = ({
             확인
           </Button>
         ) : (
-          <Button variant="white" onClick={() => refetch()}>
-            다시 확인하기
+          // 다시 받는 동안 버튼이 바뀌어야 눌렀다는 것을 알 수 있다
+          <Button
+            variant="white"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            {isFetching ? '확인 중...' : '다시 확인하기'}
           </Button>
         )}
       </div>
@@ -238,9 +253,7 @@ const SurveyGiftPickup = ({
 
   return (
     <div className="flex w-full max-w-[420px] flex-col items-center gap-16 rounded-sm border-1 border-solid border-gray-200 p-24">
-      <p className="break-keep text-center text-body1b text-black">
-        {GIFT_NOTICE}
-      </p>
+      {notice}
       <p className="break-keep text-center text-caption1r text-gray-500">
         수령할 때 운영위원에게 이 화면을 보여 주세요. 직원 확인은 운영위원이
         합니다.
