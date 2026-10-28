@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import { PrivacyConsent } from '@/entities/application';
 import { DropdownField, Occupation, OCCUPATION_OPTIONS } from '@/entities/form';
@@ -15,6 +15,12 @@ import { FormValues as RendererFormValues } from '@/features/form/renderer/lib/v
 import { FormRenderer } from '@/features/form/renderer/ui';
 import { withLoading } from '@/shared/hocs';
 import { Button, DetailHeader, Input } from '@/shared/ui';
+import {
+  clearGiftToken,
+  loadGiftToken,
+  saveGiftToken,
+} from '../../lib/giftPickup';
+import SurveyGiftPickup, { GIFT_NOTICE } from '../SurveyGiftPickup';
 import SurveySubmitted from '../SurveySubmitted';
 
 const occupationOptions = OCCUPATION_OPTIONS.map(({ key, label }) => ({
@@ -34,6 +40,12 @@ const PublicSurveyContainer = ({ expoId }: { expoId: string }) => {
   const [result, setResult] = useState<PublicSurveyAnswerResponseDto | null>(
     null,
   );
+  // 기념품 수령 토큰. 서버가 제출 응답으로 한 번만 주므로 이 브라우저에 박람회별로 저장해 두고,
+  // 나갔다 들어와도 서버 상태(수령 여부)를 다시 받아 보여 준다. undefined 는 아직 읽기 전이다
+  const [giftToken, setGiftToken] = useState<string | null | undefined>(
+    undefined,
+  );
+  useEffect(() => setGiftToken(loadGiftToken(expoId)), [expoId]);
   const { data, isLoading, error } = usePublicSurveyQuery(expoId);
 
   const formSchema = useMemo(
@@ -79,6 +91,11 @@ const PublicSurveyContainer = ({ expoId }: { expoId: string }) => {
           personalInformationStatus: true,
         }),
       });
+      // 제출에 성공한 응답에만 토큰이 온다. 없으면(구버전 서버) 확인할 수 없으므로 안내만 보인다
+      if (answerResult.giftToken) {
+        saveGiftToken(expoId, answerResult.giftToken);
+        setGiftToken(answerResult.giftToken);
+      }
       setResult(answerResult);
       window.scrollTo({ top: 0 });
     } catch (error) {
@@ -96,10 +113,27 @@ const PublicSurveyContainer = ({ expoId }: { expoId: string }) => {
     );
   }
 
-  if (result) {
+  // 방금 제출했거나(result), 전에 제출해 토큰을 저장해 둔 경우(giftToken) 수령 화면을 보인다.
+  // 토큰이 없다고 설문을 자동으로 다시 제출하지 않는다(수령권을 새로 만들지 않기 위해)
+  if (result || giftToken) {
     return (
       <SurveySubmitted>
-        {result.won && (
+        {giftToken ? (
+          <SurveyGiftPickup
+            expoId={expoId}
+            token={giftToken}
+            onTokenInvalid={() => {
+              clearGiftToken(expoId);
+              setGiftToken(null);
+              setResult(null);
+            }}
+          />
+        ) : (
+          <p className="break-keep text-center text-body1b text-black">
+            {GIFT_NOTICE}
+          </p>
+        )}
+        {result?.won && (
           <div className="flex flex-col items-center gap-8 rounded-sm border-1 border-solid border-main-600 p-24">
             <p className="text-center text-h2b text-main-600 mobile:text-body1b">
               축하합니다! 경품에 당첨되었습니다.

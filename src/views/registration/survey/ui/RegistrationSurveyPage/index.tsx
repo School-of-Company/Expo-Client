@@ -2,7 +2,11 @@
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { LotterySettingsForm, SurveyManager } from '@/features/survey-admin';
+import {
+  GiftPinSettings,
+  LotterySettingsForm,
+  SurveyManager,
+} from '@/features/survey-admin';
 import { ArrowLeft } from '@/shared/assets/icons';
 import { Header } from '@/widgets/layout';
 import { RegistrationTabs } from '@/widgets/registration';
@@ -10,14 +14,16 @@ import { RegistrationTabs } from '@/widgets/registration';
 const VIEWS = [
   { value: 'survey', label: '만족도 조사' },
   { value: 'lottery', label: '경품 추첨' },
+  { value: 'gift', label: '기념품 수령' },
 ];
 
-/** 만족도 조사 문항과 경품 추첨을 한 페이지에서 오간다 */
+/** 만족도 조사 문항, 경품 추첨, 기념품 수령 직원 PIN을 한 페이지에서 오간다 */
 const SurveyViews = () => {
   const { expoId } = useParams<{ expoId: string }>();
   const router = useRouter();
+  const viewParam = useSearchParams().get('view');
   const view =
-    useSearchParams().get('view') === 'lottery' ? 'lottery' : 'survey';
+    viewParam === 'lottery' || viewParam === 'gift' ? viewParam : 'survey';
 
   return (
     <div className="flex w-full flex-col items-center gap-36">
@@ -43,7 +49,7 @@ const SurveyViews = () => {
               role="tab"
               aria-selected={view === value}
               onClick={() =>
-                router.replace(value === 'lottery' ? '?view=lottery' : '?')
+                router.replace(value === 'survey' ? '?' : `?view=${value}`)
               }
               className={`text-h2b ${view === value ? 'text-black' : 'text-gray-500'}`}
             >
@@ -55,6 +61,10 @@ const SurveyViews = () => {
       {view === 'lottery' ? (
         <div className="w-full max-w-[816px]">
           <LotterySettingsForm expoId={expoId} />
+        </div>
+      ) : view === 'gift' ? (
+        <div className="w-full max-w-[816px]">
+          <GiftPinSettings expoId={expoId} />
         </div>
       ) : (
         <SurveyManager />

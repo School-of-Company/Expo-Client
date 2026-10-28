@@ -58,3 +58,28 @@ export interface EntrySummary {
   // 서로 다른 QR 수(등록 QR + 종이 QR). 전체 기간이면 다른 날 같은 QR 을 한 번만 센다
   uniqueQr: number;
 }
+
+// 하루 입장자 목록의 한 행(Expo-Attendance-Server EntryListItemResDto). 입장 스캔 응답과 같은 모양이다
+export interface EntryListItem {
+  id: number;
+  participationType: string;
+  // 입장 뒤 유저 서비스에서 지워진 참가자면 이름·동의·명찰이 null 이다
+  name: string | null;
+  // 서버가 가운데를 가려서 준다(010-****-5678)
+  phoneNumber: string | null;
+  personalInformationStatus: boolean | null;
+  badge: { name: string; school: string | null } | null;
+  // 그날 최초 입장 시각('HH:mm')
+  firstEnteredTime: string;
+  inside: boolean;
+}
+
+export interface EntryList {
+  expoId: string;
+  date: string;
+  page: number;
+  size: number;
+  // 페이지와 상관없는 그날 등록 QR 입장자 수
+  totalElements: number;
+  entries: EntryListItem[];
+}

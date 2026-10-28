@@ -76,6 +76,24 @@ export const toServerCode = (data: unknown): string | undefined => {
   return typeof code === 'string' ? code : undefined;
 };
 
+/**
+ * 직원 PIN 확인 오류의 남은 횟수(`attemptsLeft`, 403)와 잠금 해제까지 초(`retryAfterSeconds`, 429).
+ * 화면이 몇 번 남았는지, 몇 초 뒤 다시 입력할 수 있는지 보여 줄 수 있게 숫자일 때만 넘긴다
+ */
+export const toServerRetryInfo = (
+  data: unknown,
+): { attemptsLeft?: number; retryAfterSeconds?: number } => {
+  const body = (data as Record<string, unknown> | undefined) ?? {};
+  const pick = (value: unknown) =>
+    typeof value === 'number' && Number.isFinite(value) && value >= 0
+      ? value
+      : undefined;
+  return {
+    attemptsLeft: pick(body.attemptsLeft),
+    retryAfterSeconds: pick(body.retryAfterSeconds),
+  };
+};
+
 /** 프로그램 신청 거부(403·409)의 `ineligibleReason`. 화면이 포괄 오류 대신 사유 문구를 고를 수 있게 넘긴다. */
 export const toServerIneligibleReason = (data: unknown): string | undefined => {
   const reason = (data as { ineligibleReason?: unknown } | undefined)
