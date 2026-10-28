@@ -164,13 +164,17 @@ export const getSeatStatus = ({ closed, seats }: SeatEntry): SeatStatus => {
 /** 카드에 줄로 보일 정원·현황. 교사 쪽은 숫자 없이 잔여 있음/마감만 말한다 */
 export const getSeatSummary = (seats: SeatNumbers): string[] => {
   const n = (value: number) => value.toLocaleString();
+  // 대기를 받지 않는 회차(대기 정원 0)에는 대기 줄을 보이지 않는다
+  const hasWaiting = (seats.waitingCapacity ?? 0) > 0 || seats.waiting > 0;
   const capacity = [
     seats.capacity !== null && `정원 ${n(seats.capacity)}명`,
-    seats.waitingCapacity !== null && `대기 정원 ${n(seats.waitingCapacity)}명`,
+    hasWaiting &&
+      seats.waitingCapacity !== null &&
+      `대기 정원 ${n(seats.waitingCapacity)}명`,
   ].filter(Boolean);
   const current = [
     seats.confirmed !== null && `확정 ${n(seats.confirmed)}명`,
-    `대기 ${n(seats.waiting)}명`,
+    hasWaiting && `대기 ${n(seats.waiting)}명`,
     seats.remaining !== null && `잔여 ${n(seats.remaining)}석`,
     seats.target &&
       `교사·예비교사 ${seats.target.teacherAvailable ? '잔여 있음' : '마감'}`,
