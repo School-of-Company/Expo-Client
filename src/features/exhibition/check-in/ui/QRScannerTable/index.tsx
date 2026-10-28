@@ -3,7 +3,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-import { maskParticipantPhone } from '@/features/registration/participants';
 import { toRoleAuthority, USER_AUTHORITY } from '@/shared/config';
 import { useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
@@ -21,7 +20,7 @@ import {
   successResult,
 } from '../../model/scanResult';
 import { toExitRequest } from '../../model/toExitRequest';
-import { useCheckInEntries } from '../../model/useCheckInEntries';
+import { useEntryList, useInvalidateEntryList } from '../../model/useEntryList';
 import { useInvalidateEntrySummary } from '../../model/useEntrySummary';
 import { useExitUserMutation } from '../../model/useExitUserMutation';
 import { usePaperQrAttendanceMutation } from '../../model/usePaperQrAttendanceMutation';
@@ -44,13 +43,9 @@ import WalkInPanel from '../WalkInPanel';
 
 const QRScannerTable = ({ id }: { id: string }) => {
   const [scannedQR, setScannedQR] = useState<QrScanData | null>(null);
-  // 나갔다 들어와도 오늘 입장 기록이 남도록 박람회별로 저장한다
-  const {
-    entries: userData,
-    paperQrCount,
-    addEntry,
-    addPaperQr,
-  } = useCheckInEntries(id);
+  // 오늘 입장자 표는 서버 기록이라 나갔다 들어와도, 다른 입구에서 처리해도 같이 보인다
+  const { data: userData = [], isError: isEntryListError } = useEntryList(id);
+  const invalidateEntryList = useInvalidateEntryList(id);
   const [typeFilter, setTypeFilter] = useState<AttendeeType | 'ALL'>('ALL');
   // 스캐너 이름과 모드는 새로고침해도 유지되도록 박람회별로 저장한다
   const { scannerName, setScannerName, mode, setMode } = useScannerSettings(id);
@@ -128,7 +123,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
       await handleExit(scannedQR);
       return;
     }
-    // 종이 QR은 참가자 정보가 없어 표에 넣지 않고 입장 수만 센다
+    // 종이 QR은 참가자 정보가 없어 표에 넣지 않는다. 입장 수는 집계 패널에 나온다
     if (scannedQR.token) {
       const { entryStatus, firstEnteredTime } = await attendPaperQr(
         scannedQR.token,
@@ -138,7 +133,6 @@ const QRScannerTable = ({ id }: { id: string }) => {
         setLastResult(reEntryResult('종이 QR', firstEnteredTime));
         return;
       }
-      addPaperQr();
       setLastResult(successResult('입장 완료', '종이 QR'));
       return;
     }
@@ -170,11 +164,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
         newUser.badge ? `${newUser.name} · 명찰 출력 대상` : newUser.name,
       ),
     );
-    // 연락처는 저장하기 전에 가린다. 표와 저장소 모두 가려진 값만 갖는다
-    addEntry({
-      ...newUser,
-      phoneNumber: maskParticipantPhone(newUser.phoneNumber),
-    });
+    invalidateEntryList();
   };
 
   useEffect(() => {
@@ -195,8 +185,8 @@ const QRScannerTable = ({ id }: { id: string }) => {
     handleScan();
   }, [scannedQR]);
 
-  // 표에는 참가자 목록과 같은 규칙으로 가린 번호만 보여 준다(번호 없으면 '-')
-  const maskedUserData = userData
+  // 연락처는 서버가 가려서 준다
+  const filteredUserData = userData
     .filter(
       (user) => typeFilter === 'ALL' || getAttendeeType(user) === typeFilter,
     )
@@ -275,9 +265,9 @@ const QRScannerTable = ({ id }: { id: string }) => {
         isExitMode={isExitMode}
       />
       <EntrySummaryPanel expoId={id} />
-      {paperQrCount > 0 && (
-        <p className="text-body2r text-gray-500">
-          이 화면에서 종이 QR로 입장 처리한 인원 {paperQrCount}명
+      {isEntryListError && (
+        <p role="alert" className="text-body2r text-error">
+          오늘 입장자 목록을 불러오지 못했습니다. 잠시 후 다시 시도합니다.
         </p>
       )}
       <div className="flex flex-wrap items-center gap-8">
@@ -306,7 +296,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
       </div>
       <TableForm
         categories={CHECK_IN_PRINT_CATEGORIES}
-        data={maskedUserData}
+        data={filteredUserData}
         getRowKey={toAttendUserRowKey}
         maxHeight="414px"
         footerType="print"
