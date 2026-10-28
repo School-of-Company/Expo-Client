@@ -8,4 +8,7 @@ export const surveyKeys = {
     [...surveyKeys.expo(expoId), participationType] as const,
   public: (expoId: string) => [...surveyKeys.expo(expoId), 'public'] as const,
   lottery: (expoId: string) => [...surveyKeys.expo(expoId), 'lottery'] as const,
+  giftPickup: (expoId: string, token: string) =>
+    [...surveyKeys.expo(expoId), 'giftPickup', token] as const,
+  giftPin: (expoId: string) => [...surveyKeys.expo(expoId), 'giftPin'] as const,
 };
