@@ -24,10 +24,8 @@ import {
   getFormPeriodStatus,
 } from '../../model/formPeriodStatus';
 import { getOccupationLock } from '../../model/occupationOpen';
-import { useLiveSeats } from '../../model/useLiveSeats';
 import { useNow } from '../../model/useNow';
 import { usePreRegisterSessions } from '../../model/usePreRegister';
-import { LiveSeatsNote, SeatSummary } from '../LiveSeats';
 import CategoryCard, { CategorySession } from './CategoryCard';
 import {
   ApplicationSteps,
@@ -101,7 +99,6 @@ const ApplicationSchedule = ({
   const sessions = usePreRegisterSessions(expoId);
   const standard = usePublicPrograms(expoId, 'STANDARD');
   const training = usePublicPrograms(expoId, 'TRAINING');
-  const { data: seats, isError: seatsFailed } = useLiveSeats(expoId);
 
   const form = preForm.data ?? null;
   const formError =
@@ -213,7 +210,6 @@ const ApplicationSchedule = ({
           isLoading={sessions.isLoading || preForm.isLoading}
           isEmpty={sessions.data?.length === 0}
         >
-          <LiveSeatsNote fetchedAt={seats?.fetchedAt} failed={seatsFailed} />
           <ul className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
             {sessionList.map((session) => {
               // 신청서 기간을 못 받았으면 접수 여부를 단정하지 않는다
@@ -248,7 +244,6 @@ const ApplicationSchedule = ({
                       장소: {session.place}
                     </p>
                   )}
-                  <SeatSummary group={seats?.preRegister} id={session.id} />
                   {status === 'UPCOMING' && form && (
                     <p className="break-keep text-caption1r text-gray-500">
                       {formatFormPeriod(form.startDate)}부터 신청할 수 있습니다.
@@ -292,7 +287,6 @@ const ApplicationSchedule = ({
             isLoading={standard.isLoading}
             isEmpty={standard.data?.length === 0}
           >
-            <LiveSeatsNote fetchedAt={seats?.fetchedAt} failed={seatsFailed} />
             <ul className="flex flex-col gap-16">
               {programGroups.map((group) => (
                 <CategoryCard
@@ -300,7 +294,6 @@ const ApplicationSchedule = ({
                   group={group}
                   sessions={group.sessions.map(toCategorySession)}
                   applyHref={`/application/forms/${expoId}/program`}
-                  seats={seats?.programs.STANDARD}
                   selectable
                 />
               ))}
@@ -325,7 +318,6 @@ const ApplicationSchedule = ({
             isLoading={training.isLoading}
             isEmpty={training.data?.length === 0}
           >
-            <LiveSeatsNote fetchedAt={seats?.fetchedAt} failed={seatsFailed} />
             <ul className="flex flex-col gap-16">
               {trainingGroups.map((group) => (
                 <CategoryCard
@@ -333,7 +325,6 @@ const ApplicationSchedule = ({
                   group={group}
                   sessions={group.sessions.map(toCategorySession)}
                   applyHref={`/application/forms/${expoId}/training`}
-                  seats={seats?.programs.TRAINING}
                   selectable
                 />
               ))}
