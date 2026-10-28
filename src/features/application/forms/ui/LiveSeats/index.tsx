@@ -22,9 +22,12 @@ const STATUS_CLASS: Record<SeatStatus, string> = {
 export const SeatSummary = ({
   group,
   id,
+  hiddenStatuses = [],
 }: {
   group: SeatGroup | undefined;
   id: number;
+  /** 카드 머리글처럼 다른 곳에 이미 보이는 상태는 뱃지를 생략한다 */
+  hiddenStatuses?: SeatStatus[];
 }) => {
   if (!group || group.status === 'unsupported') return null;
   const entry = group.sessions.find((session) => session.id === id);
@@ -33,11 +36,13 @@ export const SeatSummary = ({
   const status = entry ? getSeatStatus(entry) : 'UNKNOWN';
   return (
     <div className="flex flex-col gap-4">
-      <span
-        className={`self-start rounded-full px-12 py-4 text-caption1b ${STATUS_CLASS[status]}`}
-      >
-        {SEAT_STATUS_LABEL[status]}
-      </span>
+      {!hiddenStatuses.includes(status) && (
+        <span
+          className={`self-start rounded-full px-12 py-4 text-caption1b ${STATUS_CLASS[status]}`}
+        >
+          {SEAT_STATUS_LABEL[status]}
+        </span>
+      )}
       {entry?.seats &&
         !entry.closed &&
         getSeatSummary(entry.seats).map((line) => (

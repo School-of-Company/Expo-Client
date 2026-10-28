@@ -784,6 +784,7 @@ const ProgramApplyContainer = ({
               <SeatSummary
                 group={seats?.programs[programType]}
                 id={program.id}
+                hiddenStatuses={['OPEN']}
               />
 
               {onsiteOpen && (

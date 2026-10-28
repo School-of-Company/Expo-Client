@@ -10,8 +10,11 @@ import {
   getSessionLabel,
   getSessionTopic,
 } from '../../model/applicationSections';
+import { getSeatStatus } from '../../model/liveSeats';
 import { formatProgramPlace } from '../../model/programApply';
+import { SeatSummary } from '../LiveSeats';
 import type { CategoryGroup } from '../../model/applicationSections';
+import type { SeatGroup } from '../../model/liveSeats';
 
 export interface CategorySession {
   id: number;
@@ -44,11 +47,14 @@ const CategoryCard = ({
   group,
   sessions,
   applyHref,
+  seats,
   selectable,
 }: {
   group: CategoryGroup;
   sessions: CategorySession[];
   applyHref: string;
+  /** 공개 정원 현황. 없거나 지원하지 않는 환경이면 정원만 보인다 */
+  seats?: SeatGroup;
   /** 켜면 회차를 카드 안에 펼쳐 누른 회차로 바로 신청 화면에 보낸다 */
   selectable?: boolean;
 }) => {
@@ -61,6 +67,13 @@ const CategoryCard = ({
     : isOpen
       ? 'ONSITE_OPEN'
       : sessions[0].status;
+  // 접수 중인 회차가 모두 정원 마감이면 머리글의 접수 중 대신 정원 마감을 보인다
+  const isFull = (session: CategorySession) => {
+    const entry = seats?.sessions.find(({ id }) => id === session.id);
+    return !!entry && getSeatStatus(entry) === 'FULL';
+  };
+  const applicable = sessions.filter((session) => isApplicable(session.status));
+  const allFull = applicable.length > 0 && applicable.every(isFull);
   const place =
     sessions.find(({ place: value }) => value?.trim())?.place ?? group.place;
   const first = dateOf(sessions[0].startedAt);
@@ -71,8 +84,10 @@ const CategoryCard = ({
     <li className="flex min-w-0 flex-col gap-8 rounded-sm border-1 border-solid border-gray-200 bg-white p-20">
       <div className="flex items-center justify-between gap-8">
         <h3 className="break-keep text-body1b text-black">{group.label}</h3>
-        <span className={`flex-none text-caption1b ${STATUS_CLASS[status]}`}>
-          {SCHEDULE_STATUS_LABEL[status]}
+        <span
+          className={`flex-none text-caption1b ${allFull ? 'text-gray-400' : STATUS_CLASS[status]}`}
+        >
+          {allFull ? '정원 마감' : SCHEDULE_STATUS_LABEL[status]}
         </span>
       </div>
       <p className="break-words break-keep text-caption1r text-gray-500">
@@ -87,17 +102,34 @@ const CategoryCard = ({
             const open = isApplicable(session.status);
             const topic = getSessionTopic(session.title, group.label);
             const className = `flex min-w-0 flex-1 flex-col gap-2 rounded-sm border-1 border-solid border-gray-200 bg-white px-12 py-12 text-left ${open ? 'hover:border-main-600 hover:bg-main-100' : 'opacity-60'}`;
+            // 정원 마감은 회차 박스 오른쪽 위에 보인다
+            const full = open && isFull(session);
             const content = (
               <>
-                <span className="truncate text-body2b text-black">
-                  {getSessionLabel(session.title, group.label)} ·{' '}
-                  {formatDefinitionSchedule(session.startedAt, session.endedAt)}
+                <span className="flex items-center justify-between gap-8">
+                  <span className="truncate text-body2b text-black">
+                    {getSessionLabel(session.title, group.label)} ·{' '}
+                    {formatDefinitionSchedule(
+                      session.startedAt,
+                      session.endedAt,
+                    )}
+                  </span>
+                  {full && (
+                    <span className="flex-none text-caption1b text-gray-400">
+                      정원 마감
+                    </span>
+                  )}
                 </span>
                 <span className="truncate text-caption1r text-gray-500">
                   {open
                     ? topic || '신청하기 →'
                     : SCHEDULE_STATUS_LABEL[session.status]}
                 </span>
+                <SeatSummary
+                  group={seats}
+                  id={session.id}
+                  hiddenStatuses={['OPEN', 'FULL']}
+                />
               </>
             );
             return (
