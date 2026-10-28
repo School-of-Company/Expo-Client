@@ -15,6 +15,13 @@ const nextConfig = {
         destination: '/admin/registration/:expoId/survey?view=lottery',
         permanent: false,
       },
+      // 이미 배포한 인증형 설문 QR(/application/{id}?formType=survey)은 인증 없이 공개 설문으로 보낸다.
+      {
+        source: '/application/:expoId',
+        has: [{ type: 'query', key: 'formType', value: 'survey' }],
+        destination: '/survey/:expoId',
+        permanent: false,
+      },
       // 관리자 화면은 /admin 아래로 모았다. 예전 주소·즐겨찾기는 새 주소로 보낸다
       ...['exhibition', 'form', 'program'].map((prefix) => ({
         source: `/${prefix}/:path*`,
