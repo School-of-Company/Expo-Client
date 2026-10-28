@@ -2,11 +2,14 @@ import { toast } from 'react-toastify';
 import { printBadge } from '@/shared/model';
 import { AttendUserResponse } from '@/shared/types/exhibition/check-in/type';
 
+// 스캔 응답과 입장자 목록 행이 함께 쓰는 필드
+type AttendRow = Pick<AttendUserResponse, 'participationType' | 'id' | 'badge'>;
+
 // 참가자 ID와 연수자 ID는 서로 다른 번호 체계라 구분과 합쳐 행을 가린다
 export const toAttendUserRowKey = ({
   participationType,
   id,
-}: AttendUserResponse) => `${participationType}-${id}`;
+}: Pick<AttendRow, 'participationType' | 'id'>) => `${participationType}-${id}`;
 
 export type AttendeeType = 'TEACHER' | 'GENERAL' | 'TRAINEE';
 
@@ -23,7 +26,7 @@ export const getAttendeeType = ({
 }: Pick<AttendUserResponse, 'participationType' | 'badge'>): AttendeeType =>
   participationType === 'TRAINEE' ? 'TRAINEE' : badge ? 'TEACHER' : 'GENERAL';
 
-export const userQrPrint = (data: AttendUserResponse[], selectItem: string) => {
+export const userQrPrint = (data: AttendRow[], selectItem: string) => {
   const selectedData = data.find(
     (item) => toAttendUserRowKey(item) === selectItem,
   );
