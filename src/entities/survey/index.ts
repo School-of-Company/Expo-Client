@@ -9,11 +9,5 @@ export {
 export { submitSurveyAnswer } from './api/surveyAnswers';
 export { getPublicSurvey, submitPublicSurveyAnswer } from './api/surveyPublic';
 export { getSurveyLottery, updateSurveyLottery } from './api/surveyLottery';
-export {
-  GiftPickupError,
-  confirmGiftPickup,
-  getGiftPickupStatus,
-  getGiftPin,
-  setGiftPin,
-} from './api/surveyGift';
+export { confirmGiftPickup, getGiftPickupStatus } from './api/surveyGift';
 export * from './model/queries';
