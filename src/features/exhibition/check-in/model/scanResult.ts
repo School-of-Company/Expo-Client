@@ -13,6 +13,8 @@ export interface ScanResult {
   isReEntry?: boolean;
   // 직원이 다음에 할 일을 알려 주는 안내
   hint?: string;
+  // 있으면 카드가 이 작업의 출력대 배정을 조회해 명찰 수령 위치를 보여 준다
+  badgePrintJobId?: number;
 }
 
 const pad = (value: number) => String(value).padStart(2, '0');

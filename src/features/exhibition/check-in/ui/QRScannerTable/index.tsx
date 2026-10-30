@@ -161,7 +161,10 @@ const QRScannerTable = ({ id }: { id: string }) => {
     }
     setLastResult({
       ...successResult('입장 완료', newUser.name),
-      hint: badgePrintHint(newUser),
+      // 작업 식별자가 있으면 카드가 실제 출력대를 조회하므로 정적 안내는 쓰지 않는다
+      ...(newUser.badgePrintJobId
+        ? { badgePrintJobId: newUser.badgePrintJobId }
+        : { hint: badgePrintHint(newUser) }),
     });
     invalidateEntryList();
   };
@@ -253,6 +256,7 @@ const QRScannerTable = ({ id }: { id: string }) => {
           </div>
         </div>
         <ScanResultCard
+          expoId={id}
           mode={mode}
           result={lastResult}
           isProcessing={scannedQR !== null}
