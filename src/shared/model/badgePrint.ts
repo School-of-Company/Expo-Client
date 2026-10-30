@@ -49,7 +49,7 @@ export const BADGE_PRINT_HTML = `
             }
             @media print {
               @page {
-                size: 3in 2in;
+                size: 80mm 56mm;
                 margin: 0;
               }
               body {
