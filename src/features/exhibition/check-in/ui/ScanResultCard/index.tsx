@@ -1,12 +1,15 @@
+import { BadgePickupNotice } from '@/features/exhibition/badge-print';
 import { ScanResult } from '../../model/scanResult';
 import { ScanMode } from '../ScanModeToggle';
 
 /** 마지막 스캔 결과를 크게 보여 준다. 결과가 없으면 지금 모드의 대기 상태를 보여 준다 */
 const ScanResultCard = ({
+  expoId,
   mode,
   result,
   isProcessing,
 }: {
+  expoId: string;
   mode: ScanMode;
   result: ScanResult | null;
   isProcessing: boolean;
@@ -49,6 +52,13 @@ const ScanResultCard = ({
       </p>
       {result.detail && (
         <p className="break-keep text-body1r text-gray-700">{result.detail}</p>
+      )}
+      {result.badgePrintJobId && (
+        <BadgePickupNotice
+          key={`${result.at}-${result.badgePrintJobId}`}
+          expoId={expoId}
+          jobId={result.badgePrintJobId}
+        />
       )}
       {result.hint && (
         <p className="break-keep rounded-sm bg-gray-100 px-16 py-12 text-body2r text-gray-700">

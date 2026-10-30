@@ -43,4 +43,6 @@ export interface AttendUserResponse extends EntryStatusFields {
   badge: AttendUserBadge | null;
   // 명찰 자동 출력 요청 결과(User 서버가 입장과 함께 저장). 대상이 아니거나 재입장·재시도면 null, 이전 서버는 없다
   badgePrint?: BadgePrintRequestResult | null;
+  // 명찰 출력 작업 식별자(Expo-User-Server#241, Expo-Attendance-Server#279). 대상이 아니거나 이전 서버는 없다
+  badgePrintJobId?: number | null;
 }
