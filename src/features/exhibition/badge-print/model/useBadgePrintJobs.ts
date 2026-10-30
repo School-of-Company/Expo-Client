@@ -27,6 +27,8 @@ export const useBadgePrintJobs = (expoId: string) => {
     queryKey: badgePrintJobsQueryKey(expoId),
     queryFn: () => getBadgePrintJobs(expoId),
     refetchInterval: JOBS_REFRESH_MS,
+    // 5초마다 다시 읽어 끊기면 토스트가 쌓이므로 패널 안에만 표시한다
+    meta: { silent: true },
   });
 
   const resolve = useCallback(

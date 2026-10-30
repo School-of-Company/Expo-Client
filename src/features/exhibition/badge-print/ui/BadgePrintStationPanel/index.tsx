@@ -13,6 +13,7 @@ const STATE_TEXT: Record<StationState, string> = {
   running: '자동 출력 중',
   'taken-over': '다른 곳에서 이 출력대를 열었습니다',
   'not-found': '출력대를 찾지 못했습니다',
+  forbidden: '관리자 권한이 없어 출력할 수 없습니다',
   error: '연결 오류(자동으로 다시 연결합니다)',
 };
 

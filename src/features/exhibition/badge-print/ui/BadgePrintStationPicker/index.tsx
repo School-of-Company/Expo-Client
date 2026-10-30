@@ -28,6 +28,8 @@ const BadgePrintStationPicker = ({
   const { data, isLoading, isError } = useQuery({
     queryKey,
     queryFn: () => getBadgePrintStations(expoId),
+    // 실패 문구는 목록 자리에 보여 주므로 토스트를 띄우지 않는다
+    meta: { silent: true },
   });
   const stations = data ?? [];
 

@@ -58,7 +58,11 @@ export const printBadgeInFrame = async (badge: {
     );
   }
 
-  frameWindow.focus();
-  frameWindow.print();
-  cleanup();
+  // print() 가 던져도 iframe 이 남지 않게 한다
+  try {
+    frameWindow.focus();
+    frameWindow.print();
+  } finally {
+    cleanup();
+  }
 };

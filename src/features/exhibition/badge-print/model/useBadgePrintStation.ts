@@ -19,7 +19,8 @@ const POLL_INTERVAL_MS = 2000;
 const NEXT_JOB_DELAY_MS = 300;
 // 오류가 나면 서버가 회복할 시간을 둔다
 const ERROR_RETRY_MS = 5000;
-const REPORT_ATTEMPTS = 3;
+// 서버 점유 30초보다 조금 짧게 둔다
+const REPORT_RETRY_WINDOW_MS = 25000;
 const RECENT_LIMIT = 10;
 
 export type StationState =
@@ -27,6 +28,7 @@ export type StationState =
   | 'running'
   | 'taken-over'
   | 'not-found'
+  | 'forbidden'
   | 'error';
 
 export interface PrintedBadge {
@@ -79,10 +81,15 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
 
     const report = async (
       job: BadgePrintClaim,
+      claimedAt: number,
       outcome: BadgePrintOutcome,
       reason?: string,
     ) => {
-      for (let attempt = 1; attempt <= REPORT_ATTEMPTS; attempt += 1) {
+      // 점유가 유효한 동안(서버 30초) 같은 본문으로 다시 보낸다. 다음 claim 으로 넘어가면 서버가 이 작업을
+      // 결과 없는 점유로 보고 확인 필요로 돌리기 때문이다
+      const deadline = claimedAt + REPORT_RETRY_WINDOW_MS;
+      let delay = 1000;
+      while (!cancelled) {
         try {
           await reportBadgePrintResult(expoId, job.jobId, {
             sessionId: sessionRef.current ?? '',
@@ -94,7 +101,9 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
         } catch (error) {
           // 409: 30초가 지나 확인 필요로 넘어갔거나 다른 세션이 열었다. 다시 보내도 바뀌지 않는다
           if (getErrorStatus(error) === 409) return false;
-          if (attempt < REPORT_ATTEMPTS) await wait(1000);
+          if (Date.now() + delay > deadline) return false;
+          await wait(delay);
+          delay = Math.min(delay * 2, 4000);
         }
       }
       return false;
@@ -117,14 +126,20 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
         setLastError(null);
       } catch (error) {
         if (cancelled) return;
-        if (getErrorStatus(error) === 409) {
+        const status = getErrorStatus(error);
+        if (status === 409) {
           pendingRequestRef.current = null;
           setState('taken-over');
           return;
         }
-        // 응답을 못 받았으면 requestId 를 그대로 두고 다시 묻는다
-        if (getErrorStatus(error) !== undefined)
+        // 출력대가 지워졌거나(404) 권한이 없으면(403) 다시 물어도 풀리지 않아 멈추고 알린다
+        if (status === 404 || status === 403) {
           pendingRequestRef.current = null;
+          setState(status === 404 ? 'not-found' : 'forbidden');
+          return;
+        }
+        // 응답을 못 받았으면 requestId 를 그대로 두고 다시 묻는다
+        if (status !== undefined) pendingRequestRef.current = null;
         setLastError(
           error instanceof Error
             ? error.message
@@ -140,6 +155,7 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
         return;
       }
 
+      const claimedAt = Date.now();
       setCurrent(job);
       let outcome: BadgePrintOutcome = 'SUBMITTED';
       let reason: string | undefined;
@@ -153,7 +169,7 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
         }
       }
 
-      const reported = await report(job, outcome, reason);
+      const reported = await report(job, claimedAt, outcome, reason);
       setCurrent(null);
       addRecent({
         jobId: job.jobId,
@@ -187,8 +203,9 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
         schedule(0, tick);
       } catch (error) {
         if (cancelled) return;
-        if (getErrorStatus(error) === 404) {
-          setState('not-found');
+        const status = getErrorStatus(error);
+        if (status === 404 || status === 403) {
+          setState(status === 404 ? 'not-found' : 'forbidden');
           return;
         }
         setState('error');
