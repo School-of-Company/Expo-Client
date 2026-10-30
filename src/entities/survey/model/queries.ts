@@ -1,12 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { surveyKeys } from '../api/keys';
 import { submitSurveyAnswer } from '../api/surveyAnswers';
-import {
-  confirmGiftPickup,
-  getGiftPickupStatus,
-  getGiftPin,
-  setGiftPin,
-} from '../api/surveyGift';
+import { confirmGiftPickup, getGiftPickupStatus } from '../api/surveyGift';
 import { getSurveyLottery, updateSurveyLottery } from '../api/surveyLottery';
 import { getPublicSurvey, submitPublicSurveyAnswer } from '../api/surveyPublic';
 import {
@@ -110,7 +105,7 @@ export const useUpdateSurveyLotteryMutation = (expoId: string) => {
   });
 };
 
-/** 토큰을 잃으면(저장소 비움 등) 호출하지 않는다. 미수령·완료를 가정하지 않기 위해 오류는 호출부가 안내한다 */
+/** 토큰을 잃으면(저장소 비움 등) 호출하지 않는다. 미확인·완료를 가정하지 않기 위해 오류는 호출부가 안내한다 */
 export const useGiftPickupStatusQuery = (expoId: string, token: string) =>
   useQuery({
     queryKey: surveyKeys.giftPickup(expoId, token),
@@ -119,28 +114,12 @@ export const useGiftPickupStatusQuery = (expoId: string, token: string) =>
     meta: { silent: true },
   });
 
-/** 성공하면 응답(수령 완료 상태)을 캐시에 넣어 화면이 서버가 확정한 상태로 바뀌게 한다 */
+/** 성공하면 응답(완료 상태)을 캐시에 넣어 화면이 서버가 확정한 상태로 바뀌게 한다 */
 export const useConfirmGiftPickupMutation = (expoId: string, token: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (pin: string) => confirmGiftPickup(expoId, token, pin),
+    mutationFn: () => confirmGiftPickup(expoId, token),
     onSuccess: (data) =>
       queryClient.setQueryData(surveyKeys.giftPickup(expoId, token), data),
-  });
-};
-
-export const useGiftPinQuery = (expoId: string) =>
-  useQuery({
-    queryKey: surveyKeys.giftPin(expoId),
-    queryFn: () => getGiftPin(expoId),
-    retry: false,
-  });
-
-export const useSetGiftPinMutation = (expoId: string) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (pin: string) => setGiftPin(expoId, pin),
-    onSuccess: (data) =>
-      queryClient.setQueryData(surveyKeys.giftPin(expoId), data),
   });
 };
