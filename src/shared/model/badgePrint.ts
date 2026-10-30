@@ -32,8 +32,8 @@ export const BADGE_PRINT_HTML = `
             }
             .badge-school {
               margin: 0 0 10px;
-              font-size: 30px;
-              line-height: 1.4;
+              font-size: 22px;
+              line-height: 1.1;
               font-weight: 500;
               color: #000;
               white-space: pre-line;
@@ -42,7 +42,7 @@ export const BADGE_PRINT_HTML = `
             }
             .badge-name {
               margin: 0;
-              font-size: 54px;
+              font-size: 59px;
               line-height: 1.2;
               font-weight: 700;
               overflow-wrap: anywhere;
@@ -69,7 +69,7 @@ export const BADGE_PRINT_HTML = `
               var badge = document.querySelector('.badge');
               var school = document.getElementById('badge-school');
               var name = document.getElementById('badge-name');
-              var nameSize = 54;
+              var nameSize = 59;
 
               // 화면 창이 아니라 인쇄 용지(80x56mm) 크기를 기준으로, 프린터 비인쇄 영역을 감안해 여유를 두고 맞춘다
               var probe = document.createElement('div');
@@ -79,7 +79,7 @@ export const BADGE_PRINT_HTML = `
               document.body.removeChild(probe);
 
               // 전체가 용지 높이를 넘으면 소속과 이름을 함께 줄인다
-              var schoolSize = 30;
+              var schoolSize = 22;
               while (badge.offsetHeight > pageHeight && (schoolSize > 15 || nameSize > 24)) {
                 if (school && schoolSize > 15) {
                   schoolSize -= 1;
