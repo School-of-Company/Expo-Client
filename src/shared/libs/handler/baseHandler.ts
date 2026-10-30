@@ -9,7 +9,6 @@ import {
   toServerFieldErrors,
   toServerIneligibleReason,
   toServerMessage,
-  toServerRetryInfo,
 } from './serverMessage';
 
 // 참가자 화면이 쓰는 서버 세션 쿠키만 서버로 넘긴다. 관리자 로그인 토큰 쿠키는 공개 요청에 싣지 않는다.
@@ -125,7 +124,6 @@ export async function baseHandleRequest(
           status,
           code: toServerCode(axiosError.response?.data),
           ineligibleReason: toServerIneligibleReason(axiosError.response?.data),
-          ...toServerRetryInfo(axiosError.response?.data),
           errors: toServerFieldErrors(axiosError.response?.data),
         },
         { status },

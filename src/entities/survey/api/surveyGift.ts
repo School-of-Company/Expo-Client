@@ -2,59 +2,36 @@ import axios from 'axios';
 import { toFormError } from '@/entities/form/lib/errors';
 import { ApiError } from '@/shared/libs/http/apiError';
 import clientInstance from '@/shared/libs/http/clientInstance';
-import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
-import type { GiftPickupStatusDto, GiftPinStatusDto } from '../model/types';
+import type { GiftPickupStatusDto } from '../model/types';
 
-/** Form 서버 기념품 수령 오류 코드 → 화면 문구. PIN 오류와 잠금은 남은 횟수·초를 화면이 덧붙인다 */
+/** Form 서버 직원확인 오류 코드 → 화면 문구 */
 const GIFT_ERROR_MESSAGES: Record<string, string> = {
-  GIFT_PIN_INVALID: 'PIN이 맞지 않습니다.',
   GIFT_PICKUP_TOKEN_INVALID:
-    '수령 정보를 찾을 수 없습니다. 운영진에게 문의해 주세요.',
-  GIFT_PIN_NOT_CONFIGURED:
-    '이 박람회에 직원 PIN이 설정되지 않았습니다. 운영진에게 PIN 설정을 요청해 주세요.',
-  GIFT_PIN_LOCKED: 'PIN을 여러 번 틀려 잠시 잠겼습니다.',
+    '확인 정보를 찾을 수 없습니다. 운영진에게 문의해 주세요.',
 };
 
-/** 수령 확인 실패. PIN 오류(403)의 남은 횟수와 잠금(429)의 해제까지 초를 함께 가진다 */
-export class GiftPickupError extends ApiError {
-  constructor(
-    message: string,
-    status: number,
-    code?: string,
-    readonly attemptsLeft?: number,
-    readonly retryAfterSeconds?: number,
-  ) {
-    super(message, status, code);
-    this.name = 'GiftPickupError';
-  }
-}
+// Gateway가 공개 경로로 열지 않았거나 서버가 막으면 401이 온다. 참가자에게 로그인을 안내하지 않는다
+const UNAVAILABLE =
+  '지금은 직원확인을 할 수 없습니다. 운영진에게 문의해 주세요.';
 
-// 참가자가 로그인 없이 부르는 수령 확인 경로의 401. 로그인 안내가 아니라 확인할 수 없다는 안내로 바꾼다
-const PUBLIC_UNAVAILABLE =
-  '지금은 수령 확인을 할 수 없습니다. 운영진에게 문의해 주세요.';
+const NETWORK_ERROR = '네트워크 연결을 확인한 뒤 다시 시도해 주세요.';
 
-const toGiftError = (
-  error: unknown,
-  fallback: string,
-  { isPublic = false }: { isPublic?: boolean } = {},
-): Error => {
+const toGiftError = (error: unknown, fallback: string): Error => {
+  // 응답을 받지 못한 오류는 영문 기본 문구("Network Error") 대신 한국어 안내를 보인다
+  if (axios.isAxiosError(error) && !error.response)
+    return new Error(NETWORK_ERROR);
   const base = toFormError(error, fallback);
   if (!(base instanceof ApiError)) return base;
-  if (isPublic && base.status === 401)
-    return new GiftPickupError(PUBLIC_UNAVAILABLE, 401, base.code);
-  const data = axios.isAxiosError(error) ? error.response?.data : undefined;
-  const num = (value: unknown) =>
-    typeof value === 'number' && value >= 0 ? value : undefined;
-  return new GiftPickupError(
+  if (axios.isAxiosError(error) && base.status === 401)
+    return new ApiError(UNAVAILABLE, 401, base.code);
+  return new ApiError(
     GIFT_ERROR_MESSAGES[base.code ?? ''] ?? base.message,
     base.status,
     base.code,
-    num(data?.attemptsLeft),
-    num(data?.retryAfterSeconds),
   );
 };
 
-/** 토큰·PIN은 URL 쿼리가 아니라 바디로만 보낸다. 응답은 no-store 다 */
+/** 응답 토큰은 URL 쿼리가 아니라 바디로만 보낸다. 응답은 no-store 다 */
 export const getGiftPickupStatus = async (expoId: string, token: string) => {
   try {
     const { data } = await clientInstance.post<GiftPickupStatusDto>(
@@ -63,52 +40,22 @@ export const getGiftPickupStatus = async (expoId: string, token: string) => {
     );
     return data;
   } catch (error) {
-    throw toGiftError(error, '수령 상태를 확인하지 못했습니다.', {
-      isPublic: true,
-    });
+    throw toGiftError(error, '직원확인 상태를 불러오지 못했습니다.');
   }
 };
 
-/** 이미 완료된 토큰은 PIN과 상관없이 같은 완료 상태를 돌려준다(멱등) */
-export const confirmGiftPickup = async (
-  expoId: string,
-  token: string,
-  pin: string,
-) => {
+/**
+ * 직원확인을 완료로 저장한다. 직원 PIN은 쓰지 않고 응답 토큰만 보낸다(Expo-Form-Server#267).
+ * 이미 완료된 토큰은 같은 완료 상태를 돌려준다(멱등)
+ */
+export const confirmGiftPickup = async (expoId: string, token: string) => {
   try {
     const { data } = await clientInstance.post<GiftPickupStatusDto>(
       `/surveys/${encodeURIComponent(expoId)}/gift-pickup/confirm`,
-      { token, pin },
+      { token },
     );
     return data;
   } catch (error) {
-    throw toGiftError(error, '수령을 확인하지 못했습니다.', {
-      isPublic: true,
-    });
-  }
-};
-
-/** 관리자만. 설정 여부만 알려 주고 PIN 원문은 돌려주지 않는다 */
-export const getGiftPin = async (expoId: string) => {
-  try {
-    const { data } = await clientTokenInstance.get<GiftPinStatusDto>(
-      `/surveys/${encodeURIComponent(expoId)}/gift-pin`,
-    );
-    return data;
-  } catch (error) {
-    throw toGiftError(error, '직원 PIN 설정 여부를 불러오지 못했습니다.');
-  }
-};
-
-/** 숫자 4~8자리. 바꾸면 이전 PIN은 쓸 수 없다 */
-export const setGiftPin = async (expoId: string, pin: string) => {
-  try {
-    const { data } = await clientTokenInstance.put<GiftPinStatusDto>(
-      `/surveys/${encodeURIComponent(expoId)}/gift-pin`,
-      { pin },
-    );
-    return data;
-  } catch (error) {
-    throw toGiftError(error, '직원 PIN을 저장하지 못했습니다.');
+    throw toGiftError(error, '직원확인을 완료하지 못했습니다.');
   }
 };

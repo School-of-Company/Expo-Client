@@ -27,12 +27,12 @@ export const BADGE_PRINT_HTML = `
             .badge {
               box-sizing: border-box;
               width: 100%;
-              padding: 20px;
+              padding: 10px;
               text-align: center;
             }
             .badge-school {
-              margin: 0 0 40px;
-              font-size: 28px;
+              margin: 0 0 10px;
+              font-size: 30px;
               line-height: 1.4;
               font-weight: 500;
               color: #000;
@@ -42,13 +42,14 @@ export const BADGE_PRINT_HTML = `
             }
             .badge-name {
               margin: 0;
-              font-size: 64px;
+              font-size: 54px;
               line-height: 1.2;
               font-weight: 700;
               overflow-wrap: anywhere;
             }
             @media print {
               @page {
+                size: 3in 2in;
                 margin: 0;
               }
               body {
@@ -63,31 +64,22 @@ export const BADGE_PRINT_HTML = `
             <h1 class="badge-name" id="badge-name"></h1>
           </div>
           <script>
-            // 긴 글자는 먼저 자연스럽게 줄바꿈하고, 그래도 영역에 안 들어가면 글자 크기를 줄인다
+            // 긴 이름은 글자 크기를 유지한 채 줄바꿈하고, 전체가 영역 높이를 넘을 때만 글자 크기를 줄인다
             function fitBadge() {
               var badge = document.querySelector('.badge');
               var school = document.getElementById('badge-school');
               var name = document.getElementById('badge-name');
-              var maxWidth = badge.clientWidth - 40;
-
-              // 이름은 한 줄을 우선하고, 최소 크기까지 줄여도 넘치면 줄바꿈을 허용한다
-              var nameSize = 64;
-              name.style.whiteSpace = 'nowrap';
-              while (name.scrollWidth > maxWidth && nameSize > 28) {
-                nameSize -= 2;
-                name.style.fontSize = nameSize + 'px';
-              }
-              if (name.scrollWidth > maxWidth) name.style.whiteSpace = 'normal';
+              var nameSize = 54;
 
               // 전체가 화면 높이를 넘으면 소속과 이름을 함께 줄인다
-              var schoolSize = 28;
-              while (badge.offsetHeight > window.innerHeight && (schoolSize > 14 || nameSize > 28)) {
-                if (school && schoolSize > 14) {
+              var schoolSize = 30;
+              while (badge.offsetHeight > window.innerHeight && (schoolSize > 15 || nameSize > 24)) {
+                if (school && schoolSize > 15) {
                   schoolSize -= 1;
                   school.style.fontSize = schoolSize + 'px';
                 }
-                if (nameSize > 28) {
-                  nameSize -= 2;
+                if (nameSize > 24) {
+                  nameSize -= 1;
                   name.style.fontSize = nameSize + 'px';
                 }
               }

@@ -10,5 +10,4 @@ export const surveyKeys = {
   lottery: (expoId: string) => [...surveyKeys.expo(expoId), 'lottery'] as const,
   giftPickup: (expoId: string, token: string) =>
     [...surveyKeys.expo(expoId), 'giftPickup', token] as const,
-  giftPin: (expoId: string) => [...surveyKeys.expo(expoId), 'giftPin'] as const,
 };
