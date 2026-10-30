@@ -26,7 +26,7 @@ export const BADGE_PRINT_HTML = `
             }
             .badge {
               box-sizing: border-box;
-              width: 100%;
+              width: 80mm;
               padding: 10px;
               text-align: center;
             }
@@ -71,9 +71,16 @@ export const BADGE_PRINT_HTML = `
               var name = document.getElementById('badge-name');
               var nameSize = 54;
 
-              // 전체가 화면 높이를 넘으면 소속과 이름을 함께 줄인다
+              // 화면 창이 아니라 인쇄 용지(80x56mm) 크기를 기준으로, 프린터 비인쇄 영역을 감안해 여유를 두고 맞춘다
+              var probe = document.createElement('div');
+              probe.style.cssText = 'position:absolute;visibility:hidden;height:56mm;';
+              document.body.appendChild(probe);
+              var pageHeight = probe.offsetHeight - 16;
+              document.body.removeChild(probe);
+
+              // 전체가 용지 높이를 넘으면 소속과 이름을 함께 줄인다
               var schoolSize = 30;
-              while (badge.offsetHeight > window.innerHeight && (schoolSize > 15 || nameSize > 24)) {
+              while (badge.offsetHeight > pageHeight && (schoolSize > 15 || nameSize > 24)) {
                 if (school && schoolSize > 15) {
                   schoolSize -= 1;
                   school.style.fontSize = schoolSize + 'px';
