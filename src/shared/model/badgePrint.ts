@@ -1,5 +1,6 @@
 // 목걸이 명찰 가운데 부착 영역에 들어가는 소속·이름만 출력한다
-export const BADGE_PRINT_HTML = `
+// 인쇄 호출 방식만 다르고 레이아웃은 새 창(수동 출력)과 숨긴 iframe(출력대 자동 출력)이 같다
+const BADGE_HTML_TEMPLATE = `
       <html>
         <head>
           <title>Badge</title>
@@ -91,25 +92,40 @@ export const BADGE_PRINT_HTML = `
                 }
               }
             }
-            window.onload = function() {
-              var go = function() {
-                fitBadge();
-                window.print();
-                window.close();
-              };
-              // 폰트가 늦거나 막혀도 3초 뒤에는 대체 폰트로 인쇄한다
-              Promise.race([
+            // 폰트가 늦거나 막혀도 3초 뒤에는 대체 폰트로 인쇄한다
+            function waitBadgeFonts() {
+              return Promise.race([
                 Promise.all([
                   document.fonts.load('500 1em GMarketSans'),
                   document.fonts.load('700 1em GMarketSans'),
                 ]),
                 new Promise(function(resolve) { setTimeout(resolve, 3000); }),
-              ]).then(go, go);
-            };
+              ]);
+            }
+            __BADGE_ON_LOAD__
           </script>
         </body>
       </html>
     `;
+
+// 새 창: 열리면 스스로 맞추고 인쇄한 뒤 창을 닫는다
+export const BADGE_PRINT_HTML = BADGE_HTML_TEMPLATE.replace(
+  '__BADGE_ON_LOAD__',
+  `window.onload = function() {
+              var go = function() {
+                fitBadge();
+                window.print();
+                window.close();
+              };
+              waitBadgeFonts().then(go, go);
+            };`,
+);
+
+// 숨긴 iframe: 스스로 인쇄하지 않는다. 부모가 waitBadgeFonts → fitBadge → print 를 한 번만 부른다
+export const BADGE_FRAME_HTML = BADGE_HTML_TEMPLATE.replace(
+  '__BADGE_ON_LOAD__',
+  '',
+);
 
 type BadgeTarget = {
   getElementById: (id: string) => {
