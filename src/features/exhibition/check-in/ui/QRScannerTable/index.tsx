@@ -13,6 +13,7 @@ import {
 import { TableForm } from '@/shared/ui/Table';
 import { CHECK_IN_PRINT_CATEGORIES } from '../../model/constants';
 import {
+  badgePrintHint,
   errorResult,
   reEntryResult,
   ScanResult,
@@ -158,12 +159,10 @@ const QRScannerTable = ({ id }: { id: string }) => {
       setLastResult(successResult('이미 입장 처리됨', newUser.name));
       return;
     }
-    setLastResult(
-      successResult(
-        '입장 완료',
-        newUser.badge ? `${newUser.name} · 명찰 출력 대상` : newUser.name,
-      ),
-    );
+    setLastResult({
+      ...successResult('입장 완료', newUser.name),
+      hint: badgePrintHint(newUser),
+    });
     invalidateEntryList();
   };
 
