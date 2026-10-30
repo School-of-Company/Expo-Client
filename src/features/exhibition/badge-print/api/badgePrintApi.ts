@@ -51,6 +51,8 @@ export type BadgePrintOutcome = 'SUBMITTED' | 'FAILED_BEFORE_PRINT';
 // 작업을 점유한 출력대. 아직 점유 전이거나 재시도로 이전 안내가 무효면 null(Expo-User-Server#241)
 export interface BadgePrintJobStatusResponse {
   jobId: number;
+  // 재출력을 따라간 가장 최신 작업. status·station 은 이 작업 기준이다
+  currentJobId: number;
   status: BadgePrintJobStatus;
   station: { stationId: string; label: string } | null;
 }
