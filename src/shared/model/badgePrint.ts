@@ -113,7 +113,7 @@ type BadgeTarget = {
 
 // 띄어쓰기 없는 긴 학교명이 글자 중간에서 끊기지 않도록 의미 단위 앞에만 줄바꿈 기회(ZWSP)를 둔다
 const SCHOOL_BREAK_POINT =
-  /(?<=.)(?=마이스터|과학|예술|외국어|국제|체육|공업|상업|여자|고등학교|중학교|초등학교|대학교)/g;
+  /(?<=.)(?=마이스터|과학|예술|외국어|국제|체육|공업|상업|여자|고등학교|중학교|초등학교|대학교|특별시|광역시)|(?<=교육청|교육원|지원청)(?=.)/g;
 
 export const addSchoolBreakPoints = (school: string) =>
   school.replace(SCHOOL_BREAK_POINT, '\u200b');
