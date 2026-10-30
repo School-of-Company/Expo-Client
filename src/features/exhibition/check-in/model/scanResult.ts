@@ -1,5 +1,6 @@
 import { getErrorStatus } from '@/shared/libs/http/apiError';
 import type { ScanMode } from '../ui/ScanModeToggle';
+import type { AttendUserResponse } from '@/shared/types/exhibition/check-in/type';
 
 /** 마지막으로 처리한 스캔 결과. 다음 스캔 때 바뀐다 */
 export interface ScanResult {
@@ -12,6 +13,8 @@ export interface ScanResult {
   isReEntry?: boolean;
   // 직원이 다음에 할 일을 알려 주는 안내
   hint?: string;
+  // 있으면 카드가 이 작업의 출력대 배정을 조회해 명찰 수령 위치를 보여 준다
+  badgePrintJobId?: number;
 }
 
 const pad = (value: number) => String(value).padStart(2, '0');
@@ -50,6 +53,19 @@ export const reEntryResult = (
   // 재입장 응답에는 명찰이 없어 오류로 오해하지 않게 알린다
   hint: '명찰은 처음 입장할 때만 출력됩니다.',
 });
+
+/** 입장 결과 카드의 명찰 안내. 출력대 자동 출력 결과가 있으면 그것을, 없으면 수동 출력 대상인지만 알린다 */
+export const badgePrintHint = ({
+  badge,
+  badgePrint,
+}: Pick<AttendUserResponse, 'badge' | 'badgePrint'>) => {
+  if (badgePrint === 'QUEUED') return '명찰 출력대에서 명찰을 받으세요.';
+  if (badgePrint === 'DUPLICATE')
+    return '오늘 이미 명찰 출력을 요청한 분입니다. 출력대에서 확인해 주세요.';
+  if (badge)
+    return '명찰 출력 대상입니다. 출력대를 쓰지 않으면 아래 표에서 명찰을 출력해 주세요.';
+  return undefined;
+};
 
 export const errorResult = (
   title: string,

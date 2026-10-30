@@ -54,6 +54,8 @@ export const getExpoRoutes = (expoId: string) => {
     programDetail: (programId: number, type: 'STANDARD' | 'TRAINING') =>
       `/admin/program/${id}/detail/${programId}?navigation=${type === 'TRAINING' ? 'training' : 'standard'}`,
     paperQr: `${qr}?tab=${EXPO_QR_TABS.paper}`,
+    // 프린터가 연결된 노트북에서 여는 명찰 자동 출력 화면(#924)
+    printStation: `/admin/exhibition/print-station/${id}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
     // 사전등록·프로그램 회차를 보는 신청 목록 탭. 프로그램 신청 화면의 뒤로 가기가 쓴다

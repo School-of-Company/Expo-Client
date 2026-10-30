@@ -20,6 +20,9 @@ export interface AttendUserBadge {
   school: string | null;
 }
 
+// QUEUED: 출력 작업 저장, DUPLICATE: 같은 사람의 오늘 작업이 이미 있음. 실제 출력 완료를 뜻하지 않는다
+export type BadgePrintRequestResult = 'QUEUED' | 'DUPLICATE';
+
 // 최초 입장과 재입장. 서버 필드 이름은 Expo-Attendance-Server#148 에서 확정 전이라 없을 수 있다(없으면 최초 입장으로 본다)
 export type EntryStatus = 'FIRST' | 'RE_ENTRY';
 
@@ -38,4 +41,8 @@ export interface AttendUserResponse extends EntryStatusFields {
   // Swagger상 string(STANDARD·TRAINEE 등 유저 서비스 값). 모르는 값이 와도 받는다
   participationType: string;
   badge: AttendUserBadge | null;
+  // 명찰 자동 출력 요청 결과(User 서버가 입장과 함께 저장). 대상이 아니거나 재입장·재시도면 null, 이전 서버는 없다
+  badgePrint?: BadgePrintRequestResult | null;
+  // 명찰 출력 작업 식별자(Expo-User-Server#241, Expo-Attendance-Server#279). 대상이 아니거나 이전 서버는 없다
+  badgePrintJobId?: number | null;
 }

@@ -9,6 +9,7 @@ import { SegmentTabs } from '@/features/registration/common';
 import {
   EXPO_QR_TABS,
   ExpoQrTab,
+  getExpoRoutes,
   getRegistrationRoutes,
 } from '@/shared/config';
 import { DetailHeader } from '@/shared/ui';
@@ -85,7 +86,25 @@ const ExhibitionQrPage = ({
               onSelect={(target) => updateQuery({ target })}
             />
           )}
-          {tab === EXPO_QR_TABS.checkIn && <QRScannerTable id={checkInId} />}
+          {tab === EXPO_QR_TABS.checkIn && (
+            <div className="flex w-full flex-col gap-24">
+              <div className="flex flex-wrap items-center justify-between gap-12 rounded-sm bg-gray-100 px-16 py-12">
+                <p className="break-keep text-body2r text-gray-600">
+                  교사·연수자가 처음 입장하면 명찰 출력대 노트북이 명찰을
+                  자동으로 출력합니다.
+                </p>
+                <Link
+                  href={getExpoRoutes(checkInId).printStation}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-sm border-1 border-solid border-gray-200 bg-white px-16 py-8 text-caption1b text-gray-700"
+                >
+                  명찰 출력대 열기
+                </Link>
+              </div>
+              <QRScannerTable id={checkInId} />
+            </div>
+          )}
           {tab === EXPO_QR_TABS.paper && (
             <div className="flex w-full flex-col gap-24">
               <div className="flex flex-wrap items-center justify-between gap-12 rounded-sm bg-gray-100 px-16 py-12">
