@@ -111,6 +111,13 @@ type BadgeTarget = {
   } | null;
 };
 
+// 띄어쓰기 없는 긴 학교명이 글자 중간에서 끊기지 않도록 의미 단위 앞에만 줄바꿈 기회(ZWSP)를 둔다
+const SCHOOL_BREAK_POINT =
+  /(?<=.)(?=마이스터|과학|예술|외국어|국제|체육|공업|상업|여자|고등학교|중학교|초등학교|대학교)/g;
+
+export const addSchoolBreakPoints = (school: string) =>
+  school.replace(SCHOOL_BREAK_POINT, '\u200b');
+
 // 외부 입력값이므로 HTML 파싱 없이 textContent 로만 주입한다. 소속이 없으면 소속 줄 자체를 뺀다
 export const fillBadge = (
   doc: BadgeTarget,
@@ -119,7 +126,8 @@ export const fillBadge = (
   const schoolElement = doc.getElementById('badge-school');
   const schoolText = school?.trim();
   if (schoolElement) {
-    if (schoolText) schoolElement.textContent = schoolText;
+    if (schoolText)
+      schoolElement.textContent = addSchoolBreakPoints(schoolText);
     else schoolElement.remove();
   }
 
