@@ -48,6 +48,13 @@ export interface BadgePrintJob {
 // SUBMITTED: 인쇄를 요청함(종이가 나왔다는 뜻은 아님), FAILED_BEFORE_PRINT: 인쇄 요청 전에 확실히 실패함
 export type BadgePrintOutcome = 'SUBMITTED' | 'FAILED_BEFORE_PRINT';
 
+// 작업을 점유한 출력대. 아직 점유 전이거나 재시도로 이전 안내가 무효면 null(Expo-User-Server#241)
+export interface BadgePrintJobStatusResponse {
+  jobId: number;
+  status: BadgePrintJobStatus;
+  station: { stationId: string; label: string } | null;
+}
+
 export type BadgePrintResolveAction = 'REQUEUE' | 'DONE';
 
 const basePath = (expoId: string) =>
@@ -191,5 +198,22 @@ export const resolveBadgePrintJob = async (
     );
   } catch (error) {
     throw toError(error, '출력 작업을 처리하지 못했습니다.');
+  }
+};
+
+/** 입장 안내용 작업 상태·출력대 조회. 이전 스캔의 요청은 signal 로 끊는다 */
+export const getBadgePrintJobStatus = async (
+  expoId: string,
+  jobId: number,
+  signal?: AbortSignal,
+): Promise<BadgePrintJobStatusResponse> => {
+  try {
+    const response = await clientTokenInstance.get<BadgePrintJobStatusResponse>(
+      `${basePath(expoId)}/jobs/${jobId}`,
+      { signal },
+    );
+    return response.data;
+  } catch (error) {
+    throw toError(error, '명찰 출력대를 조회하지 못했습니다.');
   }
 };
