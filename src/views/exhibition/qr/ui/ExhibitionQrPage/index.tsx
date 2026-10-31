@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AccessQrPanel } from '@/features/exhibition/access-qr';
+import { BadgePrintStationStatus } from '@/features/exhibition/badge-print';
 import { QRScannerTable } from '@/features/exhibition/check-in';
 import { PaperQrPrintBoard } from '@/features/exhibition/paper-qr';
 import { SegmentTabs } from '@/features/registration/common';
@@ -89,10 +90,13 @@ const ExhibitionQrPage = ({
           {tab === EXPO_QR_TABS.checkIn && (
             <div className="flex w-full flex-col gap-24">
               <div className="flex flex-wrap items-center justify-between gap-12 rounded-sm bg-gray-100 px-16 py-12">
-                <p className="break-keep text-body2r text-gray-600">
-                  교사·연수자가 처음 입장하면 명찰 출력대 노트북이 명찰을
-                  자동으로 출력합니다.
-                </p>
+                <div className="flex flex-col gap-4">
+                  <p className="break-keep text-body2r text-gray-600">
+                    교사·연수자가 처음 입장하면 명찰 출력대 노트북이 명찰을
+                    자동으로 출력합니다.
+                  </p>
+                  <BadgePrintStationStatus expoId={checkInId} />
+                </div>
                 <Link
                   href={getExpoRoutes(checkInId).printStation}
                   target="_blank"
