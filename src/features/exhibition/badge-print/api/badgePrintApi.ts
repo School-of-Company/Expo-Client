@@ -87,14 +87,15 @@ export const getBadgePrintStations = async (
   }
 };
 
+/** requestKey 가 같으면 서버가 새로 만들지 않고 같은 출력대를 돌려준다(더블클릭, Expo-User-Server#245) */
 export const createBadgePrintStation = async (
   expoId: string,
-  label?: string,
+  requestKey: string,
 ): Promise<CreatedBadgePrintStation> => {
   try {
     const response = await clientTokenInstance.post<CreatedBadgePrintStation>(
       `${basePath(expoId)}/stations`,
-      label ? { label } : {},
+      { requestKey },
     );
     return response.data;
   } catch (error) {
@@ -172,13 +173,15 @@ export const reportBadgePrintResult = async (
   }
 };
 
-/** 오늘 작업 중 확인이 필요한 것(기본 NEEDS_CHECK, FAILED) */
+/** 오늘 작업. statuses 를 주지 않으면 서버 기본값(NEEDS_CHECK, FAILED)이다 */
 export const getBadgePrintJobs = async (
   expoId: string,
+  statuses?: BadgePrintJobStatus[],
 ): Promise<BadgePrintJob[]> => {
   try {
     const response = await clientTokenInstance.get<{ jobs: BadgePrintJob[] }>(
       `${basePath(expoId)}/jobs`,
+      statuses ? { params: { status: statuses.join(',') } } : undefined,
     );
     return response.data.jobs;
   } catch (error) {

@@ -12,6 +12,7 @@ const STATE_TEXT: Record<StationState, string> = {
   connecting: '연결 중',
   running: '자동 출력 중',
   'taken-over': '다른 곳에서 이 출력대를 열었습니다',
+  'other-tab': '이 브라우저의 다른 탭에서 이 출력대를 실행 중입니다',
   'not-found': '출력대를 찾지 못했습니다',
   forbidden: '관리자 권한이 없어 출력할 수 없습니다',
   error: '연결 오류(자동으로 다시 연결합니다)',
