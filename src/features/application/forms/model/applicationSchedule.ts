@@ -73,6 +73,10 @@ export const isPreApplicationOpen = (
 export const isApplicable = (status: ScheduleStatus) =>
   status === 'OPEN' || status === 'ONSITE_OPEN';
 
+/** 접수가 끝난 상태(운영 마감이거나 기간이 지났거나 회차가 끝남). 신청 목록에서 숨긴다 */
+export const isClosed = (status: ScheduleStatus) =>
+  status === 'CLOSED' || status === 'ENDED';
+
 /**
  * 일반 사전등록 회차 상태. 접수 기간은 사전등록 신청서(폼) 기간이고, 회차마다 운영 마감·종료가 따로 있다.
  * 신청서가 아직 없으면 접수 시작을 알 수 없으므로 모집 준비 중이다.

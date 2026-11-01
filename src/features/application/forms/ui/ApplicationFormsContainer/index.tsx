@@ -54,10 +54,25 @@ const ApplicationFormsContainer = ({
   }, [isInitialLoading]);
   const isLoading = isInitialLoading && !hasLoaded;
   // 행사 시작일 00:00(KST)부터 일반 사전등록은 숨기고 현장 등록을 노출한다. 교원연수·프로그램 신청 등 나머지 PRE 항목은 유지한다
-  const forms = allForms.filter((entry) =>
+  const releasedForms = allForms.filter((entry) =>
     entry.group === 'FIELD'
       ? field.released
       : entry.key !== 'pre-standard' || !field.released,
+  );
+  // 목록을 켜둔 채 신청 시작·마감 시각이 지나도 상태와 신청 링크를 바꾼다(#749)
+  const now = useNow(
+    releasedForms.flatMap(({ form }) =>
+      [
+        new Date(form.startDate).getTime(),
+        new Date(form.endDate).getTime(),
+      ].filter(Number.isFinite),
+    ),
+  );
+  // 신청 기간이 끝난 폼은 목록에서 뺀다. 남은 폼이 없으면 현장등록 탭도 사라진다
+  const forms = releasedForms.filter(
+    ({ form }) =>
+      getFormPeriodStatus(form.startDate, form.endDate, new Date(now)) !==
+      'CLOSED',
   );
   const {
     data: expo,
@@ -97,15 +112,6 @@ const ApplicationFormsContainer = ({
   const current =
     groups.find((group) => group.key === selected) ?? groups[0] ?? null;
   const currentForms = forms.filter((entry) => entry.group === current?.key);
-  // 목록을 켜둔 채 신청 시작·마감 시각이 지나도 상태와 신청 링크를 바꾼다(#749)
-  const now = useNow(
-    currentForms.flatMap(({ form }) =>
-      [
-        new Date(form.startDate).getTime(),
-        new Date(form.endDate).getTime(),
-      ].filter(Number.isFinite),
-    ),
-  );
 
   // 없는 박람회(404)는 로딩을 끝내고 안내한다. 일시적인 네트워크·서버 오류는 아래 화면의 다시 시도로 구분한다
   if (getErrorStatus(expoError) === 404)

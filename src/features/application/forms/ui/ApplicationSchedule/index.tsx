@@ -13,6 +13,7 @@ import {
   getProgramCapacity,
   getProgramScheduleStatus,
   getScheduleBoundaries,
+  isClosed,
 } from '../../model/applicationSchedule';
 import {
   PROGRAM_CATEGORIES,
@@ -136,13 +137,28 @@ const ApplicationSchedule = ({
     capacity: getProgramCapacity(program, now),
   });
 
+  // 마감·종료된 회차는 목록에서 뺀다. 회차가 모두 빠진 분류 카드도 사라진다
+  const openPrograms = useMemo(
+    () =>
+      (standard.data ?? []).filter(
+        (program) => !isClosed(getProgramScheduleStatus(program, now)),
+      ),
+    [standard.data, now],
+  );
+  const openTrainings = useMemo(
+    () =>
+      (training.data ?? []).filter(
+        (program) => !isClosed(getProgramScheduleStatus(program, now)),
+      ),
+    [training.data, now],
+  );
   const programGroups = useMemo(
-    () => groupByCategory(standard.data ?? [], PROGRAM_CATEGORIES),
-    [standard.data],
+    () => groupByCategory(openPrograms, PROGRAM_CATEGORIES),
+    [openPrograms],
   );
   const trainingGroups = useMemo(
-    () => groupByCategory(training.data ?? [], TRAINING_CATEGORIES),
-    [training.data],
+    () => groupByCategory(openTrainings, TRAINING_CATEGORIES),
+    [openTrainings],
   );
 
   const navItems = useMemo(
@@ -178,7 +194,18 @@ const ApplicationSchedule = ({
   // 사전등록 탭이 빠진 뒤에도 고른 탭이 남아 있지 않게 첫 탭으로 돌린다
   const active = navItems.some(({ id }) => id === tab) ? tab : navItems[0].id;
 
-  const sessionList = [...(sessions.data ?? [])].sort(byStart);
+  // 신청서 기간을 못 받았으면 접수 여부를 단정하지 않는다
+  const sessionList = (sessions.data ?? [])
+    .map((session) => ({
+      session,
+      status: getPreRegisterScheduleStatus(
+        formError ? null : formStatus,
+        session,
+        now,
+      ),
+    }))
+    .filter(({ status }) => !isClosed(status))
+    .sort((a, b) => byStart(a.session, b.session));
 
   return (
     <div className="flex flex-col gap-20">
@@ -211,17 +238,11 @@ const ApplicationSchedule = ({
             if (formError) preForm.refetch();
           }}
           isLoading={sessions.isLoading || preForm.isLoading}
-          isEmpty={sessions.data?.length === 0}
+          isEmpty={!!sessions.data && sessionList.length === 0}
         >
           <LiveSeatsNote fetchedAt={seats?.fetchedAt} failed={seatsFailed} />
           <ul className="grid grid-cols-2 gap-12 mobile:grid-cols-1">
-            {sessionList.map((session) => {
-              // 신청서 기간을 못 받았으면 접수 여부를 단정하지 않는다
-              const status = getPreRegisterScheduleStatus(
-                formError ? null : formStatus,
-                session,
-                now,
-              );
+            {sessionList.map(({ session, status }) => {
               return (
                 <li
                   key={session.id}
@@ -290,7 +311,7 @@ const ApplicationSchedule = ({
             error={standard.error}
             onRetry={() => standard.refetch()}
             isLoading={standard.isLoading}
-            isEmpty={standard.data?.length === 0}
+            isEmpty={!!standard.data && openPrograms.length === 0}
           >
             <LiveSeatsNote fetchedAt={seats?.fetchedAt} failed={seatsFailed} />
             <ul className="flex flex-col gap-16">
@@ -323,7 +344,7 @@ const ApplicationSchedule = ({
             error={training.error}
             onRetry={() => training.refetch()}
             isLoading={training.isLoading}
-            isEmpty={training.data?.length === 0}
+            isEmpty={!!training.data && openTrainings.length === 0}
           >
             <LiveSeatsNote fetchedAt={seats?.fetchedAt} failed={seatsFailed} />
             <ul className="flex flex-col gap-16">
