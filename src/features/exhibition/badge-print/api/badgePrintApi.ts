@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { toServerMessage } from '@/shared/libs/handler/serverMessage';
 import { ApiError } from '@/shared/libs/http/apiError';
-import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { NETWORK_ERROR_MESSAGE } from '@/shared/libs/http/getScanErrorMessage';
+import { serialHttp } from './serialHttp';
 
 // Expo-User-Server BadgePrintController(/admin/badge-prints/{expoId}). 모두 관리자 전용이다(#924)
 
@@ -78,7 +78,7 @@ export const getBadgePrintStations = async (
   expoId: string,
 ): Promise<BadgePrintStation[]> => {
   try {
-    const response = await clientTokenInstance.get<{
+    const response = await serialHttp.get<{
       stations: BadgePrintStation[];
     }>(`${basePath(expoId)}/stations`);
     return response.data.stations;
@@ -93,7 +93,7 @@ export const createBadgePrintStation = async (
   requestKey: string,
 ): Promise<CreatedBadgePrintStation> => {
   try {
-    const response = await clientTokenInstance.post<CreatedBadgePrintStation>(
+    const response = await serialHttp.post<CreatedBadgePrintStation>(
       `${basePath(expoId)}/stations`,
       { requestKey },
     );
@@ -109,7 +109,7 @@ export const openBadgePrintSession = async (
   stationId: string,
 ): Promise<string> => {
   try {
-    const response = await clientTokenInstance.post<{ sessionId: string }>(
+    const response = await serialHttp.post<{ sessionId: string }>(
       `${stationPath(expoId, stationId)}/sessions`,
     );
     return response.data.sessionId;
@@ -124,7 +124,7 @@ export const updateBadgePrintStation = async (
   paused: boolean,
 ) => {
   try {
-    await clientTokenInstance.patch(stationPath(expoId, stationId), {
+    await serialHttp.patch(stationPath(expoId, stationId), {
       paused,
     });
   } catch (error) {
@@ -143,7 +143,7 @@ export const claimBadgePrintJob = async (
   requestId: string,
 ): Promise<BadgePrintClaim | null> => {
   try {
-    const response = await clientTokenInstance.post<BadgePrintClaim | ''>(
+    const response = await serialHttp.post<BadgePrintClaim | ''>(
       `${stationPath(expoId, stationId)}/claim`,
       { sessionId, requestId },
     );
@@ -164,10 +164,7 @@ export const reportBadgePrintResult = async (
   },
 ) => {
   try {
-    await clientTokenInstance.post(
-      `${basePath(expoId)}/jobs/${jobId}/result`,
-      body,
-    );
+    await serialHttp.post(`${basePath(expoId)}/jobs/${jobId}/result`, body);
   } catch (error) {
     throw toError(error, '출력 결과를 보내지 못했습니다.');
   }
@@ -179,7 +176,7 @@ export const getBadgePrintJobs = async (
   statuses?: BadgePrintJobStatus[],
 ): Promise<BadgePrintJob[]> => {
   try {
-    const response = await clientTokenInstance.get<{ jobs: BadgePrintJob[] }>(
+    const response = await serialHttp.get<{ jobs: BadgePrintJob[] }>(
       `${basePath(expoId)}/jobs`,
       statuses ? { params: { status: statuses.join(',') } } : undefined,
     );
@@ -197,10 +194,10 @@ export const resolveBadgePrintJob = async (
   requestKey: string,
 ) => {
   try {
-    await clientTokenInstance.post(
-      `${basePath(expoId)}/jobs/${jobId}/resolve`,
-      { action, requestKey },
-    );
+    await serialHttp.post(`${basePath(expoId)}/jobs/${jobId}/resolve`, {
+      action,
+      requestKey,
+    });
   } catch (error) {
     throw toError(error, '출력 작업을 처리하지 못했습니다.');
   }
@@ -213,7 +210,7 @@ export const getBadgePrintJobStatus = async (
   signal?: AbortSignal,
 ): Promise<BadgePrintJobStatusResponse> => {
   try {
-    const response = await clientTokenInstance.get<BadgePrintJobStatusResponse>(
+    const response = await serialHttp.get<BadgePrintJobStatusResponse>(
       `${basePath(expoId)}/jobs/${jobId}`,
       { signal },
     );

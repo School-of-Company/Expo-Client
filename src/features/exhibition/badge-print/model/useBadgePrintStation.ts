@@ -11,6 +11,7 @@ import {
   reportBadgePrintResult,
   updateBadgePrintStation,
 } from '../api/badgePrintApi';
+import { createBackgroundTimer } from './backgroundTimer';
 import {
   clearPendingReport,
   loadPendingReport,
@@ -24,10 +25,11 @@ import { BeforePrintError, printBadgeInFrame } from './printBadgeInFrame';
 const POLL_INTERVAL_MS = 2000;
 // 작업을 하나 끝내면 대기열이 남아 있을 수 있어 바로 다음을 묻는다
 const NEXT_JOB_DELAY_MS = 300;
-// 결과 보고를 못 보냈으면 새 작업을 받기 전에 곧 다시 보낸다
-const REPORT_RETRY_MS = 1000;
-// 오류가 나면 서버가 회복할 시간을 둔다
-const ERROR_RETRY_MS = 5000;
+// 실패가 이어지면 재시도 간격을 1초에서 30초까지 두 배씩 늘리고, 출력대 여러 대가 같은 박자로 몰리지 않게 흔든다(#931)
+const RETRY_BASE_MS = 1000;
+const RETRY_MAX_MS = 30_000;
+// 요청 제한(429)에 걸리면 최소한 이만큼은 쉰다
+const RATE_LIMIT_RETRY_MS = 10_000;
 // 연속 오류가 이만큼이면 화면에 오류 상태로 크게 알린다(루프는 계속 돈다)
 const ERROR_ALERT_COUNT = 3;
 // 같은 브라우저의 다른 탭이 이 출력대를 잡고 있는지 알리기까지 기다리는 시간
@@ -40,6 +42,7 @@ export type StationState =
   | 'connecting'
   | 'running'
   | 'other-tab'
+  | 'unsupported'
   | 'taken-over'
   | 'not-found'
   | 'forbidden'
@@ -59,6 +62,16 @@ const timeText = () =>
 
 const messageOf = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;
+
+/** n번째 연속 실패 뒤 기다릴 시간. 0.5~1.5배로 흔들어 여러 출력대가 동시에 다시 몰리지 않게 한다 */
+const retryDelay = (failures: number, status?: number) => {
+  const base = Math.min(
+    RETRY_MAX_MS,
+    RETRY_BASE_MS * 2 ** Math.max(0, failures - 1),
+  );
+  const jittered = Math.round(base * (0.5 + Math.random()));
+  return status === 429 ? Math.max(jittered, RATE_LIMIT_RETRY_MS) : jittered;
+};
 
 /**
  * 출력대 한 대의 자동 출력 루프. 세션을 열고 2초마다 claim 해서 받은 명찰을 iframe 으로 인쇄한 뒤 결과를 보고한다.
@@ -87,15 +100,18 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
 
   useEffect(() => {
     let cancelled = false;
-    let timer: number | undefined;
+    // 창이 숨겨져도 늦어지지 않는 타이머
+    const timer = createBackgroundTimer();
     let errorCount = 0;
+    // 결과 보고가 이어서 실패한 횟수. 새 작업을 받기 전에 백오프로 다시 보낸다
+    let reportFailures = 0;
+    let lastStatus: number | undefined;
     let releaseLock: (() => void) | undefined;
     const lockAbort = new AbortController();
 
     const schedule = (ms: number, run: () => Promise<void>) => {
       if (cancelled) return;
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => {
+      timer.set(() => {
         void run();
       }, ms);
     };
@@ -128,15 +144,19 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
           reason: pending.reason,
         });
         clearPendingReport(stationId);
+        reportFailures = 0;
         recordRecent(pending, outcome === 'SUBMITTED' ? 'ok' : 'retry');
         return true;
       } catch (error) {
         const status = getErrorStatus(error);
         if (status === 409 || status === 404) {
           clearPendingReport(stationId);
+          reportFailures = 0;
           recordRecent(pending, 'check');
           return true;
         }
+        reportFailures += 1;
+        lastStatus = status;
         setLastError(messageOf(error, '출력 결과를 보내지 못했습니다.'));
         return false;
       }
@@ -144,7 +164,8 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
 
     /** 한 번의 실행. 다음 실행까지 기다릴 시간(ms) 또는 STOP 을 돌려준다 */
     const step = async (): Promise<number> => {
-      if (!(await settlePending())) return REPORT_RETRY_MS;
+      if (!(await settlePending()))
+        return retryDelay(reportFailures, lastStatus);
       if (cancelled || !sessionRef.current) return STOP;
 
       const requestId = pendingRequestRef.current ?? crypto.randomUUID();
@@ -213,19 +234,22 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
       });
       setCurrent(null);
 
-      return (await settlePending()) ? NEXT_JOB_DELAY_MS : REPORT_RETRY_MS;
+      return (await settlePending())
+        ? NEXT_JOB_DELAY_MS
+        : retryDelay(reportFailures, lastStatus);
     };
 
     const tick = async () => {
       if (cancelled) return;
-      let next = ERROR_RETRY_MS;
+      let next = RETRY_BASE_MS;
       try {
         next = await step();
         errorCount = 0;
-        if (next !== REPORT_RETRY_MS) setLastError(null);
+        if (reportFailures === 0) setLastError(null);
         if (next !== STOP) setState('running');
       } catch (error) {
         errorCount += 1;
+        next = retryDelay(errorCount, getErrorStatus(error));
         setLastError(messageOf(error, '출력 작업을 받지 못했습니다.'));
         if (errorCount >= ERROR_ALERT_COUNT) setState('error');
       } finally {
@@ -242,6 +266,7 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
         if (cancelled) return;
         sessionRef.current = sessionId;
         pendingRequestRef.current = null;
+        errorCount = 0;
         setState('running');
         setLastError(null);
         // 이름·일시정지 상태는 표시용이라 실패해도 출력은 계속한다
@@ -262,9 +287,10 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
           setState(status === 404 ? 'not-found' : 'forbidden');
           return;
         }
+        errorCount += 1;
         setState('error');
         setLastError(messageOf(error, '출력대를 열지 못했습니다.'));
-        schedule(ERROR_RETRY_MS, open);
+        schedule(retryDelay(errorCount, status), open);
       }
     };
 
@@ -290,12 +316,13 @@ export const useBadgePrintStation = (expoId: string, stationId: string) => {
         )
         .catch(() => undefined);
     } else {
-      void open();
+      // 탭끼리 막을 수 없으면 두 탭이 같은 보고 기록을 덮어쓸 수 있어 실행하지 않는다(현장 Chrome 은 지원)
+      setState('unsupported');
     }
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timer);
+      timer.dispose();
       lockAbort.abort();
       releaseLock?.();
     };

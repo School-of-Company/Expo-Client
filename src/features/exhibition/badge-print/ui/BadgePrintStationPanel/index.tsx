@@ -1,6 +1,8 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
+import { resolveBadgePrintJob } from '../../api/badgePrintApi';
 import { printBadgeInFrame } from '../../model/printBadgeInFrame';
 import {
   PrintedBadge,
@@ -13,6 +15,7 @@ const STATE_TEXT: Record<StationState, string> = {
   running: '자동 출력 중',
   'taken-over': '다른 곳에서 이 출력대를 열었습니다',
   'other-tab': '이 브라우저의 다른 탭에서 이 출력대를 실행 중입니다',
+  unsupported: '이 브라우저에서는 출력대를 실행할 수 없습니다(Chrome 사용)',
   'not-found': '출력대를 찾지 못했습니다',
   forbidden: '관리자 권한이 없어 출력할 수 없습니다',
   error: '연결 오류(자동으로 다시 연결합니다)',
@@ -44,6 +47,24 @@ const BadgePrintStationPanel = ({
   } = useBadgePrintStation(expoId, stationId);
 
   const running = state === 'running';
+  // "안 나옴"을 다시 눌러도 같은 키로 보내 재출력이 한 번만 만들어지게 한다
+  const requeueKeys = useRef(new Map<number, string>());
+  const [requeued, setRequeued] = useState<Set<number>>(() => new Set());
+
+  // 인쇄를 요청했는데 종이가 나오지 않은 명찰(프린터 오프라인·용지 없음)을 다시 대기열에 넣는다
+  const handleNotPrinted = async (jobId: number) => {
+    const key = requeueKeys.current.get(jobId) ?? crypto.randomUUID();
+    requeueKeys.current.set(jobId, key);
+    try {
+      await resolveBadgePrintJob(expoId, jobId, 'REQUEUE', key);
+      setRequeued((prev) => new Set(prev).add(jobId));
+      toast.success('다시 출력 대기열에 넣었습니다.');
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : '다시 출력하지 못했습니다.',
+      );
+    }
+  };
 
   const handleTestPrint = async () => {
     try {
@@ -131,13 +152,27 @@ const BadgePrintStationPanel = ({
                     </span>
                   )}
                 </p>
-                <p
-                  className={`whitespace-nowrap text-caption1b ${
-                    item.result === 'ok' ? 'text-gray-600' : 'text-error'
-                  }`}
-                >
-                  {RESULT_TEXT[item.result]} · {item.at}
-                </p>
+                <div className="flex items-center gap-8">
+                  <p
+                    className={`whitespace-nowrap text-caption1b ${
+                      item.result === 'ok' ? 'text-gray-600' : 'text-error'
+                    }`}
+                  >
+                    {requeued.has(item.jobId)
+                      ? '다시 출력 대기'
+                      : RESULT_TEXT[item.result]}{' '}
+                    · {item.at}
+                  </p>
+                  {item.result === 'ok' && !requeued.has(item.jobId) && (
+                    <button
+                      type="button"
+                      onClick={() => void handleNotPrinted(item.jobId)}
+                      className="whitespace-nowrap rounded-sm border-1 border-solid border-gray-200 bg-white px-12 py-4 text-caption1b text-gray-700"
+                    >
+                      안 나옴
+                    </button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
