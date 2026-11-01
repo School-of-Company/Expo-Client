@@ -187,16 +187,22 @@ export const getBadgePrintJobs = async (
 };
 
 /** REQUEUE 는 다시 대기열에 넣고, DONE 은 처리 완료로 닫는다. 같은 requestKey 로 다시 보내도 한 번만 처리된다 */
+/**
+ * expectedStatus 는 화면이 본 상태다. 그사이 늦은 결과 보고로 상태가 바뀌었으면 서버가 409로 거절해,
+ * 이미 인쇄된 명찰을 다시 출력하는 일을 막는다(Expo-User-Server#247)
+ */
 export const resolveBadgePrintJob = async (
   expoId: string,
   jobId: number,
   action: BadgePrintResolveAction,
   requestKey: string,
+  expectedStatus: BadgePrintJobStatus,
 ) => {
   try {
     await serialHttp.post(`${basePath(expoId)}/jobs/${jobId}/resolve`, {
       action,
       requestKey,
+      expectedStatus,
     });
   } catch (error) {
     throw toError(error, '출력 작업을 처리하지 못했습니다.');

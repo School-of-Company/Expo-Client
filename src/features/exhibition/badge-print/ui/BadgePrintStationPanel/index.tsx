@@ -56,7 +56,8 @@ const BadgePrintStationPanel = ({
     const key = requeueKeys.current.get(jobId) ?? crypto.randomUUID();
     requeueKeys.current.set(jobId, key);
     try {
-      await resolveBadgePrintJob(expoId, jobId, 'REQUEUE', key);
+      // 이 화면이 인쇄를 요청한 작업이라 SUBMITTED 일 때만 다시 출력한다
+      await resolveBadgePrintJob(expoId, jobId, 'REQUEUE', key, 'SUBMITTED');
       setRequeued((prev) => new Set(prev).add(jobId));
       toast.success('다시 출력 대기열에 넣었습니다.');
     } catch (error) {
