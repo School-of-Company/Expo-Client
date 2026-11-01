@@ -784,7 +784,8 @@ const ProgramApplyContainer = ({
               <SeatSummary
                 group={seats?.programs[programType]}
                 id={program.id}
-                hiddenStatuses={['OPEN']}
+                // 정원 현황 API 는 사전 접수 기간만 보고 마감이라 하므로, 현장 접수 중에는 마감 뱃지를 숨긴다
+                hiddenStatuses={onsiteOpen ? ['OPEN', 'CLOSED'] : ['OPEN']}
               />
 
               {onsiteOpen && (
