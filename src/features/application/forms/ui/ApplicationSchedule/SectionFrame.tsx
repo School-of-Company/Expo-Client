@@ -105,7 +105,7 @@ export const SectionFrame = ({
           </div>
         ) : isEmpty ? (
           <p className="rounded-sm bg-gray-100 px-16 py-16 text-center text-body2r text-gray-500">
-            등록된 회차가 없습니다.
+            신청할 수 있는 회차가 없습니다.
           </p>
         ) : (
           children
