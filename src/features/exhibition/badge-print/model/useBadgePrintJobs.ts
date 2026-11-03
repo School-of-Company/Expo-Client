@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import {
+  BadgePrintJobStatus,
   BadgePrintResolveAction,
   getBadgePrintJobs,
   resolveBadgePrintJob,
@@ -32,13 +33,23 @@ export const useBadgePrintJobs = (expoId: string) => {
   });
 
   const resolve = useCallback(
-    async (jobId: number, action: BadgePrintResolveAction) => {
+    async (
+      jobId: number,
+      action: BadgePrintResolveAction,
+      expectedStatus: BadgePrintJobStatus,
+    ) => {
       const mapKey = `${jobId}:${action}`;
       const requestKey = requestKeys.current.get(mapKey) ?? crypto.randomUUID();
       requestKeys.current.set(mapKey, requestKey);
       setResolvingJobId(jobId);
       try {
-        await resolveBadgePrintJob(expoId, jobId, action, requestKey);
+        await resolveBadgePrintJob(
+          expoId,
+          jobId,
+          action,
+          requestKey,
+          expectedStatus,
+        );
         toast.success(
           action === 'REQUEUE'
             ? '다시 출력 대기열에 넣었습니다.'

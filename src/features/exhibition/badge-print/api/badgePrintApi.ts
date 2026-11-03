@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { toServerMessage } from '@/shared/libs/handler/serverMessage';
 import { ApiError } from '@/shared/libs/http/apiError';
-import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { NETWORK_ERROR_MESSAGE } from '@/shared/libs/http/getScanErrorMessage';
+import { serialHttp } from './serialHttp';
 
 // Expo-User-Server BadgePrintController(/admin/badge-prints/{expoId}). 모두 관리자 전용이다(#924)
 
@@ -78,7 +78,7 @@ export const getBadgePrintStations = async (
   expoId: string,
 ): Promise<BadgePrintStation[]> => {
   try {
-    const response = await clientTokenInstance.get<{
+    const response = await serialHttp.get<{
       stations: BadgePrintStation[];
     }>(`${basePath(expoId)}/stations`);
     return response.data.stations;
@@ -87,14 +87,15 @@ export const getBadgePrintStations = async (
   }
 };
 
+/** requestKey 가 같으면 서버가 새로 만들지 않고 같은 출력대를 돌려준다(더블클릭, Expo-User-Server#245) */
 export const createBadgePrintStation = async (
   expoId: string,
-  label?: string,
+  requestKey: string,
 ): Promise<CreatedBadgePrintStation> => {
   try {
-    const response = await clientTokenInstance.post<CreatedBadgePrintStation>(
+    const response = await serialHttp.post<CreatedBadgePrintStation>(
       `${basePath(expoId)}/stations`,
-      label ? { label } : {},
+      { requestKey },
     );
     return response.data;
   } catch (error) {
@@ -108,7 +109,7 @@ export const openBadgePrintSession = async (
   stationId: string,
 ): Promise<string> => {
   try {
-    const response = await clientTokenInstance.post<{ sessionId: string }>(
+    const response = await serialHttp.post<{ sessionId: string }>(
       `${stationPath(expoId, stationId)}/sessions`,
     );
     return response.data.sessionId;
@@ -123,7 +124,7 @@ export const updateBadgePrintStation = async (
   paused: boolean,
 ) => {
   try {
-    await clientTokenInstance.patch(stationPath(expoId, stationId), {
+    await serialHttp.patch(stationPath(expoId, stationId), {
       paused,
     });
   } catch (error) {
@@ -142,7 +143,7 @@ export const claimBadgePrintJob = async (
   requestId: string,
 ): Promise<BadgePrintClaim | null> => {
   try {
-    const response = await clientTokenInstance.post<BadgePrintClaim | ''>(
+    const response = await serialHttp.post<BadgePrintClaim | ''>(
       `${stationPath(expoId, stationId)}/claim`,
       { sessionId, requestId },
     );
@@ -163,22 +164,21 @@ export const reportBadgePrintResult = async (
   },
 ) => {
   try {
-    await clientTokenInstance.post(
-      `${basePath(expoId)}/jobs/${jobId}/result`,
-      body,
-    );
+    await serialHttp.post(`${basePath(expoId)}/jobs/${jobId}/result`, body);
   } catch (error) {
     throw toError(error, '출력 결과를 보내지 못했습니다.');
   }
 };
 
-/** 오늘 작업 중 확인이 필요한 것(기본 NEEDS_CHECK, FAILED) */
+/** 오늘 작업. statuses 를 주지 않으면 서버 기본값(NEEDS_CHECK, FAILED)이다 */
 export const getBadgePrintJobs = async (
   expoId: string,
+  statuses?: BadgePrintJobStatus[],
 ): Promise<BadgePrintJob[]> => {
   try {
-    const response = await clientTokenInstance.get<{ jobs: BadgePrintJob[] }>(
+    const response = await serialHttp.get<{ jobs: BadgePrintJob[] }>(
       `${basePath(expoId)}/jobs`,
+      statuses ? { params: { status: statuses.join(',') } } : undefined,
     );
     return response.data.jobs;
   } catch (error) {
@@ -187,17 +187,23 @@ export const getBadgePrintJobs = async (
 };
 
 /** REQUEUE 는 다시 대기열에 넣고, DONE 은 처리 완료로 닫는다. 같은 requestKey 로 다시 보내도 한 번만 처리된다 */
+/**
+ * expectedStatus 는 화면이 본 상태다. 그사이 늦은 결과 보고로 상태가 바뀌었으면 서버가 409로 거절해,
+ * 이미 인쇄된 명찰을 다시 출력하는 일을 막는다(Expo-User-Server#247)
+ */
 export const resolveBadgePrintJob = async (
   expoId: string,
   jobId: number,
   action: BadgePrintResolveAction,
   requestKey: string,
+  expectedStatus: BadgePrintJobStatus,
 ) => {
   try {
-    await clientTokenInstance.post(
-      `${basePath(expoId)}/jobs/${jobId}/resolve`,
-      { action, requestKey },
-    );
+    await serialHttp.post(`${basePath(expoId)}/jobs/${jobId}/resolve`, {
+      action,
+      requestKey,
+      expectedStatus,
+    });
   } catch (error) {
     throw toError(error, '출력 작업을 처리하지 못했습니다.');
   }
@@ -210,7 +216,7 @@ export const getBadgePrintJobStatus = async (
   signal?: AbortSignal,
 ): Promise<BadgePrintJobStatusResponse> => {
   try {
-    const response = await clientTokenInstance.get<BadgePrintJobStatusResponse>(
+    const response = await serialHttp.get<BadgePrintJobStatusResponse>(
       `${basePath(expoId)}/jobs/${jobId}`,
       { signal },
     );

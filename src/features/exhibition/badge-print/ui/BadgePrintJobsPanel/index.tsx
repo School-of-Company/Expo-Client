@@ -68,7 +68,9 @@ const BadgePrintJobsPanel = ({ expoId }: { expoId: string }) => {
                   <button
                     type="button"
                     disabled={busy}
-                    onClick={() => void resolve(job.jobId, 'REQUEUE')}
+                    onClick={() =>
+                      void resolve(job.jobId, 'REQUEUE', job.status)
+                    }
                     className="rounded-sm bg-main-600 px-16 py-8 text-caption1b text-white disabled:opacity-50"
                   >
                     다시 출력
@@ -76,7 +78,7 @@ const BadgePrintJobsPanel = ({ expoId }: { expoId: string }) => {
                   <button
                     type="button"
                     disabled={busy}
-                    onClick={() => void resolve(job.jobId, 'DONE')}
+                    onClick={() => void resolve(job.jobId, 'DONE', job.status)}
                     className="rounded-sm border-1 border-solid border-gray-200 bg-white px-16 py-8 text-caption1b text-gray-700 disabled:opacity-50"
                   >
                     처리 완료

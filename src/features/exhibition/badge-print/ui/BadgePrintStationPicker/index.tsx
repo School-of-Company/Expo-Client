@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import {
   createBadgePrintStation,
@@ -24,6 +24,8 @@ const BadgePrintStationPicker = ({
 }) => {
   const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
+  // 이 화면에서 누른 등록은 같은 키로 보내, 더블클릭·재시도에도 출력대가 하나만 생기게 한다
+  const requestKey = useRef<string | null>(null);
   const queryKey = ['badgePrintStations', expoId];
   const { data, isLoading, isError } = useQuery({
     queryKey,
@@ -36,7 +38,8 @@ const BadgePrintStationPicker = ({
   const handleCreate = async () => {
     setIsCreating(true);
     try {
-      const created = await createBadgePrintStation(expoId);
+      requestKey.current ??= crypto.randomUUID();
+      const created = await createBadgePrintStation(expoId, requestKey.current);
       toast.success(`${created.label}을 등록했습니다.`);
       void queryClient.invalidateQueries({ queryKey });
       onSelect(created.stationId);

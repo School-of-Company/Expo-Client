@@ -21,10 +21,10 @@ const FRAME_CLEANUP_DELAY_MS = 5000;
  * Chrome `--kiosk-printing` 이면 대화상자 없이 기본 프린터로 나간다.
  * print() 를 부르기 전 실패는 BeforePrintError 로, 부른 뒤에는 성공으로 끝낸다(종이가 나왔는지는 알 수 없다)
  */
-export const printBadgeInFrame = async (badge: {
-  name: string;
-  school: string | null;
-}) => {
+export const printBadgeInFrame = async (
+  badge: { name: string; school: string | null },
+  onBeforePrint?: () => void,
+) => {
   const frame = document.createElement('iframe');
   frame.setAttribute('aria-hidden', 'true');
   frame.tabIndex = -1;
@@ -60,6 +60,8 @@ export const printBadgeInFrame = async (badge: {
 
   // print() 가 던져도 iframe 이 남지 않게 한다
   try {
+    // 여기부터는 종이가 나왔을 수 있다. 화면이 닫혀도 알 수 있게 호출 직전에 기록한다
+    onBeforePrint?.();
     frameWindow.focus();
     frameWindow.print();
   } finally {

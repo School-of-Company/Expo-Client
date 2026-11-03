@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
+  BadgePrintBacklogAlert,
   BadgePrintJobsPanel,
   BadgePrintStationPanel,
   BadgePrintStationPicker,
@@ -35,11 +36,13 @@ const PrintStationPage = ({ expoId }: { expoId: string }) => {
           <p className="text-h2b text-black">명찰 출력대</p>
           <p className="break-keep text-caption1r text-gray-500">
             Chrome을 --kiosk-printing 옵션으로 실행하면 확인 창 없이 기본
-            프린터로 바로 출력됩니다. 이 화면을 켜 둔 채로 두세요.
+            프린터로 바로 출력됩니다. 이 화면을 켜 둔 채로 두고, 창을
+            최소화하거나 다른 탭으로 가리지 마세요(브라우저가 수신을 늦춥니다).
           </p>
         </div>
         {stationId ? (
           <>
+            <BadgePrintBacklogAlert expoId={expoId} />
             <BadgePrintStationPanel expoId={expoId} stationId={stationId} />
             <BadgePrintJobsPanel expoId={expoId} />
           </>
