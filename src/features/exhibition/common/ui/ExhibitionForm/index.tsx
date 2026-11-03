@@ -4,7 +4,9 @@ import { format } from 'date-fns';
 import { usePathname } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { ImageInput } from '@/entities/exhibition';
-import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
+import TrainingModule, {
+  getProgramSectionId,
+} from '@/entities/exhibition/ui/TrainingModule';
 import { useAddressSearch } from '@/features/exhibition/common/hooks/useAddressSearch';
 import { Location } from '@/shared/assets/icons';
 import { COLORS } from '@/shared/config';
@@ -83,6 +85,14 @@ const ExhibitionForm = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit, (errors) => {
+        // 접힌 섹션 안에서 검증이 걸리면 어디가 문제인지 보이지 않으므로 펼쳐 준다
+        (['trainings', 'standard'] as const).forEach((fieldName) => {
+          if (!errors[fieldName]) return;
+          const section = document.getElementById(
+            getProgramSectionId(fieldName),
+          );
+          if (section instanceof HTMLDetailsElement) section.open = true;
+        });
         handleFormErrors(errors, showError);
       })}
       method="POST"

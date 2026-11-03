@@ -9,6 +9,10 @@ interface Props extends FieldArrayProps {
   title: string;
 }
 
+/** 검증에 걸린 섹션을 펼칠 때 쓴다. 접혀 있어도 ExpoInput 의 hidden input 은 그대로 남아 폼 검증이 걸린다 */
+export const getProgramSectionId = (fieldName: FieldArrayProps['fieldName']) =>
+  `program-section-${fieldName}`;
+
 const TrainingModule = ({
   title,
   fields,
@@ -24,6 +28,7 @@ const TrainingModule = ({
 
   return (
     <details
+      id={getProgramSectionId(fieldName)}
       open={openByDefault}
       className="w-full rounded-sm border-1 border-solid border-gray-200 px-[30px] py-[16px]"
     >
