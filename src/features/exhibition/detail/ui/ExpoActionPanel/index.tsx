@@ -9,10 +9,10 @@ import { Button } from '@/shared/ui';
 
 interface ExpoActionPanelProps {
   params: string;
-  openModal: (type: string, content: string) => void;
+  onShare: () => void;
 }
 
-const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
+const ExpoActionPanel = ({ params, onShare }: ExpoActionPanelProps) => {
   const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
   const actions = getExpoActions(params);
@@ -25,9 +25,12 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
       description: '박람회 정보 수정',
       href: getExpoRoutes(params).edit,
     },
+    actions.formCreate,
+    // 만든 등록용 폼·만족도 조사는 신청관리 폼 탭에서 고친다
     {
-      ...actions.formCreate,
-      modal: { type: 'form', text: '폼 작업을 선택하세요.' },
+      title: '폼 수정',
+      description: '등록용 폼·만족도 조사 수정',
+      href: registrationRoutes.forms,
     },
     {
       title: 'QR',
@@ -56,11 +59,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
     <Button
       key={action.title}
       variant="white"
-      onClick={() =>
-        'href' in action
-          ? router.push(action.href)
-          : openModal(action.modal.type, action.modal.text)
-      }
+      onClick={() => router.push(action.href)}
     >
       {action.title}
     </Button>
@@ -91,7 +90,7 @@ const ExpoActionPanel = ({ params, openModal }: ExpoActionPanelProps) => {
           <button
             type="button"
             className="flex items-center gap-10"
-            onClick={() => openModal('share', '공유할 항목을 선택하세요.')}
+            onClick={onShare}
           >
             <Share />
             <p className="text-h3r text-gray-400">공유</p>

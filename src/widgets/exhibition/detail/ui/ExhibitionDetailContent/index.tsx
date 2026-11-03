@@ -16,7 +16,7 @@ interface ExhibitionDetailContentProps {
     choice: ExpoTrainingDetail[];
   };
   params: string;
-  openModal: (type: string, content: string) => void;
+  onShare: () => void;
 }
 
 const ExhibitionDetailContent = ({
@@ -24,7 +24,7 @@ const ExhibitionDetailContent = ({
   expoStandard,
   expoTraining,
   params,
-  openModal,
+  onShare,
 }: ExhibitionDetailContentProps) => {
   return (
     <div className="flex flex-1 justify-center p-16">
@@ -34,11 +34,11 @@ const ExhibitionDetailContent = ({
             expoDetail={expoDetail}
             expoStandard={expoStandard}
             expoTraining={expoTraining}
-            openModal={openModal}
+            onShare={onShare}
           />
         </div>
         <div className="w-full max-w-[210px] tablet:w-full tablet:max-w-none">
-          <ExpoActionPanel params={params} openModal={openModal} />
+          <ExpoActionPanel params={params} onShare={onShare} />
         </div>
       </div>
     </div>

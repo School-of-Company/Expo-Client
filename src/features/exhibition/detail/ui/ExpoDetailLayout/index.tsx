@@ -22,7 +22,7 @@ const ExpoDetailLayout = ({
   expoDetail,
   expoStandard,
   expoTraining,
-  openModal,
+  onShare,
 }: {
   expoDetail: ExpoDetail;
   expoStandard: ExpoStandard[];
@@ -30,7 +30,7 @@ const ExpoDetailLayout = ({
     essential: ExpoTrainingDetail[];
     choice: ExpoTrainingDetail[];
   };
-  openModal: (type: string, content: string) => void;
+  onShare: () => void;
 }) => {
   const router = useRouter();
   const date = `${expoDetail?.startedDay} ~ ${expoDetail?.finishedDay}`;
@@ -51,7 +51,7 @@ const ExpoDetailLayout = ({
         />
         <button
           type="button"
-          onClick={() => openModal('share', '공유할 항목을 선택하세요.')}
+          onClick={onShare}
           className="absolute right-0 top-1/2 hidden -translate-y-1/2 tablet:block"
         >
           <Share />
