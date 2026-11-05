@@ -27,3 +27,4 @@ export { default as CheckBoxIcon } from './CheckBoxIcon';
 export { default as DropDown } from './DropDown';
 export { default as MultipleChoice } from './MultipleChoice';
 export { default as FormPicture } from './FormPicture';
+export { default as Book } from './Book';
