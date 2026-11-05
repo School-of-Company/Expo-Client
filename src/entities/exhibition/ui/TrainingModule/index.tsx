@@ -34,7 +34,7 @@ const TrainingModule = ({
     >
       <summary className="cursor-pointer select-none text-h3b text-black">
         {title}
-        <span className="text-body4 ml-8 text-gray-500">{fields.length}</span>
+        <span className="text-body4 ml-8 text-gray-500">{` (${fields.length})`}</span>
       </summary>
       <div className="w-full pt-16">
         <ExpoInput
