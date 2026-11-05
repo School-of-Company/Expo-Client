@@ -37,6 +37,8 @@ export const getExpoRoutes = (expoId: string) => {
   return {
     participants: `/admin/exhibition/participants/${id}?page=1&userType=STANDARD`,
     edit: `/admin/exhibition/edit/${id}`,
+    // 폼 만들기 선택 화면. 종류·대상·등록 유형·신청 기간을 고른 뒤 폼 작성 화면으로 넘어간다
+    formNew: `/admin/form/new/${id}`,
     qr,
     // 예전 폼 유형 조합을 QR 대상으로 옮긴다. 일반 사전등록 QR 은 없어져 대상 없이 연다
     accessQr: (userType: string, applicationType: string) => {

@@ -1,9 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useExpoQueries } from '@/features/exhibition/detail';
+import {
+  SHARE_MODAL_TITLE,
+  ShareFormModal,
+  useExpoQueries,
+} from '@/features/exhibition/detail';
 import { withLoading } from '@/shared/hocs';
-import { FormTypeModal, QueryError } from '@/shared/ui';
+import { QueryError } from '@/shared/ui';
 import { ExhibitionDetailContent } from '@/widgets/exhibition/detail';
 import { Header } from '@/widgets/layout';
 import { ModalLayout } from '@/widgets/layout';
@@ -26,21 +30,9 @@ const ExhibitionDetailPage = ({ params }: { params: string }) => {
     choice: expoTrainingData.filter((item) => item.category === 'CHOICE'),
   };
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState('');
-  const [modalType, setModalType] = useState<string | null>(null);
-
-  const openModal = (type: string, content: string) => {
-    setModalType(type);
-    setModalContent(content);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setModalContent('');
-    setModalType(null);
-  };
+  // 폼 만들기·수정은 페이지로 옮겼고, 이 화면의 모달은 신청 주소 공유만 한다
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const closeShare = () => setIsShareOpen(false);
 
   return (
     <div className="flex min-h-screen flex-col gap-30">
@@ -59,18 +51,13 @@ const ExhibitionDetailPage = ({ params }: { params: string }) => {
               expoStandard={expoStandard}
               expoTraining={expoTraining}
               params={params}
-              openModal={openModal}
+              onShare={() => setIsShareOpen(true)}
             />
           ),
       })}
-      {isModalOpen && (
-        <ModalLayout label={modalContent} onClose={closeModal}>
-          <FormTypeModal
-            text={modalContent}
-            onClose={closeModal}
-            params={params}
-            modalType={modalType}
-          />
+      {isShareOpen && (
+        <ModalLayout label={SHARE_MODAL_TITLE} onClose={closeShare}>
+          <ShareFormModal expoId={params} onClose={closeShare} />
         </ModalLayout>
       )}
     </div>

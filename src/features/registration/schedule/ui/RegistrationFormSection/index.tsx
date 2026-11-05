@@ -23,7 +23,7 @@ interface FormEntry {
   applicationType: ApplicationType;
 }
 
-// 박람회 상세의 폼 생성 모달과 같은 조합이다
+// 폼 만들기 화면(/admin/form/new)과 같은 조합이다
 const ENTRIES: FormEntry[] = [
   {
     id: 'pre-standard',
@@ -101,7 +101,7 @@ const toDate = (value?: string) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
-/** 등록용 폼은 신청 기간이 필요해 고른 뒤 만들기·수정 화면으로 넘긴다(박람회 상세 모달과 같은 값) */
+/** 등록용 폼은 신청 기간이 필요해 고른 뒤 만들기·수정 화면으로 넘긴다(폼 만들기 화면과 같은 값) */
 const PeriodDialog = ({
   action,
   onConfirm,

@@ -1,12 +1,14 @@
-import { getExpoRoutes, getRegistrationRoutes } from '@/shared/config';
-
-/** FormTypeModal 의 modalType */
-export type ExpoActionModalType = 'formcreate' | 'FIELD' | 'edit' | 'form';
+import {
+  EXPO_QR_TABS,
+  getExpoRoutes,
+  getRegistrationRoutes,
+} from '@/shared/config';
 
 export type ExpoAction = {
   title: string;
   description: string;
-} & ({ href: string } | { modal: { type: ExpoActionModalType; text: string } });
+  href: string;
+};
 
 /** 박람회 상세 패널이 쓰는 운영 기능 목록 */
 export const getExpoActions = (expoId: string) => {
@@ -19,8 +21,8 @@ export const getExpoActions = (expoId: string) => {
     },
     formCreate: {
       title: '폼 생성',
-      description: '사전·현장 등록 폼과 만족도 조사 폼 만들기',
-      modal: { type: 'formcreate', text: '생성할 항목을 선택하세요.' },
+      description: '등록용 폼·만족도 조사·프로그램 폼 만들기',
+      href: routes.formNew,
     },
     programForm: {
       title: '프로그램용 폼',
@@ -30,7 +32,7 @@ export const getExpoActions = (expoId: string) => {
     fieldQr: {
       title: '현장 등록 QR',
       description: '현장 신청용 QR 띄우기',
-      modal: { type: 'FIELD', text: '대상을 선택하세요.' },
+      href: `${routes.qr}?tab=${EXPO_QR_TABS.access}`,
     },
     checkIn: {
       title: '박람회 입장',
@@ -65,8 +67,8 @@ export const getExpoActions = (expoId: string) => {
     },
     edit: {
       title: '수정',
-      description: '박람회 정보·폼 수정',
-      modal: { type: 'edit', text: '수정할 항목을 선택하세요.' },
+      description: '박람회 정보 수정',
+      href: routes.edit,
     },
   } satisfies Record<string, ExpoAction>;
 };
