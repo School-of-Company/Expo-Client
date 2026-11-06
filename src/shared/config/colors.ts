@@ -4,4 +4,5 @@ export const COLORS = {
   gray500: 'var(--color-gray-500)',
   main600: 'var(--color-main-600)',
   black: 'var(--color-black)',
+  error: 'var(--color-error)',
 } as const;
