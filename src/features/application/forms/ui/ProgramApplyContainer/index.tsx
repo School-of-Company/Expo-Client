@@ -34,11 +34,7 @@ import {
   getScheduleBoundaries,
   isPreApplicationOpen,
 } from '../../model/applicationSchedule';
-import {
-  PROGRAM_CATEGORIES,
-  TRAINING_CATEGORIES,
-  filterByCategory,
-} from '../../model/applicationSections';
+import { filterBySeries } from '../../model/applicationSections';
 import { useFieldRelease } from '../../model/fieldRelease';
 import { formatFormPeriod } from '../../model/formPeriodStatus';
 import {
@@ -441,7 +437,7 @@ const ProgramApplyContainer = ({
 }: {
   expoId: string;
   programType: ProgramType;
-  /** 목록에서 고른 분류(삼성·구글 등). 있으면 그 분류의 회차만 보여 준다 */
+  /** 목록에서 고른 카드(회차 표기를 뺀 이름). 있으면 그 카드의 회차만 보여 준다. 모르는 값이면 전부 보여 준다 */
   category?: string;
   /** 목록에서 고른 회차 하나. 있으면 그 회차만 보여 준다 */
   programId?: string;
@@ -475,14 +471,13 @@ const ProgramApplyContainer = ({
   const programs = useMemo(
     () =>
       allPrograms &&
-      filterByCategory(
+      filterBySeries(
         allPrograms.filter(
           ({ policy }) => !isProgramApplicationEnded(policy, now),
         ),
-        programType === 'TRAINING' ? TRAINING_CATEGORIES : PROGRAM_CATEGORIES,
         category,
       ).filter((program) => !programId || String(program.id) === programId),
-    [allPrograms, now, programType, category, programId],
+    [allPrograms, now, category, programId],
   );
   // 사전등록 대기 중인 일행이 있으면 "미등록" 대신 대기 안내를 보여 준다
   const {

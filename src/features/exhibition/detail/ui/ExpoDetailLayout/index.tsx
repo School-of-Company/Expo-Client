@@ -82,19 +82,16 @@ const ExpoDetailLayout = ({
             <div className="space-y-14">
               <p className="text-body1b text-gray-600">프로그램</p>
               {expoStandard?.length > 0 && (
-                <ContentListText data={expoStandard} title="참여자 연수" />
+                <ContentListText data={expoStandard} title="참가자 프로그램" />
               )}
               {expoTraining?.essential.length > 0 && (
                 <ContentListText
                   data={expoTraining?.essential}
-                  title="연수자 필수 연수"
+                  title="교원 필수 연수"
                 />
               )}
               {expoTraining?.choice.length > 0 && (
-                <ContentListText
-                  data={expoTraining.choice}
-                  title="연수자 선택 연수"
-                />
+                <ContentListText data={expoTraining.choice} title="교원 연수" />
               )}
             </div>
           )}
