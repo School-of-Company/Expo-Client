@@ -22,6 +22,7 @@ import { fieldRegistry, type FieldValue } from '@/entities/form/registry';
 import ConditionalSettings from '@/entities/form/ui/ConditionalSettings';
 import { formatTime } from '@/features/exhibition/edit/model/formatDateTime';
 import { parseSettings } from '@/features/form/common/model/formUtils';
+import { isSystemQuestionType } from '@/features/form/common/model/systemQuestions';
 import { getTrainingProgram } from '@/shared/api';
 import {
   formatTrainingProgramOption,
@@ -44,6 +45,8 @@ interface Props {
   register: UseFormRegister<FormValues>;
   setValue: UseFormSetValue<FormValues>;
   control: Control<FormValues>;
+  /** 일반 참가자 신청 폼: 이름·전화번호·직업·소속 학교를 지울 수 없고 필수로 고정한다 */
+  lockSystemFields?: boolean;
 }
 
 /** 편집기가 타입을 바꾸게 하지 않고 보존만 하는 문항. 선택지도 서버 고정값을 쓴다. */
@@ -105,6 +108,7 @@ const FormContainer = ({
   register,
   setValue,
   control,
+  lockSystemFields = false,
 }: Props) => {
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(false);
   const [selectedOption, setSelectedOption] = useState<Option | null>(() => {
@@ -144,9 +148,13 @@ const FormContainer = ({
   const isTrainingProgram = isTrainingProgramQuestion(questionTitle);
 
   const isSpecialField = !!dynamicFormType && dynamicFormType !== 'DEFAULT';
+  // 일반 참가자 신청 폼의 시스템 문항(이름·전화번호·직업·소속 학교)은 신청 서버가 읽으므로 지울 수 없다
+  const isSystemField =
+    lockSystemFields && isSystemQuestionType(dynamicFormType);
   // 이름·전화번호는 신청 처리에 꼭 필요해서 필수로 고정한다.
   // 연수자 아이디는 연수자 폼에서만 고정하고, 일반 폼에서는 관리자가 필수 여부를 고른다.
   const isRequiredField =
+    isSystemField ||
     dynamicFormType === 'NAME' ||
     dynamicFormType === 'PHONE_NUMBER' ||
     (dynamicFormType === 'TRAINING_ID' && type === 'TRAINEE');
@@ -287,12 +295,14 @@ const FormContainer = ({
         ) : null}
       </div>
       <div className="flex w-full items-center justify-end gap-20">
-        <DeleteButton
-          onClick={(e: React.MouseEvent) => {
-            preventEvent(e);
-            formRemove(index);
-          }}
-        />
+        {!isSystemField && (
+          <DeleteButton
+            onClick={(e: React.MouseEvent) => {
+              preventEvent(e);
+              formRemove(index);
+            }}
+          />
+        )}
         <RequiredToggle
           control={control}
           index={index}
