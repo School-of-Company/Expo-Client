@@ -10,10 +10,13 @@ export interface EntryQr {
   phoneNumber?: string;
 }
 
-const TYPE_LABEL = {
-  STANDARD: '일반 참가자',
-  TRAINEE: '연수자',
+// 등록 유형 표기. 직업 구분이 아니다(일반 사전등록으로 신청한 교사·예비교사도 STANDARD)
+export const TYPE_LABEL = {
+  STANDARD: '사전등록 참가자',
+  TRAINEE: '교원 연수자',
 } as const;
+
+export const TYPE_NOTICE = '표시된 구분은 등록 유형이며 직업 구분이 아닙니다.';
 
 const single = (value: string | string[] | undefined) =>
   typeof value === 'string' ? value.trim() : '';
