@@ -101,8 +101,8 @@ const ParticipantPhoneVerificationSetting = ({ id }: { id: string }) => {
       )}
 
       <p className="break-keep text-caption1r text-gray-400">
-        ※ 참가자 신청 화면의 인증 안내는 아직 이 설정을 따르지 않고 항상 인증
-        화면으로 보냅니다.
+        ※ 인증을 끄면 사전등록·현장등록은 인증 없이 받습니다. 내 신청
+        확인·프로그램 신청에는 휴대폰 인증이 필요합니다.
       </p>
     </section>
   );
