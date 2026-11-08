@@ -5,6 +5,7 @@ import { useRef } from 'react';
 import { downloadQrImage } from '@/shared/libs/downloadQrImage';
 import {
   EntryQrQuery,
+  TYPE_NOTICE,
   maskPhoneNumber,
   parseEntryQrQuery,
 } from '../../lib/parseEntryQrQuery';
@@ -50,6 +51,7 @@ const EntryQrPage = ({ query }: { query: EntryQrQuery }) => {
             {maskPhoneNumber(entryQr.phoneNumber)}
           </p>
         )}
+        <p className="text-caption2r text-gray-400">{TYPE_NOTICE}</p>
       </div>
 
       <button
