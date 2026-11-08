@@ -8,22 +8,18 @@ Object.assign(globalThis, {
   window: { location: { origin: 'https://example.com' } },
 });
 
-// 신청 폼은 번호 쿼리를 읽는다
+// 번호를 주소에 싣지 않는다
 assert.equal(
-  getRedirectPath('/application/e1?formType=application', '01012345678'),
-  '/application/e1?formType=application&phoneNumber=01012345678',
+  getRedirectPath('/application/e1?formType=application'),
+  '/application/e1?formType=application',
 );
-// 설문 주소에는 번호를 싣지 않는다
+// 예전 링크에 남은 번호 쿼리는 지운다
 assert.equal(
   getRedirectPath(
-    '/application/e1?formType=survey&userType=STANDARD',
-    '01012345678',
+    '/application/forms/e1/pre-register?sessionId=61&phoneNumber=01012345678',
   ),
-  '/application/e1?formType=survey&userType=STANDARD',
+  '/application/forms/e1/pre-register?sessionId=61',
 );
 // 외부 주소는 막는다
-assert.equal(
-  getRedirectPath('//evil.com', '01012345678'),
-  '/?phoneNumber=01012345678',
-);
+assert.equal(getRedirectPath('//evil.com'), '/');
 console.log('ok');
