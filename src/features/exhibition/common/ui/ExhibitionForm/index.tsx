@@ -4,7 +4,9 @@ import { format } from 'date-fns';
 import { usePathname } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { ImageInput } from '@/entities/exhibition';
-import TrainingModule from '@/entities/exhibition/ui/TrainingModule';
+import TrainingModule, {
+  getProgramSectionId,
+} from '@/entities/exhibition/ui/TrainingModule';
 import { useAddressSearch } from '@/features/exhibition/common/hooks/useAddressSearch';
 import { Location } from '@/shared/assets/icons';
 import { COLORS } from '@/shared/config';
@@ -83,6 +85,14 @@ const ExhibitionForm = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit, (errors) => {
+        // 접힌 섹션 안에서 검증이 걸리면 어디가 문제인지 보이지 않으므로 펼쳐 준다
+        (['trainings', 'standard'] as const).forEach((fieldName) => {
+          if (!errors[fieldName]) return;
+          const section = document.getElementById(
+            getProgramSectionId(fieldName),
+          );
+          if (section instanceof HTMLDetailsElement) section.open = true;
+        });
         handleFormErrors(errors, showError);
       })}
       method="POST"
@@ -152,30 +162,26 @@ const ExhibitionForm = ({
           row={1}
           value={watch('introduction')}
         />
-        <div className="space-y-8">
-          <p className="text-h3b text-black">연수 프로그램</p>
-          <TrainingModule
-            fields={trainingFields.fields}
-            append={trainingFields.append}
-            remove={trainingFields.remove}
-            register={register}
-            setValue={setValue}
-            watch={watch}
-            fieldName="trainings"
-          />
-        </div>
-        <div className="space-y-8">
-          <p className="text-h3b text-black">참가자 프로그램</p>
-          <TrainingModule
-            fields={standardFields.fields}
-            append={standardFields.append}
-            remove={standardFields.remove}
-            register={register}
-            setValue={setValue}
-            watch={watch}
-            fieldName="standard"
-          />
-        </div>
+        <TrainingModule
+          title="연수 프로그램"
+          fields={trainingFields.fields}
+          append={trainingFields.append}
+          remove={trainingFields.remove}
+          register={register}
+          setValue={setValue}
+          watch={watch}
+          fieldName="trainings"
+        />
+        <TrainingModule
+          title="참가자 프로그램"
+          fields={standardFields.fields}
+          append={standardFields.append}
+          remove={standardFields.remove}
+          register={register}
+          setValue={setValue}
+          watch={watch}
+          fieldName="standard"
+        />
         <div className="space-y-8">
           <p className="text-h3b text-black">사전등록 회차별 정원 기본값</p>
           <p className="text-caption1r text-gray-500">
