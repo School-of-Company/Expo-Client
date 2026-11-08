@@ -2,8 +2,10 @@
  * 자체 점검: `TZ=America/Los_Angeles JITI_JSX=1 JITI_ALIAS="{\"@\":\"$PWD/src\"}" npx jiti src/features/application/forms/model/programApply.check.ts`
  */
 import assert from 'node:assert/strict';
+import { pickPreRegistrationSeats } from './liveSeats';
 import {
   getOnsiteSeatsLabel,
+  getSeatsLabel,
   getProgramInfoRows,
   isProgramApplicationEnded,
 } from './programApply';
@@ -97,5 +99,29 @@ assert.equal(
   getOnsiteSeatsLabel({ capacity: 50, confirmedCount: 12, remaining: 38 }),
   '현장 잔여 38명',
 );
+
+// 사전·현장 정원이 나뉜 회차: 팝업도 카드와 같이 사전 몫 잔여를 쓰고, 대기는 회차 전체 값
+{
+  const capacity = {
+    capacity: 25,
+    confirmedCount: 0,
+    remaining: 25,
+    waitingCapacity: 5,
+    waitingCount: 1,
+    waitingRemaining: 4,
+  };
+  const pre = { capacity: 20, confirmedCount: 0, remaining: 20 };
+  assert.equal(
+    getSeatsLabel(
+      capacity,
+      pickPreRegistrationSeats(capacity, { preRegistration: pre }).remaining,
+    ),
+    '잔여 20명 · 대기 1명 (남은 대기석 4명)',
+  );
+  assert.equal(
+    getSeatsLabel(capacity, pickPreRegistrationSeats(capacity, null).remaining),
+    '잔여 25명 · 대기 1명 (남은 대기석 4명)',
+  );
+}
 
 console.log('programApply.check: ok');

@@ -36,12 +36,12 @@ assert.equal(pre().capacity, 100);
 assert.equal(getSeatStatus(entry(pre())), 'OPEN');
 assert.deepEqual(getSeatSummary(pre()), [
   '정원 100명 · 대기 정원 10명',
-  '확정 88명 · 대기 0명 · 잔여 12석',
+  '확정 88명 · 대기 0명 · 잔여 12명',
 ]);
 // 대기를 받지 않는 회차(대기 정원 0)는 대기 줄을 보이지 않는다
 assert.deepEqual(getSeatSummary(pre({ appliedWaitingCapacity: 0 })), [
   '정원 100명',
-  '확정 88명 · 잔여 12석',
+  '확정 88명 · 잔여 12명',
 ]);
 // 대기열이 있거나 마감이면 remaining 이 0 으로 눌려 정원을 알 수 없다
 assert.equal(pre({ remaining: 0, waiting: 3 }).capacity, null);
@@ -72,7 +72,7 @@ assert.equal(target.capacity, null);
 assert.equal(getSeatStatus(entry(target)), 'OPEN');
 assert.deepEqual(getSeatSummary(target), [
   '대기 정원 10명',
-  '대기 0명 · 교사·예비교사 마감 · 그 외 잔여 7석',
+  '대기 0명 · 교사·예비교사 마감 · 그 외 잔여 7명',
 ]);
 assert.equal(
   getSeatStatus(

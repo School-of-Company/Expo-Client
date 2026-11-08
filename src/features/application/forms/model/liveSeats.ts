@@ -116,9 +116,18 @@ export const fromPreRegisterCapacity = (
   };
 };
 
-/** 프로그램·연수 회차 정원 요약을 카드 숫자로 바꾼다. 사전·현장 정원이 나뉜 회차는 사전 숫자를 쓴다 */
+/** 사전 신청 좌석을 고른다(카드·신청 팝업 공용). 사전·현장 정원이 나뉜 회차는 사전 몫, 아니면 회차 전체 정원 */
+export const pickPreRegistrationSeats = <
+  C extends { remaining: number },
+  P extends { remaining: number } = C,
+>(
+  capacity: C,
+  admissionSeats?: { preRegistration: P } | null,
+): C | P => admissionSeats?.preRegistration ?? capacity;
+
+/** 프로그램·연수 회차 정원 요약을 카드 숫자로 바꾼다. 대기 값은 회차 전체 값을 쓴다 */
 export const fromProgramSeats = (item: ProgramSeatsWire): SeatEntry => {
-  const pre = item.admissionSeats?.preRegistration ?? item.capacity;
+  const pre = pickPreRegistrationSeats(item.capacity, item.admissionSeats);
   const waitingRemaining = int(item.capacity.waitingRemaining);
   return {
     id: int(item.programId),
@@ -175,10 +184,10 @@ export const getSeatSummary = (seats: SeatNumbers): string[] => {
   const current = [
     seats.confirmed !== null && `확정 ${n(seats.confirmed)}명`,
     hasWaiting && `대기 ${n(seats.waiting)}명`,
-    seats.remaining !== null && `잔여 ${n(seats.remaining)}석`,
+    seats.remaining !== null && `잔여 ${n(seats.remaining)}명`,
     seats.target &&
       `교사·예비교사 ${seats.target.teacherAvailable ? '잔여 있음' : '마감'}`,
-    seats.target && `그 외 잔여 ${n(seats.target.otherRemaining)}석`,
+    seats.target && `그 외 잔여 ${n(seats.target.otherRemaining)}명`,
   ].filter(Boolean);
   return [capacity.join(' · '), current.join(' · ')].filter(Boolean);
 };
