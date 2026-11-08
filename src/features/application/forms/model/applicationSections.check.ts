@@ -3,19 +3,37 @@
  */
 import assert from 'node:assert/strict';
 import {
-  PROGRAM_CATEGORIES,
-  TRAINING_CATEGORIES,
-  filterByCategory,
+  filterBySeries,
+  getSeriesName,
   getSessionLabel,
-  getSessionTopic,
-  groupByCategory,
+  groupBySeries,
 } from './applicationSections.ts';
 import type { Program } from '@/shared/types/program/list/type';
 
 const p = (id: number, title: string, startedAt: string) =>
   ({ id, title, startedAt }) as Program;
 
-// dev 박람회의 실제 제목
+// 회차 표기를 뺀 이름
+assert.equal(
+  getSeriesName('AI교육원 전시체험 투어(1회차)'),
+  'AI교육원 전시체험 투어',
+);
+assert.equal(
+  getSeriesName('AI교육원 전시체험 투어 (2 회차)'),
+  'AI교육원 전시체험 투어',
+);
+assert.equal(getSeriesName('코딩 체험 3회차'), '코딩 체험');
+assert.equal(
+  getSeriesName('구글 연수 1회차 · 교육자 과정'),
+  '구글 연수 · 교육자 과정',
+);
+assert.equal(getSeriesName('(삼성 1회차) 갤럭시 수업'), '(삼성) 갤럭시 수업');
+assert.equal(getSeriesName('1회차 - 오전'), '오전');
+assert.equal(getSeriesName('기조 강연'), '기조 강연');
+// 회차 표기뿐인 제목은 원래 제목
+assert.equal(getSeriesName('1회차'), '1회차');
+
+// 2026 박람회 dev 제목. 특정 행사 키워드 없이 이름만으로 묶는다
 const programs = [
   p(26, 'AI교육원 전시체험 투어(1회차)', '2026-10-31T10:30'),
   p(27, '기조 강연', '2026-10-31T11:00'),
@@ -24,78 +42,32 @@ const programs = [
   p(31, '중·고등 골든벨', '2026-11-01T11:00'),
   p(40, '특별 체험', '2026-10-31T09:00'),
 ];
-const groups = groupByCategory(programs, PROGRAM_CATEGORIES);
+const groups = groupBySeries(programs);
 assert.deepEqual(
-  groups.map((g) => [g.label, g.sessions.map((s) => s.id)]),
+  groups.map((g) => [g.key, g.label, g.sessions.map((s) => s.id)]),
   [
-    ['기조강연', [27]],
-    ['AI·SW 골든벨', [28, 31]],
-    ['AI교육원 전시체험 투어', [26, 29]],
-    // 분류에 안 맞는 프로그램은 제목 그대로 독립 카드
-    ['특별 체험', [40]],
+    // 카드는 첫 회차 시작 순
+    ['특별 체험', '특별 체험', [40]],
+    ['AI교육원 전시체험 투어', 'AI교육원 전시체험 투어', [26, 29]],
+    ['기조 강연', '기조 강연', [27]],
+    ['초등 골든벨', '초등 골든벨', [28]],
+    ['중·고등 골든벨', '중·고등 골든벨', [31]],
   ],
 );
+assert.equal(groupBySeries([]).length, 0);
 
-const trainings = [
-  p(
-    13,
-    '(삼성 1회차) 선생님을 대상으로 하는 갤럭시 AI클래스 수업',
-    '2026-10-31T13:00',
-  ),
-  p(14, '구글 연수 1회차 · Google AI 교육자 과정', '2026-10-31T14:00'),
-  p(16, '애플 연수 1회차 · iPad로 만드는 참여 중심 수업', '2026-10-31T16:00'),
-  p(15, '삼성 연수 2회차 · 효율 UP! AI•디지털 활용 수업', '2026-10-31T15:00'),
-];
+// 카드 key 로 그 카드의 회차만 남긴다
 assert.deepEqual(
-  groupByCategory(trainings, TRAINING_CATEGORIES).map((g) => [
-    g.label,
-    g.sessions.map((s) => s.id),
-  ]),
-  [
-    ['삼성 연수', [13, 15]],
-    ['구글 연수', [14]],
-    ['애플 연수', [16]],
-  ],
+  filterBySeries(programs, 'AI교육원 전시체험 투어').map((x) => x.id),
+  [26, 29],
 );
-// 분류 key 로 그 분류의 회차만 남긴다
-assert.deepEqual(
-  filterByCategory(trainings, TRAINING_CATEGORIES, 'samsung').map((x) => x.id),
-  [13, 15],
-);
-assert.equal(
-  filterByCategory(trainings, TRAINING_CATEGORIES, undefined).length,
-  4,
-);
-// 회차 없는 분류는 카드를 만들지 않는다
-assert.equal(groupByCategory([], TRAINING_CATEGORIES).length, 0);
+assert.equal(filterBySeries(programs, undefined).length, programs.length);
+// 모르는 key(예전에 공유된 링크)는 빈 목록 대신 전체
+assert.equal(filterBySeries(programs, 'samsung').length, programs.length);
+assert.equal(filterBySeries(programs, 'other:26').length, programs.length);
 
-assert.equal(
-  getSessionLabel('AI교육원 전시체험 투어(2회차)', 'AI교육원 전시체험 투어'),
-  '2회차',
-);
-assert.equal(getSessionLabel('초등 골든벨', 'AI·SW 골든벨'), '초등');
-assert.equal(getSessionLabel('중·고등 골든벨', 'AI·SW 골든벨'), '중·고등');
-assert.equal(getSessionLabel('기조 강연', '기조강연'), '신청');
-assert.equal(getSessionLabel('(삼성 1회차) 갤럭시', '삼성 연수'), '1회차');
+assert.equal(getSessionLabel('AI교육원 전시체험 투어(2회차)'), '2회차');
+assert.equal(getSessionLabel('(삼성 1회차) 갤럭시'), '1회차');
+assert.equal(getSessionLabel('기조 강연'), '신청');
 
-assert.equal(getSessionTopic('기조 강연', '기조강연'), '');
-assert.equal(
-  getSessionTopic('AI교육원 전시체험 투어(1회차)', 'AI교육원 전시체험 투어'),
-  '',
-);
-assert.equal(getSessionTopic('초등 골든벨', 'AI·SW 골든벨'), '');
-assert.equal(
-  getSessionTopic(
-    '삼성 연수 2회차 · 효율 UP! AI•디지털 활용 수업',
-    '삼성 연수',
-  ),
-  '효율 UP! AI•디지털 활용 수업',
-);
-assert.equal(
-  getSessionTopic(
-    '(삼성 1회차) 선생님을 대상으로 하는 갤럭시 AI클래스 수업',
-    '삼성 연수',
-  ),
-  '선생님을 대상으로 하는 갤럭시 AI클래스 수업',
-);
 console.log('applicationSections checks passed');

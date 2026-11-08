@@ -6,10 +6,7 @@ import {
   formatCapacity,
   isApplicable,
 } from '../../model/applicationSchedule';
-import {
-  getSessionLabel,
-  getSessionTopic,
-} from '../../model/applicationSections';
+import { getSessionLabel } from '../../model/applicationSections';
 import { getSeatStatus } from '../../model/liveSeats';
 import { formatProgramPlace } from '../../model/programApply';
 import { SeatSummary } from '../LiveSeats';
@@ -40,7 +37,7 @@ const dateOf = (startedAt: string) =>
   formatDefinitionSchedule(startedAt, null).split(' ')[0];
 
 /**
- * 프로그램·연수 분류 하나(삼성 연수, 기조강연 등)의 카드. 목록에서는 이름·장소·날짜·정원·접수 여부만 보여 주고,
+ * 같은 이름의 프로그램·연수 회차를 묶은 카드. 목록에서는 이름·장소·날짜·정원·접수 여부만 보여 주고,
  * 회차별 시간과 자세한 내용은 신청 화면에서 보인다
  */
 const CategoryCard = ({
@@ -74,8 +71,7 @@ const CategoryCard = ({
   };
   const applicable = sessions.filter((session) => isApplicable(session.status));
   const allFull = applicable.length > 0 && applicable.every(isFull);
-  const place =
-    sessions.find(({ place: value }) => value?.trim())?.place ?? group.place;
+  const place = sessions.find(({ place: value }) => value?.trim())?.place;
   const first = dateOf(sessions[0].startedAt);
   const last = dateOf(sessions[sessions.length - 1].startedAt);
   // 접수 전에도 정원을 보인다(#748)
@@ -100,7 +96,6 @@ const CategoryCard = ({
         >
           {sessions.map((session) => {
             const open = isApplicable(session.status);
-            const topic = getSessionTopic(session.title, group.label);
             const className = `flex min-w-0 flex-1 flex-col gap-2 rounded-sm border-1 border-solid border-gray-200 bg-white px-12 py-12 text-left ${open ? 'hover:border-main-600 hover:bg-main-100' : 'opacity-60'}`;
             // 정원 마감은 회차 박스 오른쪽 위에 보인다
             const full = open && isFull(session);
@@ -108,7 +103,7 @@ const CategoryCard = ({
               <>
                 <span className="flex items-center justify-between gap-8">
                   <span className="truncate text-body2b text-black">
-                    {getSessionLabel(session.title, group.label)} ·{' '}
+                    {getSessionLabel(session.title)} ·{' '}
                     {formatDefinitionSchedule(
                       session.startedAt,
                       session.endedAt,
@@ -121,9 +116,7 @@ const CategoryCard = ({
                   )}
                 </span>
                 <span className="truncate text-caption1r text-gray-500">
-                  {open
-                    ? topic || '신청하기 →'
-                    : SCHEDULE_STATUS_LABEL[session.status]}
+                  {open ? '신청하기 →' : SCHEDULE_STATUS_LABEL[session.status]}
                 </span>
                 <SeatSummary
                   group={seats}
