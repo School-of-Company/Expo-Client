@@ -30,8 +30,7 @@ const ProgramScanPanel = ({ onScan }: { onScan: (value: string) => void }) => {
         <ManualScanInput onSubmit={onScan} />
       </div>
       <p className="break-keep text-caption1r text-gray-500">
-        리더기를 쓸 때는 입력 언어를 영어로 바꿔 주세요. 한글 입력기 상태에서는
-        값이 깨져 스캔이 실패합니다.
+        리더기로 찍은 값이 인식되지 않으면 다시 찍어 주세요.
       </p>
     </div>
   );
