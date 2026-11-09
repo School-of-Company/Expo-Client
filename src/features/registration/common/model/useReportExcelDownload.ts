@@ -35,3 +35,16 @@ export const programRosterRequest = (
   programId,
   filter: { programType: 'STANDARD', programId, status: ['CONFIRMED'] },
 });
+
+/**
+ * 연수자 1명의 개인 연수 출석부 요청. 예전 GET /excel/trainee/{traineeId} 와 같은 확정 연수 신청으로 만든다.
+ * 신청 ID 를 모르는 화면이라 필터 전체 범위로 보내고, Report 가 traineeId 로 본인 신청만 남긴다(Expo-Excel-Server#138)
+ */
+export const traineeAttendanceRequest = (
+  traineeId: number,
+): ReportExcelDownloadRequest => ({
+  template: 'ATTENDANCE',
+  scope: 'FILTER',
+  traineeId,
+  filter: { programType: 'TRAINING', status: ['CONFIRMED'] },
+});

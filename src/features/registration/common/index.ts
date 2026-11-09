@@ -2,6 +2,7 @@ export * from './lib/format';
 export { useRegistrationExpo } from './model/useRegistrationExpo';
 export {
   programRosterRequest,
+  traineeAttendanceRequest,
   useReportExcelDownload,
 } from './model/useReportExcelDownload';
 export * from './model/useSchedule';
