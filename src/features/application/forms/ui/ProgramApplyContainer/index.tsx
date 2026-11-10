@@ -37,6 +37,7 @@ import {
 import { filterBySeries } from '../../model/applicationSections';
 import { useFieldRelease } from '../../model/fieldRelease';
 import { formatFormPeriod } from '../../model/formPeriodStatus';
+import { pickPreRegistrationSeats } from '../../model/liveSeats';
 import {
   OUTCOME_LABEL,
   ProgramApplyOutcome,
@@ -342,7 +343,11 @@ const ParticipantLookup = ({
         <>
           {data.capacity && (
             <p className="break-keep text-caption1r text-gray-600">
-              {getSeatsLabel(data.capacity)}
+              {getSeatsLabel(
+                data.capacity,
+                pickPreRegistrationSeats(data.capacity, data.admissionSeats)
+                  .remaining,
+              )}
               <br />
               조회 시점의 참고값이며, 신청할 때 서버가 다시 판정합니다.
             </p>

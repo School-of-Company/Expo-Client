@@ -163,9 +163,13 @@ export const getIneligibleLabel = (
   );
 };
 
-/** 회차의 현재 잔여석·대기 현황(참고값). 잔여·대기 인원·남은 대기석은 서로 다른 값이다. */
-export const getSeatsLabel = (c: ProgramCapacity): string =>
-  `잔여 ${c.remaining.toLocaleString()}명 · 대기 ${c.waitingCount.toLocaleString()}명 (남은 대기석 ${c.waitingRemaining.toLocaleString()}명)`;
+/** 회차의 현재 잔여석·대기 현황(참고값). 잔여·대기 인원·남은 대기석은 서로 다른 값이다.
+ * 사전·현장 정원이 나뉜 회차는 `remaining`에 사전 몫을 넘긴다(`pickPreRegistrationSeats`). 대기는 회차 전체 값이다 */
+export const getSeatsLabel = (
+  c: ProgramCapacity,
+  remaining = c.remaining,
+): string =>
+  `잔여 ${remaining.toLocaleString()}명 · 대기 ${c.waitingCount.toLocaleString()}명 (남은 대기석 ${c.waitingRemaining.toLocaleString()}명)`;
 
 /** 현장 신청의 잔여석. 현장 접수는 대기가 없어 대기 문구를 붙이지 않는다 */
 export const getOnsiteSeatsLabel = (onsite: ProgramAdmissionCapacity): string =>
