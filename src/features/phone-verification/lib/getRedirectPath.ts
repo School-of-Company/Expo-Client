@@ -2,22 +2,17 @@
 export const DEFAULT_REDIRECT_PATH = '/';
 
 /**
- * 인증 완료 후 이동할 경로에 인증된 전화번호를 쿼리로 붙인다(신청 폼이 읽는다).
- * 이미 있던 세션으로 넘어갈 때는 탭에 보관해 둔 번호가 있으면 붙인다. 서버는 세션 쿠키로 본인을 확인한다.
- * 설문(`formType=survey`)은 세션으로 응답자를 정하므로 번호를 붙이지 않는다(주소창에 번호가 남지 않게).
+ * 인증 완료 후 이동할 경로를 만든다. 인증한 번호는 탭 저장소(`verifiedPhone`)와 세션 쿠키로만 전달하고
+ * 주소에는 싣지 않는다(브라우저 기록·분석 도구에 개인정보가 남지 않게). 예전 링크에 남은 `phoneNumber`도 지운다.
  * 외부 도메인으로의 오픈 리다이렉트를 막기 위해 내부 경로(`/...`)만 허용한다.
  */
-export const getRedirectPath = (
-  redirect: string | null,
-  phoneNumber?: string,
-): string => {
+export const getRedirectPath = (redirect: string | null): string => {
   const isInternalPath =
     !!redirect && redirect.startsWith('/') && !redirect.startsWith('//');
   const path = isInternalPath ? redirect : DEFAULT_REDIRECT_PATH;
 
   const url = new URL(path, window.location.origin);
-  if (phoneNumber && url.searchParams.get('formType') !== 'survey')
-    url.searchParams.set('phoneNumber', phoneNumber);
+  url.searchParams.delete('phoneNumber');
 
   return `${url.pathname}${url.search}`;
 };

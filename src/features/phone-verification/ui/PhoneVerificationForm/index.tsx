@@ -12,7 +12,7 @@ import { formatExpiresAt } from '../../lib/formatExpiresAt';
 import { getExpoId } from '../../lib/getExpoId';
 import { getRedirectPath } from '../../lib/getRedirectPath';
 import { normalizePhoneInput } from '../../lib/normalizePhoneInput';
-import { loadVerifiedPhone, saveVerifiedPhone } from '../../lib/verifiedPhone';
+import { saveVerifiedPhone } from '../../lib/verifiedPhone';
 import { useLogoutParticipantSession } from '../../model/useLogoutParticipantSession';
 import { useParticipantSession } from '../../model/useParticipantSession';
 import { useSendVerificationSms } from '../../model/useSendVerificationSms';
@@ -76,7 +76,7 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
     (phoneNumber) => {
       setIsSmsVerified(true);
       saveVerifiedPhone(expoId, phoneNumber);
-      router.replace(getRedirectPath(redirect, phoneNumber));
+      router.replace(getRedirectPath(redirect));
     },
   );
 
@@ -88,8 +88,7 @@ const VerificationFields = ({ expoId }: { expoId: string }) => {
     if (isValid) sendSms(getValues('phoneNumber'));
   };
 
-  const handleContinue = () =>
-    router.replace(getRedirectPath(redirect, loadVerifiedPhone(expoId)));
+  const handleContinue = () => router.replace(getRedirectPath(redirect));
 
   const onSubmit = (data: PhoneVerificationFormValues) => {
     verifySmsCode(data);
