@@ -37,6 +37,9 @@ export const getExpoRoutes = (expoId: string) => {
   return {
     participants: `/admin/exhibition/participants/${id}?page=1&userType=STANDARD`,
     edit: `/admin/exhibition/edit/${id}`,
+    detail: `/admin/exhibition/detail/${id}`,
+    // 박람회 생성 2단계. 박람회를 만든 직후 등록용 폼·만족도 조사를 한 화면에서 만든다
+    createForms: `/admin/exhibition/create/${id}/forms`,
     // 폼 만들기 선택 화면. 종류·대상·등록 유형·신청 기간을 고른 뒤 폼 작성 화면으로 넘어간다
     formNew: `/admin/form/new/${id}`,
     qr,

@@ -23,9 +23,11 @@ import TextArea from '@/shared/ui/TextArea';
 const ExhibitionForm = ({
   defaultValues = {},
   mutation,
+  submitLabel = '확인',
 }: {
   defaultValues?: Partial<ExhibitionFormData>;
   mutation: MutationType;
+  submitLabel?: string;
 }) => {
   const {
     register,
@@ -231,7 +233,7 @@ const ExhibitionForm = ({
           disabled={mutation.isPending || mutation.isSuccess}
           type="submit"
         >
-          확인
+          {mutation.isPending ? '저장 중...' : submitLabel}
         </Button>
       </div>
     </form>
