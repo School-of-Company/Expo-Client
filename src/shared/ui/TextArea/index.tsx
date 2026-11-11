@@ -21,21 +21,23 @@ export default function TextArea({
   const [charCount, setCharCount] = useState(value.length);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  // 내용에 맞춰 높이를 늘린다. 숨겨진 단계 안에서는 scrollHeight 가 0 이라 고정하면 0px 로 눌리므로 rows 높이에 맡긴다
+  const fitHeight = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    if (textarea.scrollHeight > 0)
+      textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+
   useEffect(() => {
     setCharCount(value.length);
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`; // 동적 높이 설정
-    }
+    fitHeight();
   }, [value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCharCount(e.target.value.length);
-
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
+    fitHeight();
     registration.onChange(e);
   };
 
