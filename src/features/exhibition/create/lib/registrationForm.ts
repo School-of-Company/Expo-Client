@@ -44,6 +44,19 @@ const sentence = (
   dynamicFormType,
 });
 
+/**
+ * 일반 참가자 현장등록은 대표자의 지역을 읽어 최초 방문을 만든다(buildFirstFieldVisit). 지역은 특수 필드가 아니라
+ * 문항 유형이라 Form 서버 필수 검사에는 없지만, 빠지면 현장등록 제출이 '이름·직업·지역을 확인해주세요'로 막힌다
+ */
+const REGION_FIELD = {
+  title: '지역',
+  formType: 'REGION',
+  jsonData: {},
+  requiredStatus: true,
+  otherJson: null,
+  dynamicFormType: 'DEFAULT',
+} as const;
+
 /** 빌더에 처음 넣을 필수 문항. 일반 참가자는 폼 만들기 화면과 같은 문항을 서버 모양으로 바꿔 넣는다 */
 const createRequiredFields = (
   participant: RegistrationParticipant,
@@ -59,7 +72,7 @@ const createRequiredFields = (
     '',
   );
   const fields = 'dynamicForm' in request ? request.dynamicForm : [];
-  return fields.map((field, index) => ({
+  return [...fields, REGION_FIELD].map((field, index) => ({
     ...field,
     id: -(index + 1),
   })) as DynamicFormItem[];
@@ -147,6 +160,12 @@ export const createRegistrationForms = async (
         dynamicFormType: dynamicFormType ?? 'DEFAULT',
       }),
     );
+    // 질문 편집기는 지역 문항을 새로 넣을 수 없어, 지웠거나 예전 작성본이라 없으면 여기서 붙인다
+    if (
+      participant === 'STANDARD' &&
+      !dynamicForm.some((item) => item.formType === 'REGION')
+    )
+      dynamicForm.push(REGION_FIELD);
     const periods = [
       ...(draft.pre
         ? [
