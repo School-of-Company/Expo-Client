@@ -20,7 +20,7 @@ export const useCreateExhibitionMutation = () => {
         // 박람회는 만들어졌으니 생성 화면에 두지 않고 남은 신청 설정을 할 곳으로 보낸다
         router.push(getRegistrationRoutes(expoId).schedule);
         toast.error(
-          `박람회는 만들었지만 신청 설정을 마치지 못했습니다. ${policyError.message} 일정 관리에서 이어서 설정해주세요.`,
+          `박람회는 만들었지만 등록 폼·신청 설정을 마치지 못했습니다. ${policyError.message} 관리 화면에서 이어서 설정해주세요.`,
           { autoClose: false },
         );
         return;

@@ -10,6 +10,12 @@ import TrainingModule, {
 } from '@/entities/exhibition/ui/TrainingModule';
 import { useAddressSearch } from '@/features/exhibition/common/hooks/useAddressSearch';
 import { getPolicyProgramTypes } from '@/features/exhibition/create/lib/programPolicy';
+import {
+  createRegistrationDrafts,
+  getRegistrationProblem,
+  REGISTRATION_PARTICIPANTS,
+} from '@/features/exhibition/create/lib/registrationForm';
+import RegistrationFormsStep from '@/features/exhibition/create/ui/RegistrationFormsStep';
 import { validateProgramForm } from '@/features/form/program';
 import { FormBuilder } from '@/features/form-builder';
 import { Location } from '@/shared/assets/icons';
@@ -35,6 +41,7 @@ const STEPS: { title: string; fields: (keyof ExhibitionFormData)[] }[] = [
     fields: ['startedDay', 'finishedDay', 'address', 'location'],
   },
   { title: '프로그램', fields: ['trainings', 'standard'] },
+  { title: '등록 폼', fields: ['registrationForms'] },
   { title: '신청 폼', fields: ['programForms'] },
   {
     title: '사전등록 정원',
@@ -78,6 +85,7 @@ const ExhibitionForm = ({
       STANDARD: { informationText: '', dynamicForm: [] },
       TRAINING: { informationText: '', dynamicForm: [] },
     },
+    registrationForms: createRegistrationDrafts(),
     ...defaultValues,
   }));
   const {
@@ -162,6 +170,14 @@ const ExhibitionForm = ({
   });
 
   // 온라인 신청을 받는 구분의 폼만 검사한다. 수정 화면은 신청 설정을 일정 관리에서 한다
+  register('registrationForms', {
+    validate: (forms) =>
+      isEditMode ||
+      REGISTRATION_PARTICIPANTS.map((participant) =>
+        getRegistrationProblem(participant, forms[participant]),
+      ).find(Boolean) ||
+      true,
+  });
   register('programForms', {
     validate: (forms, values) => {
       if (isEditMode) return true;
@@ -325,6 +341,15 @@ const ExhibitionForm = ({
         </div>
         {!isEditMode && (
           <div hidden={!isStepVisible(3)} className="space-y-28">
+            <RegistrationFormsStep
+              register={register}
+              watch={watch}
+              setValue={setValue}
+            />
+          </div>
+        )}
+        {!isEditMode && (
+          <div hidden={!isStepVisible(4)} className="space-y-28">
             {policyProgramTypes.length === 0 ? (
               <p className="break-keep text-body2r text-gray-500">
                 온라인 신청을 받는 회차가 없습니다.
@@ -364,7 +389,7 @@ const ExhibitionForm = ({
             )}
           </div>
         )}
-        <div hidden={!isStepVisible(4)} className="space-y-28">
+        <div hidden={!isStepVisible(5)} className="space-y-28">
           <div className="space-y-8">
             <p className="text-h3b text-black">사전등록 회차별 정원 기본값</p>
             <p className="text-caption1r text-gray-500">

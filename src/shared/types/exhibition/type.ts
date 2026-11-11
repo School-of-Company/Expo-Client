@@ -27,6 +27,20 @@ export interface ProgramFormDraft {
   dynamicForm: DynamicFormItem[];
 }
 
+/**
+ * 생성 화면에서 참여자군별로 만드는 등록 폼. 사전·현장 중 고른 것마다 같은 질문으로 하나씩 만든다.
+ * 사전등록 기간은 로컬 'YYYY-MM-DDTHH:mm' 이고, 현장등록 기간은 박람회 기간이다
+ */
+export interface RegistrationFormDraft {
+  enabled: boolean;
+  pre: boolean;
+  field: boolean;
+  preStartedAt: string | null;
+  preEndedAt: string | null;
+  informationText: string;
+  dynamicForm: DynamicFormItem[];
+}
+
 export type ExhibitionFormData = {
   title: string;
   introduction: string;
@@ -54,6 +68,8 @@ export type ExhibitionFormData = {
   }[];
   /** 생성 화면에서만 쓴다. 온라인 신청을 받는 회차가 있는 구분만 폼을 만든다 */
   programForms: Record<'STANDARD' | 'TRAINING', ProgramFormDraft>;
+  /** 생성 화면에서만 쓴다 */
+  registrationForms: Record<'STANDARD' | 'TRAINEE', RegistrationFormDraft>;
   image: File | null | string;
   startedDay: string;
   finishedDay: string;

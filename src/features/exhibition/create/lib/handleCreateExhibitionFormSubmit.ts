@@ -7,6 +7,7 @@ import {
 } from '../../common/lib/preregisterCapacity';
 import { createExhibition } from '../api/createExhibition';
 import { applyProgramPolicies } from './programPolicy';
+import { createRegistrationForms } from './registrationForm';
 
 export const handleCreateExhibitionFormSubmit = async (
   data: ExhibitionFormData,
@@ -49,6 +50,7 @@ export const handleCreateExhibitionFormSubmit = async (
   const { expoId } = await createExhibition(formattedData);
   // 박람회는 이미 만들어졌으므로 여기서 실패해도 던지지 않는다. 다시 저장하면 박람회가 하나 더 생긴다
   try {
+    await createRegistrationForms(expoId, data);
     await applyProgramPolicies(expoId, data);
     return { expoId, policyError: null };
   } catch (error) {
