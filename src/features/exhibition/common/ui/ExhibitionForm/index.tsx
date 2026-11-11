@@ -9,6 +9,10 @@ import TrainingModule, {
   getProgramSectionId,
 } from '@/entities/exhibition/ui/TrainingModule';
 import { useAddressSearch } from '@/features/exhibition/common/hooks/useAddressSearch';
+import {
+  clearExhibitionDraft,
+  useExhibitionDraft,
+} from '@/features/exhibition/common/model/useExhibitionDraft';
 import { getPolicyProgramTypes } from '@/features/exhibition/create/lib/programPolicy';
 import {
   createRegistrationDrafts,
@@ -29,6 +33,7 @@ import {
 import { Button, DetailHeader, Input } from '@/shared/ui';
 import SelectDateInput from '@/shared/ui/SelectDateInput';
 import TextArea from '@/shared/ui/TextArea';
+import ResetDraftButton from '../ResetDraftButton';
 
 /**
  * 생성 화면은 한 화면에 다 보이면 복잡해서 단계로 나눠 보여 준다. 값은 한 폼에 모아 두고 마지막 단계에서 한 번에 저장한다.
@@ -94,13 +99,31 @@ const ExhibitionForm = ({
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { isDirty },
   } = useForm<ExhibitionFormData>({ defaultValues: initialValues });
-  // 저장에 성공한 뒤에는 묻지 않는다
-  useLeaveConfirm(isDirty && !mutation.isSuccess);
   const pathname = usePathname();
   const isEditMode = pathname.split('/').includes('edit');
   const [step, setStep] = useState(0);
+  // 가 본 가장 뒤 단계. 앞 단계를 보러 갔다가 다시 돌아올 수 있게 여기까지는 탭으로 오간다
+  const [maxStep, setMaxStep] = useState(0);
+  useEffect(() => {
+    setMaxStep((current) => Math.max(current, step));
+  }, [step]);
+  // 생성 화면만 자동 저장한다. 수정 화면은 서버 값이 기준이다
+  const draft = useExhibitionDraft({
+    enabled: !isEditMode,
+    step,
+    setStep,
+    watch,
+    reset,
+    defaultValues: initialValues,
+  });
+  // 자동 저장되는 생성 화면은 나가도 이어 쓸 수 있으므로 묻지 않는다. 저장에 성공한 뒤에도 묻지 않는다
+  useLeaveConfirm(isEditMode && isDirty && !mutation.isSuccess);
+  useEffect(() => {
+    if (!isEditMode && mutation.isSuccess) clearExhibitionDraft();
+  }, [isEditMode, mutation.isSuccess]);
   const isLastStep = isEditMode || step === STEPS.length - 1;
   // 수정 화면은 모든 단계를 한 번에 보여 준다
   const isStepVisible = (index: number) => isEditMode || step === index;
@@ -216,18 +239,37 @@ const ExhibitionForm = ({
             <li
               key={title}
               aria-current={index === step ? 'step' : undefined}
-              className={`flex-1 border-b-2 border-solid pb-8 text-center text-body2b mobile:text-caption1b ${
+              className={`flex-1 border-b-2 border-solid text-center text-body2b mobile:text-caption1b ${
                 index === step
                   ? 'border-main-600 text-main-600'
-                  : index < step
+                  : index <= maxStep
                     ? 'border-main-200 text-gray-500'
                     : 'border-gray-200 text-gray-400'
               }`}
             >
-              {index + 1}. {title}
+              {/* 가 본 단계까지만 오간다. 처음 가는 단계는 '다음'으로 칸을 확인하며 넘어간다(빠진 칸은 저장할 때 다시 잡는다) */}
+              <button
+                type="button"
+                disabled={index === step || index > maxStep}
+                onClick={() => setStep(index)}
+                className="w-full pb-8 enabled:hover:text-main-600 disabled:cursor-default"
+              >
+                {index + 1}. {title}
+              </button>
             </li>
           ))}
         </ol>
+      )}
+      {draft.restored && (
+        <div className="mt-12 flex justify-end">
+          <ResetDraftButton
+            onReset={() => {
+              draft.discard();
+              // 처음부터 쓰므로 가 본 단계도 지운다. 남기면 지운 단계 탭이 계속 눌린다
+              setMaxStep(0);
+            }}
+          />
+        </div>
       )}
       <div className="mt-44 space-y-28">
         {/* 단계를 넘어가도 입력 칸이 사라지지 않게 숨기기만 한다(사진 미리보기 등이 유지된다) */}
@@ -392,10 +434,13 @@ const ExhibitionForm = ({
         <div hidden={!isStepVisible(5)} className="space-y-28">
           <div className="space-y-8">
             <p className="text-h3b text-black">사전등록 회차별 정원 기본값</p>
-            <p className="text-caption1r text-gray-500">
-              새 사전등록 회차의 정원 초기값입니다. 이미 만든 회차의 정원은
-              바뀌지 않습니다. 비워 두면 회차마다 직접 입력합니다.
-            </p>
+            {/* 수정 화면에서는 값을 바꿔도 기존 회차 정원이 그대로라 안내를 남긴다 */}
+            {isEditMode && (
+              <p className="text-caption1r text-gray-500">
+                새 사전등록 회차의 정원 초기값입니다. 이미 만든 회차의 정원은
+                바뀌지 않습니다. 비워 두면 회차마다 직접 입력합니다.
+              </p>
+            )}
             <div className="flex items-center gap-7">
               <Input
                 {...register('preregisterTeacherCapacity', {
