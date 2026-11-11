@@ -18,6 +18,7 @@ const ExpoInput = ({
   setValue,
   watch,
   fieldName,
+  withPolicy,
 }: FieldArrayProps) => {
   // 'new' 면 추가, 숫자면 그 항목 수정
   const [editing, setEditing] = useState<number | 'new' | null>(null);
@@ -42,6 +43,7 @@ const ExpoInput = ({
         <Modal
           fieldName={fieldName}
           initial={editing === 'new' ? undefined : items[editing]}
+          withPolicy={withPolicy}
           onClose={() => setEditing(null)}
           onSubmit={(item) => {
             if (editing === 'new') append(item);
@@ -78,6 +80,11 @@ const ExpoInput = ({
                 <p className="text-body4 min-w-0 flex-1 truncate text-gray-500">
                   {items[index]?.title || field.title}
                 </p>
+                {withPolicy && (
+                  <span className="flex-shrink-0 text-caption1r text-gray-400">
+                    {items[index]?.policy ? '온라인 신청' : '신청 안 받음'}
+                  </span>
+                )}
                 <input
                   type="hidden"
                   {...register(`${fieldName}.${index}.startedAt`, {

@@ -9,6 +9,9 @@ import TrainingModule, {
   getProgramSectionId,
 } from '@/entities/exhibition/ui/TrainingModule';
 import { useAddressSearch } from '@/features/exhibition/common/hooks/useAddressSearch';
+import { getPolicyProgramTypes } from '@/features/exhibition/create/lib/programPolicy';
+import { validateProgramForm } from '@/features/form/program';
+import { FormBuilder } from '@/features/form-builder';
 import { Location } from '@/shared/assets/icons';
 import { COLORS } from '@/shared/config';
 import { handleFormErrors, useLeaveConfirm } from '@/shared/model';
@@ -32,11 +35,17 @@ const STEPS: { title: string; fields: (keyof ExhibitionFormData)[] }[] = [
     fields: ['startedDay', 'finishedDay', 'address', 'location'],
   },
   { title: '프로그램', fields: ['trainings', 'standard'] },
+  { title: '신청 폼', fields: ['programForms'] },
   {
     title: '사전등록 정원',
     fields: ['preregisterTeacherCapacity', 'preregisterNonTeacherCapacity'],
   },
 ];
+
+const PROGRAM_FORM_LABEL = {
+  STANDARD: '참가자 프로그램 신청 폼',
+  TRAINING: '연수 신청 폼',
+} as const;
 
 const pickErrors = (
   errors: FieldErrors<ExhibitionFormData>,
@@ -53,6 +62,24 @@ const ExhibitionForm = ({
   defaultValues?: Partial<ExhibitionFormData>;
   mutation: MutationType;
 }) => {
+  const [initialValues] = useState<ExhibitionFormData>(() => ({
+    title: '',
+    introduction: '',
+    startedDay: '',
+    finishedDay: '',
+    image: '',
+    address: '',
+    location: '',
+    trainings: [],
+    standard: [],
+    preregisterTeacherCapacity: '',
+    preregisterNonTeacherCapacity: '',
+    programForms: {
+      STANDARD: { informationText: '', dynamicForm: [] },
+      TRAINING: { informationText: '', dynamicForm: [] },
+    },
+    ...defaultValues,
+  }));
   const {
     register,
     control,
@@ -60,22 +87,7 @@ const ExhibitionForm = ({
     setValue,
     watch,
     formState: { isDirty },
-  } = useForm<ExhibitionFormData>({
-    defaultValues: {
-      title: '',
-      introduction: '',
-      startedDay: '',
-      finishedDay: '',
-      image: '',
-      address: '',
-      location: '',
-      trainings: [],
-      standard: [],
-      preregisterTeacherCapacity: '',
-      preregisterNonTeacherCapacity: '',
-      ...defaultValues,
-    },
-  });
+  } = useForm<ExhibitionFormData>({ defaultValues: initialValues });
   // 저장에 성공한 뒤에는 묻지 않는다
   useLeaveConfirm(isDirty && !mutation.isSuccess);
   const pathname = usePathname();
@@ -125,18 +137,42 @@ const ExhibitionForm = ({
     },
   );
 
+  const policyProgramTypes = getPolicyProgramTypes({
+    standard: watch('standard'),
+    trainings: watch('trainings'),
+  });
+
   const { openAddressSearch } = useAddressSearch(setValue);
 
-  const trainingFields = useFieldArray<ExhibitionFormData>({
+  // 폼 질문 목록도 배열이라 이름을 좁혀 두지 않으면 회차 목록 타입이 넓어진다
+  const trainingFields = useFieldArray<
+    ExhibitionFormData,
+    'trainings' | 'standard'
+  >({
     control,
     name: 'trainings',
   });
 
-  const standardFields = useFieldArray<ExhibitionFormData>({
+  const standardFields = useFieldArray<
+    ExhibitionFormData,
+    'trainings' | 'standard'
+  >({
     control,
     name: 'standard',
   });
 
+  // 온라인 신청을 받는 구분의 폼만 검사한다. 수정 화면은 신청 설정을 일정 관리에서 한다
+  register('programForms', {
+    validate: (forms, values) => {
+      if (isEditMode) return true;
+      const problems = getPolicyProgramTypes(values).flatMap((programType) =>
+        validateProgramForm(forms[programType].dynamicForm).map(
+          (problem) => `${PROGRAM_FORM_LABEL[programType]}: ${problem}`,
+        ),
+      );
+      return problems.length === 0 || problems.join('\n');
+    },
+  });
   register('startedDay', { required: '박람회 시작 일과 시간을 입력해주세요.' });
   register('finishedDay', {
     required: '박람회 종료 일과 시간을 입력해주세요.',
@@ -273,6 +309,7 @@ const ExhibitionForm = ({
             setValue={setValue}
             watch={watch}
             fieldName="trainings"
+            withPolicy={!isEditMode}
           />
           <TrainingModule
             title="참가자 프로그램"
@@ -283,9 +320,51 @@ const ExhibitionForm = ({
             setValue={setValue}
             watch={watch}
             fieldName="standard"
+            withPolicy={!isEditMode}
           />
         </div>
-        <div hidden={!isStepVisible(3)} className="space-y-28">
+        {!isEditMode && (
+          <div hidden={!isStepVisible(3)} className="space-y-28">
+            {policyProgramTypes.length === 0 ? (
+              <p className="break-keep text-body2r text-gray-500">
+                온라인 신청을 받는 회차가 없습니다.
+              </p>
+            ) : (
+              policyProgramTypes.map((programType) => (
+                <div
+                  key={programType}
+                  className="space-y-24 rounded-sm border-1 border-solid border-gray-200 px-[30px] py-[24px] mobile:px-16"
+                >
+                  <p className="text-h2b text-black">
+                    {PROGRAM_FORM_LABEL[programType]}
+                  </p>
+                  <TextArea
+                    title="안내 문구"
+                    placeholder="신청자에게 보여 줄 안내 문구를 입력해주세요."
+                    maxLength={500}
+                    registration={register(
+                      `programForms.${programType}.informationText`,
+                    )}
+                    row={1}
+                    value={watch(`programForms.${programType}.informationText`)}
+                  />
+                  <FormBuilder
+                    variant="program"
+                    value={watch(`programForms.${programType}.dynamicForm`)}
+                    onChange={(dynamicForm) =>
+                      setValue(
+                        `programForms.${programType}.dynamicForm`,
+                        dynamicForm,
+                        { shouldDirty: true },
+                      )
+                    }
+                  />
+                </div>
+              ))
+            )}
+          </div>
+        )}
+        <div hidden={!isStepVisible(4)} className="space-y-28">
           <div className="space-y-8">
             <p className="text-h3b text-black">사전등록 회차별 정원 기본값</p>
             <p className="text-caption1r text-gray-500">
