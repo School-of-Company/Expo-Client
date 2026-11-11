@@ -3,7 +3,11 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
-import { usePreregisterSessions } from '@/features/registration/common';
+import {
+  traineeAttendanceRequest,
+  usePreregisterSessions,
+  useReportExcelDownload,
+} from '@/features/registration/common';
 import { withLoading } from '@/shared/hocs';
 import { toKstLocal } from '@/shared/libs/kstDateTime';
 import { useExcelDownload } from '@/shared/model';
@@ -80,7 +84,11 @@ const ParticipantTable = ({ id }: { id: string }) => {
       : undefined);
   const [selectItem, setSelectItem] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const { mutate: downloadExcel, isPending: isExporting } = useExcelDownload();
+  const { mutate: downloadExcel, isPending: isExcelExporting } =
+    useExcelDownload();
+  const { mutate: downloadReport, isPending: isReportExporting } =
+    useReportExcelDownload(() => {});
+  const isExporting = isExcelExporting || isReportExporting;
 
   const { expoManageQueries, isLoading: expoManageLoading } =
     useExpoManageQueries(
@@ -179,7 +187,10 @@ const ParticipantTable = ({ id }: { id: string }) => {
         return;
       }
 
-      downloadExcel({ path: `/excel/trainee/${selectedRowId}` });
+      downloadReport({
+        expoId: id,
+        request: traineeAttendanceRequest(selectedRowId),
+      });
     },
   };
   const standardExcelFile = {
