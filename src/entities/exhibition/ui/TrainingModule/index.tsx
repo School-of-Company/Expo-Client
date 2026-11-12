@@ -22,6 +22,7 @@ const TrainingModule = ({
   setValue,
   watch,
   fieldName,
+  withPolicy,
 }: Props) => {
   // 펼침 여부는 details 가 직접 들고 있는다. 프로그램을 추가해 개수가 바뀌어도 다시 접히지 않도록 처음 한 번만 정한다
   const [openByDefault] = useState(() => fields.length <= COLLAPSE_FROM);
@@ -45,6 +46,7 @@ const TrainingModule = ({
           setValue={setValue}
           watch={watch}
           fieldName={fieldName}
+          withPolicy={withPolicy}
         />
       </div>
     </details>
