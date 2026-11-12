@@ -107,87 +107,92 @@ const FormBuilder = ({ variant = 'application', value, onChange }: Props) => {
   };
 
   return (
-    <div className="flex justify-center gap-32 mobile:flex-col">
-      <section
-        className="min-w-0 max-w-[792px] flex-1 space-y-16"
-        aria-label="문항 편집"
-      >
-        <DndContext
-          // 고정 id가 없으면 dnd-kit이 전역 카운터로 만들어 SSR hydration이 어긋난다.
-          id="form-builder"
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          modifiers={[restrictToVerticalAxis]}
-          accessibility={{
-            announcements,
-            screenReaderInstructions: {
-              draggable:
-                '스페이스 키로 문항을 들고, 위아래 방향키로 옮긴 뒤 스페이스 키로 놓습니다. Esc 키로 취소합니다.',
-            },
-          }}
-          onDragStart={({ active }) =>
-            setDrag({ from: indexOf(active.id), to: indexOf(active.id) })
-          }
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-          onDragCancel={() => setDrag(null)}
+    // 화면이 아니라 놓인 자리의 폭으로 나눈다. 편집 칸 480px·미리보기 400px 이 안 들어가면(박람회 생성 화면 등) 위아래로 쌓는다
+    <div className="[container-type:inline-size]">
+      <div className="flex flex-col gap-32 [@container(min-width:912px)]:flex-row [@container(min-width:912px)]:justify-center">
+        <section
+          className="min-w-0 max-w-[792px] flex-1 space-y-16"
+          aria-label="문항 편집"
         >
-          <SortableContext
-            items={value.map((item) => item.id)}
-            strategy={verticalListSortingStrategy}
+          <DndContext
+            // 고정 id가 없으면 dnd-kit이 전역 카운터로 만들어 SSR hydration이 어긋난다.
+            id="form-builder"
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            modifiers={[restrictToVerticalAxis]}
+            accessibility={{
+              announcements,
+              screenReaderInstructions: {
+                draggable:
+                  '스페이스 키로 문항을 들고, 위아래 방향키로 옮긴 뒤 스페이스 키로 놓습니다. Esc 키로 취소합니다.',
+              },
+            }}
+            onDragStart={({ active }) =>
+              setDrag({ from: indexOf(active.id), to: indexOf(active.id) })
+            }
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            onDragCancel={() => setDrag(null)}
           >
-            <ol className="space-y-16">
-              {value.map((item, index) => (
-                <FieldCard
-                  key={item.id}
-                  list={value}
-                  index={index}
-                  warnings={warnings.get(index)}
-                  willBreak={willBreak.has(item.id)}
-                  variant={variant}
-                  onChange={(next) => onChange(updateField(value, index, next))}
-                  onChangeType={(type) =>
-                    onChange(changeFormType(value, index, type))
-                  }
-                  onRemove={() => onChange(removeField(value, index))}
-                  onDuplicate={() => onChange(duplicateField(value, index))}
-                  onAddOption={() => onChange(addOption(value, index))}
-                  onRemoveOption={(key) =>
-                    onChange(removeOption(value, index, key))
-                  }
-                />
-              ))}
-            </ol>
-          </SortableContext>
-        </DndContext>
-
-        <div className="flex flex-wrap gap-8">
-          {BUILDER_FORM_TYPES.map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => onChange(addField(value, type))}
-              className="flex items-center gap-6 rounded-sm border-1 border-solid border-gray-200 bg-white px-12 py-8 text-caption1r text-gray-500 hover:border-main-600 hover:text-main-600"
+            <SortableContext
+              items={value.map((item) => item.id)}
+              strategy={verticalListSortingStrategy}
             >
-              {formTypeRegistry[type].icon}+ {formTypeRegistry[type].label}
-            </button>
-          ))}
-        </div>
-      </section>
+              <ol className="space-y-16">
+                {value.map((item, index) => (
+                  <FieldCard
+                    key={item.id}
+                    list={value}
+                    index={index}
+                    warnings={warnings.get(index)}
+                    willBreak={willBreak.has(item.id)}
+                    variant={variant}
+                    onChange={(next) =>
+                      onChange(updateField(value, index, next))
+                    }
+                    onChangeType={(type) =>
+                      onChange(changeFormType(value, index, type))
+                    }
+                    onRemove={() => onChange(removeField(value, index))}
+                    onDuplicate={() => onChange(duplicateField(value, index))}
+                    onAddOption={() => onChange(addOption(value, index))}
+                    onRemoveOption={(key) =>
+                      onChange(removeOption(value, index, key))
+                    }
+                  />
+                ))}
+              </ol>
+            </SortableContext>
+          </DndContext>
 
-      <aside
-        className="sticky top-0 max-h-screen w-[400px] shrink-0 overflow-y-auto rounded-md border-1 border-solid border-gray-200 bg-white p-24 mobile:static mobile:w-full"
-        aria-label="미리보기"
-      >
-        <p className="mb-16 text-caption1b text-gray-500">미리보기</p>
-        {/* 문항 구성이 바뀌면 이전 답변이 엉키지 않게 새로 마운트한다. */}
-        <FormRenderer
-          key={value.map((item) => item.id).join()}
-          schema={preview}
-          onSubmit={() => {}}
-          renderFooter={() => null}
-        />
-      </aside>
+          <div className="flex flex-wrap gap-8">
+            {BUILDER_FORM_TYPES.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => onChange(addField(value, type))}
+                className="flex items-center gap-6 rounded-sm border-1 border-solid border-gray-200 bg-white px-12 py-8 text-caption1r text-gray-500 hover:border-main-600 hover:text-main-600"
+              >
+                {formTypeRegistry[type].icon}+ {formTypeRegistry[type].label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <aside
+          className="w-full shrink-0 rounded-md border-1 border-solid border-gray-200 bg-white p-24 [@container(min-width:912px)]:sticky [@container(min-width:912px)]:top-0 [@container(min-width:912px)]:max-h-screen [@container(min-width:912px)]:w-[400px] [@container(min-width:912px)]:overflow-y-auto"
+          aria-label="미리보기"
+        >
+          <p className="mb-16 text-h3b text-black">미리보기</p>
+          {/* 문항 구성이 바뀌면 이전 답변이 엉키지 않게 새로 마운트한다. */}
+          <FormRenderer
+            key={value.map((item) => item.id).join()}
+            schema={preview}
+            onSubmit={() => {}}
+            renderFooter={() => null}
+          />
+        </aside>
+      </div>
     </div>
   );
 };
