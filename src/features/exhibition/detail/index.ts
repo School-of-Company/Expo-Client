@@ -6,3 +6,4 @@ export {
   default as ShareFormModal,
   SHARE_MODAL_TITLE,
 } from './ui/ShareFormModal';
+export { useExpoPermission } from './model/useExpoPermission';

@@ -58,6 +58,8 @@ export const getExpoRoutes = (expoId: string) => {
     paperQr: `${qr}?tab=${EXPO_QR_TABS.paper}`,
     // 프린터가 연결된 노트북에서 여는 명찰 자동 출력 화면(#924)
     printStation: `/admin/exhibition/print-station/${id}`,
+    // 운영진 목록·초대·역할 변경과 스태프 링크 발급·회수(OWNER 전용, #954)
+    members: `/admin/exhibition/members/${id}`,
     // 참가자가 보는 신청 폼 모음
     applicationForms: `/application/forms/${id}`,
     // 사전등록·프로그램 회차를 보는 신청 목록 탭. 프로그램 신청 화면의 뒤로 가기가 쓴다
@@ -91,6 +93,12 @@ export const getRegistrationRoutes = (expoId: string) => {
     lottery: `${base}/survey?view=lottery`,
   };
 };
+
+// 스태프 링크 화면. 비밀값은 주소의 # 뒤에 둔다. # 뒤는 서버 요청·접속 기록·Referer 에 실리지 않는다
+export const STAFF_PATH = '/staff';
+
+export const getStaffLink = (origin: string, secret: string) =>
+  `${origin}${STAFF_PATH}#${encodeURIComponent(secret)}`;
 
 /**
  * 등록용 폼·만족도 조사를 만들거나 고치거나 지운 뒤 돌아갈 곳.
