@@ -7,6 +7,7 @@ import {
   useExpoQueries,
 } from '@/features/exhibition/detail';
 import { withLoading } from '@/shared/hocs';
+import { EXPO_FORBIDDEN_MESSAGE } from '@/shared/libs/http/apiError';
 import { QueryError } from '@/shared/ui';
 import { ExhibitionDetailContent } from '@/widgets/exhibition/detail';
 import { Header } from '@/widgets/layout';
@@ -19,6 +20,7 @@ const ExhibitionDetailPage = ({ params }: { params: string }) => {
     expoTrainingQuery,
     isLoading,
     isError,
+    isForbidden,
     refetchFailed,
   } = useExpoQueries(params);
   const expoDetail = expoDetailQuery.data;
@@ -39,21 +41,27 @@ const ExhibitionDetailPage = ({ params }: { params: string }) => {
       <Header />
       {withLoading({
         isLoading,
-        children:
-          isError || !expoDetail ? (
-            <QueryError
-              message="박람회 정보를 불러오지 못했습니다."
-              onRetry={refetchFailed}
-            />
-          ) : (
-            <ExhibitionDetailContent
-              expoDetail={expoDetail}
-              expoStandard={expoStandard}
-              expoTraining={expoTraining}
-              params={params}
-              onShare={() => setIsShareOpen(true)}
-            />
-          ),
+        children: isForbidden ? (
+          <p
+            role="alert"
+            className="flex w-full flex-1 items-center justify-center break-keep p-16 text-center text-body2r text-gray-500"
+          >
+            {EXPO_FORBIDDEN_MESSAGE}
+          </p>
+        ) : isError || !expoDetail ? (
+          <QueryError
+            message="박람회 정보를 불러오지 못했습니다."
+            onRetry={refetchFailed}
+          />
+        ) : (
+          <ExhibitionDetailContent
+            expoDetail={expoDetail}
+            expoStandard={expoStandard}
+            expoTraining={expoTraining}
+            params={params}
+            onShare={() => setIsShareOpen(true)}
+          />
+        ),
       })}
       {isShareOpen && (
         <ModalLayout label={SHARE_MODAL_TITLE} onClose={closeShare}>

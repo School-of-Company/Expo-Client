@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { toServerMessage } from '@/shared/libs/handler/serverMessage';
-import { ApiError } from '@/shared/libs/http/apiError';
+import { ApiError, EXPO_FORBIDDEN_MESSAGE } from '@/shared/libs/http/apiError';
 import { NETWORK_ERROR_MESSAGE } from '@/shared/libs/http/getScanErrorMessage';
 import { serialHttp } from './serialHttp';
 
@@ -70,7 +70,7 @@ const toError = (error: unknown, fallback: string) => {
   if (!axios.isAxiosError(error)) return error;
   if (!error.response) return new Error(NETWORK_ERROR_MESSAGE);
   const { status, data } = error.response;
-  if (status === 403) return new ApiError('관리자만 사용할 수 있습니다.', 403);
+  if (status === 403) return new ApiError(EXPO_FORBIDDEN_MESSAGE, 403);
   return new ApiError(toServerMessage(status, data) ?? fallback, status);
 };
 

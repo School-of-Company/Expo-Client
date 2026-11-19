@@ -3,7 +3,10 @@
 import Link from 'next/link';
 import { useRegistrationExpo } from '@/features/registration/common';
 import { withLoading } from '@/shared/hocs';
-import { getErrorStatus } from '@/shared/libs/http/apiError';
+import {
+  EXPO_FORBIDDEN_MESSAGE,
+  getErrorStatus,
+} from '@/shared/libs/http/apiError';
 import { Header } from '@/widgets/layout';
 
 /**
@@ -15,7 +18,10 @@ const RegistrationExpoGuard = ({ children }: { children: React.ReactNode }) => {
 
   if (expo) return <>{children}</>;
 
-  const isNotFound = getErrorStatus(expoError) === 404;
+  const status = getErrorStatus(expoError);
+  const isNotFound = status === 404;
+  // 운영진이 아니거나 역할이 모자란 박람회. 다시 시도해도 같아 버튼을 두지 않는다
+  const isForbidden = status === 403;
 
   return (
     <div className="flex min-h-screen flex-col gap-[30px]">
@@ -27,10 +33,12 @@ const RegistrationExpoGuard = ({ children }: { children: React.ReactNode }) => {
             <p className="text-h2b text-black">
               {isNotFound
                 ? '박람회를 찾을 수 없습니다.'
-                : '박람회 정보를 불러오지 못했습니다.'}
+                : isForbidden
+                  ? EXPO_FORBIDDEN_MESSAGE
+                  : '박람회 정보를 불러오지 못했습니다.'}
             </p>
             <div className="flex gap-12">
-              {!isNotFound && (
+              {!isNotFound && !isForbidden && (
                 <button
                   type="button"
                   onClick={() => refetchExpo()}

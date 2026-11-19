@@ -1,3 +1,4 @@
+import { isForbiddenError } from '@/shared/libs/http/apiError';
 import {
   useExpoDetail,
   useStandardProgram,
@@ -16,6 +17,8 @@ export const useExpoQueries = (id: string) => {
 
   const queries = [expoDetailQuery, expoStandardQuery, expoTrainingQuery];
   const isError = queries.some((query) => query.isError);
+  // 운영진이 아닌 박람회는 다시 시도해도 같아 안내만 바꾼다
+  const isForbidden = queries.some((query) => isForbiddenError(query.error));
   const refetchFailed = () =>
     queries
       .filter((query) => query.isError)
@@ -27,6 +30,7 @@ export const useExpoQueries = (id: string) => {
     expoTrainingQuery,
     isLoading,
     isError,
+    isForbidden,
     refetchFailed,
   };
 };
