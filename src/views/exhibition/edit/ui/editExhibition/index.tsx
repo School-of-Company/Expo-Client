@@ -5,7 +5,7 @@ import { ExhibitionForm } from '@/features/exhibition/common';
 import {
   formatDateTime,
   hasPendingProgramChange,
-  ParticipantPhoneVerificationSetting,
+  FeatureSettingsNotice,
   ProgramChangeRetryNotice,
   useEditExhibitionMutation,
   useExpoData,
@@ -98,7 +98,7 @@ const EditExhibition = ({ id }: { id: string }) => {
                 />
               </div>
             )}
-            <ParticipantPhoneVerificationSetting id={id} />
+            <FeatureSettingsNotice id={id} />
             <ExhibitionForm
               key={formKey}
               defaultValues={defaultValues}
