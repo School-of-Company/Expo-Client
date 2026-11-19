@@ -15,6 +15,8 @@ const ALLOWED_ROOTS = new Set([
   'participant-auth',
   'qr-tokens',
   'sms',
+  // 스태프 링크 비밀값으로 15분 토큰을 받는 공개 경로(User #253)
+  'staff-auth',
   'standard',
   'surveys',
   'trainee',
