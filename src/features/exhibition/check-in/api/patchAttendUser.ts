@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { toScanError } from '@/shared/libs/http/getScanErrorMessage';
 import {
@@ -11,9 +11,10 @@ export const patchAttendUser = async (
   id: string,
   data: AttendUserQrRequest,
   scannerName?: string,
+  http: AxiosInstance = clientTokenInstance,
 ): Promise<AttendUserResponse> => {
   try {
-    const response = await clientTokenInstance.patch(
+    const response = await http.patch(
       `/attendance/${encodeURIComponent(id)}`,
       data,
       scannerNameConfig(scannerName),

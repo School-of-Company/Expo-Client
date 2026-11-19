@@ -3,13 +3,9 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-import { toRoleAuthority, USER_AUTHORITY } from '@/shared/config';
 import { useQRScanner } from '@/shared/model';
 import { QrScanData } from '@/shared/types/common/QrScanData';
-import {
-  AttendUserQrRequest,
-  AttendUserResponse,
-} from '@/shared/types/exhibition/check-in/type';
+import { AttendUserResponse } from '@/shared/types/exhibition/check-in/type';
 import { TableForm } from '@/shared/ui/Table';
 import { CHECK_IN_PRINT_CATEGORIES } from '../../model/constants';
 import {
@@ -20,6 +16,7 @@ import {
   scanFailureResult,
   successResult,
 } from '../../model/scanResult';
+import { toAttendRequest } from '../../model/toAttendRequest';
 import { toExitRequest } from '../../model/toExitRequest';
 import { useEntryList, useInvalidateEntryList } from '../../model/useEntryList';
 import { useInvalidateEntrySummary } from '../../model/useEntrySummary';
@@ -71,35 +68,6 @@ const QRScannerTable = ({ id }: { id: string }) => {
     setScannedQR,
     handleInvalidQr,
   );
-
-  const toAttendRequest = ({
-    traineeId,
-    participantId,
-    code,
-    phoneNumber,
-  }: QrScanData): AttendUserQrRequest | null => {
-    if (traineeId && phoneNumber) {
-      return {
-        authority: toRoleAuthority(USER_AUTHORITY.TRAINEE),
-        phoneNumber,
-      };
-    }
-    if (participantId && code) {
-      return {
-        authority: toRoleAuthority(USER_AUTHORITY.STANDARD),
-        participantId,
-        code,
-      };
-    }
-    // 예전 일반 참가자 QR({participantId, phoneNumber})은 서버가 번호로 찾는다
-    if (participantId && phoneNumber) {
-      return {
-        authority: toRoleAuthority(USER_AUTHORITY.STANDARD),
-        phoneNumber,
-      };
-    }
-    return null;
-  };
 
   const handleExit = async (scannedQR: QrScanData) => {
     const request = toExitRequest(scannedQR);

@@ -1,3 +1,4 @@
+import { AxiosInstance } from 'axios';
 import { toApiError } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import {
@@ -13,11 +14,10 @@ const walkInPath = (expoId: string) =>
 /** 오늘(Asia/Seoul) 구분별 간편입장 합계 */
 export const getWalkInCounts = async (
   expoId: string,
+  http: AxiosInstance = clientTokenInstance,
 ): Promise<WalkInCounts> => {
   try {
-    const response = await clientTokenInstance.get<WalkInCounts>(
-      walkInPath(expoId),
-    );
+    const response = await http.get<WalkInCounts>(walkInPath(expoId));
     return response.data;
   } catch (error) {
     throw toApiError(error, '간편입장 집계를 불러오지 못했습니다.');
@@ -39,9 +39,10 @@ export const postWalkIn = async (
   expoId: string,
   data: RecordWalkInRequest,
   scannerName?: string,
+  http: AxiosInstance = clientTokenInstance,
 ): Promise<WalkInCounts> => {
   try {
-    const response = await clientTokenInstance.post<WalkInCounts>(
+    const response = await http.post<WalkInCounts>(
       walkInPath(expoId),
       data,
       scannerNameConfig(scannerName),
