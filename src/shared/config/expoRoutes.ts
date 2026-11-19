@@ -89,6 +89,8 @@ export const getRegistrationRoutes = (expoId: string) => {
       `${base}/program-forms/${encodeURIComponent(formId)}`,
     survey: `${base}/survey`,
     lottery: `${base}/survey?view=lottery`,
+    // 박람회 기능 ON/OFF와 참가자 휴대전화 인증을 한 곳에서 바꾼다
+    features: `${base}/features`,
   };
 };
 
