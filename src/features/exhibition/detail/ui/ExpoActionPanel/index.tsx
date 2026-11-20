@@ -25,6 +25,7 @@ const ExpoActionPanel = ({ params, onShare }: ExpoActionPanelProps) => {
       description: '박람회 정보 수정',
       href: getExpoRoutes(params).edit,
     },
+    actions.features,
     actions.formCreate,
     // 만든 등록용 폼·만족도 조사는 신청관리 폼 탭에서 고친다
     {

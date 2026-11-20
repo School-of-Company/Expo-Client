@@ -25,8 +25,11 @@ export const useCreateExhibitionMutation = () => {
         );
         return;
       }
-      router.push('/admin');
-      toast.success('박람회가 생성되었습니다.');
+      // 새 박람회에서 쓸 기능을 바로 고르게 한다
+      router.push(getRegistrationRoutes(expoId).features);
+      toast.success(
+        '박람회가 생성되었습니다. 이 박람회에서 쓸 기능을 골라주세요.',
+      );
     },
     onError: (error: Error) => {
       toast.error(error.message);

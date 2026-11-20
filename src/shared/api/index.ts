@@ -10,4 +10,3 @@ export {
 export { postSendSms } from './postSendSms';
 export { getCheckSmsCode } from './getCheckSmsCode';
 export { retryProgramChanges } from './retryProgramChanges';
-export { patchParticipantPhoneVerification } from './patchParticipantPhoneVerification';

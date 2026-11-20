@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
@@ -66,7 +67,7 @@ const VIEWS: { value: ScheduleView; label: string }[] = [
 const ScheduleManager = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { expoId } = useRegistrationExpo();
+  const { expoId, routes } = useRegistrationExpo();
   const sessionsQuery = usePreregisterSessions(expoId);
   const programsQuery = useSchedulePrograms(expoId);
   const invalidate = useInvalidateSchedule(expoId);
@@ -272,6 +273,13 @@ const ScheduleManager = () => {
                   </button>
                 ))}
               </div>
+              {/* 프로그램·연수·사전등록을 쓸지는 기능 설정에서 정한다 */}
+              <Link
+                href={routes.features}
+                className="ml-auto shrink-0 whitespace-nowrap text-body2r text-main-600 underline mobile:text-caption1r"
+              >
+                기능 설정
+              </Link>
             </div>
             {view === 'FORMS' ? (
               <div className="space-y-[60px]">

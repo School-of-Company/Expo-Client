@@ -70,5 +70,10 @@ export const getExpoActions = (expoId: string) => {
       description: '박람회 정보 수정',
       href: routes.edit,
     },
+    features: {
+      title: '기능 설정',
+      description: '쓸 기능 켜고 끄기·참가자 휴대전화 인증',
+      href: getRegistrationRoutes(expoId).features,
+    },
   } satisfies Record<string, ExpoAction>;
 };

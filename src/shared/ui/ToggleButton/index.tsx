@@ -8,9 +8,17 @@ interface Props {
   disabled?: boolean;
   /** 접근성 이름. 없으면 감싼 입력 제목(InputLabelContext)을 쓴다 */
   label?: string;
+  /** 상태 이유 등 덧붙일 설명 요소의 id(aria-describedby) */
+  describedBy?: string;
 }
 
-const ToggleButton = ({ value, onChange, disabled = false, label }: Props) => {
+const ToggleButton = ({
+  value,
+  onChange,
+  disabled = false,
+  label,
+  describedBy,
+}: Props) => {
   const contextLabelId = useContext(InputLabelContext);
   const toggle = (e: React.MouseEvent) => {
     preventEvent(e);
@@ -24,6 +32,7 @@ const ToggleButton = ({ value, onChange, disabled = false, label }: Props) => {
       aria-checked={value}
       aria-label={label}
       aria-labelledby={label ? undefined : contextLabelId}
+      aria-describedby={describedBy}
       onClick={toggle}
       disabled={disabled}
       // 보이는 크기는 그대로 두고 위아래로 누르는 영역만 44px 까지 넓힌다
