@@ -6,6 +6,7 @@ import { ExpoAction, getExpoActions } from '@/entities/exhibition';
 import { Share } from '@/shared/assets/svg';
 import { getExpoRoutes, getRegistrationRoutes } from '@/shared/config';
 import { Button } from '@/shared/ui';
+import { useExpoPermission } from '../../model/useExpoPermission';
 
 interface ExpoActionPanelProps {
   params: string;
@@ -17,9 +18,21 @@ const ExpoActionPanel = ({ params, onShare }: ExpoActionPanelProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const actions = getExpoActions(params);
   const registrationRoutes = getRegistrationRoutes(params);
+  const permission = useExpoPermission(params);
+
+  const monitoringAction: ExpoAction = {
+    title: '모니터링/관리',
+    description: '실시간 대시보드·접수대장·행정 이력·입·퇴장',
+    href: registrationRoutes.dashboard,
+  };
+  const membersAction: ExpoAction = {
+    title: '운영진',
+    description: '운영진 초대·역할 변경, 스태프 링크 발급·회수',
+    href: getExpoRoutes(params).members,
+  };
 
   // 박람회 운영 페이지는 getExpoActions 전체를 카드로 보여 주고, 패널은 자주 쓰는 메뉴만 간추려 보여 준다
-  const panelActions: ExpoAction[] = [
+  const fullActions: ExpoAction[] = [
     {
       title: '박람회 수정',
       description: '박람회 정보 수정',
@@ -49,12 +62,13 @@ const ExpoActionPanel = ({ params, onShare }: ExpoActionPanelProps) => {
       description: '만족도 조사 관리',
       href: registrationRoutes.survey,
     },
-    {
-      title: '모니터링/관리',
-      description: '실시간 대시보드·접수대장·행정 이력·입·퇴장',
-      href: registrationRoutes.dashboard,
-    },
+    monitoringAction,
   ];
+
+  // 메뉴는 역할에 맞게 숨기기만 한다. 실제 차단은 서버가 한다
+  const panelActions: ExpoAction[] = permission.isMonitoringOnly
+    ? [monitoringAction]
+    : [...fullActions, ...(permission.canManageMembers ? [membersAction] : [])];
 
   const renderAction = (action: ExpoAction) => (
     <Button

@@ -4,8 +4,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import DefaultExpo from '@/shared/assets/png/DefaultExpo.png';
+import { EXPO_MEMBER_ROLE_LABEL } from '@/shared/config';
 import { isValidSrc } from '@/shared/model';
 import { ExpoValid } from '@/shared/types/admin/type';
+import { ExpoMemberRole } from '@/shared/types/exhibition/member/type';
 
 interface Props {
   id: string;
@@ -18,6 +20,8 @@ interface Props {
   formStatus?: ExpoValid;
   /** 조회 중이면 undefined, 실패하면 null */
   programFormCount?: number | null;
+  /** 내 운영진 역할. 모르면 표시하지 않는다 */
+  myRole?: ExpoMemberRole | null;
 }
 
 // 등록 폼·설문은 행사마다 필요한 것만 만든다. 미생성을 준비 미완료로 보이지 않게 있는 것만 센다
@@ -94,6 +98,7 @@ const ExpoListItem = ({
   finishedDay,
   formStatus,
   programFormCount,
+  myRole,
 }: Props) => {
   const hasFormStatus = Boolean(formStatus) || programFormCount !== undefined;
   const formatDate = (date: string) => {
@@ -145,6 +150,11 @@ const ExpoListItem = ({
               }}
             >
               행사기간 {formatDate(startedDay)} ~ {formatDate(finishedDay)}
+              {myRole && (
+                <span className="ml-8 text-gray-500">
+                  · 내 역할 {EXPO_MEMBER_ROLE_LABEL[myRole]}
+                </span>
+              )}
             </p>
             <p
               className="overflow-hidden text-body1b text-black"

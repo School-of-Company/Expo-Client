@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
+import { useScanHttp } from '@/shared/libs/http/ScanHttpContext';
 import { ExitScanRequest } from '@/shared/types/exhibition/check-in/entry';
 import { patchExitUser } from '../api/patchExitUser';
 
@@ -9,10 +10,11 @@ const SUBJECT_LABEL = {
   PAPER_QR: '종이 QR',
 } as const;
 
-export const useExitUserMutation = (expoId: string, scannerName?: string) =>
-  useMutation({
+export const useExitUserMutation = (expoId: string, scannerName?: string) => {
+  const http = useScanHttp();
+  return useMutation({
     mutationFn: (data: ExitScanRequest) =>
-      patchExitUser(expoId, data, scannerName),
+      patchExitUser(expoId, data, scannerName, http),
     onSuccess: ({ subjectType, enteredTime, exitedTime, stayedMinutes }) => {
       toast.success(
         `${SUBJECT_LABEL[subjectType] ?? ''} 퇴장 처리: ${enteredTime} 입장 → ${exitedTime} 퇴장 (${stayedMinutes}분)`,
@@ -22,3 +24,4 @@ export const useExitUserMutation = (expoId: string, scannerName?: string) =>
       toast.error(error.message);
     },
   });
+};

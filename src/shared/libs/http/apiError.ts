@@ -36,3 +36,9 @@ export const getErrorStatus = (error: unknown): number | undefined => {
   if (axios.isAxiosError(error)) return error.response?.status;
   return undefined;
 };
+
+/** 박람회별 운영진 역할로 막힌 요청(403)에 보여 줄 공통 안내 */
+export const EXPO_FORBIDDEN_MESSAGE = '이 박람회에 대한 권한이 없습니다.';
+
+export const isForbiddenError = (error: unknown) =>
+  getErrorStatus(error) === 403;

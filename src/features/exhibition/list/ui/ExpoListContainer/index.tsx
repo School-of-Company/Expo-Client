@@ -51,6 +51,7 @@ const ExpoListContainer = () => {
               finishedDay={item.finishedDay}
               formStatus={expoValidMap?.get(item.id)}
               programFormCount={programFormCounts.get(item.id)}
+              myRole={item.myRole}
             />
           ))}
           <CreateExpoCard />

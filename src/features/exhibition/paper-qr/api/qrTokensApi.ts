@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { EXPO_FORBIDDEN_MESSAGE } from '@/shared/libs/http/apiError';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { getScanErrorMessage } from '@/shared/libs/http/getScanErrorMessage';
 import { PaperQrCategory } from '../model/constants';
@@ -28,9 +29,9 @@ const basePath = (expoId: string) => `/qr-tokens/${encodeURIComponent(expoId)}`;
 
 const toError = (error: unknown, fallback: string) => {
   if (!axios.isAxiosError(error)) return error;
-  // ROLE_ADMIN 이 아니면 403. 서버 문구보다 할 일을 바로 알린다
+  // 이 박람회의 운영진이 아니거나 역할이 모자라면 403. 서버 문구보다 이유를 바로 알린다
   if (error.response?.status === 403) {
-    return new Error('관리자만 사용할 수 있습니다.');
+    return new Error(EXPO_FORBIDDEN_MESSAGE);
   }
   return new Error(getScanErrorMessage(error, fallback));
 };

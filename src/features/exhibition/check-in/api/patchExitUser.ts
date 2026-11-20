@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { toScanError } from '@/shared/libs/http/getScanErrorMessage';
 import {
@@ -13,9 +13,10 @@ export const patchExitUser = async (
   expoId: string,
   data: ExitScanRequest,
   scannerName?: string,
+  http: AxiosInstance = clientTokenInstance,
 ): Promise<ExitScanResponse> => {
   try {
-    const response = await clientTokenInstance.patch<ExitScanResponse>(
+    const response = await http.patch<ExitScanResponse>(
       `/attendance/exit/${encodeURIComponent(expoId)}`,
       data,
       scannerNameConfig(scannerName),

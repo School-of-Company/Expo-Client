@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import clientTokenInstance from '@/shared/libs/http/clientTokenInstance';
 import { toScanError } from '@/shared/libs/http/getScanErrorMessage';
 import { EntryStatusFields } from '@/shared/types/exhibition/check-in/type';
@@ -9,10 +9,11 @@ export const patchPaperQrAttendance = async (
   expoId: string,
   token: string,
   scannerName?: string,
+  http: AxiosInstance = clientTokenInstance,
 ): Promise<EntryStatusFields> => {
   try {
     // 예전 서버는 본문 없는 200 을 준다
-    const response = await clientTokenInstance.patch(
+    const response = await http.patch(
       `/attendance/qr/${encodeURIComponent(expoId)}`,
       { token },
       scannerNameConfig(scannerName),
