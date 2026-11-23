@@ -13,7 +13,7 @@ export interface ProgramFormValues {
   participantType: 'STANDARD' | 'TRAINEE' | '';
   startDate: string;
   endDate: string;
-  /** FormBuilder 가 다루는 모양 그대로 둔다. 보낼 때 `id` 를 떼고 `DEFAULT` 를 붙인다. */
+  /** FormBuilder 가 다루는 모양 그대로 둔다. 보낼 때 음수 임시 `id` 는 떼고, 서버 `id` 는 싣고, `DEFAULT` 를 붙인다. */
   dynamicForm: DynamicFormItem[];
 }
 
@@ -60,8 +60,10 @@ export const toProgramFormRequest = (
     participantType: values.participantType || null,
     startDate: toIso(values.startDate, base?.startDate),
     endDate: toIso(values.endDate, base?.endDate),
+    // 서버 id(양수)만 싣는다. 새 문항의 음수 임시 id는 빼서 서버가 새 필드로 만들게 한다(#967)
     dynamicForm: values.dynamicForm.map(
-      ({ title, formType, jsonData, requiredStatus, otherJson }) => ({
+      ({ id, title, formType, jsonData, requiredStatus, otherJson }) => ({
+        ...(id > 0 && { id }),
         title,
         formType,
         jsonData,

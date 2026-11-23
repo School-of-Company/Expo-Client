@@ -74,12 +74,15 @@ const toOtherJson = (
   };
 };
 
-const toFields = (data: FormValues) => {
+/** `withServerIds`는 등록 폼 수정에서만 켠다. 기존 필드의 id를 실어 서버가 같은 필드로 이어받게 한다(#967). */
+const toFields = (data: FormValues, withServerIds = false) => {
   const questions = data.questions.filter(
     (question) => question.formType !== 'PRIVACYCONSENT',
   );
 
   return questions.map((question) => ({
+    ...(withServerIds &&
+      question.serverId !== undefined && { id: question.serverId }),
     title: question.title,
     formType: question.formType as DynamicFieldRequest['formType'],
     jsonData: toJsonData(question),
@@ -121,6 +124,6 @@ export const transformFormData = (
     endDate,
     // 일반 사전등록만 싣는다. 나머지 폼은 생략해 서버의 기존 값을 건드리지 않는다
     ...(occupationOpenAt !== undefined && { occupationOpenAt }),
-    dynamicForm: toFields(data),
+    dynamicForm: toFields(data, true),
   };
 };
