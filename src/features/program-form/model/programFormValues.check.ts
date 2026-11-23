@@ -46,9 +46,10 @@ const moved = toProgramFormRequest(
 );
 assert.equal(moved.endDate, new Date('2026-12-31T18:00').toISOString());
 
-// 필드는 id 를 떼고 DEFAULT, 대상 없음은 null, 제목은 trim
+// 기존 필드는 서버 id 를 싣고(#967), DEFAULT, 대상 없음은 null, 제목은 trim
 assert.deepEqual(untouched.dynamicForm, [
   {
+    id: 7,
     title: '반',
     formType: 'DROPDOWN',
     jsonData: { '1': '1반' },

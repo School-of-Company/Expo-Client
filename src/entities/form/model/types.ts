@@ -19,8 +19,12 @@ export type FormParticipantType = 'TRAINEE' | 'STANDARD';
 
 export type DynamicFormType = BuilderDynamicFormType | 'DEFAULT';
 
-/** 요청에 싣는 입력 필드. 응답에서는 `id`가 붙는다. */
+/**
+ * 요청에 싣는 입력 필드. 응답에서는 `id`가 붙는다.
+ * 수정할 때 기존 필드면 그 `id`를 함께 보내 서버가 같은 필드로 이어받게 한다(#967). 새 필드는 생략한다.
+ */
 export interface DynamicFormItemRequest {
+  id?: number;
   title: string;
   formType: FormType;
   requiredStatus: boolean;

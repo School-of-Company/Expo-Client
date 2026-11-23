@@ -30,6 +30,8 @@ export interface FormValues {
     requiredStatus: boolean;
     otherJson: string | null;
     dynamicFormType?: DynamicFormType | 'DEFAULT';
+    /** 수정 화면에서 불러온 기존 필드의 서버 id. 새 문항에는 없다. */
+    serverId?: number;
   }[];
   informationText: string;
   title: string;
@@ -52,6 +54,8 @@ export interface OptionProps {
 }
 
 export interface DynamicFieldRequest {
+  /** 기존 필드의 서버 id. 수정 요청에서만 싣는다. */
+  id?: number;
   title: string;
   formType: DynamicFormItem['formType'];
   jsonData: JsonData;

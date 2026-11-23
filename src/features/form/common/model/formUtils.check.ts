@@ -85,7 +85,7 @@ assert.deepEqual(
   ],
 );
 
-// 서버 응답을 다시 빌더로 읽고 저장하면 같은 요청이 된다
+// 서버 응답을 다시 빌더로 읽고 저장하면 같은 요청이 된다. 기존 필드는 서버 id 를 함께 보낸다(#967)
 const response = {
   ...request,
   dynamicForm: request.dynamicForm.map((f, index) => ({ ...f, id: index + 1 })),
@@ -101,7 +101,42 @@ assert.deepEqual(
     request.startDate,
     request.endDate,
   ),
-  request,
+  {
+    ...request,
+    dynamicForm: request.dynamicForm.map((f, index) => ({
+      id: index + 1,
+      ...f,
+    })),
+  },
+);
+
+// 새로 추가한 문항(서버 id 없음)은 id 를 싣지 않는다
+reloaded.questions.push({
+  title: '새 문항',
+  formType: 'SENTENCE',
+  options: [],
+  requiredStatus: false,
+  otherJson: null,
+});
+const withNew = transformFormData(
+  reloaded,
+  'STANDARD',
+  'application',
+  'PRE',
+  request.startDate,
+  request.endDate,
+) as ApplicationFormRequest;
+assert.equal(
+  'id' in withNew.dynamicForm[withNew.dynamicForm.length - 1],
+  false,
+);
+
+// 설문 수정 요청에는 id 를 싣지 않는다(이번 범위는 등록 폼)
+const survey = transformFormData(reloaded, 'STANDARD', 'survey', 'PRE', '', '');
+assert.equal(
+  'dynamicSurveyRequestDto' in survey &&
+    survey.dynamicSurveyRequestDto.some((f) => 'id' in f),
+  false,
 );
 
 console.log('formUtils checks passed');
